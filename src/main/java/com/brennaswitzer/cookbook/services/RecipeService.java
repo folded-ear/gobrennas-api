@@ -14,4 +14,9 @@ public class RecipeService {
     public Recipe saveOrUpdateRecipe(Recipe recipe) {
         return recipeRepository.save(recipe);
     }
+
+    public Recipe findRecipeById(Long id) {
+        return recipeRepository.findRecipeById(id);
+    }
+
 }
