@@ -40,4 +40,11 @@ public class RecipeController {
     public Iterable<Recipe> getAllRecipes() {
         return recipeService.findAllRecipes();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
+        recipeService.deleteRecipeById(id);
+
+        return new ResponseEntity<String>("Recipe was deleted", HttpStatus.OK);
+    }
 }
