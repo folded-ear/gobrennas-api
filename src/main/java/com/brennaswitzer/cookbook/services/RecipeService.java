@@ -19,4 +19,8 @@ public class RecipeService {
         return recipeRepository.findRecipeById(id);
     }
 
+    public Iterable<Recipe> findAllRecipes() {
+        return recipeRepository.findAll();
+    }
+
 }

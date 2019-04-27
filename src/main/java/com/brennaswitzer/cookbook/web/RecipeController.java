@@ -35,4 +35,9 @@ public class RecipeController {
         Recipe recipe = recipeService.findRecipeById(id);
         return new ResponseEntity<>(recipe, HttpStatus.OK);
     }
+
+    @GetMapping("/all")
+    public Iterable<Recipe> getAllRecipes() {
+        return recipeService.findAllRecipes();
+    }
 }
