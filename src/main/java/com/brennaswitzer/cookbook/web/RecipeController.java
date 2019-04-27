@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.services.RecipeService;
+import com.brennaswitzer.cookbook.services.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +21,13 @@ public class RecipeController {
     @Autowired
     private RecipeService recipeService;
 
+    @Autowired
+    private ValidationService validationService;
+
     @PostMapping("")
     public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe, BindingResult result) {
-
-        if(result.hasErrors()) {
-            return new ResponseEntity<String>("Invalid Recipe", HttpStatus.BAD_REQUEST);
-        }
+        ResponseEntity<?> errors = validationService.validationService(result);
+        if(errors != null) return errors;
 
         Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
         return new ResponseEntity<>(recipe, HttpStatus.CREATED);
