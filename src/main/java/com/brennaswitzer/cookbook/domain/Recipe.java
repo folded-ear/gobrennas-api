@@ -1,6 +1,9 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Entity
@@ -9,7 +12,10 @@ public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "A title is required")
     private String title;
+
     private String external_url;
 
     @Lob
@@ -18,7 +24,10 @@ public class Recipe {
     @Lob
     private String directions;
 
+    @JsonFormat(pattern = "yyyy-mm-dd")
     private Date created_at;
+
+    @JsonFormat(pattern = "yyyy-mm-dd")
     private Date updated_at;
 
     public Recipe() {
