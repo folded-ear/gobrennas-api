@@ -11,7 +11,11 @@ public class Recipe {
     private Long id;
     private String title;
     private String external_url;
+
+    @Lob
     private String ingredients;
+
+    @Lob
     private String directions;
 
     private Date created_at;
