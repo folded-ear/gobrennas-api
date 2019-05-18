@@ -19,5 +19,14 @@ public abstract class Ingredient {
     public void setIngredientId(long ingredientId) {
         this.ingredientId = ingredientId;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 }
 
