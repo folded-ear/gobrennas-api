@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Repository
 public interface RecipeRepository extends CrudRepository<Recipe, Long> {
@@ -12,6 +13,9 @@ public interface RecipeRepository extends CrudRepository<Recipe, Long> {
     @Override
     Iterable<Recipe> findAll();
 
-    @Transactional
-    Recipe findRecipeById(Long Id);
+    @Override
+    Optional<Recipe> findById(Long aLong);
+
+    @Override
+    void deleteById(Long aLong);
 }

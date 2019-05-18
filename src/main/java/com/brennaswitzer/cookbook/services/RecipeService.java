@@ -5,6 +5,8 @@ import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class RecipeService {
 
@@ -15,8 +17,8 @@ public class RecipeService {
         return recipeRepository.save(recipe);
     }
 
-    public Recipe findRecipeById(Long id) {
-        return recipeRepository.findRecipeById(id);
+    public Optional<Recipe> findRecipeById(Long id) {
+        return recipeRepository.findById(id);
     }
 
     public Iterable<Recipe> findAllRecipes() {
@@ -24,8 +26,7 @@ public class RecipeService {
     }
 
     public void deleteRecipeById(Long id) {
-        Recipe recipe = recipeRepository.findRecipeById(id);
-        recipeRepository.delete(recipe);
+        recipeRepository.deleteById(id);
     }
 
 }

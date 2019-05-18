@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -32,7 +33,7 @@ public class RecipeController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getRecipeById(@PathVariable Long id) {
-        Recipe recipe = recipeService.findRecipeById(id);
+        Optional<Recipe> recipe = recipeService.findRecipeById(id);
         return new ResponseEntity<>(recipe, HttpStatus.OK);
     }
 

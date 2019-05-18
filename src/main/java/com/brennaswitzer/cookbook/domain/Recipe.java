@@ -7,11 +7,8 @@ import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Entity
-public class Recipe {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@DiscriminatorValue("Recipe")
+public class Recipe extends Ingredient {
 
     @NotBlank(message = "A title is required")
     private String title;
@@ -31,14 +28,6 @@ public class Recipe {
     private Date updated_at;
 
     public Recipe() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getTitle() {
