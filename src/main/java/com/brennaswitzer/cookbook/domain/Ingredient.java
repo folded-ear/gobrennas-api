@@ -6,18 +6,19 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 public abstract class Ingredient {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long ingredientId;
+    private long id;
 
     private String name;
 
     public long getIngredientId() {
-        return ingredientId;
+        return id;
     }
 
     public void setIngredientId(long ingredientId) {
-        this.ingredientId = ingredientId;
+        this.id = ingredientId;
     }
 
     public String getName() {

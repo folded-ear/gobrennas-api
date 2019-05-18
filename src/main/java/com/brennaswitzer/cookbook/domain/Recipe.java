@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
@@ -16,10 +17,10 @@ public class Recipe extends Ingredient {
     private String external_url;
 
     @Lob
-    private String ingredients;
-
-    @Lob
     private String directions;
+
+    @ElementCollection
+    private List<IngredientRef> ingredients;
 
     @JsonFormat(pattern = "yyyy-mm-dd")
     private Date created_at;
@@ -46,20 +47,20 @@ public class Recipe extends Ingredient {
         this.external_url = external_url;
     }
 
-    public String getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(String ingredients) {
-        this.ingredients = ingredients;
-    }
-
     public String getDirections() {
         return directions;
     }
 
     public void setDirections(String directions) {
         this.directions = directions;
+    }
+
+    public List<IngredientRef> getIngredients() {
+        return this.ingredients;
+    }
+
+    public void setIngredients(List<IngredientRef> ingredients) {
+        this.ingredients = ingredients;
     }
 
     public Date getCreated_at() {
