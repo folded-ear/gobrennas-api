@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
+@JsonTypeName("PantryItem")
 public class Recipe extends Ingredient {
 
     @NotBlank(message = "A title is required")

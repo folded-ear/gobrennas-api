@@ -8,7 +8,7 @@ public class IngredientRef {
     private String quantity;
     private String preparation;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE})
     private Ingredient ingredient;
 
     public Ingredient getIngredient() {
