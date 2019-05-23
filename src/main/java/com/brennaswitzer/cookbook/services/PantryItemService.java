@@ -15,4 +15,7 @@ public class PantryItemService {
         return pantryItemRepository.save(item);
     }
 
+    public Iterable<PantryItem> findAllPantryItems() {
+        return pantryItemRepository.findAll();
+    }
 }
