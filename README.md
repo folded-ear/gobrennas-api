@@ -2,6 +2,8 @@
 
 I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
 
+> Your _face_ is a cookbook!
+
 ## Build and Run
 
 You'll need a recent-ish Maven and Node/NPM pair to build. Specific versions
