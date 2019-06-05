@@ -1,6 +1,8 @@
-# Foodinger!
+# Cookbook!
 
 I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
+
+> Your _face_ is a cookbook!
 
 ## Build and Run
 
