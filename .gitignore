@@ -2,6 +2,7 @@ HELP.md
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 /src/main/resources/static/
+/src/main/resources/application-default.properties
 
 ### STS ###
 .apt_generated
