@@ -1,8 +1,16 @@
-matrix:
-  include:
-    - language: node_js
-      node_js: "10"
-      before_script:
-        - cd client
-    - language: java
-      jdk: openjdk8
+language: java
+jdk: openjdk8
+node_js: "10"
+before_install:
+  - cd client
+  - npm install
+  - cd ..
+before_script:
+  - cd client
+  - npm run build
+  - cd ..
+cache:
+  directories:
+    - $HOME/.m2/repository
+    - $HOME/.npm
+    - client/node_modules
