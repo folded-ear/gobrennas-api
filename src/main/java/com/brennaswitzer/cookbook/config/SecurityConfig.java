@@ -97,21 +97,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .cors()
-                .and()
+                    .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .and()
                 .csrf()
-                .disable()
+                    .disable()
                 .formLogin()
-                .disable()
+                    .disable()
                 .httpBasic()
-                .disable()
+                    .disable()
                 .exceptionHandling()
-                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-                .and()
+                    .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                    .and()
                 .authorizeRequests()
-                .antMatchers("/",
+                    .antMatchers("/",
                         "/error",
                         "/favicon.ico",
                         "/**/*.png",
@@ -121,25 +121,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/**/*.html",
                         "/**/*.css",
                         "/**/*.js")
-                .permitAll()
-                .antMatchers("/auth/**", "/oauth2/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .oauth2Login()
-                .authorizationEndpoint()
-                .baseUri("/oauth2/authorize")
-                .authorizationRequestRepository(cookieAuthorizationRequestRepository())
-                .and()
-                .redirectionEndpoint()
-                .baseUri("/oauth2/callback/*")
-                .and()
-                .userInfoEndpoint()
-                .userService(customOAuth2UserService)
-                .and()
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-                .failureHandler(oAuth2AuthenticationFailureHandler);
+                        .permitAll()
+                    .antMatchers("/api/**")
+                        .authenticated()
+                    .anyRequest()
+                        .permitAll()
+                        .and()
+                    .oauth2Login()
+                        .authorizationEndpoint()
+                            .baseUri("/oauth2/authorize")
+                            .authorizationRequestRepository(cookieAuthorizationRequestRepository())
+                            .and()
+                        .redirectionEndpoint()
+                            .baseUri("/oauth2/callback/*")
+                            .and()
+                        .userInfoEndpoint()
+                            .userService(customOAuth2UserService)
+                            .and()
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler);
 
         // Add our custom Token based authentication filter
         http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
