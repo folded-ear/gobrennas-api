@@ -15,3 +15,17 @@ cache:
     - $HOME/.m2/repository
     - $HOME/.npm
     - client/node_modules
+
+deploy:
+  provider: elasticbeakstalk
+  access_key_id: "AKIAYLRQLC7OYU4FNN6E"
+  secret_access_key:
+    secure: "pDci9bswxdNSvP/6JSfLRfjXsIClipJJUAa55AB+5UHq4IXs6qLWEz+LLJGsDr0YpBJGM9bnlY5z/iGEFLicYAJFfdxJBPpWzz3wNhhNqTIDo41MBhtfL+tmJBa3JCGM7ZLtvdrBUoO9e0HKhatDniV3UNd46sk2aYqAFPTu/kFINJTOsCZ+wk80fXItLaH5P7tNzpk36AEW2lb57yHMueIOsBpP9uvO6TkwaJLqWVO6Lnt6qg/PA4rqUAyZa30TIGXNGdv0uZHt/D7IsXMK5qT/UCr+6vBdqeRWVPJEKJR32iGce2PWd4fi5RaT1gv8BsOL8yZ3SR8T38daNFDrgzY9F3I4IwVE+t/Ja4ubqqVSP3kyoyssPnqfvR9f5XXgdVqwKyhLAKOZozZnPXK7NIivc5NBGsTLxM0qHwjjmehHTTtHftlSNdtU+qeK0BVqAToMhDroyI6jkHTbuPX8vH3JeRM7GfqPaaDoSz5sMgHdZTJ59OrrX1YaxRCDK7hMg7UCZq26E3nqc5v6or7v4H+/MsOJq7PD2lofpSz4LYz3M8zTRmRu1hSpyymKdvBEOQ04MPisJkYqtNauT5C1kfaG27QlHfmNKgnil29v3pq90Yeo9/RRHPHxBCES1vHHjtu/tWs0kn+wJEUKsLz30fzfS96WsS2wt135EVIdlSA="
+  region: "us-west-2"
+  app: "cookbook"
+  env: "e-r6k6vptpgi"
+  bucket_name: "elasticbeanstalk-us-west-2-574553266141"
+  skip_cleanup: true
+  zip_file: target/cookbook-0.0.1-SNAPSHOT.jar
+  on:
+    branch: travis
