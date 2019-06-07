@@ -28,4 +28,4 @@ deploy:
   skip_cleanup: true
   zip_file: target/cookbook-0.0.1-SNAPSHOT.jar
   on:
-    branch: travis
+    branch: master
