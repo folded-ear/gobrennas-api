@@ -1,10 +1,15 @@
 package com.brennaswitzer.cookbook.domain;
 
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
+@Entity
+@Table(uniqueConstraints = {
+        @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
+})
 public class Task {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
@@ -25,18 +30,24 @@ public class Task {
         return a.position - b.position;
     };
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @NotNull
+    @Column(columnDefinition = "varchar not null")
     private String name;
 
+    @Column(precision = 19, scale = 4)
     private BigDecimal quantity = BigDecimal.ONE;
 
     @NotNull
     private int position;
 
+    @ManyToOne()
     private Task parent;
 
+    @OneToMany(mappedBy = "parent")
     private Set<Task> subtasks;
 
     public Task() {
