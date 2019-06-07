@@ -1,5 +1,9 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -10,6 +14,7 @@ import java.util.*;
 @Table(uniqueConstraints = {
         @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
 })
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Task {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
@@ -133,6 +138,7 @@ public class Task {
         return getSubtaskCount() != 0;
     }
 
+    @JsonIgnore
     public Task getParent() {
         return parent;
     }
@@ -191,12 +197,18 @@ public class Task {
         task.setParent(null);
     }
 
+    @JsonIgnore
     public Iterable<Task> getSubtaskView() {
         if (subtasks == null) {
             //noinspection unchecked
             return Collections.EMPTY_SET;
         }
         return Collections.unmodifiableSet(subtasks);
+    }
+
+    @JsonProperty("subtasks")
+    public Iterable<Task> getOrderedSubtasksView() {
+        return getSubtaskView(BY_ORDER);
     }
 
     public Iterable<Task> getSubtaskView(Comparator<Task> comparator) {
