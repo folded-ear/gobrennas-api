@@ -130,6 +130,7 @@ public class Task {
         this.position = position;
     }
 
+    @JsonIgnore
     public boolean isSubtask() {
         return parent != null;
     }
