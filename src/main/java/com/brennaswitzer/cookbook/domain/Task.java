@@ -15,7 +15,7 @@ import java.util.*;
         @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
 })
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class Task {
+public class Task extends BaseEntity {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -35,21 +35,25 @@ public class Task {
         return a.position - b.position;
     };
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     @NotNull
-    @Column(columnDefinition = "varchar not null")
+    @Column(
+            columnDefinition = "varchar not null"
+    )
     private String name;
 
-    @Column(precision = 19, scale = 4)
+    @NotNull
+    @Column(
+            precision = 19,
+            scale = 4,
+            columnDefinition = "numeric(19, 4) default 1"
+    )
     private BigDecimal quantity = BigDecimal.ONE;
 
     @NotNull
     private int position;
 
     @ManyToOne()
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_task_parent"))
     private Task parent;
 
     @OneToMany(mappedBy = "parent")
@@ -67,14 +71,6 @@ public class Task {
         setPosition(position);
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
@@ -88,6 +84,7 @@ public class Task {
     }
 
     public void setQuantity(BigDecimal quantity) {
+        if (quantity == null) quantity = BigDecimal.ONE;
         this.quantity = quantity;
     }
 
