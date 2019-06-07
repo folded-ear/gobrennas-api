@@ -1,5 +1,7 @@
 # Cookbook!
 
+[![Build Status](https://travis-ci.org/switzerb/CookBook.svg?branch=master)](https://travis-ci.org/switzerb/CookBook)
+
 I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
 
 > Your _face_ is a cookbook!
