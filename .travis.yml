@@ -4,10 +4,11 @@ node_js: "10"
 before_install:
   - cd client
   - npm install
+  - npm run build
   - cd ..
 before_script:
   - cd client
-  - npm run build
+  - npm run test
   - cd ..
 cache:
   directories:
