@@ -1,24 +1,23 @@
 package com.brennaswitzer.cookbook.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email")
+})
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String first;
+    private String name;
     private String email;
-    private String password;
 
     public User() {}
 
-    public User(String first, String username, String email, String password) {
-        this.first = first;
+    public User(String name, String username, String email, String password) {
+        this.name = name;
         this.email = email;
     }
 
@@ -30,12 +29,12 @@ public class User {
         this.id = id;
     }
 
-    public String getFirst() {
-        return first;
+    public String getName() {
+        return name;
     }
 
-    public void setFirst(String first) {
-        this.first = first;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -45,13 +44,4 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
 }
