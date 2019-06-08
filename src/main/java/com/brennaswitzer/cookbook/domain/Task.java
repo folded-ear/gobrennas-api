@@ -3,6 +3,8 @@ package com.brennaswitzer.cookbook.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -52,11 +54,12 @@ public class Task extends BaseEntity {
     @NotNull
     private int position;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_task_parent"))
     private Task parent;
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
+    @OnDelete(action = OnDeleteAction.CASCADE) // for the Postgres FK
     private Set<Task> subtasks;
 
     public Task() {
