@@ -13,9 +13,11 @@ import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
-@Table(uniqueConstraints = {
-        @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
-})
+// this causes violations because of Hibernate's flush order. so no-go until it
+// can be deferred (i.e., manually created via liquibase).
+//@Table(uniqueConstraints = {
+//        @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
+//})
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Task extends BaseEntity {
 
@@ -145,7 +147,7 @@ public class Task extends BaseEntity {
     }
 
     public void setParent(Task parent) {
-        if (this.parent != null) {
+        if (this.parent != null && this.parent.subtasks != null) {
             this.parent.subtasks.remove(this);
             for (Task t : this.parent.subtasks) {
                 if (t.position < this.position) continue;
@@ -199,7 +201,7 @@ public class Task extends BaseEntity {
     }
 
     @JsonIgnore
-    public Iterable<Task> getSubtaskView() {
+    public Collection<Task> getSubtaskView() {
         if (subtasks == null) {
             //noinspection unchecked
             return Collections.EMPTY_SET;
@@ -208,11 +210,11 @@ public class Task extends BaseEntity {
     }
 
     @JsonProperty("subtasks")
-    public Iterable<Task> getOrderedSubtasksView() {
+    public List<Task> getOrderedSubtasksView() {
         return getSubtaskView(BY_ORDER);
     }
 
-    public Iterable<Task> getSubtaskView(Comparator<Task> comparator) {
+    public List<Task> getSubtaskView(Comparator<Task> comparator) {
         if (subtasks == null) {
             //noinspection unchecked
             return Collections.EMPTY_LIST;

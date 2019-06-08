@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import org.junit.Test;
 
+import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
 import static org.junit.Assert.*;
 
 public class TaskTest {
@@ -168,12 +169,12 @@ public class TaskTest {
 
     @Test
     public void muppetLikeListsForShopping() {
-        Task groceries = new Task("Groceries"),
-                tacos = new Task("Tacos").of(groceries),
-                salad = new Task("Salad").of(groceries),
-                lunch = new Task("Lunch").of(groceries);
+        Task groceries = new Task("Groceries");
+        Task tacos = new Task("Tacos").of(groceries);
+        Task salad = new Task("Salad").of(groceries);
+        Task lunch = new Task("Lunch").of(groceries);
 
-        System.out.println(render("Meals", groceries));
+        System.out.println(renderTree("Meals", groceries));
 
         Task meat = new Task("meat").of(tacos);
         Task tortillas = new Task("tortillas").of(tacos);
@@ -190,7 +191,7 @@ public class TaskTest {
         Task cheese2 = new Task("cheese").of(lunch);
         Task bread = new Task("bread").of(lunch);
 
-        System.out.println(render("Ingredients", groceries));
+        System.out.println(renderTree("Ingredients", groceries));
 
         Task costco = new Task("Costco").of(groceries, null),
                 winco = new Task("Winco").of(groceries, costco);
@@ -209,37 +210,9 @@ public class TaskTest {
             //noinspection UnusedAssignment
             cheese2 = null;
         }
-        bread.after(chicken);
+        bread.after(salsa);
 
-        System.out.println(render("Shopping", groceries));
-    }
-
-    private String render(String header, Task t) {
-        StringBuilder sb = new StringBuilder("= ")
-                .append(header)
-                .append(' ');
-        for (int i = 80 - sb.length(); i > 0; i--) sb.append('=');
-        sb.append('\n');
-        render(sb, t, 0);
-        for (int i = 80; i > 0; i--) sb.append('-');
-        sb.append('\n');
-        return sb.toString();
-    }
-
-    private void render(StringBuilder sb, Task t, int depth) {
-        for (int i = 0; i < depth; i++) {
-            sb.append("  ");
-        }
-        sb.append(t.getName());
-        if (t.isQuantityInteresting()) {
-            sb.append(" (")
-                    .append(t.getQuantity())
-                    .append(')');
-        }
-        sb.append('\n');
-        for (Task s : t.getSubtaskView(Task.BY_ORDER)) {
-            render(sb, s, depth + 1);
-        }
+        System.out.println(renderTree("Shopping", groceries));
     }
 
 }
