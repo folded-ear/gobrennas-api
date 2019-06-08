@@ -1,8 +1,11 @@
 server:
   port: 5000
+  error:
+    whitelabel:
+      enabled: false
 
 spa:
-  default-file: /public/index.html
+  default-resource: /public/index.html
 
 spring:
   datasource:
@@ -24,9 +27,6 @@ spring:
             non_contextual_creation: true
   mvc:
     throw-exception-if-no-handler-found: true
-  resources:
-    add-mappings: false
-    static-locations: classpath:/resources/,classpath:/static/,classpath:/public/
   security:
     oauth2:
       client:
