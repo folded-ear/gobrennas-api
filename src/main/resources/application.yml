@@ -8,6 +8,7 @@ spa:
   default-resource: /public/index.html
 
 spring:
+  profiles: production
   datasource:
     driverClassName: org.postgresql.Driver
     platform: postgres
