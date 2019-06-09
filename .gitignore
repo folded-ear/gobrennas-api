@@ -3,6 +3,7 @@ HELP.md
 !.mvn/wrapper/maven-wrapper.jar
 /src/main/resources/public/
 /src/main/resources/application-default.properties
+/src/main/resources/application-dev.yml
 
 ### STS ###
 .apt_generated
