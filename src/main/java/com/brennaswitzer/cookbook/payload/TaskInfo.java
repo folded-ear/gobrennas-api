@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.payload;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import javax.validation.constraints.NotBlank;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class TaskInfo {
 
     private Long id;
 
-    @NotBlank
+    @JsonInclude
     private String name;
 
     private Long parentId;
