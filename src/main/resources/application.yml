@@ -1,5 +1,4 @@
 server:
-  port: 5000
   error:
     whitelabel:
       enabled: false
@@ -25,8 +24,9 @@ spring:
       client:
         registration:
           google:
-            clientId: ${GOOGLE_CLIENT_ID}
-            clientSecret: ${GOOGLE_CLIENT_SECRET}
+            # these keys come from the spring-social demo app. not ideal, but works!
+            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
+            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
             redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
@@ -35,3 +35,6 @@ app:
   auth:
     tokenSecret: ${TOKEN_SECRET}
     tokenExpirationMsec: 864000000
+  oauth2:
+    authorizedRedirectUris:
+      - http://localhost:3001/oauth2/redirect

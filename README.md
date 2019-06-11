@@ -32,4 +32,4 @@ it at a recent-ish Postgres (let's say 9.6 or newer) database of your choice:
 Note that currently your Postgres *MUST* be running on `5432` (the standard
 Postgres port).
 
-Now just hit http://localhost:5000/ in your browser, and BAM.
+Now just hit http://localhost:8080/ in your browser, and BAM.
