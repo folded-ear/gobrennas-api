@@ -1,4 +1,4 @@
-# Cookbook!
+# Foodinger!
 
 [![Build Status](https://travis-ci.org/switzerb/CookBook.svg?branch=master)](https://travis-ci.org/switzerb/CookBook)
 
