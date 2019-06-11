@@ -9,7 +9,7 @@ spring:
     username: ${RDS_USERNAME}
     password: ${RDS_PASSWORD}
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     generate-ddl: true
