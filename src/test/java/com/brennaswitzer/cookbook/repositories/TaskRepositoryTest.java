@@ -1,6 +1,8 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.User;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +26,28 @@ public class TaskRepositoryTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private User user;
+
+    @Before
+    public void setUp() {
+        user = userRepository.save(new User("Johann", "johann", "johann@example.com", "<HIDDEN>"));
+    }
+
     @Test
     public void createUpdateTimestamps() {
-        assertFalse(repo.findByParentIsNull().iterator().hasNext());
+        assertFalse(repo.findByOwnerAndParentIsNull(user).iterator().hasNext());
 
-        Task groceries = new Task("Groceries");
+        Task groceries = new Task(user, "Groceries");
         assertNull(groceries.getCreatedAt());
         assertNull(groceries.getUpdatedAt());
         groceries = repo.save(groceries);
 
         assertNotNull(groceries.getCreatedAt());
         assertNotNull(groceries.getUpdatedAt());
-        assertTrue(repo.findByParentIsNull().iterator().hasNext());
+        assertTrue(repo.findByOwnerAndParentIsNull(user).iterator().hasNext());
 
         Instant old = groceries.getUpdatedAt();
         assertEquals(old, groceries.getUpdatedAt());
@@ -48,7 +60,7 @@ public class TaskRepositoryTest {
 
     @Test
     public void findById() {
-        Task groceries = new Task("Groceries");
+        Task groceries = new Task(user, "Groceries");
         assertNull(groceries.getId());
         groceries = repo.saveAndFlush(groceries); // because IDENTITY generation, the flush isn't needed, but it's good style
         Long id = groceries.getId();

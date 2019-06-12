@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
-      - file: db/changelog/baseline.xml
+      file: db/changelog/baseline.xml
+  - include:
+      file: db/changelog/tasks.sql

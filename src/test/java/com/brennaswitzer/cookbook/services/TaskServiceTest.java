@@ -1,7 +1,10 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +33,24 @@ public class TaskServiceTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private User user;
+
+    @Before
+    public void setUp() {
+        user = userRepository.save(new User("Johann", "johann", "johann@example.com", "<HIDDEN>"));
+    }
+
     @Test
     public void getRootTasks() {
-        Iterator<Task> itr = service.getRootTasks().iterator();
+        Iterator<Task> itr = service.getRootTasks(user).iterator();
         assertFalse(itr.hasNext());
 
-        Task groceries = repo.save(new Task("groceries"));
+        Task groceries = repo.save(new Task(user, "groceries"));
 
-        itr = service.getRootTasks().iterator();
+        itr = service.getRootTasks(user).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
@@ -46,7 +59,7 @@ public class TaskServiceTest {
                 .of(groceries));
 
         // still only one!
-        itr = service.getRootTasks().iterator();
+        itr = service.getRootTasks(user).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
@@ -54,13 +67,14 @@ public class TaskServiceTest {
 
     @Test
     public void createTask() {
-        Task g = service.createRootTask("Groceries");
+
+        Task g = service.createRootTask("Groceries", user);
         assertNotNull(g.getId());
         assertEquals("Groceries", g.getName());
         assertEquals(0, g.getPosition());
         assertEquals(0, g.getSubtaskCount());
 
-        Task v = service.createRootTask("Vacation");
+        Task v = service.createRootTask("Vacation", user);
         assertNotNull(v.getId());
         assertNotEquals(g.getId(), v.getId());
         assertEquals("Vacation", v.getName());
@@ -70,7 +84,7 @@ public class TaskServiceTest {
 
     @Test
     public void createSubtask() {
-        Task groceries = repo.save(new Task("groceries"));
+        Task groceries = repo.save(new Task(user, "groceries"));
         assertEquals(0, groceries.getSubtaskCount());
 
         Task oj = service.createSubtask(groceries.getId(), "OJ");
@@ -104,7 +118,7 @@ public class TaskServiceTest {
 
     @Test
     public void renameTask() {
-        Task bill = repo.save(new Task("bill"));
+        Task bill = repo.save(new Task(user, "bill"));
 
         service.renameTask(bill.getId(), "William");
         repo.flush();
@@ -116,7 +130,7 @@ public class TaskServiceTest {
 
     @Test
     public void resetSubtasks() {
-        Task groceries = repo.save(new Task("groceries"));
+        Task groceries = repo.save(new Task(user, "groceries"));
         Task milk = repo.save(new Task("milk").of(groceries));
         Task oj = repo.save(new Task("OJ").after(milk));
         Task bagels = repo.save(new Task("bagels").after(oj));
@@ -143,7 +157,8 @@ public class TaskServiceTest {
 
     @Test
     public void deleteTask() {
-        Task groceries = repo.save(new Task("groceries"));
+        assertEquals(0, repo.count());
+        Task groceries = repo.save(new Task(user, "groceries"));
         Task milk = repo.save(new Task("milk").of(groceries));
         Task oj = repo.save(new Task("OJ").after(milk));
         Task bagels = repo.save(new Task("bagels").after(oj));
@@ -167,7 +182,7 @@ public class TaskServiceTest {
 
     @Test
     public void muppetLikeListsForShopping() {
-        Task groceries = service.createRootTask("groceries");
+        Task groceries = service.createRootTask("groceries", user);
         Task tacos = service.createSubtask(groceries.getId(), "Tacos");
         Task salad = service.createSubtaskAfter(groceries.getId(), "Salad", tacos.getId());
         Task lunch = service.createSubtaskAfter(groceries.getId(), "Lunch", salad.getId());
@@ -239,7 +254,7 @@ public class TaskServiceTest {
     private void muppetView(String header) {
         repo.flush();
         entityManager.clear();
-        System.out.println(renderTree(header, service.getRootTasks()));
+        System.out.println(renderTree(header, service.getRootTasks(user)));
     }
 
 }
