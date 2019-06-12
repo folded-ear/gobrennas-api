@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <org.liquibase.version>3.6.3</org.liquibase.version>
     </properties>
 
     <dependencies>
@@ -68,6 +69,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${org.liquibase.version}</version>
         </dependency>
     </dependencies>
 

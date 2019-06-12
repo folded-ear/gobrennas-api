@@ -3,9 +3,13 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.payload.SubtaskIds;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.security.CurrentUser;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,25 +17,33 @@ import java.util.List;
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
 @RequestMapping("api/tasks")
+@PreAuthorize("hasRole('USER')")
 public class TaskController {
 
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public List<TaskInfo> getRootTasks(
+            @CurrentUser UserPrincipal userPrincipal
     ) {
-        return TaskInfo.fromTasks(taskService.getRootTasks());
+        return TaskInfo.fromTasks(taskService.getRootTasks(
+                userRepository.getById(userPrincipal.getId())
+        ));
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public TaskInfo createTask(
-            @RequestBody TaskName info
+            @RequestBody TaskName info,
+            @CurrentUser UserPrincipal userPrincipal
     ) {
         return TaskInfo.fromTask(
-                taskService.createRootTask(info.getName())
+                taskService.createRootTask(info.getName(), userRepository.getById(userPrincipal.getId()))
         );
     }
 

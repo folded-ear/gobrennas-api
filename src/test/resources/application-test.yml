@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    platform: H2
+    url: jdbc:h2:mem:testdb;DB_CLOSE_ON_EXIT=False
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect

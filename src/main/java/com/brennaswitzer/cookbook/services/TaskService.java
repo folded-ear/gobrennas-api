@@ -1,7 +1,10 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.security.CurrentUser;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,24 +19,26 @@ public class TaskService {
     @Autowired
     private TaskRepository repo;
 
-    public Iterable<Task> getRootTasks() {
-        return repo.findByParentIsNull();
+    public Iterable<Task> getRootTasks(User owner) {
+        return repo.findByOwnerAndParentIsNull(owner);
     }
 
     public Task getTaskById(Long id) {
         return repo.getOne(id);
     }
 
-    public Task createRootTask(String name) {
+    public Task createRootTask(String name, User user) {
         Task task = new Task(name);
-        task.setPosition(1 + repo.getMaxRootPosition());
+        task.setOwner(user);
+        task.setPosition(1 + repo.getMaxRootPosition(user));
         return repo.save(task);
     }
 
     public Task createSubtask(Long parentId, String name) {
-        Task t = repo.save(new Task(name));
+        Task t = new Task(name);
         getTaskById(parentId)
             .insertSubtask(0, t);
+        repo.save(t);
         return t;
     }
 
@@ -41,8 +46,9 @@ public class TaskService {
         if (afterId == null) {
             throw new IllegalArgumentException("You can't create a subtas after 'null'");
         }
-        Task t = repo.save(new Task(name));
+        Task t = new Task(name);
         getTaskById(parentId).addSubtaskAfter(t, getTaskById(afterId));
+        repo.save(t);
         return t;
     }
 

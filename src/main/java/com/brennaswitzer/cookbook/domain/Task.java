@@ -9,6 +9,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.security.acl.Owner;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
@@ -40,6 +41,10 @@ public class Task extends BaseEntity {
     };
 
     @NotNull
+    @ManyToOne
+    private User owner;
+
+    @NotNull
     @Column(
             columnDefinition = "varchar not null"
     )
@@ -68,6 +73,11 @@ public class Task extends BaseEntity {
     }
 
     public Task(String name) {
+        setName(name);
+    }
+
+    public Task(User owner, String name) {
+        setOwner(owner);
         setName(name);
     }
 
@@ -169,6 +179,7 @@ public class Task extends BaseEntity {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
         task.setParent(this);
+        task.setOwner(this.owner);
     }
 
     public void addSubtaskAfter(Task task, Task after) {
@@ -262,4 +273,13 @@ public class Task extends BaseEntity {
         setQuantity(getQuantity().add(dupe.getQuantity()));
         return null;
     }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
 }

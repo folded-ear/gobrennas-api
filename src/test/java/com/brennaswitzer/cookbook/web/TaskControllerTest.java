@@ -240,7 +240,8 @@ public class TaskControllerTest {
 
     private void treeView(String header) {
         sync();
-        System.out.println(renderTree(header, repo.findByParentIsNull()));
+        // todo: make this the auth-ed user
+        System.out.println(renderTree(header, repo.findByOwnerAndParentIsNull(null)));
     }
 
 }
