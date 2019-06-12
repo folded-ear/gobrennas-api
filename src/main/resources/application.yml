@@ -10,8 +10,8 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
-    generate-ddl: true
+      ddl-auto: none
+    generate-ddl: false
     properties:
       hibernate:
         jdbc:
