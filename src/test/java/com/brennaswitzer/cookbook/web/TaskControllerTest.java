@@ -1,12 +1,15 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.SubtaskIds;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.payload.TaskName;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -26,14 +29,14 @@ import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
 import static org.junit.Assert.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest()
+@SpringBootTest
 @Transactional
 @AutoConfigureMockMvc
-@Ignore("can't do auth yet")
 public class TaskControllerTest {
 
     @Autowired
@@ -47,6 +50,16 @@ public class TaskControllerTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User johann;
+
+    @Before
+    public void setUp() {
+        johann = userRepository.save(new User("Johann", "johann", "johann@example.com", "<HIDDEN>"));
+    }
 
     @Test
     public void theWholeShebang() throws Exception {
@@ -156,11 +169,11 @@ public class TaskControllerTest {
 
     @Test
     public void subtasksCollection() throws Exception {
-        Task root = repo.save(new Task("Root"));
-        Task one = repo.save(new Task("One").of(root));
-        Task oneA = repo.save(new Task("A").of(one));
-        Task oneB = repo.save(new Task("B").of(one));
-        Task two = repo.save(new Task("Two").of(root));
+        Task root = repo.save(new Task(johann,"Root"));
+        Task one = repo.save(new Task(johann,"One").of(root));
+        Task oneA = repo.save(new Task(johann,"A").of(one));
+        Task oneB = repo.save(new Task(johann,"B").of(one));
+        Task two = repo.save(new Task(johann,"Two").of(root));
         sync();
 
         TaskInfo ti;
@@ -198,8 +211,12 @@ public class TaskControllerTest {
         assertEquals(0, tasks.size());
     }
 
-    private ResultActions perform(RequestBuilder req) throws Exception {
-        ResultActions ra = mockMvc.perform(req);
+    private RequestPostProcessor johann() {
+        return user(UserPrincipal.create(johann));
+    }
+
+    private ResultActions perform(MockHttpServletRequestBuilder req) throws Exception {
+        ResultActions ra = mockMvc.perform(req.with(johann()));
         sync();
         return ra;
     }
@@ -229,7 +246,7 @@ public class TaskControllerTest {
     }
 
     private String forJson(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
-        String content = mockMvc.perform(req)
+        String content = perform(req)
                 .andExpect(expect)
                 .andReturn()
                 .getResponse()
@@ -240,8 +257,7 @@ public class TaskControllerTest {
 
     private void treeView(String header) {
         sync();
-        // todo: make this the auth-ed user
-        System.out.println(renderTree(header, repo.findByOwnerAndParentIsNull(null)));
+        System.out.println(renderTree(header, repo.findByOwnerAndParentIsNull(johann)));
     }
 
 }
