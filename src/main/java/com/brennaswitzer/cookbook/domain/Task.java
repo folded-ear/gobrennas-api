@@ -10,11 +10,6 @@ import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
-// this causes violations because of Hibernate's flush order. so no-go until it
-// can be deferred (i.e., manually created via liquibase).
-//@Table(uniqueConstraints = {
-//        @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
-//})
 public class Task extends BaseEntity {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
