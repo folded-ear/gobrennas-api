@@ -1,15 +1,11 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.security.acl.Owner;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
@@ -19,7 +15,6 @@ import java.util.*;
 //@Table(uniqueConstraints = {
 //        @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
 //})
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Task extends BaseEntity {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
@@ -45,28 +40,18 @@ public class Task extends BaseEntity {
     private User owner;
 
     @NotNull
-    @Column(
-            columnDefinition = "varchar not null"
-    )
     private String name;
 
     @NotNull
-    @Column(
-            precision = 19,
-            scale = 4,
-            columnDefinition = "numeric(19, 4) default 1"
-    )
     private BigDecimal quantity = BigDecimal.ONE;
 
     @NotNull
     private int position;
 
     @ManyToOne
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_task_parent"))
     private Task parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
-    @OnDelete(action = OnDeleteAction.CASCADE) // for the Postgres FK
     private Set<Task> subtasks;
 
     public Task() {
@@ -142,7 +127,6 @@ public class Task extends BaseEntity {
         this.position = position;
     }
 
-    @JsonIgnore
     public boolean isSubtask() {
         return parent != null;
     }
@@ -151,7 +135,6 @@ public class Task extends BaseEntity {
         return getSubtaskCount() != 0;
     }
 
-    @JsonIgnore
     public Task getParent() {
         return parent;
     }
@@ -211,7 +194,6 @@ public class Task extends BaseEntity {
         task.setParent(null);
     }
 
-    @JsonIgnore
     public Collection<Task> getSubtaskView() {
         if (subtasks == null) {
             //noinspection unchecked
@@ -220,7 +202,6 @@ public class Task extends BaseEntity {
         return Collections.unmodifiableSet(subtasks);
     }
 
-    @JsonProperty("subtasks")
     public List<Task> getOrderedSubtasksView() {
         return getSubtaskView(BY_ORDER);
     }
