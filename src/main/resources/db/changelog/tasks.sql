@@ -29,3 +29,16 @@ alter table task
 --changeset barneyb:tasks-dont-need-quantity
 alter table task
     drop quantity;
+
+--changeset barneyb:additional-user-grants
+create table task_grants
+(
+    task_id bigint  not null,
+    user_id bigint  not null,
+    perm    varchar not null,
+    constraint pk_task_grants primary key (task_id, user_id),
+    constraint fk_task_grants_task foreign key (task_id) references task (id)
+        on delete cascade,
+    constraint fk_task_grants_user foreign key (user_id) references users (id)
+        on delete cascade
+);

@@ -3,8 +3,6 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
-import com.brennaswitzer.cookbook.security.CurrentUser;
-import com.brennaswitzer.cookbook.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
