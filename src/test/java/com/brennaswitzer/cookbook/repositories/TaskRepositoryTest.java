@@ -29,25 +29,31 @@ public class TaskRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    private User user;
+    private User alice, bob, eve;
 
     @Before
     public void setUp() {
-        user = userRepository.save(new User("Johann", "johann", "johann@example.com", "<HIDDEN>"));
+        this.alice = createUser("Alice");
+        this.bob = createUser("Bob");
+        this.eve = createUser("Eve");
+    }
+
+    private User createUser(String name) {
+        return userRepository.save(new User(name, name.toLowerCase(), name.toLowerCase() + "@example.com", "<HIDDEN>"));
     }
 
     @Test
     public void createUpdateTimestamps() {
-        assertFalse(repo.findByOwnerAndParentIsNull(user).iterator().hasNext());
+        assertFalse(repo.findByOwnerAndParentIsNull(alice).iterator().hasNext());
 
-        Task groceries = new Task(user, "Groceries");
+        Task groceries = new Task(alice, "Groceries");
         assertNull(groceries.getCreatedAt());
         assertNull(groceries.getUpdatedAt());
         groceries = repo.save(groceries);
 
         assertNotNull(groceries.getCreatedAt());
         assertNotNull(groceries.getUpdatedAt());
-        assertTrue(repo.findByOwnerAndParentIsNull(user).iterator().hasNext());
+        assertTrue(repo.findByOwnerAndParentIsNull(alice).iterator().hasNext());
 
         Instant old = groceries.getUpdatedAt();
         assertEquals(old, groceries.getUpdatedAt());
@@ -60,7 +66,7 @@ public class TaskRepositoryTest {
 
     @Test
     public void findById() {
-        Task groceries = new Task(user, "Groceries");
+        Task groceries = new Task(alice, "Groceries");
         assertNull(groceries.getId());
         groceries = repo.saveAndFlush(groceries); // because IDENTITY generation, the flush isn't needed, but it's good style
         Long id = groceries.getId();
