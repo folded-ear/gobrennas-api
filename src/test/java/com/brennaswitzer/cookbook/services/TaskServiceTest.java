@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
@@ -44,13 +45,13 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void getRootTasks() {
-        Iterator<Task> itr = service.getRootTasks(user).iterator();
+    public void getTaskLists() {
+        Iterator<Task> itr = service.getTaskLists(user).iterator();
         assertFalse(itr.hasNext());
 
-        Task groceries = repo.save(new Task(user, "groceries"));
+        Task groceries = repo.save(new TaskList(user, "groceries"));
 
-        itr = service.getRootTasks(user).iterator();
+        itr = service.getTaskLists(user).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
@@ -59,22 +60,22 @@ public class TaskServiceTest {
                 .of(groceries));
 
         // still only one!
-        itr = service.getRootTasks(user).iterator();
+        itr = service.getTaskLists(user).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
     }
 
     @Test
-    public void createTask() {
+    public void createTaskList() {
 
-        Task g = service.createRootTask("Groceries", user);
+        Task g = service.createTaskList("Groceries", user);
         assertNotNull(g.getId());
         assertEquals("Groceries", g.getName());
         assertEquals(0, g.getPosition());
         assertEquals(0, g.getSubtaskCount());
 
-        Task v = service.createRootTask("Vacation", user);
+        Task v = service.createTaskList("Vacation", user);
         assertNotNull(v.getId());
         assertNotEquals(g.getId(), v.getId());
         assertEquals("Vacation", v.getName());
@@ -84,7 +85,7 @@ public class TaskServiceTest {
 
     @Test
     public void createSubtask() {
-        Task groceries = repo.save(new Task(user, "groceries"));
+        Task groceries = repo.save(new Task("groceries"));
         assertEquals(0, groceries.getSubtaskCount());
 
         Task oj = service.createSubtask(groceries.getId(), "OJ");
@@ -118,7 +119,7 @@ public class TaskServiceTest {
 
     @Test
     public void renameTask() {
-        Task bill = repo.save(new Task(user, "bill"));
+        Task bill = repo.save(new Task("bill"));
 
         service.renameTask(bill.getId(), "William");
         repo.flush();
@@ -130,7 +131,7 @@ public class TaskServiceTest {
 
     @Test
     public void resetSubtasks() {
-        Task groceries = repo.save(new Task(user, "groceries"));
+        Task groceries = repo.save(new Task("groceries"));
         Task milk = repo.save(new Task("milk").of(groceries));
         Task oj = repo.save(new Task("OJ").after(milk));
         Task bagels = repo.save(new Task("bagels").after(oj));
@@ -158,7 +159,7 @@ public class TaskServiceTest {
     @Test
     public void deleteTask() {
         assertEquals(0, repo.count());
-        Task groceries = repo.save(new Task(user, "groceries"));
+        Task groceries = repo.save(new Task("groceries"));
         Task milk = repo.save(new Task("milk").of(groceries));
         Task oj = repo.save(new Task("OJ").after(milk));
         Task bagels = repo.save(new Task("bagels").after(oj));
@@ -182,7 +183,7 @@ public class TaskServiceTest {
 
     @Test
     public void muppetLikeListsForShopping() {
-        Task groceries = service.createRootTask("groceries", user);
+        Task groceries = service.createTaskList("groceries", user);
         Task tacos = service.createSubtask(groceries.getId(), "Tacos");
         Task salad = service.createSubtaskAfter(groceries.getId(), "Salad", tacos.getId());
         Task lunch = service.createSubtaskAfter(groceries.getId(), "Lunch", salad.getId());
@@ -254,7 +255,7 @@ public class TaskServiceTest {
     private void muppetView(String header) {
         repo.flush();
         entityManager.clear();
-        System.out.println(renderTree(header, service.getRootTasks(user)));
+        System.out.println(renderTree(header, service.getTaskLists(user)));
     }
 
 }

@@ -6,6 +6,9 @@ import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "_type")
+@DiscriminatorValue("task")
 public class Task extends BaseEntity {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
@@ -26,10 +29,6 @@ public class Task extends BaseEntity {
         return a.position - b.position;
     };
 
-    @Embedded
-    @NotNull
-    Acl acl;
-
     @NotNull
     private String name;
 
@@ -46,11 +45,6 @@ public class Task extends BaseEntity {
     }
 
     public Task(String name) {
-        setName(name);
-    }
-
-    public Task(User owner, String name) {
-        setOwner(owner);
         setName(name);
     }
 
@@ -133,7 +127,6 @@ public class Task extends BaseEntity {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
         task.setParent(this);
-        task.setOwner(this.getOwner());
     }
 
     public void addSubtaskAfter(Task task, Task after) {
@@ -214,16 +207,6 @@ public class Task extends BaseEntity {
 
     public Task after(Task after) {
         return of(after.parent, after);
-    }
-
-    public User getOwner() {
-        if (acl == null) return null;
-        return acl.getOwner();
-    }
-
-    public void setOwner(User owner) {
-        if (acl == null) acl = new Acl();
-        this.acl.setOwner(owner);
     }
 
 }

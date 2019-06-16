@@ -31,14 +31,31 @@ alter table task
     drop quantity;
 
 --changeset barneyb:additional-user-grants
-create table task_grants
+create table task_list_grants
 (
-    task_id bigint  not null,
-    user_id bigint  not null,
-    perm    varchar not null,
-    constraint pk_task_grants primary key (task_id, user_id),
-    constraint fk_task_grants_task foreign key (task_id) references task (id)
+    task_list_id bigint  not null,
+    user_id      bigint  not null,
+    perm         varchar not null,
+    constraint pk_task_list_grants primary key (task_list_id, user_id),
+    constraint fk_task_list_grants_task foreign key (task_list_id) references task (id)
         on delete cascade,
-    constraint fk_task_grants_user foreign key (user_id) references users (id)
+    constraint fk_task_list_grants_user foreign key (user_id) references users (id)
         on delete cascade
 );
+
+--changeset barneyb:task-lists-are-a-separate-type
+alter table task
+    add _type varchar;
+
+-- noinspection SqlWithoutWhere
+update task
+set _type = case parent_id when null then 'list' else 'task' end;
+
+alter table task
+    alter _type set not null;
+
+alter table task
+    alter owner_id drop not null;
+
+alter table task
+    add constraint chk_owner_on_list check ( _type != 'list' or owner_id is not null );

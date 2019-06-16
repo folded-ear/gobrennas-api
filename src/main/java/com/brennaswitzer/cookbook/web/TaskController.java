@@ -31,7 +31,7 @@ public class TaskController {
     public List<TaskInfo> getRootTasks(
             @CurrentUser UserPrincipal userPrincipal
     ) {
-        return TaskInfo.fromTasks(taskService.getRootTasks(
+        return TaskInfo.fromTasks(taskService.getTaskLists(
                 userRepository.getById(userPrincipal.getId())
         ));
     }
@@ -43,7 +43,7 @@ public class TaskController {
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return TaskInfo.fromTask(
-                taskService.createRootTask(info.getName(), userRepository.getById(userPrincipal.getId()))
+                taskService.createTaskList(info.getName(), userRepository.getById(userPrincipal.getId()))
         );
     }
 

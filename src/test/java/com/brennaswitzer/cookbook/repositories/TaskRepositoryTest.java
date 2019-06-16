@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class TaskRepositoryTest {
     public void createUpdateTimestamps() {
         assertFalse(repo.findByOwnerAndParentIsNull(alice).iterator().hasNext());
 
-        Task groceries = new Task(alice, "Groceries");
+        Task groceries = new TaskList(alice, "Groceries");
         assertNull(groceries.getCreatedAt());
         assertNull(groceries.getUpdatedAt());
         groceries = repo.save(groceries);
@@ -66,7 +67,7 @@ public class TaskRepositoryTest {
 
     @Test
     public void findById() {
-        Task groceries = new Task(alice, "Groceries");
+        Task groceries = new Task("Groceries");
         assertNull(groceries.getId());
         groceries = repo.saveAndFlush(groceries); // because IDENTITY generation, the flush isn't needed, but it's good style
         Long id = groceries.getId();

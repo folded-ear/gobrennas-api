@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class TaskService {
     @Autowired
     private TaskRepository repo;
 
-    public Iterable<Task> getRootTasks(User owner) {
+    public Iterable<Task> getTaskLists(User owner) {
         return repo.findByOwnerAndParentIsNull(owner);
     }
 
@@ -25,11 +26,11 @@ public class TaskService {
         return repo.getOne(id);
     }
 
-    public Task createRootTask(String name, User user) {
-        Task task = new Task(name);
-        task.setOwner(user);
-        task.setPosition(1 + repo.getMaxRootPosition(user));
-        return repo.save(task);
+    public Task createTaskList(String name, User user) {
+        TaskList list = new TaskList(name);
+        list.setOwner(user);
+        list.setPosition(1 + repo.getMaxRootPosition(user));
+        return repo.save(list);
     }
 
     public Task createSubtask(Long parentId, String name) {
