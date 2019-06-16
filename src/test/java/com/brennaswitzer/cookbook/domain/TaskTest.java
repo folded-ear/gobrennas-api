@@ -8,6 +8,15 @@ import static org.junit.Assert.*;
 public class TaskTest {
 
     @Test
+    public void owner() {
+        Task acl = new Task();
+        assertNull(acl.getOwner());
+        User u = new User();
+        acl.setOwner(u);
+        assertSame(u, acl.getOwner());
+    }
+
+    @Test
     public void addSubtask_basics() {
         Task groceries = new Task("Groceries");
         assertFalse(groceries.isSubtask());

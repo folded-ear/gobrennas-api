@@ -28,7 +28,7 @@ public class Task extends BaseEntity {
 
     @Embedded
     @NotNull
-    Acl acl = new Acl();
+    Acl acl;
 
     @NotNull
     private String name;
@@ -217,10 +217,12 @@ public class Task extends BaseEntity {
     }
 
     public User getOwner() {
+        if (acl == null) return null;
         return acl.getOwner();
     }
 
     public void setOwner(User owner) {
+        if (acl == null) acl = new Acl();
         this.acl.setOwner(owner);
     }
 

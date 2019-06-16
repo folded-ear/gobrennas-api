@@ -2,8 +2,8 @@ package com.brennaswitzer.cookbook.domain;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @SuppressWarnings("WeakerAccess")
 @Embeddable
@@ -25,23 +25,27 @@ public class Acl {
 
     public void setOwner(User owner) {
         this.owner = owner;
+        // clear any explicit grant the new owner previously had
+        if (grants == null) return;
+        grants.remove(owner);
     }
 
-    public Optional<Permission> getGrant(User user) {
-        if (! grants.containsKey(user)) return Optional.empty();
-        return Optional.of(grants.get(user));
+    public Permission getGrant(User user) {
+        if (user == owner) return Permission.ADMINISTER;
+        if (grants == null) return null;
+        return grants.get(user);
     }
 
-    public Optional<Permission> setGrant(User user, Permission perm) {
-        Optional<Permission> prior = getGrant(user);
-        grants.put(user, perm);
-        return prior;
+    public Permission setGrant(User user, Permission perm) {
+        if (user == owner) throw new UnsupportedOperationException();
+        if (grants == null) grants = new HashMap<>();
+        return grants.put(user, perm);
     }
 
-    public Optional<Permission> removeGrant(User user) {
-        Optional<Permission> prior = getGrant(user);
-        grants.remove(user);
-        return prior;
+    public Permission removeGrant(User user) {
+        if (user == owner) throw new UnsupportedOperationException();
+        if (grants == null) return null;
+        return grants.remove(user);
     }
 
 }
