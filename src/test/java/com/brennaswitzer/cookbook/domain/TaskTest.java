@@ -118,11 +118,10 @@ public class TaskTest {
         assertEquals("OJ [Groceries]", oj.toString());
 
         Task orange = new Task("Orange");
-        orange.setQuantity(5);
         oj.addSubtask(orange);
 
         assertEquals("OJ [Groceries]", oj.toString());
-        assertEquals("Orange (5) [OJ]", orange.toString());
+        assertEquals("Orange [OJ]", orange.toString());
     }
 
     @Test
@@ -204,7 +203,7 @@ public class TaskTest {
         chicken.after(lettuce);
         cheese.of(costco);
         ham.after(lettuce);
-        cheese.mergeIn(cheese2);
+        cheese.setName(cheese.getName() + " (2)");
         { // "delete" it
             cheese2.setParent(null);
             //noinspection UnusedAssignment

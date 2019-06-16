@@ -26,3 +26,6 @@ where owner_id is null;
 alter table task
     alter owner_id set not null;
 
+--changeset barneyb:tasks-dont-need-quantity
+alter table task
+    drop quantity;

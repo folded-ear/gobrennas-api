@@ -39,11 +39,6 @@ public class TaskTestUtils {
             sb.append("  ");
         }
         sb.append(t.getName());
-        if (t.isQuantityInteresting()) {
-            sb.append(" (")
-                    .append(t.getQuantity())
-                    .append(')');
-        }
         sb.append('\n');
         for (Task s : t.getSubtaskView(Task.BY_ORDER)) {
             renderTree(sb, s, depth + 1);

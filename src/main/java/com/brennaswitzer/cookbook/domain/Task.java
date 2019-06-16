@@ -5,7 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
@@ -36,9 +35,6 @@ public class Task extends BaseEntity {
 
     @NotNull
     private String name;
-
-    @NotNull
-    private BigDecimal quantity = BigDecimal.ONE;
 
     @NotNull
     private int position;
@@ -72,23 +68,6 @@ public class Task extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(BigDecimal quantity) {
-        if (quantity == null) quantity = BigDecimal.ONE;
-        this.quantity = quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        setQuantity(BigDecimal.valueOf(quantity));
-    }
-
-    public boolean isQuantityInteresting() {
-        return BigDecimal.ONE.compareTo(quantity) != 0;
     }
 
     public int getPosition() {
@@ -218,11 +197,6 @@ public class Task extends BaseEntity {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(name);
-        if (isQuantityInteresting()) {
-            sb.append(" (")
-                    .append(quantity)
-                    .append(')');
-        }
         if (isSubtask()) {
             sb.append(" [")
                     .append(parent.name) // NOT .toString()!
@@ -243,11 +217,6 @@ public class Task extends BaseEntity {
 
     public Task after(Task after) {
         return of(after.parent, after);
-    }
-
-    public Task mergeIn(Task dupe) {
-        setQuantity(getQuantity().add(dupe.getQuantity()));
-        return null;
     }
 
     public User getOwner() {
