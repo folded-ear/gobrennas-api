@@ -10,7 +10,4 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("from Task where parent is null and acl.owner = ?1")
     Iterable<Task> findByOwnerAndParentIsNull(User owner);
 
-    @Query("select coalesce(max(position), -1) from Task where parent is null and acl.owner = ?1")
-    int getMaxRootPosition(User owner);
-
 }

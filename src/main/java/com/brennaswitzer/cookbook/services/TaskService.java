@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,38 +17,41 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
 
     @Autowired
-    private TaskRepository repo;
+    private TaskRepository taskRepo;
 
-    public Iterable<Task> getTaskLists(User owner) {
-        return repo.findByOwnerAndParentIsNull(owner);
+    @Autowired
+    private TaskListRepository listRepo;
+
+    public Iterable<TaskList> getTaskLists(User owner) {
+        return listRepo.findByOwner(owner);
     }
 
     public Task getTaskById(Long id) {
-        return repo.getOne(id);
+        return taskRepo.getOne(id);
     }
 
     public Task createTaskList(String name, User user) {
         TaskList list = new TaskList(name);
         list.setOwner(user);
-        list.setPosition(1 + repo.getMaxRootPosition(user));
-        return repo.save(list);
+        list.setPosition(1 + listRepo.getMaxPosition(user));
+        return listRepo.save(list);
     }
 
     public Task createSubtask(Long parentId, String name) {
         Task t = new Task(name);
         getTaskById(parentId)
             .insertSubtask(0, t);
-        repo.save(t);
+        taskRepo.save(t);
         return t;
     }
 
     public Task createSubtaskAfter(Long parentId, String name, Long afterId) {
         if (afterId == null) {
-            throw new IllegalArgumentException("You can't create a subtas after 'null'");
+            throw new IllegalArgumentException("You can't create a subtask after 'null'");
         }
         Task t = new Task(name);
         getTaskById(parentId).addSubtaskAfter(t, getTaskById(afterId));
-        repo.save(t);
+        taskRepo.save(t);
         return t;
     }
 
@@ -69,7 +73,7 @@ public class TaskService {
     }
 
     public void deleteTask(Long id) {
-        repo.deleteById(id);
+        taskRepo.deleteById(id);
     }
 
 }

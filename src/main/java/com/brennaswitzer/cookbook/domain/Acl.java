@@ -2,8 +2,10 @@ package com.brennaswitzer.cookbook.domain;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("WeakerAccess")
 @Embeddable
@@ -28,6 +30,14 @@ public class Acl {
         // clear any explicit grant the new owner previously had
         if (grants == null) return;
         grants.remove(owner);
+    }
+
+    public Set<User> getGrantedUsers() {
+        if (grants == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_SET;
+        }
+        return grants.keySet();
     }
 
     public Permission getGrant(User user) {

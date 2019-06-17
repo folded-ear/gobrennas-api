@@ -28,21 +28,21 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<TaskInfo> getRootTasks(
+    public List<TaskInfo> getTaskLists(
             @CurrentUser UserPrincipal userPrincipal
     ) {
-        return TaskInfo.fromTasks(taskService.getTaskLists(
+        return TaskInfo.fromLists(taskService.getTaskLists(
                 userRepository.getById(userPrincipal.getId())
         ));
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskInfo createTask(
+    public TaskInfo createTaskList(
             @RequestBody TaskName info,
             @CurrentUser UserPrincipal userPrincipal
     ) {
-        return TaskInfo.fromTask(
+        return TaskInfo.fromList(
                 taskService.createTaskList(info.getName(), userRepository.getById(userPrincipal.getId()))
         );
     }

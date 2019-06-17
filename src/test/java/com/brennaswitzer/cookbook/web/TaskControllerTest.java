@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.SubtaskIds;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
@@ -47,7 +48,10 @@ public class TaskControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private TaskRepository repo;
+    private TaskRepository taskRepo;
+
+    @Autowired
+    private TaskListRepository listRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -170,11 +174,11 @@ public class TaskControllerTest {
 
     @Test
     public void subtasksCollection() throws Exception {
-        Task root = repo.save(new TaskList(johann, "Root"));
-        Task one = repo.save(new Task("One").of(root));
-        Task oneA = repo.save(new Task("A").of(one));
-        Task oneB = repo.save(new Task("B").of(one));
-        Task two = repo.save(new Task("Two").of(root));
+        Task root = taskRepo.save(new TaskList(johann, "Root"));
+        Task one = taskRepo.save(new Task("One").of(root));
+        Task oneA = taskRepo.save(new Task("A").of(one));
+        Task oneB = taskRepo.save(new Task("B").of(one));
+        Task two = taskRepo.save(new Task("Two").of(root));
         sync();
 
         TaskInfo ti;
@@ -223,7 +227,7 @@ public class TaskControllerTest {
     }
 
     private void sync() {
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
     }
 
@@ -258,7 +262,7 @@ public class TaskControllerTest {
 
     private void treeView(String header) {
         sync();
-        System.out.println(renderTree(header, repo.findByOwnerAndParentIsNull(johann)));
+        System.out.println(renderTree(header, listRepo.findByOwner(johann)));
     }
 
 }

@@ -30,6 +30,14 @@ public class TaskList extends Task {
         throw new UnsupportedOperationException("TaskLists can't have parents");
     }
 
+    public Acl getAcl() {
+        return acl;
+    }
+
+    public void setAcl(Acl acl) {
+        this.acl = acl;
+    }
+
     public User getOwner() {
         if (acl == null) return null;
         return acl.getOwner();
