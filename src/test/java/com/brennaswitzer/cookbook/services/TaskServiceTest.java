@@ -46,7 +46,7 @@ public class TaskServiceTest {
 
     @Test
     public void getTaskLists() {
-        Iterator<TaskList> itr = service.getTaskLists(user).iterator();
+        Iterator<TaskList> itr = service.getTaskLists(user.getId()).iterator();
         assertFalse(itr.hasNext());
 
         Task groceries = repo.save(new TaskList(user, "groceries"));

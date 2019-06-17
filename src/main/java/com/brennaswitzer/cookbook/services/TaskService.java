@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,15 +23,27 @@ public class TaskService {
     @Autowired
     private TaskListRepository listRepo;
 
+    @Autowired
+    private UserRepository userRepo;
+
     public Iterable<TaskList> getTaskLists(User owner) {
-        return listRepo.findByOwner(owner);
+        return getTaskLists(owner.getId());
+    }
+
+    public Iterable<TaskList> getTaskLists(Long ownerId) {
+        return listRepo.findByOwnerId(ownerId);
     }
 
     public Task getTaskById(Long id) {
         return taskRepo.getOne(id);
     }
 
-    public Task createTaskList(String name, User user) {
+    public TaskList createTaskList(String name, User user) {
+        return createTaskList(name, user.getId());
+    }
+
+    public TaskList createTaskList(String name, Long userId) {
+        User user = userRepo.getById(userId);
         TaskList list = new TaskList(name);
         list.setOwner(user);
         list.setPosition(1 + listRepo.getMaxPosition(user));

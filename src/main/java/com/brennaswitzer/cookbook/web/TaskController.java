@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.payload.SubtaskIds;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.payload.TaskName;
-import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.TaskService;
@@ -23,17 +22,13 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public List<TaskInfo> getTaskLists(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return TaskInfo.fromLists(taskService.getTaskLists(
-                userRepository.getById(userPrincipal.getId())
-        ));
+                userPrincipal.getId()));
     }
 
     @PostMapping("")
@@ -43,7 +38,7 @@ public class TaskController {
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return TaskInfo.fromList(
-                taskService.createTaskList(info.getName(), userRepository.getById(userPrincipal.getId()))
+                taskService.createTaskList(info.getName(), userPrincipal.getId())
         );
     }
 
