@@ -3,9 +3,6 @@ server:
     whitelabel:
       enabled: false
 
-spa:
-  default-resource: /public/index.html
-
 spring:
   jpa:
     show-sql: true
