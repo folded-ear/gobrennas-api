@@ -28,7 +28,7 @@ public class AclTest {
         assertEquals(Permission.VIEW, acl.getGrant(bob));
         assertNull(acl.getGrant(eve));
 
-        acl.removeGrant(bob);
+        acl.deleteGrant(bob);
         assertNull(acl.getGrant(bob));
     }
 
@@ -63,7 +63,7 @@ public class AclTest {
         User alice = new User();
         acl.setOwner(alice);
 
-        acl.removeGrant(alice);
+        acl.deleteGrant(alice);
     }
 
     @Test

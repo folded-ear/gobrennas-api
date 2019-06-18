@@ -5,7 +5,9 @@ import com.brennaswitzer.cookbook.domain.Task;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TaskTestUtils {
+public final class TaskTestUtils {
+
+    private TaskTestUtils() {}
 
     public static <T extends Task> String renderTree(String header, Iterable<T> tasks) {
         List<T> list;

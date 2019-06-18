@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.time.Instant;
 
+import static com.brennaswitzer.cookbook.util.UserTestUtils.createUser;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
@@ -27,17 +28,13 @@ public class TaskListRepositoryTest {
     private EntityManager entityManager;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepo;
 
     private User alice;
 
     @Before
     public void setUp() {
-        this.alice = createUser("Alice");
-    }
-
-    private User createUser(String name) {
-        return userRepository.save(new User(name, name.toLowerCase(), name.toLowerCase() + "@example.com", "<HIDDEN>"));
+        this.alice = userRepo.save(createUser("Alice"));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.Permission;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
@@ -18,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
+import static com.brennaswitzer.cookbook.util.UserTestUtils.createUser;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
@@ -37,21 +39,23 @@ public class TaskServiceTest {
     @Autowired
     private UserRepository userRepository;
 
-    private User user;
+    private User alice, bob, eve;
 
     @Before
     public void setUp() {
-        user = userRepository.save(new User("Johann", "johann", "johann@example.com", "<HIDDEN>"));
+        alice = userRepository.save(createUser("Alice"));
+        bob = userRepository.save(createUser("Bob"));
+        eve = userRepository.save(createUser("Eve"));
     }
 
     @Test
     public void getTaskLists() {
-        Iterator<TaskList> itr = service.getTaskLists(user.getId()).iterator();
+        Iterator<TaskList> itr = service.getTaskLists(alice.getId()).iterator();
         assertFalse(itr.hasNext());
 
-        Task groceries = repo.save(new TaskList(user, "groceries"));
+        Task groceries = repo.save(new TaskList(alice, "groceries"));
 
-        itr = service.getTaskLists(user).iterator();
+        itr = service.getTaskLists(alice).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
@@ -60,7 +64,7 @@ public class TaskServiceTest {
                 .of(groceries));
 
         // still only one!
-        itr = service.getTaskLists(user).iterator();
+        itr = service.getTaskLists(alice).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
@@ -69,13 +73,13 @@ public class TaskServiceTest {
     @Test
     public void createTaskList() {
 
-        Task g = service.createTaskList("Groceries", user);
+        Task g = service.createTaskList("Groceries", alice);
         assertNotNull(g.getId());
         assertEquals("Groceries", g.getName());
         assertEquals(0, g.getPosition());
         assertEquals(0, g.getSubtaskCount());
 
-        Task v = service.createTaskList("Vacation", user);
+        Task v = service.createTaskList("Vacation", alice);
         assertNotNull(v.getId());
         assertNotEquals(g.getId(), v.getId());
         assertEquals("Vacation", v.getName());
@@ -182,8 +186,36 @@ public class TaskServiceTest {
     }
 
     @Test
+    public void grants() {
+        TaskList groceries = service.createTaskList("groceries", alice);
+        repo.flush();
+        entityManager.clear();
+
+
+        service.setGrantOnList(groceries.getId(), bob.getId(), Permission.VIEW);
+
+        groceries = service.getTaskListById(groceries.getId());
+        assertEquals(Permission.ADMINISTER, groceries.getAcl().getGrant(alice));
+        assertEquals(Permission.VIEW, groceries.getAcl().getGrant(bob));
+        assertNull(groceries.getAcl().getGrant(eve));
+
+        entityManager.flush();
+        entityManager.clear();
+        groceries = service.getTaskListById(groceries.getId());
+
+        service.deleteGrantFromList(groceries.getId(), bob.getId());
+        assertNull(groceries.getAcl().getGrant(bob));
+
+        entityManager.flush();
+        entityManager.clear();
+        groceries = service.getTaskListById(groceries.getId());
+
+        assertNull(groceries.getAcl().getGrant(bob));
+    }
+
+    @Test
     public void muppetLikeListsForShopping() {
-        Task groceries = service.createTaskList("groceries", user);
+        TaskList groceries = service.createTaskList("groceries", alice);
         Task tacos = service.createSubtask(groceries.getId(), "Tacos");
         Task salad = service.createSubtaskAfter(groceries.getId(), "Salad", tacos.getId());
         Task lunch = service.createSubtaskAfter(groceries.getId(), "Lunch", salad.getId());
@@ -255,7 +287,7 @@ public class TaskServiceTest {
     private void muppetView(String header) {
         repo.flush();
         entityManager.clear();
-        System.out.println(renderTree(header, service.getTaskLists(user)));
+        System.out.println(renderTree(header, service.getTaskLists(alice)));
     }
 
 }

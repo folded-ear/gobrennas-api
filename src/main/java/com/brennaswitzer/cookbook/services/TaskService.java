@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.Permission;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
@@ -36,6 +37,10 @@ public class TaskService {
 
     public Task getTaskById(Long id) {
         return taskRepo.getOne(id);
+    }
+
+    public TaskList getTaskListById(Long id) {
+        return listRepo.getOne(id);
     }
 
     public TaskList createTaskList(String name, User user) {
@@ -87,6 +92,18 @@ public class TaskService {
 
     public void deleteTask(Long id) {
         taskRepo.deleteById(id);
+    }
+
+    public TaskList setGrantOnList(Long listId, Long userId, Permission perm) {
+        TaskList list = getTaskListById(listId);
+        list.getAcl().setGrant(userRepo.getById(userId), perm);
+        return list;
+    }
+
+    public TaskList deleteGrantFromList(Long listId, Long userId) {
+        TaskList list = getTaskListById(listId);
+        list.getAcl().deleteGrant(userRepo.getById(userId));
+        return list;
     }
 
 }

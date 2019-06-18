@@ -1,8 +1,10 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.payload.SubtaskIds;
-import com.brennaswitzer.cookbook.payload.TaskInfo;
-import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.domain.Acl;
+import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.*;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.TaskService;
@@ -21,6 +23,9 @@ public class TaskController {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private UserRepository userRepo;
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
@@ -97,6 +102,37 @@ public class TaskController {
             @PathVariable("id") Long id
     ) {
         taskService.deleteTask(id);
+    }
+
+    @GetMapping("/{id}/acl")
+    @ResponseStatus(HttpStatus.OK)
+    public AclInfo getListAcl(
+            @PathVariable("id") Long id
+    ) {
+        TaskList list = taskService.getTaskListById(id);
+        return AclInfo.fromAcl(list.getAcl());
+    }
+
+    // todo: this method is confused. :) it's both create and update?
+    @PostMapping("/{id}/acl/grants")
+    @ResponseStatus(HttpStatus.CREATED)
+    public GrantInfo addGrant(
+            @PathVariable("id") Long id,
+            @RequestBody GrantInfo grant
+    ) {
+        TaskList list = taskService.setGrantOnList(id, grant.getUserId(), grant.getPermission());
+        Acl acl = list.getAcl();
+        User user = userRepo.getById(grant.getUserId());
+        return GrantInfo.fromGrant(user, acl.getGrant(user));
+    }
+
+    @DeleteMapping("/{id}/acl/grants/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteGrant(
+            @PathVariable("id") Long id,
+            @PathVariable("userId") Long userId
+    ) {
+        taskService.deleteGrantFromList(id, userId);
     }
 
 }

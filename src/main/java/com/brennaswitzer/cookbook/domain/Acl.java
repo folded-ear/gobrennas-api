@@ -41,19 +41,22 @@ public class Acl {
     }
 
     public Permission getGrant(User user) {
-        if (user == owner) return Permission.ADMINISTER;
+        if (user == null) throw new IllegalArgumentException("The null user can't have an access grant.");
+        if (user.equals(owner)) return Permission.ADMINISTER;
         if (grants == null) return null;
         return grants.get(user);
     }
 
     public Permission setGrant(User user, Permission perm) {
-        if (user == owner) throw new UnsupportedOperationException();
+        if (user == null) throw new IllegalArgumentException("You can't grant access to the null user.");
+        if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) grants = new HashMap<>();
         return grants.put(user, perm);
     }
 
-    public Permission removeGrant(User user) {
-        if (user == owner) throw new UnsupportedOperationException();
+    public Permission deleteGrant(User user) {
+        if (user == null) throw new IllegalArgumentException("You can't revoke access from the null user.");
+        if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) return null;
         return grants.remove(user);
     }
