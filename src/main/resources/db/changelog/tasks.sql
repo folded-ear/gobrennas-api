@@ -59,3 +59,16 @@ alter table task
 
 alter table task
     add constraint chk_owner_on_list check ( _type != 'list' or owner_id is not null );
+
+--changeset barneyb:_eqkey-storage
+alter table task
+    add _eqkey bigint default extract(epoch from now());
+alter table task
+    add constraint uk_task__eqkey unique (_eqkey);
+
+-- noinspection SqlWithoutWhere
+update task
+set _eqkey = id;
+
+alter table task
+    alter _eqkey set not null;
