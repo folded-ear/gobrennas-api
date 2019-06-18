@@ -35,7 +35,7 @@ create table task_list_grants
 (
     task_list_id bigint  not null,
     user_id      bigint  not null,
-    perm         varchar not null,
+    level        varchar not null,
     constraint pk_task_list_grants primary key (task_list_id, user_id),
     constraint fk_task_list_grants_task foreign key (task_list_id) references task (id)
         on delete cascade,

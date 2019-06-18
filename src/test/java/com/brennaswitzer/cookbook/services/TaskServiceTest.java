@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.Permission;
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
@@ -192,11 +192,11 @@ public class TaskServiceTest {
         entityManager.clear();
 
 
-        service.setGrantOnList(groceries.getId(), bob.getId(), Permission.VIEW);
+        service.setGrantOnList(groceries.getId(), bob.getId(), AccessLevel.VIEW);
 
         groceries = service.getTaskListById(groceries.getId());
-        assertEquals(Permission.ADMINISTER, groceries.getAcl().getGrant(alice));
-        assertEquals(Permission.VIEW, groceries.getAcl().getGrant(bob));
+        assertEquals(AccessLevel.ADMINISTER, groceries.getAcl().getGrant(alice));
+        assertEquals(AccessLevel.VIEW, groceries.getAcl().getGrant(bob));
         assertNull(groceries.getAcl().getGrant(eve));
 
         entityManager.flush();

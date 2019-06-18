@@ -122,6 +122,10 @@ public class Task extends BaseEntity {
         }
     }
 
+    public TaskList getTaskList() {
+        return parent.getTaskList();
+    }
+
     public void addSubtask(Task task) {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");

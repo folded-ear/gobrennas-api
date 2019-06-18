@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("WeakerAccess")
 @Entity
 @DiscriminatorValue("list")
-public class TaskList extends Task {
+public class TaskList extends Task implements AccessControlled {
 
     @Embedded
     @NotNull
@@ -28,6 +28,11 @@ public class TaskList extends Task {
     @Override
     public void setParent(Task parent) {
         throw new UnsupportedOperationException("TaskLists can't have parents");
+    }
+
+    @Override
+    public TaskList getTaskList() {
+        return this;
     }
 
     public Acl getAcl() {

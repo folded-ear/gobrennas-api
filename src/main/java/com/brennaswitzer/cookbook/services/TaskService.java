@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.Permission;
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
@@ -11,6 +11,9 @@ import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedList;
+import java.util.List;
 
 @SuppressWarnings({
         "SpringJavaAutowiredFieldsWarningInspection",
@@ -39,16 +42,42 @@ public class TaskService {
         return getTaskLists(principalAccess.getId());
     }
 
-    public Iterable<TaskList> getTaskLists(Long ownerId) {
-        return listRepo.findByOwnerId(ownerId);
+    public Iterable<TaskList> getTaskLists(Long userId) {
+        User user = userRepo.getById(userId);
+        List<TaskList> result = new LinkedList<>();
+        listRepo.findAccessibleLists(userId)
+                .forEach(l -> {
+                    if (l.isPermitted(user, AccessLevel.VIEW)) {
+                        result.add(l);
+                    }
+                });
+        return result;
     }
 
     public Task getTaskById(Long id) {
-        return taskRepo.getOne(id);
+        return getTaskById(id, AccessLevel.VIEW);
+    }
+
+    private Task getTaskById(Long id, AccessLevel requiredAccess) {
+        Task task = taskRepo.getOne(id);
+        task.getTaskList().ensurePermitted(
+                principalAccess.getUser(),
+                requiredAccess
+        );
+        return task;
     }
 
     public TaskList getTaskListById(Long id) {
-        return listRepo.getOne(id);
+        return getTaskListById(id, AccessLevel.VIEW);
+    }
+
+    private TaskList getTaskListById(Long id, AccessLevel accessLevel) {
+        TaskList list = listRepo.getOne(id);
+        list.ensurePermitted(
+                principalAccess.getUser(),
+                accessLevel
+        );
+        return list;
     }
 
     public TaskList createTaskList(String name, User user) {
@@ -69,7 +98,7 @@ public class TaskService {
 
     public Task createSubtask(Long parentId, String name) {
         Task t = new Task(name);
-        getTaskById(parentId)
+        getTaskById(parentId, AccessLevel.CHANGE)
             .insertSubtask(0, t);
         taskRepo.save(t);
         return t;
@@ -80,19 +109,20 @@ public class TaskService {
             throw new IllegalArgumentException("You can't create a subtask after 'null'");
         }
         Task t = new Task(name);
-        getTaskById(parentId).addSubtaskAfter(t, getTaskById(afterId));
+        getTaskById(parentId, AccessLevel.CHANGE)
+                .addSubtaskAfter(t, getTaskById(afterId));
         taskRepo.save(t);
         return t;
     }
 
     public Task renameTask(Long id, String name) {
-        Task t = getTaskById(id);
+        Task t = getTaskById(id, AccessLevel.CHANGE);
         t.setName(name);
         return t;
     }
 
     public Task resetSubtasks(Long id, long[] subtaskIds) {
-        Task t = getTaskById(id);
+        Task t = getTaskById(id, AccessLevel.CHANGE);
         Task prev = null;
         for (long sid : subtaskIds) {
             Task curr = getTaskById(sid);
@@ -103,17 +133,18 @@ public class TaskService {
     }
 
     public void deleteTask(Long id) {
+        getTaskById(id, AccessLevel.CHANGE);
         taskRepo.deleteById(id);
     }
 
-    public TaskList setGrantOnList(Long listId, Long userId, Permission perm) {
-        TaskList list = getTaskListById(listId);
-        list.getAcl().setGrant(userRepo.getById(userId), perm);
+    public TaskList setGrantOnList(Long listId, Long userId, AccessLevel level) {
+        TaskList list = getTaskListById(listId, AccessLevel.ADMINISTER);
+        list.getAcl().setGrant(userRepo.getById(userId), level);
         return list;
     }
 
     public TaskList deleteGrantFromList(Long listId, Long userId) {
-        TaskList list = getTaskListById(listId);
+        TaskList list = getTaskListById(listId, AccessLevel.ADMINISTER);
         list.getAcl().deleteGrant(userRepo.getById(userId));
         return list;
     }

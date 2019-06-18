@@ -115,7 +115,7 @@ public class TaskController {
             @PathVariable("id") Long id,
             @RequestBody GrantInfo grant
     ) {
-        TaskList list = taskService.setGrantOnList(id, grant.getUserId(), grant.getPermission());
+        TaskList list = taskService.setGrantOnList(id, grant.getUserId(), grant.getAccessLevel());
         Acl acl = list.getAcl();
         User user = userRepo.getById(grant.getUserId());
         return GrantInfo.fromGrant(user, acl.getGrant(user));

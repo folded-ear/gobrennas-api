@@ -17,9 +17,9 @@ public class Acl {
 
     @ElementCollection
     @MapKeyJoinColumn(name = "user_id")
-    @Column(name = "perm")
+    @Column(name = "level")
     @Enumerated(EnumType.STRING)
-    private Map<User, Permission> grants;
+    private Map<User, AccessLevel> grants;
 
     public User getOwner() {
         return owner;
@@ -40,25 +40,31 @@ public class Acl {
         return grants.keySet();
     }
 
-    public Permission getGrant(User user) {
+    public AccessLevel getGrant(User user) {
         if (user == null) throw new IllegalArgumentException("The null user can't have an access grant.");
-        if (user.equals(owner)) return Permission.ADMINISTER;
+        if (user.equals(owner)) return AccessLevel.ADMINISTER;
         if (grants == null) return null;
         return grants.get(user);
     }
 
-    public Permission setGrant(User user, Permission perm) {
+    public AccessLevel setGrant(User user, AccessLevel level) {
         if (user == null) throw new IllegalArgumentException("You can't grant access to the null user.");
         if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) grants = new HashMap<>();
-        return grants.put(user, perm);
+        return grants.put(user, level);
     }
 
-    public Permission deleteGrant(User user) {
+    public AccessLevel deleteGrant(User user) {
         if (user == null) throw new IllegalArgumentException("You can't revoke access from the null user.");
         if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) return null;
         return grants.remove(user);
     }
 
+    public boolean isPermitted(User user, AccessLevel level) {
+        if (user.equals(owner)) return true;
+        AccessLevel grant = getGrant(user);
+        if (grant == null) return false;
+        return grant.includes(level);
+    }
 }

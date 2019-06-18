@@ -21,11 +21,11 @@ public class AclTest {
         User alice = new User();
         User bob = new User();
         User eve = new User();
-        assertNull(acl.setGrant(alice, Permission.ADMINISTER));
-        assertNull(acl.setGrant(bob, Permission.VIEW));
+        assertNull(acl.setGrant(alice, AccessLevel.ADMINISTER));
+        assertNull(acl.setGrant(bob, AccessLevel.VIEW));
 
-        assertEquals(Permission.ADMINISTER, acl.getGrant(alice));
-        assertEquals(Permission.VIEW, acl.getGrant(bob));
+        assertEquals(AccessLevel.ADMINISTER, acl.getGrant(alice));
+        assertEquals(AccessLevel.VIEW, acl.getGrant(bob));
         assertNull(acl.getGrant(eve));
 
         acl.deleteGrant(bob);
@@ -40,7 +40,7 @@ public class AclTest {
 
         // owners are always granted ADMINISTER
         acl.setOwner(alice);
-        assertEquals(Permission.ADMINISTER, acl.getGrant(alice));
+        assertEquals(AccessLevel.ADMINISTER, acl.getGrant(alice));
 
         User bob = new User();
 
@@ -54,7 +54,7 @@ public class AclTest {
         User alice = new User();
         acl.setOwner(alice);
 
-        acl.setGrant(alice, Permission.VIEW);
+        acl.setGrant(alice, AccessLevel.VIEW);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -72,10 +72,10 @@ public class AclTest {
         User alice = new User();
         User bob = new User();
         acl.setOwner(alice);
-        acl.setGrant(bob, Permission.VIEW);
+        acl.setGrant(bob, AccessLevel.VIEW);
 
         acl.setOwner(bob);
-        assertEquals(Permission.ADMINISTER, acl.getGrant(bob));
+        assertEquals(AccessLevel.ADMINISTER, acl.getGrant(bob));
         acl.setOwner(alice);
 
         assertNull(acl.getGrant(bob));

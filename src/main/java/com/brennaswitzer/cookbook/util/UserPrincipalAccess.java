@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.util;
 
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 
 public interface UserPrincipalAccess {
@@ -9,5 +10,9 @@ public interface UserPrincipalAccess {
     }
 
     UserPrincipal getUserPrincipal();
+
+    default User getUser() {
+        throw new UnsupportedOperationException();
+    }
 
 }

@@ -10,8 +10,12 @@ public interface TaskListRepository extends JpaRepository<TaskList, Long> {
     @Query("from TaskList where acl.owner = ?1")
     Iterable<TaskList> findByOwner(User owner);
 
-    @Query("from TaskList where acl.owner.id = ?1")
-    Iterable<TaskList> findByOwnerId(Long ownerId);
+    @Query("select distinct l\n" +
+            "from TaskList l\n" +
+            "    left join l.acl.grants gs\n" +
+            "where l.acl.owner.id = ?1\n" +
+            "    or key(gs) = ?1")
+    Iterable<TaskList> findAccessibleLists(Long userId);
 
     @Query("select coalesce(max(position), -1) from TaskList where acl.owner = ?1")
     int getMaxPosition(User owner);

@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Acl;
-import com.brennaswitzer.cookbook.domain.Permission;
 import com.brennaswitzer.cookbook.domain.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -18,7 +18,7 @@ public class AclInfo {
         if (owner != null) {
             info.ownerId = owner.getId();
         }
-        Map<Long, Permission> grants = new HashMap<>();
+        Map<Long, AccessLevel> grants = new HashMap<>();
         acl.getGrantedUsers().forEach(u ->
                 grants.put(u.getId(), acl.getGrant(u)));
         info.setGrants(grants);
@@ -27,7 +27,7 @@ public class AclInfo {
 
     private Long ownerId;
 
-    private Map<Long, Permission> grants;
+    private Map<Long, AccessLevel> grants;
 
     public Long getOwnerId() {
         return ownerId;
@@ -37,11 +37,11 @@ public class AclInfo {
         this.ownerId = ownerId;
     }
 
-    public Map<Long, Permission> getGrants() {
+    public Map<Long, AccessLevel> getGrants() {
         return grants;
     }
 
-    public void setGrants(Map<Long, Permission> grants) {
+    public void setGrants(Map<Long, AccessLevel> grants) {
         this.grants = grants;
     }
 }

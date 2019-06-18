@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.payload;
 
-import com.brennaswitzer.cookbook.domain.Permission;
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -8,19 +8,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class GrantInfo {
 
-    public static GrantInfo fromGrant(User user, Permission perm) {
-        return new GrantInfo(user.getId(), perm);
+    public static GrantInfo fromGrant(User user, AccessLevel level) {
+        return new GrantInfo(user.getId(), level);
     }
 
     private Long userId;
 
-    private Permission permission;
+    private AccessLevel accessLevel;
 
     public GrantInfo() {}
 
-    public GrantInfo(Long userId, Permission perm) {
+    public GrantInfo(Long userId, AccessLevel level) {
         setUserId(userId);
-        setPermission(perm);
+        setAccessLevel(level);
     }
 
     public Long getUserId() {
@@ -31,12 +31,12 @@ public class GrantInfo {
         this.userId = userId;
     }
 
-    public Permission getPermission() {
-        return permission;
+    public AccessLevel getAccessLevel() {
+        return accessLevel;
     }
 
-    public void setPermission(Permission permission) {
-        this.permission = permission;
+    public void setAccessLevel(AccessLevel accessLevel) {
+        this.accessLevel = accessLevel;
     }
 
 }
