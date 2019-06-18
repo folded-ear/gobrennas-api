@@ -5,8 +5,6 @@ import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.*;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
-import com.brennaswitzer.cookbook.security.CurrentUser;
-import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,20 +28,17 @@ public class TaskController {
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public List<TaskInfo> getTaskLists(
-            @CurrentUser UserPrincipal userPrincipal
     ) {
-        return TaskInfo.fromLists(taskService.getTaskLists(
-                userPrincipal.getId()));
+        return TaskInfo.fromLists(taskService.getTaskLists());
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public TaskInfo createTaskList(
-            @RequestBody TaskName info,
-            @CurrentUser UserPrincipal userPrincipal
+            @RequestBody TaskName info
     ) {
         return TaskInfo.fromList(
-                taskService.createTaskList(info.getName(), userPrincipal.getId())
+                taskService.createTaskList(info.getName())
         );
     }
 

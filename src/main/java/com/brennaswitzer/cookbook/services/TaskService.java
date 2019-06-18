@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +28,15 @@ public class TaskService {
     @Autowired
     private UserRepository userRepo;
 
+    @Autowired
+    private UserPrincipalAccess principalAccess;
+
     public Iterable<TaskList> getTaskLists(User owner) {
         return getTaskLists(owner.getId());
+    }
+
+    public Iterable<TaskList> getTaskLists() {
+        return getTaskLists(principalAccess.getId());
     }
 
     public Iterable<TaskList> getTaskLists(Long ownerId) {
@@ -45,6 +53,10 @@ public class TaskService {
 
     public TaskList createTaskList(String name, User user) {
         return createTaskList(name, user.getId());
+    }
+
+    public TaskList createTaskList(String name) {
+        return createTaskList(name, principalAccess.getId());
     }
 
     public TaskList createTaskList(String name, Long userId) {
