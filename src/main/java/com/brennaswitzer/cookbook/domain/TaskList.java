@@ -12,7 +12,7 @@ public class TaskList extends Task implements AccessControlled {
 
     @Embedded
     @NotNull
-    private Acl acl;
+    private Acl acl = new Acl();
 
     public TaskList() {}
 
@@ -44,12 +44,10 @@ public class TaskList extends Task implements AccessControlled {
     }
 
     public User getOwner() {
-        if (acl == null) return null;
         return acl.getOwner();
     }
 
     public void setOwner(User owner) {
-        if (acl == null) acl = new Acl();
         this.acl.setOwner(owner);
     }
 

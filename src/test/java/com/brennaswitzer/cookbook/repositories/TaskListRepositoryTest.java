@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,12 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.time.Instant;
 
-import static com.brennaswitzer.cookbook.util.UserTestUtils.createUser;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Transactional
+@WithAliceBobEve
 public class TaskListRepositoryTest {
 
     @Autowired
@@ -34,7 +35,7 @@ public class TaskListRepositoryTest {
 
     @Before
     public void setUp() {
-        this.alice = userRepo.save(createUser("Alice"));
+        alice = userRepo.getByName("Alice");
     }
 
     @Test

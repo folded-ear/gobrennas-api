@@ -4,8 +4,10 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,19 +21,22 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static com.brennaswitzer.cookbook.util.UserTestUtils.createUser;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Transactional
+@WithAliceBobEve
 public class TaskServiceTest {
 
     @Autowired
     private TaskService service;
 
     @Autowired
-    private TaskRepository repo;
+    private TaskRepository taskRepo;
+
+    @Autowired
+    private TaskListRepository listRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -43,9 +48,9 @@ public class TaskServiceTest {
 
     @Before
     public void setUp() {
-        alice = userRepository.save(createUser("Alice"));
-        bob = userRepository.save(createUser("Bob"));
-        eve = userRepository.save(createUser("Eve"));
+        alice = userRepository.getByName("Alice");
+        bob = userRepository.getByName("Bob");
+        eve = userRepository.getByName("Eve");
     }
 
     @Test
@@ -53,14 +58,14 @@ public class TaskServiceTest {
         Iterator<TaskList> itr = service.getTaskLists(alice.getId()).iterator();
         assertFalse(itr.hasNext());
 
-        Task groceries = repo.save(new TaskList(alice, "groceries"));
+        Task groceries = taskRepo.save(new TaskList(alice, "groceries"));
 
         itr = service.getTaskLists(alice).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
 
-        Task oj = repo.save(new Task("OJ")
+        Task oj = taskRepo.save(new Task("OJ")
                 .of(groceries));
 
         // still only one!
@@ -89,7 +94,7 @@ public class TaskServiceTest {
 
     @Test
     public void createSubtask() {
-        Task groceries = repo.save(new Task("groceries"));
+        TaskList groceries = listRepo.save(new TaskList(alice,"groceries"));
         assertEquals(0, groceries.getSubtaskCount());
 
         Task oj = service.createSubtask(groceries.getId(), "OJ");
@@ -123,32 +128,33 @@ public class TaskServiceTest {
 
     @Test
     public void renameTask() {
-        Task bill = repo.save(new Task("bill"));
+        TaskList list = listRepo.save(new TaskList(alice, "root"));
+        Task bill = taskRepo.save(new Task("bill").of(list));
 
         service.renameTask(bill.getId(), "William");
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
 
-        bill = repo.getOne(bill.getId());
+        bill = taskRepo.getOne(bill.getId());
         assertEquals("William", bill.getName());
     }
 
     @Test
     public void resetSubtasks() {
-        Task groceries = repo.save(new Task("groceries"));
-        Task milk = repo.save(new Task("milk").of(groceries));
-        Task oj = repo.save(new Task("OJ").after(milk));
-        Task bagels = repo.save(new Task("bagels").after(oj));
+        TaskList groceries = listRepo.save(new TaskList(alice, "groceries"));
+        Task milk = taskRepo.save(new Task("milk").of(groceries));
+        Task oj = taskRepo.save(new Task("OJ").after(milk));
+        Task bagels = taskRepo.save(new Task("bagels").after(oj));
 
         service.resetSubtasks(groceries.getId(), new long[] {
                 bagels.getId(),
                 milk.getId(),
                 oj.getId(),
         });
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
 
-        groceries = repo.getOne(groceries.getId());
+        groceries = listRepo.getOne(groceries.getId());
         List<Task> view = groceries.getOrderedSubtasksView();
         Iterator<Task> itr = view.iterator();
         assertEquals("bagels", itr.next().getName());
@@ -162,33 +168,33 @@ public class TaskServiceTest {
 
     @Test
     public void deleteTask() {
-        assertEquals(0, repo.count());
-        Task groceries = repo.save(new Task("groceries"));
-        Task milk = repo.save(new Task("milk").of(groceries));
-        Task oj = repo.save(new Task("OJ").after(milk));
-        Task bagels = repo.save(new Task("bagels").after(oj));
-        repo.flush();
+        assertEquals(0, taskRepo.count());
+        TaskList groceries = listRepo.save(new TaskList(alice, "groceries"));
+        Task milk = taskRepo.save(new Task("milk").of(groceries));
+        Task oj = taskRepo.save(new Task("OJ").after(milk));
+        Task bagels = taskRepo.save(new Task("bagels").after(oj));
+        taskRepo.flush();
         entityManager.clear();
 
-        assertEquals(4, repo.count());
+        assertEquals(4, taskRepo.count());
 
         service.deleteTask(oj.getId());
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
 
-        assertEquals(3, repo.count());
+        assertEquals(3, taskRepo.count());
 
         service.deleteTask(groceries.getId());
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
 
-        assertEquals(0, repo.count());
+        assertEquals(0, taskRepo.count());
     }
 
     @Test
     public void grants() {
         TaskList groceries = service.createTaskList("groceries", alice);
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
 
 
@@ -285,7 +291,7 @@ public class TaskServiceTest {
     }
 
     private void muppetView(String header) {
-        repo.flush();
+        taskRepo.flush();
         entityManager.clear();
         System.out.println(renderTree(header, service.getTaskLists(alice)));
     }

@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
@@ -29,7 +30,6 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static com.brennaswitzer.cookbook.util.UserTestUtils.createUser;
 import static org.junit.Assert.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -39,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc
+@WithAliceBobEve(authentication = false)
 public class TaskControllerTest {
 
     @Autowired
@@ -63,9 +64,9 @@ public class TaskControllerTest {
 
     @Before
     public void setUp() {
-        alice = userRepository.save(createUser("Alice"));
-        bob = userRepository.save(createUser("Bob"));
-        eve = userRepository.save(createUser("Eve"));
+        alice = userRepository.getByName("Alice");
+        bob = userRepository.getByName("Bob");
+        eve = userRepository.getByName("Eve");
     }
 
     @Test
