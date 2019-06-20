@@ -16,4 +16,7 @@ public interface UserRepository extends CrudRepository<User,Long> {
 
     User getById(Long id);
 
+    // kludge for FriendController's pretent implementation
+    Iterable<User> findByIdNot(Long idToExclude);
+
 }
