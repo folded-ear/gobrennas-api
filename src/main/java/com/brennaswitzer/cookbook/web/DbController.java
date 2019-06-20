@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"SpringJavaAutowiredFieldsWarningInspection", "SqlResolve"})
 @RestController
 @RequestMapping("api/_db")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasRole('DEVELOPER')")
 public class DbController {
 
     @Autowired

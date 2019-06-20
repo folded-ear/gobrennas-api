@@ -6,12 +6,26 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class UserPrincipal implements OAuth2User, UserDetails {
+
+    private static final GrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
+    private static final GrantedAuthority ROLE_DEVELOPER = new SimpleGrantedAuthority("ROLE_DEVELOPER");
+
+    // super-kludgey authorization "framework"
+    private static final String BARNEYS_EMAIL = "bboisvert@gmail.com";
+    private static final String BRENNAS_EMAIL = "brenna.switzer@gmail.com";
+
+    private static boolean isDeveloper(User user) {
+        return BARNEYS_EMAIL.equalsIgnoreCase(user.getEmail())
+                || BRENNAS_EMAIL.equalsIgnoreCase(user.getEmail());
+    }
+    // end "framework"
+
     private Long id;
     private String email;
     private Collection<? extends GrantedAuthority> authorities;
@@ -24,9 +38,11 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     }
 
     public static UserPrincipal create(User user) {
-        List<GrantedAuthority> authorities = Collections.
-                singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(ROLE_USER);
+        if (isDeveloper(user)) {
+            authorities.add(ROLE_DEVELOPER);
+        }
         return new UserPrincipal(
                 user.getId(),
                 user.getEmail(),
@@ -88,6 +104,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return attributes;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
