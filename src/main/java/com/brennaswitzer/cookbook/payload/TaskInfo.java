@@ -1,11 +1,13 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.LinkedList;
 import java.util.List;
 
+@SuppressWarnings("WeakerAccess")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TaskInfo {
 
@@ -26,10 +28,24 @@ public class TaskInfo {
         return info;
     }
 
+    public static TaskInfo fromList(TaskList list) {
+        TaskInfo info = fromTask(list);
+        info.acl = AclInfo.fromAcl(list.getAcl());
+        return info;
+    }
+
     public static List<TaskInfo> fromTasks(Iterable<Task> tasks) {
         List<TaskInfo> result = new LinkedList<>();
         tasks.forEach(t ->
                 result.add(fromTask(t))
+        );
+        return result;
+    }
+
+    public static List<TaskInfo> fromLists(Iterable<TaskList> lists) {
+        List<TaskInfo> result = new LinkedList<>();
+        lists.forEach(l ->
+                result.add(fromList(l))
         );
         return result;
     }
@@ -40,6 +56,8 @@ public class TaskInfo {
     private String name;
 
     private Long parentId;
+
+    private AclInfo acl;
 
     private long[] subtaskIds;
 
@@ -79,4 +97,11 @@ public class TaskInfo {
         return subtaskIds != null && subtaskIds.length > 0;
     }
 
+    public AclInfo getAcl() {
+        return acl;
+    }
+
+    public void setAcl(AclInfo acl) {
+        this.acl = acl;
+    }
 }

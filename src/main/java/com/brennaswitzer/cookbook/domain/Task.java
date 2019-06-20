@@ -1,25 +1,14 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.security.acl.Owner;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
-// this causes violations because of Hibernate's flush order. so no-go until it
-// can be deferred (i.e., manually created via liquibase).
-//@Table(uniqueConstraints = {
-//        @UniqueConstraint(name = "uk_parent_position", columnNames = {"parent_id", "position"})
-//})
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "_type")
+@DiscriminatorValue("task")
 public class Task extends BaseEntity {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
@@ -41,43 +30,21 @@ public class Task extends BaseEntity {
     };
 
     @NotNull
-    @ManyToOne
-    private User owner;
-
-    @NotNull
-    @Column(
-            columnDefinition = "varchar not null"
-    )
     private String name;
-
-    @NotNull
-    @Column(
-            precision = 19,
-            scale = 4,
-            columnDefinition = "numeric(19, 4) default 1"
-    )
-    private BigDecimal quantity = BigDecimal.ONE;
 
     @NotNull
     private int position;
 
     @ManyToOne
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_task_parent"))
     private Task parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
-    @OnDelete(action = OnDeleteAction.CASCADE) // for the Postgres FK
     private Set<Task> subtasks;
 
     public Task() {
     }
 
     public Task(String name) {
-        setName(name);
-    }
-
-    public Task(User owner, String name) {
-        setOwner(owner);
         setName(name);
     }
 
@@ -92,23 +59,6 @@ public class Task extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(BigDecimal quantity) {
-        if (quantity == null) quantity = BigDecimal.ONE;
-        this.quantity = quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        setQuantity(BigDecimal.valueOf(quantity));
-    }
-
-    public boolean isQuantityInteresting() {
-        return BigDecimal.ONE.compareTo(quantity) != 0;
     }
 
     public int getPosition() {
@@ -142,7 +92,6 @@ public class Task extends BaseEntity {
         this.position = position;
     }
 
-    @JsonIgnore
     public boolean isSubtask() {
         return parent != null;
     }
@@ -151,7 +100,6 @@ public class Task extends BaseEntity {
         return getSubtaskCount() != 0;
     }
 
-    @JsonIgnore
     public Task getParent() {
         return parent;
     }
@@ -174,12 +122,15 @@ public class Task extends BaseEntity {
         }
     }
 
+    public TaskList getTaskList() {
+        return parent.getTaskList();
+    }
+
     public void addSubtask(Task task) {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
         task.setParent(this);
-        task.setOwner(this.owner);
     }
 
     public void addSubtaskAfter(Task task, Task after) {
@@ -211,7 +162,6 @@ public class Task extends BaseEntity {
         task.setParent(null);
     }
 
-    @JsonIgnore
     public Collection<Task> getSubtaskView() {
         if (subtasks == null) {
             //noinspection unchecked
@@ -220,7 +170,6 @@ public class Task extends BaseEntity {
         return Collections.unmodifiableSet(subtasks);
     }
 
-    @JsonProperty("subtasks")
     public List<Task> getOrderedSubtasksView() {
         return getSubtaskView(BY_ORDER);
     }
@@ -242,11 +191,6 @@ public class Task extends BaseEntity {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(name);
-        if (isQuantityInteresting()) {
-            sb.append(" (")
-                    .append(quantity)
-                    .append(')');
-        }
         if (isSubtask()) {
             sb.append(" [")
                     .append(parent.name) // NOT .toString()!
@@ -267,19 +211,6 @@ public class Task extends BaseEntity {
 
     public Task after(Task after) {
         return of(after.parent, after);
-    }
-
-    public Task mergeIn(Task dupe) {
-        setQuantity(getQuantity().add(dupe.getQuantity()));
-        return null;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
     }
 
 }

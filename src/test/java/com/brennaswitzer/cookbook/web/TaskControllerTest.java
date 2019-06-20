@@ -1,13 +1,16 @@
 package com.brennaswitzer.cookbook.web;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.SubtaskIds;
-import com.brennaswitzer.cookbook.payload.TaskInfo;
-import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.payload.*;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -37,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc
+@WithAliceBobEve(authentication = false)
 public class TaskControllerTest {
 
     @Autowired
@@ -46,7 +49,10 @@ public class TaskControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private TaskRepository repo;
+    private TaskRepository taskRepo;
+
+    @Autowired
+    private TaskListRepository listRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -54,11 +60,13 @@ public class TaskControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    private User johann;
+    private User alice, bob, eve;
 
     @Before
     public void setUp() {
-        johann = userRepository.save(new User("Johann", "johann", "johann@example.com", "<HIDDEN>"));
+        alice = userRepository.getByName("Alice");
+        bob = userRepository.getByName("Bob");
+        eve = userRepository.getByName("Eve");
     }
 
     @Test
@@ -169,11 +177,11 @@ public class TaskControllerTest {
 
     @Test
     public void subtasksCollection() throws Exception {
-        Task root = repo.save(new Task(johann,"Root"));
-        Task one = repo.save(new Task(johann,"One").of(root));
-        Task oneA = repo.save(new Task(johann,"A").of(one));
-        Task oneB = repo.save(new Task(johann,"B").of(one));
-        Task two = repo.save(new Task(johann,"Two").of(root));
+        TaskList root = taskRepo.save(new TaskList(alice, "Root"));
+        Task one = taskRepo.save(new Task("One").of(root));
+        Task oneA = taskRepo.save(new Task("A").of(one));
+        Task oneB = taskRepo.save(new Task("B").of(one));
+        Task two = taskRepo.save(new Task("Two").of(root));
         sync();
 
         TaskInfo ti;
@@ -211,18 +219,100 @@ public class TaskControllerTest {
         assertEquals(0, tasks.size());
     }
 
-    private RequestPostProcessor johann() {
-        return user(UserPrincipal.create(johann));
+    @Test
+    public void listGrants() throws Exception {
+        TaskList root = taskRepo.save(new TaskList(alice, "Root"));
+        AclInfo acl = forObject(
+                get("/api/tasks/{id}/acl", root.getId()),
+                status().isOk(),
+                AclInfo.class);
+        assertEquals(alice.getId(), acl.getOwnerId());
+        assertNull(acl.getGrants());
+
+        // if bob asks for lists, he gets nothing
+        List<TaskInfo> ls = forInfoList(
+                get("/api/tasks/"),
+                status().isOk(),
+                bob);
+        assertEquals(0, ls.size());
+
+        // idempotent!
+        for (int i = 0; i < 2; i++) {
+            GrantInfo grant = forObject(
+                    makeJson(post("/api/tasks/{id}/acl/grants", root.getId()),
+                            GrantInfo.fromGrant(bob, AccessLevel.VIEW)),
+                    status().isCreated(),
+                    GrantInfo.class);
+
+            assertEquals(bob.getId(), grant.getUserId());
+            assertEquals(AccessLevel.VIEW, grant.getAccessLevel());
+        }
+
+        root = listRepo.getOne(root.getId());
+        assertEquals(AccessLevel.VIEW, root.getAcl().getGrant(bob));
+
+        // if bob asks for lists, he gets root
+        ls = forInfoList(
+                get("/api/tasks/"),
+                status().isOk(),
+                bob);
+        assertEquals(1, ls.size());
+        assertEquals("Root", ls.get(0).getName());
+
+        // alice can rename
+        MockHttpServletRequestBuilder renameReq = put("/api/tasks/{id}/name", root.getId());
+        perform(makeJson(renameReq, new TaskName("Root Alice")), alice) // default, but be explicit
+                .andExpect(status().isNoContent());
+        // bob and eve cannot
+        perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
+                .andExpect(status().isForbidden());
+        perform(makeJson(renameReq, new TaskName("Root Eve")), eve)
+                .andExpect(status().isForbidden());
+
+        root = listRepo.getOne(root.getId());
+        assertEquals("Root Alice", root.getName());
+
+        forJson(
+                makeJson(post("/api/tasks/{id}/acl/grants", root.getId()),
+                        GrantInfo.fromGrant(bob, AccessLevel.ADMINISTER)),
+                status().isCreated());
+
+        // now bob can rename too!
+        perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
+                .andExpect(status().isNoContent());
+
+        root = listRepo.getOne(root.getId());
+        assertEquals("Root Bob", root.getName());
+
+        // idempotent
+        for (int i = 0; i < 2; i++) {
+            perform(delete("/api/tasks/{id}/acl/grants/{userId}", root.getId(), bob.getId()))
+                    .andExpect(status().isNoContent());
+        }
+
+        root = listRepo.getOne(root.getId());
+        assertNull(root.getAcl().getGrant(bob));
+
+        // if bob asks for lists, he gets nothing
+        ls = forInfoList(
+                get("/api/tasks/"),
+                status().isOk(),
+                bob);
+        assertEquals(0, ls.size());
     }
 
     private ResultActions perform(MockHttpServletRequestBuilder req) throws Exception {
-        ResultActions ra = mockMvc.perform(req.with(johann()));
+        return perform(req, null);
+    }
+
+    private ResultActions perform(MockHttpServletRequestBuilder req, User as) throws Exception {
+        ResultActions ra = mockMvc.perform(req.with(user(UserPrincipal.create(as == null ? alice : as))));
         sync();
         return ra;
     }
 
     private void sync() {
-        repo.flush();
+        entityManager.flush();
         entityManager.clear();
     }
 
@@ -231,22 +321,44 @@ public class TaskControllerTest {
                 .content(objectMapper.writeValueAsString(body));
     }
 
+    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, JavaType type) throws Exception {
+        return forObject(req, expect, type, null);
+    }
+
+    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, JavaType type, User as) throws Exception {
+        return objectMapper.readValue(forJson(req, expect, as), type);
+    }
+
+    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, Class<T> clazz) throws Exception {
+        return forObject(req, expect, clazz, null);
+    }
+
+    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, Class<T> clazz, User as) throws Exception {
+        return forObject(req, expect,
+                objectMapper.getTypeFactory().constructType(clazz), as);
+    }
+
     private TaskInfo forInfo(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
-        return objectMapper.readValue(
-                forJson(req, expect),
-                TaskInfo.class);
+        return forObject(req, expect, TaskInfo.class);
     }
 
     private List<TaskInfo> forInfoList(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
-        return objectMapper.readValue(
-                forJson(req, expect),
+        return forInfoList(req, expect, null);
+    }
+
+    private List<TaskInfo> forInfoList(MockHttpServletRequestBuilder req, ResultMatcher expect, User as) throws Exception {
+        return forObject(req, expect,
                 objectMapper.getTypeFactory().constructCollectionType(
                         List.class,
-                        TaskInfo.class));
+                        TaskInfo.class), as);
     }
 
     private String forJson(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
-        String content = perform(req)
+        return forJson(req, expect, null);
+    }
+
+    private String forJson(MockHttpServletRequestBuilder req, ResultMatcher expect, User as) throws Exception {
+        String content = perform(req, as)
                 .andExpect(expect)
                 .andReturn()
                 .getResponse()
@@ -257,7 +369,7 @@ public class TaskControllerTest {
 
     private void treeView(String header) {
         sync();
-        System.out.println(renderTree(header, repo.findByOwnerAndParentIsNull(johann)));
+        System.out.println(renderTree(header, listRepo.findByOwner(alice)));
     }
 
 }

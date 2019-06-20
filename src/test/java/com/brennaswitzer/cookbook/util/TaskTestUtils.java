@@ -5,15 +5,17 @@ import com.brennaswitzer.cookbook.domain.Task;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TaskTestUtils {
+public final class TaskTestUtils {
 
-    public static String renderTree(String header, Iterable<Task> tasks) {
-        List<Task> list;
+    private TaskTestUtils() {}
+
+    public static <T extends Task> String renderTree(String header, Iterable<T> tasks) {
+        List<T> list;
         if (tasks instanceof List) {
-            list = (List<Task>) tasks;
+            list = (List<T>) tasks;
         } else {
             list = new LinkedList<>();
-            for (Task t : tasks) {
+            for (T t : tasks) {
                 list.add(t);
             }
         }
@@ -39,11 +41,6 @@ public class TaskTestUtils {
             sb.append("  ");
         }
         sb.append(t.getName());
-        if (t.isQuantityInteresting()) {
-            sb.append(" (")
-                    .append(t.getQuantity())
-                    .append(')');
-        }
         sb.append('\n');
         for (Task s : t.getSubtaskView(Task.BY_ORDER)) {
             renderTree(sb, s, depth + 1);
