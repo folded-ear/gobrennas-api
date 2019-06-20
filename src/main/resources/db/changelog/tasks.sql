@@ -63,8 +63,6 @@ alter table task
 --changeset barneyb:_eqkey-storage
 alter table task
     add _eqkey bigint default extract(epoch from now());
-alter table task
-    add constraint uk_task__eqkey unique (_eqkey);
 
 -- noinspection SqlWithoutWhere
 update task
@@ -72,3 +70,5 @@ set _eqkey = id;
 
 alter table task
     alter _eqkey set not null;
+alter table task
+    add constraint uk_task__eqkey unique (_eqkey);
