@@ -72,3 +72,36 @@ alter table task
     alter _eqkey set not null;
 alter table task
     add constraint uk_task__eqkey unique (_eqkey);
+
+--changeset barneyb:update-existing-task-list-types-correctly
+
+/*
+ when i did it originally (in 'task-lists-are-a-separate-type' above), i didn't
+ account for "equality of null", and thus made the non-parented records into
+ tasks (not lists). oops.
+ */
+
+update task
+set _type = 'list'
+where parent_id is null;
+
+update task
+set owner_id = null
+where _type != 'list';
+
+alter table task
+    drop constraint chk_owner_on_list;
+alter table task
+    add constraint chk_owner_id check (
+        case _type
+            when 'list' then owner_id is not null
+            else owner_id is null
+            end
+        );
+alter table task
+    add constraint chk_parent_id check (
+        case _type
+            when 'list' then parent_id is null
+            else parent_id is not null
+            end
+        );
