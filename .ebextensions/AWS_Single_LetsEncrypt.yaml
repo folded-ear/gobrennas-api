@@ -15,12 +15,15 @@ Resources:
 container_commands:
   10_installcertbot:
     command: "wget https://dl.eff.org/certbot-auto && mv certbot-auto /opt && chmod a+x /opt/certbot-auto"
+    test: "[ ! -f /opt/certbot-auto ]"
   20_getthecert:
     command: "sudo /opt/certbot-auto certonly --debug --non-interactive --email ${certemail} --agree-tos --standalone --domains ${certdomain} --keep-until-expiring --pre-hook \"service nginx stop\""
+    test: "[ ! -d /etc/letsencrypt/live/${certdomain} ]"
   30_link:
     command: "ln -sf /etc/letsencrypt/live/${certdomain} /etc/letsencrypt/live/ebcert"
+    test: "[ ! -h /etc/letsencrypt/live/ebcert ]"
   40_config:
-    # certs exist; make the config live
+    # certs exist; make the config live (i don't know why _this_ directory, but it's silly)
     command: "mv /var/elasticbeanstalk/staging/nginx/conf.d/https.pre /var/elasticbeanstalk/staging/nginx/conf.d/https.conf"
   50_restart:
     # sanity check that we can renew while restarting nginx
