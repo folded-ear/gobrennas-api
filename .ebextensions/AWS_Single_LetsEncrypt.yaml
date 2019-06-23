@@ -2,16 +2,6 @@
 #  https://gist.github.com/tony-gutierrez/198988c34e020af0192bab543d35a62a
 #  https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customize-containers-cw.html
 
-Resources:
-  sslSecurityGroupIngress: 
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: {"Fn::GetAtt" : ["AWSEBSecurityGroup", "GroupId"]}
-      IpProtocol: tcp
-      ToPort: 443
-      FromPort: 443
-      CidrIp: 0.0.0.0/0
-
 container_commands:
   10_installcertbot:
     command: "wget https://dl.eff.org/certbot-auto && mv certbot-auto /opt && chmod a+x /opt/certbot-auto"
