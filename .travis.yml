@@ -1,20 +1,22 @@
 language: java
 jdk: openjdk8
-node_js: "10"
+
 before_install:
   - cd client
-  - npm install
+  - nvm install
+  - npm ci
   - npm run build
   - cd ..
+
 before_script:
   - cd client
   - npm run test
   - cd ..
+
 cache:
   directories:
     - $HOME/.m2/repository
     - $HOME/.npm
-    - client/node_modules
 
 notifications:
   slack:
