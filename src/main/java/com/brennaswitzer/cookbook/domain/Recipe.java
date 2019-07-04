@@ -18,10 +18,8 @@ public class Recipe extends Ingredient {
 
     private String external_url;
 
-    @Lob
     private String directions;
 
-    @Lob
     @Column(name = "raw_ingredients")
     private String rawIngredients;
 
