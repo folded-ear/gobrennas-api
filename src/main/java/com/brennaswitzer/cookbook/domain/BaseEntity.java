@@ -24,6 +24,7 @@ public abstract class BaseEntity {
     private Instant createdAt;
 
     @NotNull
+    @Version
     @Column(name = "updated_at")
     private Instant updatedAt;
 
@@ -43,7 +44,7 @@ public abstract class BaseEntity {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    private void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -51,20 +52,10 @@ public abstract class BaseEntity {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     @PrePersist
     protected void onPersist() {
         Instant now = Instant.now();
         setCreatedAt(now);
-        setUpdatedAt(now);
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        setUpdatedAt(Instant.now());
     }
 
     /**
