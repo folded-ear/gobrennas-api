@@ -1,8 +1,11 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.AggregateIngredient;
+import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
-import com.brennaswitzer.cookbook.repositories.TaskListRepository;
+import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +20,7 @@ public class RecipeService {
     private RecipeRepository recipeRepository;
 
     @Autowired
-    private TaskListRepository taskListRepository;
+    private TaskRepository taskRepository;
 
     public Recipe saveOrUpdateRecipe(Recipe recipe) {
         return recipeRepository.save(recipe);
@@ -35,38 +38,44 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
+    private void saveSubtask(Task parent, String name) {
+        Task t = new Task(name);
+        parent.addSubtask(t);
+        taskRepository.save(t);
+    }
+
     public void addPurchaseableSchmankiesToList(
             AggregateIngredient agg,
-            TaskList list,
+            Task list,
             boolean withHeading
     ) {
         if (withHeading) {
-            list.addSubtask(new Task(agg.getName() + ":"));
+            saveSubtask(list, agg.getName() + ":");
         }
         for (IngredientRef ref : agg.getPurchasableSchmankies()) {
-            list.addSubtask(new Task(ref.toString()));
+            saveSubtask(list, ref.toString());
         }
     }
 
     public void addRawIngredientsToList(
             Recipe recipe,
-            TaskList list,
+            Task list,
             boolean withHeading
     ) {
         if (withHeading) {
-            list.addSubtask(new Task(recipe.getTitle() + ":"));
+            saveSubtask(list, recipe.getTitle() + ":");
         }
         for (String line : recipe.getRawIngredients().split("\n")) {
             line = line.trim();
             if (line.length() == 0) continue;
-            list.addSubtask(new Task(line));
+            saveSubtask(list, line);
         }
     }
 
     public void addRawIngredientsToList(Long recipeId, Long listId, boolean withHeading) {
         addRawIngredientsToList(
                 recipeRepository.findById(recipeId).get(),
-                taskListRepository.getOne(listId),
+                taskRepository.getOne(listId),
                 withHeading
         );
     }

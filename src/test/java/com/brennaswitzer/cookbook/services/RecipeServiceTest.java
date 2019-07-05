@@ -2,8 +2,17 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.function.Consumer;
@@ -13,18 +22,31 @@ import static com.brennaswitzer.cookbook.util.RecipeBox.PIZZA_CRUST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@Transactional
+@WithAliceBobEve
 public class RecipeServiceTest {
 
+    @Autowired
     private RecipeService service;
+
+    @Autowired
+    private TaskListRepository listRepo;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User alice;
 
     @Before
     public void setUp() {
-        service = new RecipeService();
+        alice = userRepository.getByName("Alice");
     }
 
     @Test
     public void addRawIngredientsToList() {
-        TaskList list = new TaskList("Groceries");
+        TaskList list = listRepo.save(new TaskList(alice, "Groceries"));
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
             assertEquals("2 c flour", itr.next().getName());
@@ -51,7 +73,7 @@ public class RecipeServiceTest {
 
     @Test
     public void addPurchaseableSchmankiesToList() {
-        TaskList list = new TaskList("Groceries");
+        TaskList list = listRepo.save(new TaskList(alice, "Groceries"));
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
             // pizza
