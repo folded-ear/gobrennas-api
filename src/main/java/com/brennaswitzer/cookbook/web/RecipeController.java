@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.payload.RecipeAction;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +50,12 @@ public class RecipeController {
         return new ResponseEntity<String>("Recipe was deleted", HttpStatus.OK);
     }
 
-    @PostMapping("/{id}/raw-ingredients/to-tasks/{listId}")
-    public void doit(
+    @PostMapping("/{id}/_actions")
+    public void performAction(
             @PathVariable("id") Long id,
-            @PathVariable("listId") Long listId
+            @RequestBody RecipeAction action
     ) {
-        recipeService.addRawIngredientsToList(id, listId, true);
+        action.execute(id, recipeService);
     }
 
 }

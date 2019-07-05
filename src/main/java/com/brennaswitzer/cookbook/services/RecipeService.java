@@ -1,15 +1,14 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AggregateIngredient;
-import com.brennaswitzer.cookbook.domain.IngredientRef;
-import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -44,7 +43,7 @@ public class RecipeService {
         taskRepository.save(t);
     }
 
-    public void addPurchaseableSchmankiesToList(
+    public void addPurchasableSchmankiesToList(
             AggregateIngredient agg,
             Task list,
             boolean withHeading
@@ -52,9 +51,30 @@ public class RecipeService {
         if (withHeading) {
             saveSubtask(list, agg.getName() + ":");
         }
-        for (IngredientRef ref : agg.getPurchasableSchmankies()) {
-            saveSubtask(list, ref.toString());
+        Map<PantryItem, IngredientRef<PantryItem>> grouped = new LinkedHashMap<>();
+        for (IngredientRef<PantryItem> ref : agg.getPurchasableSchmankies()) {
+            PantryItem ingredient = ref.getIngredient();
+            if (grouped.containsKey(ingredient)) {
+                grouped.put(ingredient, grouped.get(ingredient).plus(ref));
+            } else {
+                grouped.put(ingredient, ref);
+            }
         }
+        for (IngredientRef ref : grouped.values()) {
+            StringBuilder sb = new StringBuilder().append(ref.getIngredient().getName());
+            if (ref.getQuantity() != null && ! ref.getQuantity().isEmpty()) {
+                sb.append(" (").append(ref.getQuantity()).append(')');
+            }
+            saveSubtask(list, sb.toString());
+        }
+    }
+
+    public void addPurchasableSchmankiesToList(Long recipeId, Long listId, boolean withHeading) {
+        addPurchasableSchmankiesToList(
+                recipeRepository.findById(recipeId).get(),
+                taskRepository.getOne(listId),
+                withHeading
+        );
     }
 
     public void addRawIngredientsToList(
@@ -67,7 +87,7 @@ public class RecipeService {
         }
         for (String line : recipe.getRawIngredients().split("\n")) {
             line = line.trim();
-            if (line.length() == 0) continue;
+            if (line.isEmpty()) continue;
             saveSubtask(list, line);
         }
     }

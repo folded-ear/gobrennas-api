@@ -3,10 +3,11 @@ package com.brennaswitzer.cookbook.domain;
 import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotNull;
 import java.util.Comparator;
 
 @Embeddable
-public class IngredientRef {
+public class IngredientRef<I extends Ingredient> {
 
     public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) ->
             Ingredient.BY_NAME.compare(a.getIngredient(), b.getIngredient());
@@ -14,26 +15,27 @@ public class IngredientRef {
     private String quantity;
     private String preparation;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
-    private Ingredient ingredient;
+    @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
+    @NotNull
+    private I ingredient;
 
     public IngredientRef() {}
 
-    public IngredientRef(Ingredient ingredient) {
+    public IngredientRef(I ingredient) {
         this(null, ingredient, null);
     }
 
-    public IngredientRef(String quantity, Ingredient ingredient, String preparation) {
+    public IngredientRef(String quantity, I ingredient, String preparation) {
         setQuantity(quantity);
         setIngredient(ingredient);
         setPreparation(preparation);
     }
 
-    public Ingredient getIngredient() {
+    public I getIngredient() {
         return ingredient;
     }
 
-    public void setIngredient(Ingredient ingredient) {
+    public void setIngredient(I ingredient) {
         this.ingredient = ingredient;
     }
 
@@ -55,14 +57,37 @@ public class IngredientRef {
 
     @Override
     public String toString() {
+        return toString(true);
+    }
+
+    public String toString(boolean includePrep) {
         StringBuilder sb = new StringBuilder();
-        if (quantity != null && quantity.length() > 0) {
+        if (quantity != null && ! quantity.isEmpty()) {
             sb.append(quantity).append(' ');
         }
         sb.append(ingredient.getName());
-        if (preparation != null && preparation.length() > 0) {
+        if (includePrep && preparation != null && ! preparation.isEmpty()) {
             sb.append(", ").append(preparation);
         }
         return sb.toString();
+    }
+
+    private String add(String a, String b, String def) {
+        if (a == null || a.isEmpty()) a = def;
+        if (b == null || b.isEmpty()) b = def;
+        if (a == null) return b;
+        if (b == null) return a;
+        return a + ", " + b;
+    }
+
+    public IngredientRef<I> plus(IngredientRef<I> ref) {
+        if (! ingredient.equals(ref.getIngredient())) {
+            throw new IllegalArgumentException("You can't add IngredientRefs w/ different Ingredients");
+        }
+        return new IngredientRef<I>(
+                add(quantity, ref.quantity, "1"),
+                ingredient,
+                add(preparation, ref.preparation, null)
+        );
     }
 }
