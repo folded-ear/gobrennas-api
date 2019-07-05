@@ -26,4 +26,8 @@ public class PantryItem extends Ingredient {
         this.aisle = aisle;
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

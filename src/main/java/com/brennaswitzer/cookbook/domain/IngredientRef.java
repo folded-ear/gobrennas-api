@@ -52,4 +52,17 @@ public class IngredientRef {
     public void setPreparation(String preparation) {
         this.preparation = preparation;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (quantity != null && quantity.length() > 0) {
+            sb.append(quantity).append(' ');
+        }
+        sb.append(ingredient.getName());
+        if (preparation != null && preparation.length() > 0) {
+            sb.append(", ").append(preparation);
+        }
+        return sb.toString();
+    }
 }
