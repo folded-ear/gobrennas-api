@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.persistence.*;
+import java.util.Comparator;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -19,6 +20,9 @@ import javax.persistence.*;
 })
 public abstract class Ingredient {
 
+    public static Comparator<Ingredient> BY_NAME = (a, b) ->
+            a.getName().compareToIgnoreCase(b.getName());
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -26,7 +30,10 @@ public abstract class Ingredient {
     private String name;
 
     Ingredient() {
+    }
 
+    Ingredient(String name) {
+        setName(name);
     }
 
     public long getIngredientId() {
