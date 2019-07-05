@@ -81,7 +81,7 @@ public class RecipeServiceTest {
             // sauce
             assertEquals("fresh tomatoes (1 lbs)", itr.next().getName());
             assertEquals("tomato paste (1 (6 oz) can)", itr.next().getName());
-            assertEquals("italian seasoning (1)", itr.next().getName());
+            assertEquals("italian seasoning", itr.next().getName());
             assertEquals("salt (1 tsp, 0.5 tsp)", itr.next().getName());
             // crust
             assertEquals("flour (2 c)", itr.next().getName());

@@ -1,9 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AggregateIngredient;
-import com.brennaswitzer.cookbook.domain.IngredientRef;
-import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,21 +51,21 @@ public class RecipeService {
         if (withHeading) {
             saveSubtask(list, agg.getName() + ":");
         }
-        Map<String, StringBuilder> grouped = new LinkedHashMap<>();
-        for (IngredientRef ref : agg.getPurchasableSchmankies()) {
-            String name = ref.getIngredient().getName();
-            String quantity = ref.getQuantity();
-            if (quantity == null || quantity.trim().length() == 0) {
-                quantity = "1";
-            }
-            if (grouped.containsKey(name)) {
-                grouped.get(name).append(", ").append(quantity);
+        Map<PantryItem, IngredientRef<PantryItem>> grouped = new LinkedHashMap<>();
+        for (IngredientRef<PantryItem> ref : agg.getPurchasableSchmankies()) {
+            PantryItem ingredient = ref.getIngredient();
+            if (grouped.containsKey(ingredient)) {
+                grouped.put(ingredient, grouped.get(ingredient).plus(ref));
             } else {
-                grouped.put(name, new StringBuilder(quantity));
+                grouped.put(ingredient, ref);
             }
         }
-        for (String name : grouped.keySet()) {
-            saveSubtask(list, name + " (" + grouped.get(name) + ')');
+        for (IngredientRef ref : grouped.values()) {
+            StringBuilder sb = new StringBuilder().append(ref.getIngredient().getName());
+            if (ref.getQuantity() != null && ! ref.getQuantity().isEmpty()) {
+                sb.append(" (").append(ref.getQuantity()).append(')');
+            }
+            saveSubtask(list, sb.toString());
         }
     }
 
@@ -82,7 +79,7 @@ public class RecipeService {
         }
         for (String line : recipe.getRawIngredients().split("\n")) {
             line = line.trim();
-            if (line.length() == 0) continue;
+            if (line.isEmpty()) continue;
             saveSubtask(list, line);
         }
     }
