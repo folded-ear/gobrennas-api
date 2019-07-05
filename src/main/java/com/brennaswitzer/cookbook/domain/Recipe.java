@@ -16,7 +16,7 @@ public class Recipe extends Ingredient implements AggregateIngredient {
 
     private String displayTitle;
 
-    private String external_url;
+    private String externalUrl;
 
     private String directions;
 
@@ -47,12 +47,12 @@ public class Recipe extends Ingredient implements AggregateIngredient {
         this.displayTitle = displayTitle;
     }
 
-    public String getExternal_url() {
-        return external_url;
+    public String getExternalUrl() {
+        return externalUrl;
     }
 
-    public void setExternal_url(String external_url) {
-        this.external_url = external_url;
+    public void setExternalUrl(String externalUrl) {
+        this.externalUrl = externalUrl;
     }
 
     public String getDirections() {
