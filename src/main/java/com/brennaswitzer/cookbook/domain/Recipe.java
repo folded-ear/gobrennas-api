@@ -43,6 +43,17 @@ public class Recipe extends Ingredient {
         this.title = title;
     }
 
+    @Override
+    public String getName() {
+        // todo: this was an expedient way to deal with the name/title model
+        //  issues that I'm deliberately _not_ fixing so that Brenna can, while
+        //  still being able to use Ingredient.getName() in a polymorphic way
+        //  in the interim. Much better would be to leave a @Deprecated getTitle
+        //  in place which returns name (for backwards compatibility), and have
+        //  all Ingredients use name. Period.
+        return title;
+    }
+
     public String getExternal_url() {
         return external_url;
     }
