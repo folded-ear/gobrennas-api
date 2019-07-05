@@ -77,26 +77,27 @@ public class RecipeServiceTest {
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
             // pizza
-            assertEquals("4 oz pepperoni", itr.next().getName());
+            assertEquals("pepperoni (4 oz)", itr.next().getName());
             // sauce
-            assertEquals("1 lbs fresh tomatoes", itr.next().getName());
-            assertEquals("1 (6 oz) can tomato paste", itr.next().getName());
-            assertEquals("italian seasoning", itr.next().getName());
+            assertEquals("fresh tomatoes (1 lbs)", itr.next().getName());
+            assertEquals("tomato paste (1 (6 oz) can)", itr.next().getName());
+            assertEquals("italian seasoning (1)", itr.next().getName());
+            assertEquals("salt (1 tsp, 0.5 tsp)", itr.next().getName());
             // crust
-            assertEquals("2 c flour", itr.next().getName());
-            assertEquals("1 c water", itr.next().getName());
-            assertEquals("1 packet yeast", itr.next().getName());
-            assertEquals("1 Tbsp sugar", itr.next().getName());
+            assertEquals("flour (2 c)", itr.next().getName());
+            assertEquals("water (1 c)", itr.next().getName());
+            assertEquals("yeast (1 packet)", itr.next().getName());
+            assertEquals("sugar (1 Tbsp)", itr.next().getName());
         };
 
         service.addPurchaseableSchmankiesToList(PIZZA, list, false);
-        assertEquals(8, list.getSubtaskCount());
+        assertEquals(9, list.getSubtaskCount());
         Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
 
         service.addPurchaseableSchmankiesToList(PIZZA, list, true);
-        assertEquals(8 + 1 + 8, list.getSubtaskCount());
+        assertEquals(9 + 1 + 9, list.getSubtaskCount());
         itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);
         assertEquals("Pizza:", itr.next().getName());

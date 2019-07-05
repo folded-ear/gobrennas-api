@@ -13,6 +13,8 @@ public final class RecipeBox {
             PIZZA_SAUCE;
 
     static {
+        PantryItem salt = new PantryItem("salt");
+
         FRIED_CHICKEN = new Recipe("Fried Chicken");
         FRIED_CHICKEN.addIngredient("2", new PantryItem("egg"), "shelled");
         FRIED_CHICKEN.addIngredient(new PantryItem("chicken"), "deboned");
@@ -22,6 +24,7 @@ public final class RecipeBox {
         PIZZA_SAUCE.addIngredient("1 lbs", new PantryItem("fresh tomatoes"), "seeded and crushed");
         PIZZA_SAUCE.addIngredient("1 (6 oz) can", new PantryItem("tomato paste"));
         PIZZA_SAUCE.addIngredient(new PantryItem("italian seasoning"));
+        PIZZA_SAUCE.addIngredient("1 tsp", salt);
         setRawIngredients(PIZZA_SAUCE);
 
         PIZZA_CRUST = new Recipe("Pizza Crust");
@@ -29,6 +32,7 @@ public final class RecipeBox {
         PIZZA_CRUST.addIngredient("1 c", new PantryItem("water"));
         PIZZA_CRUST.addIngredient("1 packet", new PantryItem("yeast"));
         PIZZA_CRUST.addIngredient("1 Tbsp", new PantryItem("sugar"));
+        PIZZA_SAUCE.addIngredient("0.5 tsp", salt);
         setRawIngredients(PIZZA_CRUST);
 
         PIZZA = new Recipe("Pizza");

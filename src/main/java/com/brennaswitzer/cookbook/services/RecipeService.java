@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -52,8 +54,21 @@ public class RecipeService {
         if (withHeading) {
             saveSubtask(list, agg.getName() + ":");
         }
+        Map<String, StringBuilder> grouped = new LinkedHashMap<>();
         for (IngredientRef ref : agg.getPurchasableSchmankies()) {
-            saveSubtask(list, ref.toString(false));
+            String name = ref.getIngredient().getName();
+            String quantity = ref.getQuantity();
+            if (quantity == null || quantity.trim().length() == 0) {
+                quantity = "1";
+            }
+            if (grouped.containsKey(name)) {
+                grouped.get(name).append(", ").append(quantity);
+            } else {
+                grouped.put(name, new StringBuilder(quantity));
+            }
+        }
+        for (String name : grouped.keySet()) {
+            saveSubtask(list, name + " (" + grouped.get(name) + ')');
         }
     }
 

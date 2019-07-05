@@ -38,7 +38,7 @@ public class RecipeTest {
     public void recursiveSchmankies() {
         List<IngredientRef> pss = new ArrayList<>(PIZZA.getPurchasableSchmankies());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
-        assertEquals(8, pss.size());
+        assertEquals(10, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
 
         IngredientRef ref;
@@ -53,6 +53,8 @@ public class RecipeTest {
         assertEquals("pepperoni", ref.getIngredient().getName());
             assertEquals("4 oz", ref.getQuantity());
             assertNull(ref.getPreparation());
+        assertEquals("salt", itr.next().getIngredient().getName());
+        assertEquals("salt", itr.next().getIngredient().getName());
         assertEquals("sugar", itr.next().getIngredient().getName());
         assertEquals("tomato paste", itr.next().getIngredient().getName());
         assertEquals("water", itr.next().getIngredient().getName());
