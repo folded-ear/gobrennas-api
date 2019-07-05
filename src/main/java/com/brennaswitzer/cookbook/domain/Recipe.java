@@ -5,13 +5,15 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
 @JsonTypeName("PantryItem")
-public class Recipe extends Ingredient {
+public class Recipe extends Ingredient implements AggregateIngredient {
 
     @NotBlank(message = "A title is required")
     private String title;
@@ -33,6 +35,10 @@ public class Recipe extends Ingredient {
     private Date updated_at;
 
     public Recipe() {
+    }
+
+    public Recipe(String title) {
+        setTitle(title);
     }
 
     public String getTitle() {
@@ -86,6 +92,23 @@ public class Recipe extends Ingredient {
         this.ingredients = ingredients;
     }
 
+    public void addIngredient(Ingredient ingredient) {
+        addIngredient(null, ingredient, null);
+    }
+
+    public void addIngredient(String quantity, Ingredient ingredient) {
+        addIngredient(quantity, ingredient, null);
+    }
+
+    public void addIngredient(Ingredient ingredient, String preparation) {
+        addIngredient(null, ingredient, preparation);
+    }
+
+    public void addIngredient(String quantity, Ingredient ingredient, String preparation) {
+        if (ingredients == null) ingredients = new LinkedList<>();
+        ingredients.add(new IngredientRef(quantity, ingredient, preparation));
+    }
+
     public Date getCreated_at() {
         return created_at;
     }
@@ -112,4 +135,17 @@ public class Recipe extends Ingredient {
         this.updated_at = new Date();
     }
 
+    @Override
+    public Collection<IngredientRef> getPurchasableSchmankies() {
+        LinkedList<IngredientRef> refs = new LinkedList<>();
+        if (ingredients == null) return refs;
+        for (IngredientRef ref : ingredients) {
+            if (ref.getIngredient() instanceof AggregateIngredient) {
+                refs.addAll(((AggregateIngredient) ref.getIngredient()).getPurchasableSchmankies());
+            } else {
+                refs.add(ref);
+            }
+        }
+        return refs;
+    }
 }
