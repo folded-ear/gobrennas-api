@@ -69,6 +69,14 @@ public class RecipeService {
         }
     }
 
+    public void addPurchasableSchmankiesToList(Long recipeId, Long listId, boolean withHeading) {
+        addPurchasableSchmankiesToList(
+                recipeRepository.findById(recipeId).get(),
+                taskRepository.getOne(listId),
+                withHeading
+        );
+    }
+
     public void addRawIngredientsToList(
             Recipe recipe,
             Task list,
