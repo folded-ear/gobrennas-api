@@ -1,8 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.Task;
-import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +27,19 @@ public class RecipeService {
 
     public void deleteRecipeById(Long id) {
         recipeRepository.deleteById(id);
+    }
+
+    public void addPurchaseableSchmankiesToList(
+            AggregateIngredient agg,
+            TaskList list,
+            boolean withHeading
+    ) {
+        if (withHeading) {
+            list.addSubtask(new Task(agg.getName() + ":"));
+        }
+        for (IngredientRef ref : agg.getPurchasableSchmankies()) {
+            list.addSubtask(new Task(ref.toString()));
+        }
     }
 
     public void addRawIngredientsToList(
