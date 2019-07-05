@@ -48,4 +48,13 @@ public class RecipeController {
 
         return new ResponseEntity<String>("Recipe was deleted", HttpStatus.OK);
     }
+
+    @PostMapping("/{id}/raw-ingredients/to-tasks/{listId}")
+    public void doit(
+            @PathVariable("id") Long id,
+            @PathVariable("listId") Long listId
+    ) {
+        recipeService.addRawIngredientsToList(id, listId, true);
+    }
+
 }

@@ -2,16 +2,22 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
+@Transactional
 public class RecipeService {
 
     @Autowired
     private RecipeRepository recipeRepository;
+
+    @Autowired
+    private TaskListRepository taskListRepository;
 
     public Recipe saveOrUpdateRecipe(Recipe recipe) {
         return recipeRepository.save(recipe);
@@ -55,6 +61,14 @@ public class RecipeService {
             if (line.length() == 0) continue;
             list.addSubtask(new Task(line));
         }
+    }
+
+    public void addRawIngredientsToList(Long recipeId, Long listId, boolean withHeading) {
+        addRawIngredientsToList(
+                recipeRepository.findById(recipeId).get(),
+                taskListRepository.getOne(listId),
+                withHeading
+        );
     }
 
 }
