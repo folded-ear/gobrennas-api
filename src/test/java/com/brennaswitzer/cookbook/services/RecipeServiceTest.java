@@ -72,7 +72,7 @@ public class RecipeServiceTest {
     }
 
     @Test
-    public void addPurchaseableSchmankiesToList() {
+    public void addPurchasableSchmankiesToList() {
         TaskList list = listRepo.save(new TaskList(alice, "Groceries"));
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
@@ -90,13 +90,13 @@ public class RecipeServiceTest {
             assertEquals("sugar (1 Tbsp)", itr.next().getName());
         };
 
-        service.addPurchaseableSchmankiesToList(PIZZA, list, false);
+        service.addPurchasableSchmankiesToList(PIZZA, list, false);
         assertEquals(9, list.getSubtaskCount());
         Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
 
-        service.addPurchaseableSchmankiesToList(PIZZA, list, true);
+        service.addPurchasableSchmankiesToList(PIZZA, list, true);
         assertEquals(9 + 1 + 9, list.getSubtaskCount());
         itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);

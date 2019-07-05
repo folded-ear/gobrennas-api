@@ -43,7 +43,7 @@ public class RecipeService {
         taskRepository.save(t);
     }
 
-    public void addPurchaseableSchmankiesToList(
+    public void addPurchasableSchmankiesToList(
             AggregateIngredient agg,
             Task list,
             boolean withHeading
