@@ -17,6 +17,6 @@ public interface AggregateIngredient {
      * I return the stuff for this Ingredient that you'd purchase at a store.
      * I'm deliberately named in a gratuitously nonsensical manner. For now. :)
      */
-    Collection<IngredientRef> getPurchasableSchmankies();
+    Collection<IngredientRef<PantryItem>> getPurchasableSchmankies();
 
 }

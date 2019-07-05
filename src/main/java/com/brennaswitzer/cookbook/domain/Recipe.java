@@ -123,14 +123,18 @@ public class Recipe extends Ingredient implements AggregateIngredient {
     }
 
     @Override
-    public Collection<IngredientRef> getPurchasableSchmankies() {
-        LinkedList<IngredientRef> refs = new LinkedList<>();
+    public Collection<IngredientRef<PantryItem>> getPurchasableSchmankies() {
+        LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
-            if (ref.getIngredient() instanceof AggregateIngredient) {
-                refs.addAll(((AggregateIngredient) ref.getIngredient()).getPurchasableSchmankies());
+            Ingredient ingredient = ref.getIngredient();
+            if (ingredient instanceof PantryItem) {
+                //noinspection unchecked
+                refs.add((IngredientRef<PantryItem>) ref);
+            } else if (ingredient instanceof AggregateIngredient) {
+                refs.addAll(((AggregateIngredient) ingredient).getPurchasableSchmankies());
             } else {
-                refs.add(ref);
+                throw new IllegalStateException("Recipe #" + getIngredientId() + " has non-" + PantryItem.class.getSimpleName() + ", non-" + AggregateIngredient.class.getSimpleName() + " IngredientRef<" + ingredient.getClass().getSimpleName() + ">?!");
             }
         }
         return refs;
