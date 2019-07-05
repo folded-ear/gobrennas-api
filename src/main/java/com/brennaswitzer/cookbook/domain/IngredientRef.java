@@ -6,7 +6,7 @@ import javax.persistence.ManyToOne;
 import java.util.Comparator;
 
 @Embeddable
-public class IngredientRef {
+public class IngredientRef<I extends Ingredient> {
 
     public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) ->
             Ingredient.BY_NAME.compare(a.getIngredient(), b.getIngredient());
@@ -14,26 +14,26 @@ public class IngredientRef {
     private String quantity;
     private String preparation;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
-    private Ingredient ingredient;
+    @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
+    private I ingredient;
 
     public IngredientRef() {}
 
-    public IngredientRef(Ingredient ingredient) {
+    public IngredientRef(I ingredient) {
         this(null, ingredient, null);
     }
 
-    public IngredientRef(String quantity, Ingredient ingredient, String preparation) {
+    public IngredientRef(String quantity, I ingredient, String preparation) {
         setQuantity(quantity);
         setIngredient(ingredient);
         setPreparation(preparation);
     }
 
-    public Ingredient getIngredient() {
+    public I getIngredient() {
         return ingredient;
     }
 
-    public void setIngredient(Ingredient ingredient) {
+    public void setIngredient(I ingredient) {
         this.ingredient = ingredient;
     }
 
