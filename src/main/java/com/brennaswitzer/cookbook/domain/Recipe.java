@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
@@ -15,8 +14,7 @@ import java.util.List;
 @JsonTypeName("PantryItem")
 public class Recipe extends Ingredient implements AggregateIngredient {
 
-    @NotBlank(message = "A title is required")
-    private String title;
+    private String displayTitle;
 
     private String external_url;
 
@@ -37,27 +35,16 @@ public class Recipe extends Ingredient implements AggregateIngredient {
     public Recipe() {
     }
 
-    public Recipe(String title) {
-        setTitle(title);
+    public Recipe(String name) {
+        setName(name);
     }
 
-    public String getTitle() {
-        return title;
+    public String getDisplayTitle() {
+        return displayTitle;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public String getName() {
-        // todo: this was an expedient way to deal with the name/title model
-        //  issues that I'm deliberately _not_ fixing so that Brenna can, while
-        //  still being able to use Ingredient.getName() in a polymorphic way
-        //  in the interim. Much better would be to leave a @Deprecated getTitle
-        //  in place which returns name (for backwards compatibility), and have
-        //  all Ingredients use name. Period.
-        return title;
+    public void setDisplayTitle(String displayTitle) {
+        this.displayTitle = displayTitle;
     }
 
     public String getExternal_url() {

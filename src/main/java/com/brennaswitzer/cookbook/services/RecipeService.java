@@ -63,7 +63,7 @@ public class RecipeService {
             boolean withHeading
     ) {
         if (withHeading) {
-            saveSubtask(list, recipe.getTitle() + ":");
+            saveSubtask(list, recipe.getName() + ":");
         }
         for (String line : recipe.getRawIngredients().split("\n")) {
             line = line.trim();
