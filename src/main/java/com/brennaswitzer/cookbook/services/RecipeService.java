@@ -53,7 +53,7 @@ public class RecipeService {
             saveSubtask(list, agg.getName() + ":");
         }
         for (IngredientRef ref : agg.getPurchasableSchmankies()) {
-            saveSubtask(list, ref.toString());
+            saveSubtask(list, ref.toString(false));
         }
     }
 

@@ -55,12 +55,16 @@ public class IngredientRef {
 
     @Override
     public String toString() {
+        return toString(true);
+    }
+
+    public String toString(boolean includePrep) {
         StringBuilder sb = new StringBuilder();
         if (quantity != null && quantity.length() > 0) {
             sb.append(quantity).append(' ');
         }
         sb.append(ingredient.getName());
-        if (preparation != null && preparation.length() > 0) {
+        if (includePrep && preparation != null && preparation.length() > 0) {
             sb.append(", ").append(preparation);
         }
         return sb.toString();

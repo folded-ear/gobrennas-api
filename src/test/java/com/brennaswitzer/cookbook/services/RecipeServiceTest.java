@@ -79,7 +79,7 @@ public class RecipeServiceTest {
             // pizza
             assertEquals("4 oz pepperoni", itr.next().getName());
             // sauce
-            assertEquals("1 lbs fresh tomatoes, seeded and crushed", itr.next().getName());
+            assertEquals("1 lbs fresh tomatoes", itr.next().getName());
             assertEquals("1 (6 oz) can tomato paste", itr.next().getName());
             assertEquals("italian seasoning", itr.next().getName());
             // crust
