@@ -4,19 +4,19 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
 @JsonTypeName("PantryItem")
-public class Recipe extends Ingredient {
+public class Recipe extends Ingredient implements AggregateIngredient {
 
-    @NotBlank(message = "A title is required")
-    private String title;
+    private String displayTitle;
 
-    private String external_url;
+    private String externalUrl;
 
     private String directions;
 
@@ -35,31 +35,24 @@ public class Recipe extends Ingredient {
     public Recipe() {
     }
 
-    public String getTitle() {
-        return title;
+    public Recipe(String name) {
+        setName(name);
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public String getDisplayTitle() {
+        return displayTitle;
     }
 
-    @Override
-    public String getName() {
-        // todo: this was an expedient way to deal with the name/title model
-        //  issues that I'm deliberately _not_ fixing so that Brenna can, while
-        //  still being able to use Ingredient.getName() in a polymorphic way
-        //  in the interim. Much better would be to leave a @Deprecated getTitle
-        //  in place which returns name (for backwards compatibility), and have
-        //  all Ingredients use name. Period.
-        return title;
+    public void setDisplayTitle(String displayTitle) {
+        this.displayTitle = displayTitle;
     }
 
-    public String getExternal_url() {
-        return external_url;
+    public String getExternalUrl() {
+        return externalUrl;
     }
 
-    public void setExternal_url(String external_url) {
-        this.external_url = external_url;
+    public void setExternalUrl(String externalUrl) {
+        this.externalUrl = externalUrl;
     }
 
     public String getDirections() {
@@ -84,6 +77,23 @@ public class Recipe extends Ingredient {
 
     public void setIngredients(List<IngredientRef> ingredients) {
         this.ingredients = ingredients;
+    }
+
+    public void addIngredient(Ingredient ingredient) {
+        addIngredient(null, ingredient, null);
+    }
+
+    public void addIngredient(String quantity, Ingredient ingredient) {
+        addIngredient(quantity, ingredient, null);
+    }
+
+    public void addIngredient(Ingredient ingredient, String preparation) {
+        addIngredient(null, ingredient, preparation);
+    }
+
+    public void addIngredient(String quantity, Ingredient ingredient, String preparation) {
+        if (ingredients == null) ingredients = new LinkedList<>();
+        ingredients.add(new IngredientRef(quantity, ingredient, preparation));
     }
 
     public Date getCreated_at() {
@@ -112,4 +122,17 @@ public class Recipe extends Ingredient {
         this.updated_at = new Date();
     }
 
+    @Override
+    public Collection<IngredientRef> getPurchasableSchmankies() {
+        LinkedList<IngredientRef> refs = new LinkedList<>();
+        if (ingredients == null) return refs;
+        for (IngredientRef ref : ingredients) {
+            if (ref.getIngredient() instanceof AggregateIngredient) {
+                refs.addAll(((AggregateIngredient) ref.getIngredient()).getPurchasableSchmankies());
+            } else {
+                refs.add(ref);
+            }
+        }
+        return refs;
+    }
 }

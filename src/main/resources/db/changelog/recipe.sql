@@ -35,3 +35,12 @@ set raw_ingredients = (
     where recipe_id = ingredient.id
 )
 where dtype = 'Recipe';
+
+--changeset switzerb:change-title-to-display_title
+alter table ingredient
+    rename column title to display_title;
+
+--changeset switzerb:copy-title-to-name-for-recipe
+update ingredient
+set name = ingredient.display_title
+where dtype = 'Recipe';

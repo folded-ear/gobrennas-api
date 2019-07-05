@@ -4,13 +4,19 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
 
 @Entity
 @DiscriminatorValue("PantryItem")
 @JsonTypeName("PantryItem")
 public class PantryItem extends Ingredient {
+
     private String aisle;
+
+    public PantryItem() {}
+
+    public PantryItem(String name) {
+        super(name);
+    }
 
     public String getAisle() {
         return aisle;
@@ -20,4 +26,8 @@ public class PantryItem extends Ingredient {
         this.aisle = aisle;
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
