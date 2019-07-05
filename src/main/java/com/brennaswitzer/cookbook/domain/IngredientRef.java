@@ -1,15 +1,33 @@
 package com.brennaswitzer.cookbook.domain;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Embeddable;
+import javax.persistence.ManyToOne;
+import java.util.Comparator;
 
 @Embeddable
 public class IngredientRef {
+
+    public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) ->
+            Ingredient.BY_NAME.compare(a.getIngredient(), b.getIngredient());
 
     private String quantity;
     private String preparation;
 
     @ManyToOne(cascade = {CascadeType.MERGE})
     private Ingredient ingredient;
+
+    public IngredientRef() {}
+
+    public IngredientRef(Ingredient ingredient) {
+        this(null, ingredient, null);
+    }
+
+    public IngredientRef(String quantity, Ingredient ingredient, String preparation) {
+        setQuantity(quantity);
+        setIngredient(ingredient);
+        setPreparation(preparation);
+    }
 
     public Ingredient getIngredient() {
         return ingredient;
