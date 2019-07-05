@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.brennaswitzer.cookbook.util.RecipeBox.FRIED_CHICKEN;
+import static com.brennaswitzer.cookbook.util.RecipeBox.PIZZA;
 import static org.junit.Assert.*;
 
 public class RecipeTest {
@@ -18,22 +20,15 @@ public class RecipeTest {
 
     @Test
     public void simpleSchmankies() {
-        Recipe r = new Recipe("Fried Chicken");
-
-        PantryItem egg = new PantryItem("egg");
-        r.addIngredient("2", egg, "shelled");
-        PantryItem chicken = new PantryItem("chicken");
-        r.addIngredient(chicken, "deboned");
-
-        List<IngredientRef> pss = new ArrayList<>(r.getPurchasableSchmankies());
+        List<IngredientRef> pss = new ArrayList<>(FRIED_CHICKEN.getPurchasableSchmankies());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
         assertEquals(2, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
         IngredientRef ref = itr.next();
-        assertEquals(chicken, ref.getIngredient());
+        assertEquals("chicken", ref.getIngredient().getName());
         assertEquals("deboned", ref.getPreparation());
         ref = itr.next();
-        assertEquals(egg, ref.getIngredient());
+        assertEquals("egg", ref.getIngredient().getName());
         assertEquals("2", ref.getQuantity());
         assertEquals("shelled", ref.getPreparation());
         assertFalse(itr.hasNext());
@@ -41,23 +36,7 @@ public class RecipeTest {
 
     @Test
     public void recursiveSchmankies() {
-        Recipe sauce = new Recipe("Pizza Sauce");
-        sauce.addIngredient("1 lbs", new PantryItem("fresh tomatoes"), "seeded and crushed");
-        sauce.addIngredient("1 (6 oz) can", new PantryItem("tomato paste"));
-        sauce.addIngredient(new PantryItem("italian seasoning"));
-
-        Recipe crust = new Recipe("Pizza Crust");
-        crust.addIngredient("2 c", new PantryItem("flour"));
-        crust.addIngredient("1 c", new PantryItem("water"));
-        crust.addIngredient("1 packet", new PantryItem("yeast"));
-        crust.addIngredient("1 Tbsp", new PantryItem("sugar"));
-
-        Recipe pizza = new Recipe("Pizza");
-        pizza.addIngredient("4 oz", new PantryItem("pepperoni"));
-        pizza.addIngredient("8 oz", sauce);
-        pizza.addIngredient("1", crust);
-
-        List<IngredientRef> pss = new ArrayList<>(pizza.getPurchasableSchmankies());
+        List<IngredientRef> pss = new ArrayList<>(PIZZA.getPurchasableSchmankies());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
         assertEquals(8, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
