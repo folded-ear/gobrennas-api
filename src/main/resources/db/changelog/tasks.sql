@@ -105,3 +105,10 @@ alter table task
             else parent_id is not null
             end
         );
+
+--changeset barneyb:constraint-names-are-database-wide
+alter table task
+    rename constraint chk_owner_id to chk_task_owner_id;
+
+alter table task
+    rename constraint chk_parent_id to chk_task_parent_id;
