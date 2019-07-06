@@ -50,3 +50,23 @@ update ingredient
 set display_title = null
 where dtype = 'Recipe'
     and name = display_title;
+
+--changeset barneyb:recipe-ownership
+alter table ingredient
+    add owner_id bigint;
+
+alter table ingredient
+    add constraint fk_ingredient_owner
+        foreign key (owner_id) references users (id) on delete cascade ;
+
+update ingredient
+set owner_id = (select min(id) from users)
+where dtype = 'Recipe';
+
+alter table ingredient
+    add constraint chk_ingredient_owner_id check (
+        case dtype
+            when 'Recipe' then owner_id is not null
+            else owner_id is null
+            end
+        );

@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,11 @@ public class RecipeService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private UserPrincipalAccess principalAccess;
+
     public Recipe saveOrUpdateRecipe(Recipe recipe) {
+        recipe.setOwner(principalAccess.getUser());
         return recipeRepository.save(recipe);
     }
 
