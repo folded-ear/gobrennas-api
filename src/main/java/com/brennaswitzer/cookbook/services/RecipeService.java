@@ -35,7 +35,7 @@ public class RecipeService {
     }
 
     public Iterable<Recipe> findAllRecipes() {
-        return recipeRepository.findAll();
+        return recipeRepository.findByOwner(principalAccess.getUser());
     }
 
     public void deleteRecipeById(Long id) {
