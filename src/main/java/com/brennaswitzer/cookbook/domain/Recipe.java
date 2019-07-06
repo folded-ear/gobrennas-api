@@ -40,11 +40,25 @@ public class Recipe extends Ingredient implements AggregateIngredient {
     }
 
     public String getDisplayTitle() {
-        return displayTitle;
+        return displayTitle == null
+                ? getName()
+                : displayTitle;
     }
 
     public void setDisplayTitle(String displayTitle) {
+        if (displayTitle == null || displayTitle.equals(getName())) {
+            this.displayTitle = null;
+            return;
+        }
         this.displayTitle = displayTitle;
+    }
+
+    @Override
+    public void setName(String name) {
+        if (name != null && name.equals(displayTitle)) {
+            displayTitle = null;
+        }
+        super.setName(name);
     }
 
     public String getExternalUrl() {
@@ -93,7 +107,7 @@ public class Recipe extends Ingredient implements AggregateIngredient {
 
     public void addIngredient(String quantity, Ingredient ingredient, String preparation) {
         if (ingredients == null) ingredients = new LinkedList<>();
-        ingredients.add(new IngredientRef(quantity, ingredient, preparation));
+        ingredients.add(new IngredientRef<>(quantity, ingredient, preparation));
     }
 
     public Date getCreated_at() {

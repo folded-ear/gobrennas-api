@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +12,36 @@ import static com.brennaswitzer.cookbook.util.RecipeBox.PIZZA;
 import static org.junit.Assert.*;
 
 public class RecipeTest {
+
+    @Test
+    public void displayTitle() throws Exception {
+        Field tf = Recipe.class.getDeclaredField("displayTitle");
+        tf.setAccessible(true);
+        try {
+            Recipe r = new Recipe("fred");
+            assertEquals("fred", r.getName());
+            assertEquals("fred", r.getDisplayTitle());
+            assertNull(tf.get(r));
+
+            r.setDisplayTitle("Frederick");
+            assertEquals("fred", r.getName());
+            assertEquals("Frederick", r.getDisplayTitle());
+            assertEquals("Frederick", tf.get(r));
+
+            r.setDisplayTitle("fred");
+            assertEquals("fred", r.getName());
+            assertEquals("fred", r.getDisplayTitle());
+            assertNull(tf.get(r));
+
+            r.setDisplayTitle("Frederick");
+            r.setName("Frederick");
+            assertEquals("Frederick", r.getName());
+            assertEquals("Frederick", r.getDisplayTitle());
+            assertNull(tf.get(r));
+        } finally {
+            tf.setAccessible(false);
+        }
+    }
 
     @Test
     public void emptySchmankies() {
