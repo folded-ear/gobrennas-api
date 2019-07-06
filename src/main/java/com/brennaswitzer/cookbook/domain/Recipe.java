@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("Recipe")
 @JsonTypeName("PantryItem")
-public class Recipe extends Ingredient implements AggregateIngredient {
+public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     private String displayTitle;
 

@@ -2,7 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import org.springframework.security.access.AccessDeniedException;
 
-public interface AccessControlled {
+public interface AccessControlled extends Owned {
 
     Acl getAcl();
 
