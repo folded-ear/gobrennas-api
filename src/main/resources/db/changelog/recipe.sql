@@ -44,3 +44,9 @@ alter table ingredient
 update ingredient
 set name = ingredient.display_title
 where dtype = 'Recipe';
+
+--changeset barneyb:dont-dual-store-identical-name-and-title
+update ingredient
+set display_title = null
+where dtype = 'Recipe'
+    and name = display_title;
