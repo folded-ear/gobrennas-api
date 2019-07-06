@@ -5,7 +5,6 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings("WeakerAccess")
 @Entity
 @DiscriminatorValue("list")
 public class TaskList extends Task implements AccessControlled {
@@ -41,14 +40,6 @@ public class TaskList extends Task implements AccessControlled {
 
     public void setAcl(Acl acl) {
         this.acl = acl;
-    }
-
-    public User getOwner() {
-        return acl.getOwner();
-    }
-
-    public void setOwner(User owner) {
-        this.acl.setOwner(owner);
     }
 
 }

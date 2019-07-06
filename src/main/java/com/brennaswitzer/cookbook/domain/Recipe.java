@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.*;
@@ -12,7 +13,18 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("Recipe")
 @JsonTypeName("PantryItem")
-public class Recipe extends Ingredient implements AggregateIngredient {
+public class Recipe extends Ingredient implements AggregateIngredient, Owned {
+
+    // this will gracefully store the same way as an @Embedded Acl will
+    @ManyToOne
+    private User owner;
+
+    // these will gracefully emulate AccessControlled's owner property
+    @JsonIgnore // but hide it from the client :)
+    public User getOwner() { return owner; }
+    public void setOwner(User owner) { this.owner = owner; }
+
+    // end access control emulation
 
     private String displayTitle;
 
@@ -137,6 +149,7 @@ public class Recipe extends Ingredient implements AggregateIngredient {
     }
 
     @Override
+    @JsonIgnore
     public Collection<IngredientRef<PantryItem>> getPurchasableSchmankies() {
         LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
