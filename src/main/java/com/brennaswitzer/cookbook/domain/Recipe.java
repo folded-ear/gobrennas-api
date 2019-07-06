@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.persistence.*;
@@ -137,6 +138,7 @@ public class Recipe extends Ingredient implements AggregateIngredient {
     }
 
     @Override
+    @JsonIgnore
     public Collection<IngredientRef<PantryItem>> getPurchasableSchmankies() {
         LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
