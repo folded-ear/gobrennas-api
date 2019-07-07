@@ -90,10 +90,10 @@ public class RecipeService {
         if (withHeading) {
             saveSubtask(list, recipe.getName() + ":");
         }
-        for (String line : recipe.getRawIngredients().split("\n")) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-            saveSubtask(list, line);
+        for (IngredientRef ref : recipe.getIngredients()) {
+            String raw = ref.getRaw().trim();
+            if (raw.isEmpty()) continue;
+            saveSubtask(list, raw);
         }
     }
 
