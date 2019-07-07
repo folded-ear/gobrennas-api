@@ -137,6 +137,11 @@ public class TaskService {
         taskRepo.deleteById(id);
     }
 
+    public void completeTask(Long id) {
+        getTaskById(id, AccessLevel.CHANGE);
+        taskRepo.deleteById(id);
+    }
+
     public TaskList setGrantOnList(Long listId, Long userId, AccessLevel level) {
         TaskList list = getTaskListById(listId, AccessLevel.ADMINISTER);
         list.getAcl().setGrant(userRepo.getById(userId), level);
