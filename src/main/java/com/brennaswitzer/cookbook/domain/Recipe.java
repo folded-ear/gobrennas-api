@@ -32,9 +32,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     private String directions;
 
-    @Column(name = "raw_ingredients")
-    private String rawIngredients;
-
     @ElementCollection
     private List<IngredientRef> ingredients;
 
@@ -87,14 +84,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     public void setDirections(String directions) {
         this.directions = directions;
-    }
-
-    public String getRawIngredients() {
-        return rawIngredients;
-    }
-
-    public void setRawIngredients(String rawIngredients) {
-        this.rawIngredients = rawIngredients;
     }
 
     public List<IngredientRef> getIngredients() {

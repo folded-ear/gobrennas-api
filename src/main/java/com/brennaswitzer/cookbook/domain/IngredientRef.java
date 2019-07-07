@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.domain;
 import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
 import javax.persistence.ManyToOne;
-import javax.validation.constraints.NotNull;
 import java.util.Comparator;
 
 @Embeddable
@@ -12,11 +11,11 @@ public class IngredientRef<I extends Ingredient> {
     public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) ->
             Ingredient.BY_NAME.compare(a.getIngredient(), b.getIngredient());
 
+    private String raw;
     private String quantity;
     private String preparation;
 
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
-    @NotNull
     private I ingredient;
 
     public IngredientRef() {}
@@ -37,6 +36,14 @@ public class IngredientRef<I extends Ingredient> {
 
     public void setIngredient(I ingredient) {
         this.ingredient = ingredient;
+    }
+
+    public String getRaw() {
+        return raw == null ? toString() : raw;
+    }
+
+    public void setRaw(String raw) {
+        this.raw = raw;
     }
 
     public String getQuantity() {
@@ -90,4 +97,5 @@ public class IngredientRef<I extends Ingredient> {
                 add(preparation, ref.preparation, null)
         );
     }
+
 }

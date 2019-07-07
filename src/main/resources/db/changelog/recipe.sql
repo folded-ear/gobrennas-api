@@ -70,3 +70,27 @@ alter table ingredient
             else owner_id is null
             end
         );
+
+--changeset barneyb:raw-ingredient-refs
+delete from recipe_ingredients; -- they were all converted to rawIngredients
+
+alter table recipe_ingredients
+    add raw varchar;
+
+--changeset barneyb:convert-raw-ingredients dbms:postgresql
+--preconditions onFail:MARK_RAN
+with raw as (
+    select id
+         , trim(unnest(string_to_array(raw_ingredients, chr(10)))) raw
+    from ingredient
+    where dtype = 'Recipe'
+    )
+insert into recipe_ingredients
+    (recipe_id, raw)
+select id, raw
+from raw
+where length(raw) > 0;
+
+--changeset barneyb:kill-old-raw-ingredients
+alter table ingredient
+    drop raw_ingredients;
