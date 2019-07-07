@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.UserInfo;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
@@ -20,7 +20,8 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("/me")
-    public User getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
-        return userRepository.getById(userPrincipal.getId());
+    public UserInfo getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
+        return UserInfo.fromUser(userRepository.getById(userPrincipal.getId()))
+                .withPrincipal(userPrincipal);
     }
 }
