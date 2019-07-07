@@ -112,3 +112,9 @@ alter table task
 
 alter table task
     rename constraint chk_parent_id to chk_task_parent_id;
+
+--changeset barneyb:task-provenance
+alter table task
+    add prov_id bigint;
+alter table task
+    add prov_type varchar;
