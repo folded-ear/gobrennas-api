@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.UserInfo;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
@@ -9,6 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.stream.Collectors;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
@@ -20,10 +22,13 @@ public class FriendController {
     private UserRepository userRepository;
 
     @GetMapping("")
-    public Iterable<User> getFriends(
+    public Iterable<UserInfo> getFriends(
             @CurrentUser UserPrincipal userPrincipal
     ) {
-        return userRepository.findByIdNot(userPrincipal.getId());
+        return userRepository.findByIdNot(userPrincipal.getId())
+                .stream()
+                .map(UserInfo::fromUser)
+                .collect(Collectors.toList());
     }
 
 }

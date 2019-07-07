@@ -7,8 +7,10 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,9 @@ public class TaskService {
 
     @Autowired
     private UserPrincipalAccess principalAccess;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     public Iterable<TaskList> getTaskLists(User owner) {
         return getTaskLists(owner.getId());
@@ -134,6 +139,12 @@ public class TaskService {
 
     public void deleteTask(Long id) {
         getTaskById(id, AccessLevel.CHANGE);
+        taskRepo.deleteById(id);
+    }
+
+    public void completeTask(Long id) {
+        getTaskById(id, AccessLevel.CHANGE);
+        applicationEventPublisher.publishEvent(new TaskCompletedEvent(id));
         taskRepo.deleteById(id);
     }
 

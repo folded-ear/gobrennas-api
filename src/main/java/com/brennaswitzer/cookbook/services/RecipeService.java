@@ -43,7 +43,14 @@ public class RecipeService {
     }
 
     private void saveSubtask(Task parent, String name) {
+        saveSubtask(parent, name, null);
+    }
+
+    private void saveSubtask(Task parent, String name, Identified provenance) {
         Task t = new Task(name);
+        if (provenance != null) {
+            t.withProvenance(provenance);
+        }
         parent.addSubtask(t);
         taskRepository.save(t);
     }
@@ -70,7 +77,7 @@ public class RecipeService {
             if (ref.getQuantity() != null && ! ref.getQuantity().isEmpty()) {
                 sb.append(" (").append(ref.getQuantity()).append(')');
             }
-            saveSubtask(list, sb.toString());
+            saveSubtask(list, sb.toString(), ref.getIngredient());
         }
     }
 
@@ -93,7 +100,7 @@ public class RecipeService {
         for (IngredientRef ref : recipe.getIngredients()) {
             String raw = ref.getRaw().trim();
             if (raw.isEmpty()) continue;
-            saveSubtask(list, raw);
+            saveSubtask(list, raw, ref.getIngredient());
         }
     }
 

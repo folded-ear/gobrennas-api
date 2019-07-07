@@ -91,6 +91,14 @@ public class TaskController {
         taskService.resetSubtasks(id, info.getSubtaskIds());
     }
 
+    @PutMapping("/{id}/complete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void completeTask(
+            @PathVariable("id") Long id
+    ) {
+        taskService.completeTask(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(

@@ -150,7 +150,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
             } else if (ingredient instanceof AggregateIngredient) {
                 refs.addAll(((AggregateIngredient) ingredient).getPurchasableSchmankies());
             } else {
-                throw new IllegalStateException("Recipe #" + getIngredientId() + " has non-" + PantryItem.class.getSimpleName() + ", non-" + AggregateIngredient.class.getSimpleName() + " IngredientRef<" + ingredient.getClass().getSimpleName() + ">?!");
+                throw new IllegalStateException("Recipe #" + getId() + " has non-" + PantryItem.class.getSimpleName() + ", non-" + AggregateIngredient.class.getSimpleName() + " IngredientRef<" + ingredient.getClass().getSimpleName() + ">?!");
             }
         }
         return refs;

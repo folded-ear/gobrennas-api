@@ -18,14 +18,14 @@ import java.util.Comparator;
         @JsonSubTypes.Type(value = PantryItem.class, name = "PantryItem"),
         @JsonSubTypes.Type(value = Recipe.class, name = "Recipe")
 })
-public abstract class Ingredient {
+public abstract class Ingredient implements Identified {
 
     public static Comparator<Ingredient> BY_NAME = (a, b) ->
             a.getName().compareToIgnoreCase(b.getName());
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     private String name;
 
@@ -36,10 +36,21 @@ public abstract class Ingredient {
         setName(name);
     }
 
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Deprecated
     public long getIngredientId() {
         return id;
     }
 
+    @Deprecated
     public void setIngredientId(long ingredientId) {
         this.id = ingredientId;
     }

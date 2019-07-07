@@ -38,6 +38,9 @@ public class Task extends BaseEntity {
     @ManyToOne
     private Task parent;
 
+    @Embedded
+    private Provenance provenance;
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
     private Set<Task> subtasks;
 
@@ -217,4 +220,18 @@ public class Task extends BaseEntity {
         return of(after.parent, after);
     }
 
+    public Task withProvenance(Identified provenance) {
+        if (this.provenance != null) {
+            throw new IllegalStateException("Updating provenance doesn't make sense.");
+        }
+        if (provenance == null) {
+            throw new IllegalArgumentException("You can't set something's provenance to null");
+        }
+        this.provenance = new Provenance(provenance);
+        return this;
+    }
+
+    public Provenance getProvenance() {
+        return provenance;
+    }
 }
