@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("WeakerAccess")
 @MappedSuperclass
-public abstract class BaseEntity {
+public abstract class BaseEntity implements Identified {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
