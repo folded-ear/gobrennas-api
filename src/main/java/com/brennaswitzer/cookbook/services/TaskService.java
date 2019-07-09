@@ -138,14 +138,20 @@ public class TaskService {
     }
 
     public void deleteTask(Long id) {
-        getTaskById(id, AccessLevel.CHANGE);
-        taskRepo.deleteById(id);
+        deleteTask(getTaskById(id, AccessLevel.CHANGE));
+    }
+
+    private void deleteTask(Task t) {
+        if (t.hasParent()) {
+            t.getParent().removeSubtask(t);
+        }
+        taskRepo.delete(t);
     }
 
     public void completeTask(Long id) {
-        getTaskById(id, AccessLevel.CHANGE);
+        Task t = getTaskById(id, AccessLevel.CHANGE);
         applicationEventPublisher.publishEvent(new TaskCompletedEvent(id));
-        taskRepo.deleteById(id);
+        deleteTask(t);
     }
 
     public TaskList setGrantOnList(Long listId, Long userId, AccessLevel level) {
