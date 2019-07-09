@@ -150,7 +150,7 @@ public class TaskService {
 
     public void completeTask(Long id) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
-        applicationEventPublisher.publishEvent(new TaskCompletedEvent(id));
+        applicationEventPublisher.publishEvent(new TaskCompletedEvent(t));
         deleteTask(t);
     }
 
