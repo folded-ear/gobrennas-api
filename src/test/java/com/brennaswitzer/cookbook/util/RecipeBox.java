@@ -3,6 +3,8 @@ package com.brennaswitzer.cookbook.util;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 
+import javax.persistence.EntityManager;
+
 public final class RecipeBox {
 
     public static final Recipe
@@ -35,6 +37,19 @@ public final class RecipeBox {
         PIZZA.addIngredient("4 oz", new PantryItem("pepperoni"));
         PIZZA.addIngredient("8 oz", PIZZA_SAUCE);
         PIZZA.addIngredient("1", PIZZA_CRUST);
+    }
+
+    public static void persist(EntityManager entityManager) {
+        persist(entityManager, FRIED_CHICKEN);
+        persist(entityManager, PIZZA);
+        persist(entityManager, PIZZA_CRUST);
+        persist(entityManager, PIZZA_SAUCE);
+    }
+
+    private static void persist(EntityManager entityManager, Recipe recipe) {
+        entityManager.persist(recipe);
+        recipe.getPurchasableSchmankies().forEach(ref ->
+                entityManager.persist(ref.getIngredient()));
     }
 
 }
