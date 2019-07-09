@@ -118,3 +118,9 @@ alter table task
     add prov_id bigint;
 alter table task
     add prov_type varchar;
+
+--changeset barneyb:task-provenance-was-a-bad-idea
+alter table task
+    drop prov_id;
+alter table task
+    drop prov_type;
