@@ -61,14 +61,14 @@ public class RecipeServiceTest {
             assertEquals("1 Tbsp sugar", itr.next().getName());
         };
 
-        service.addRawIngredientsToList(box.pizzaCrust, list, true);
+        service.addIngredientsToList(box.pizzaCrust, list, true);
         assertEquals(1 + 4, list.getSubtaskCount());
         Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
         assertEquals("Pizza Crust:", itr.next().getName());
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
 
-        service.addRawIngredientsToList(box.pizzaCrust, list, false);
+        service.addIngredientsToList(box.pizzaCrust, list, false);
         assertEquals(1 + 4 + 4, list.getSubtaskCount());
         itr = list.getOrderedSubtasksView().iterator();
         assertEquals("Pizza Crust:", itr.next().getName());
@@ -86,7 +86,7 @@ public class RecipeServiceTest {
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
             // pizza
-            assertEquals("pepperoni (4 oz)", itr.next().getName());
+            // pepperoni is a raw ingredient
             // sauce
             assertEquals("fresh tomatoes (1 lbs)", itr.next().getName());
             assertEquals("tomato paste (1 (6 oz) can)", itr.next().getName());
@@ -97,6 +97,8 @@ public class RecipeServiceTest {
             assertEquals("water (1 c)", itr.next().getName());
             assertEquals("yeast (1 packet)", itr.next().getName());
             assertEquals("sugar (1 Tbsp)", itr.next().getName());
+            // raw
+            assertEquals("pepperoni", itr.next().getName());
         };
 
         service.addPurchasableSchmankiesToList(box.pizza, list, false);

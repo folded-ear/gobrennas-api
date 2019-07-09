@@ -59,9 +59,15 @@ public class RecipeService {
         } else {
             l.createTasks(list);
         }
+        // also do any raw ingredients
+        for (IngredientRef ref : agg.getRawIngredientRefs()) {
+            String raw = ref.getRaw().trim();
+            if (raw.isEmpty()) continue;
+            list.addSubtask(new Task(raw));
+        }
     }
 
-    public void addPurchasableSchmankiesToList(Long recipeId, Long listId, boolean withHeading) {
+    public void addIngredientsToList(Long recipeId, Long listId, boolean withHeading) {
         addPurchasableSchmankiesToList(
                 recipeRepository.findById(recipeId).get(),
                 taskRepository.getOne(listId),
@@ -85,7 +91,7 @@ public class RecipeService {
         });
     }
 
-    public void addRawIngredientsToList(
+    public void addIngredientsToList(
             Recipe recipe,
             Task list,
             boolean withHeading
@@ -100,12 +106,5 @@ public class RecipeService {
         }
     }
 
-    public void addRawIngredientsToList(Long recipeId, Long listId, boolean withHeading) {
-        addRawIngredientsToList(
-                recipeRepository.findById(recipeId).get(),
-                taskRepository.getOne(listId),
-                withHeading
-        );
-    }
 
 }
