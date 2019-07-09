@@ -11,4 +11,9 @@ spring:
     password:
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    generate-ddl: true
     database-platform: org.hibernate.dialect.H2Dialect
+  liquibase:
+    enabled: false
