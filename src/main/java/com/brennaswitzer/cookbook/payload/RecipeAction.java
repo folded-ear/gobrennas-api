@@ -5,8 +5,7 @@ import com.brennaswitzer.cookbook.services.RecipeService;
 public class RecipeAction {
 
     public enum Type {
-        RAW_INGREDIENTS_TO_LIST,
-        PURCHASABLE_SCHMANKIES_TO_LIST,
+        INGREDIENTS_TO_LIST,
     }
 
     private Type type;
@@ -31,11 +30,8 @@ public class RecipeAction {
 
     public void execute(Long recipeId, RecipeService service) {
         switch (getType()) {
-            case RAW_INGREDIENTS_TO_LIST:
-                service.addRawIngredientsToList(recipeId, getListId(), true);
-                break;
-            case PURCHASABLE_SCHMANKIES_TO_LIST:
-                service.addPurchasableSchmankiesToList(recipeId, getListId(), true);
+            case INGREDIENTS_TO_LIST:
+                service.addIngredientsToList(recipeId, getListId(), true);
                 break;
         }
     }
