@@ -19,4 +19,10 @@ public interface AggregateIngredient {
      */
     Collection<IngredientRef<PantryItem>> getPurchasableSchmankies();
 
+    /**
+     * I return all the "raw" IngredientRefs for this Ingredient, including
+     * those referenced recursively through other nested `AggregateIngredient`s
+     */
+    Collection<IngredientRef> getRawIngredientRefs();
+
 }

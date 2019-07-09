@@ -13,7 +13,7 @@ public class ShoppingListTest {
 
     Consumer<Iterator<ShoppingList.Item>> checkPizzaItems = itr -> {
         // pizza
-        assertEquals("pepperoni (4 oz)", itr.next().toString());
+        // pepperoni is a raw ingredient
         // sauce
         assertEquals("fresh tomatoes (1 lbs)", itr.next().toString());
         assertEquals("tomato paste (1 (6 oz) can)", itr.next().toString());
@@ -32,7 +32,7 @@ public class ShoppingListTest {
         ShoppingList l = new ShoppingList();
         box.pizza.getPurchasableSchmankies().forEach(ref ->
                 l.addPantryItem(ref.getQuantity(), ref.getIngredient()));
-        assertEquals(9, l.getListItems().size());
+        assertEquals(8, l.getListItems().size());
         Iterator<ShoppingList.Item> itr = l.getListItems().iterator();
         checkPizzaItems.accept(itr);
         assertFalse(itr.hasNext());
@@ -43,7 +43,7 @@ public class ShoppingListTest {
         RecipeBox box = new RecipeBox();
         ShoppingList l = new ShoppingList();
         l.addAllPantryItems(box.pizza);
-        assertEquals(9, l.getListItems().size());
+        assertEquals(8, l.getListItems().size());
         Iterator<ShoppingList.Item> itr = l.getListItems().iterator();
         checkPizzaItems.accept(itr);
         assertFalse(itr.hasNext());

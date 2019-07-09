@@ -70,7 +70,7 @@ public class RecipeTest {
         RecipeBox box = new RecipeBox();
         List<IngredientRef> pss = new ArrayList<>(box.pizza.getPurchasableSchmankies());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
-        assertEquals(10, pss.size());
+        assertEquals(9, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
 
         IngredientRef ref;
@@ -81,10 +81,7 @@ public class RecipeTest {
             assertEquals("1 lbs", ref.getQuantity());
             assertEquals("seeded and crushed", ref.getPreparation());
         assertEquals("italian seasoning", itr.next().getIngredient().getName());
-        ref = itr.next();
-        assertEquals("pepperoni", ref.getIngredient().getName());
-            assertEquals("4 oz", ref.getQuantity());
-            assertNull(ref.getPreparation());
+        // pepperoni's a raw ingredient
         assertEquals("salt", itr.next().getIngredient().getName());
         assertEquals("salt", itr.next().getIngredient().getName());
         assertEquals("sugar", itr.next().getIngredient().getName());

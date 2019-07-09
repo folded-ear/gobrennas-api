@@ -37,7 +37,7 @@ public class RecipeBox {
         pizzaSauce.addIngredient("0.5 tsp", salt);
 
         pizza = new Recipe("Pizza");
-        pizza.addIngredient("4 oz", new PantryItem("pepperoni"));
+        pizza.addRawIngredient("pepperoni");
         pizza.addIngredient("8 oz", pizzaSauce);
         pizza.addIngredient("1", pizzaCrust);
     }

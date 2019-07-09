@@ -30,12 +30,20 @@ public class IngredientRef<I extends Ingredient> {
         setPreparation(preparation);
     }
 
+    public IngredientRef(String raw) {
+        setRaw(raw);
+    }
+
     public I getIngredient() {
         return ingredient;
     }
 
     public void setIngredient(I ingredient) {
         this.ingredient = ingredient;
+    }
+
+    public boolean hasIngredient() {
+        return ingredient != null;
     }
 
     public String getRaw() {
