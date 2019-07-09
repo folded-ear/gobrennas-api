@@ -8,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import javax.persistence.EntityManager;
 import java.util.Optional;
 
 @Service
@@ -21,6 +20,9 @@ public class RecipeService {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private UserPrincipalAccess principalAccess;
@@ -42,42 +44,18 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
-    private void saveSubtask(Task parent, String name) {
-        saveSubtask(parent, name, null);
-    }
-
-    private void saveSubtask(Task parent, String name, Identified provenance) {
-        Task t = new Task(name);
-        if (provenance != null) {
-            t.withProvenance(provenance);
-        }
-        parent.addSubtask(t);
-        taskRepository.save(t);
-    }
-
     public void addPurchasableSchmankiesToList(
             AggregateIngredient agg,
             Task list,
             boolean withHeading
     ) {
+        ShoppingList l = new ShoppingList();
+        l.addAllPantryItems(agg);
+        entityManager.persist(l);
         if (withHeading) {
-            saveSubtask(list, agg.getName() + ":");
-        }
-        Map<PantryItem, IngredientRef<PantryItem>> grouped = new LinkedHashMap<>();
-        for (IngredientRef<PantryItem> ref : agg.getPurchasableSchmankies()) {
-            PantryItem ingredient = ref.getIngredient();
-            if (grouped.containsKey(ingredient)) {
-                grouped.put(ingredient, grouped.get(ingredient).plus(ref));
-            } else {
-                grouped.put(ingredient, ref);
-            }
-        }
-        for (IngredientRef ref : grouped.values()) {
-            StringBuilder sb = new StringBuilder().append(ref.getIngredient().getName());
-            if (ref.getQuantity() != null && ! ref.getQuantity().isEmpty()) {
-                sb.append(" (").append(ref.getQuantity()).append(')');
-            }
-            saveSubtask(list, sb.toString(), ref.getIngredient());
+            l.createTasks(agg.getName(), list);
+        } else {
+            l.createTasks(list);
         }
     }
 
@@ -95,12 +73,12 @@ public class RecipeService {
             boolean withHeading
     ) {
         if (withHeading) {
-            saveSubtask(list, recipe.getName() + ":");
+            list.addSubtask(new Task(recipe.getName() + ":"));
         }
         for (IngredientRef ref : recipe.getIngredients()) {
             String raw = ref.getRaw().trim();
             if (raw.isEmpty()) continue;
-            saveSubtask(list, raw, ref.getIngredient());
+            list.addSubtask(new Task(raw));
         }
     }
 
