@@ -3,8 +3,10 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +67,22 @@ public class RecipeService {
                 taskRepository.getOne(listId),
                 withHeading
         );
+    }
+
+    @EventListener
+    public void taskCompleted(TaskCompletedEvent e) {
+        System.out.println("YO! WOO! Task #" + e.getId() + " was completed!");
+        entityManager.createQuery("select l\n" +
+                "from ShoppingList l\n" +
+                "    join l.items it\n" +
+                "    join it.task t\n" +
+                "where t.id = :taskId", ShoppingList.class)
+        .setParameter("taskId", e.getId())
+        .getResultList()
+        .forEach(l -> {
+            System.out.println("Yo! Woo! Shopping List #" + l.getId() + " had an item completed!");
+            l.taskCompleted(e.getId());
+        });
     }
 
     public void addRawIngredientsToList(

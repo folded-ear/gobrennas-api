@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
+import org.springframework.util.Assert;
+
 import javax.persistence.*;
 import java.time.Instant;
 import java.util.HashMap;
@@ -146,6 +148,15 @@ public class ShoppingList extends BaseEntity {
     public void createTasks(String heading, Task taskList) {
         taskList.addSubtask(new Task(heading + ":"));
         createTasks(taskList);
+    }
+
+    public void taskCompleted(Long id) {
+        Assert.notNull(id, "Completing the null task makes no sense?!");
+        items
+                .stream()
+                .filter(it -> it.task != null && id.equals(it.task.getId()))
+                .filter(it -> ! it.isComplete())
+                .forEach(Item::markComplete);
     }
 
 }
