@@ -124,3 +124,34 @@ alter table task
     drop prov_id;
 alter table task
     drop prov_type;
+
+--changeset barneyb:shopping-lists
+create table shopping_list
+(
+    id         bigserial                not null,
+    _eqkey     bigint                   not null default extract(epoch from now()),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+    constraint pk_shopping_list primary key (id)
+);
+
+create table shopping_list_items
+(
+    shopping_list_id bigint not null,
+    quantity         character varying(255),
+    ingredient_id    bigint,
+    task_id          bigint,
+    completed_at     timestamp without time zone,
+
+    constraint pk_shopping_list_item
+        primary key (shopping_list_id, ingredient_id),
+    constraint fk_shopping_list_item_ingredient
+        foreign key (ingredient_id) references ingredient (id)
+            on delete cascade,
+    constraint fk_shopping_list_item_task
+        foreign key (task_id) references task (id)
+            on delete set null,
+    constraint fk_shopping_list_item_list
+        foreign key (shopping_list_id) references shopping_list (id)
+            on delete cascade
+);

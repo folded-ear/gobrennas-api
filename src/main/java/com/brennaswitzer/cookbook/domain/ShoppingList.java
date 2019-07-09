@@ -11,12 +11,9 @@ import java.util.Map;
 @Table(name = "shopping_list")
 public class ShoppingList extends BaseEntity {
 
-    @Entity
+    @Embeddable
     @Table(name = "shopping_list_item")
-    public static class Item extends BaseEntity {
-
-        @ManyToOne
-        private ShoppingList list;
+    public static class Item {
 
         @ManyToOne
         private PantryItem ingredient;
@@ -31,18 +28,9 @@ public class ShoppingList extends BaseEntity {
 
         public Item() {}
 
-        public Item(ShoppingList list, String quantity, PantryItem ingredient) {
-            setList(list);
+        public Item(String quantity, PantryItem ingredient) {
             setQuantity(quantity);
             setIngredient(ingredient);
-        }
-
-        public ShoppingList getList() {
-            return list;
-        }
-
-        public void setList(ShoppingList list) {
-            this.list = list;
         }
 
         public PantryItem getIngredient() {
@@ -114,7 +102,7 @@ public class ShoppingList extends BaseEntity {
     }
 
     // this should be a Set, but it makes assertions harder, because iteration order is undefined
-    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL)
+    @ElementCollection
     private List<Item> items = new LinkedList<>();
 
     transient private Map<PantryItem, Item> itemMap;
@@ -136,7 +124,7 @@ public class ShoppingList extends BaseEntity {
         if (itemMap.containsKey(ingredient)) {
             itemMap.get(ingredient).add(quantity);
         } else {
-            Item it = new Item(this, quantity, ingredient);
+            Item it = new Item(quantity, ingredient);
             itemMap.put(ingredient, it);
             items.add(it);
         }
@@ -149,7 +137,7 @@ public class ShoppingList extends BaseEntity {
     }
 
     public void createTasks(Task taskList) {
-        // todo: do magical sorting things!
+        // todo: do magical ordering things!
         for (Item it : items) {
             taskList.addSubtask(it.getTask());
         }
