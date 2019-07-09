@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.util.RecipeBox;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,11 +15,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import static com.brennaswitzer.cookbook.util.RecipeBox.PIZZA;
-import static com.brennaswitzer.cookbook.util.RecipeBox.PIZZA_CRUST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -37,6 +37,9 @@ public class RecipeServiceTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     private User alice;
 
     @Before
@@ -46,6 +49,9 @@ public class RecipeServiceTest {
 
     @Test
     public void addRawIngredientsToList() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager);
+
         TaskList list = listRepo.save(new TaskList(alice, "Groceries"));
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
@@ -55,14 +61,14 @@ public class RecipeServiceTest {
             assertEquals("1 Tbsp sugar", itr.next().getName());
         };
 
-        service.addRawIngredientsToList(PIZZA_CRUST, list, true);
+        service.addRawIngredientsToList(box.pizzaCrust, list, true);
         assertEquals(1 + 4, list.getSubtaskCount());
         Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
         assertEquals("Pizza Crust:", itr.next().getName());
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
 
-        service.addRawIngredientsToList(PIZZA_CRUST, list, false);
+        service.addRawIngredientsToList(box.pizzaCrust, list, false);
         assertEquals(1 + 4 + 4, list.getSubtaskCount());
         itr = list.getOrderedSubtasksView().iterator();
         assertEquals("Pizza Crust:", itr.next().getName());
@@ -73,6 +79,9 @@ public class RecipeServiceTest {
 
     @Test
     public void addPurchasableSchmankiesToList() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager);
+
         TaskList list = listRepo.save(new TaskList(alice, "Groceries"));
         assertEquals(0, list.getSubtaskCount());
         Consumer<Iterator<Task>> checkItems = itr -> {
@@ -90,13 +99,13 @@ public class RecipeServiceTest {
             assertEquals("sugar (1 Tbsp)", itr.next().getName());
         };
 
-        service.addPurchasableSchmankiesToList(PIZZA, list, false);
+        service.addPurchasableSchmankiesToList(box.pizza, list, false);
         assertEquals(9, list.getSubtaskCount());
         Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
 
-        service.addPurchasableSchmankiesToList(PIZZA, list, true);
+        service.addPurchasableSchmankiesToList(box.pizza, list, true);
         assertEquals(9 + 1 + 9, list.getSubtaskCount());
         itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);

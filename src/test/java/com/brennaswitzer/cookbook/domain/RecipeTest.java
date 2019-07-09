@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.RecipeBox;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -7,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.brennaswitzer.cookbook.util.RecipeBox.FRIED_CHICKEN;
-import static com.brennaswitzer.cookbook.util.RecipeBox.PIZZA;
 import static org.junit.Assert.*;
 
 public class RecipeTest {
@@ -51,7 +50,8 @@ public class RecipeTest {
 
     @Test
     public void simpleSchmankies() {
-        List<IngredientRef> pss = new ArrayList<>(FRIED_CHICKEN.getPurchasableSchmankies());
+        RecipeBox box = new RecipeBox();
+        List<IngredientRef> pss = new ArrayList<>(box.friedChicken.getPurchasableSchmankies());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
         assertEquals(2, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
@@ -67,7 +67,8 @@ public class RecipeTest {
 
     @Test
     public void recursiveSchmankies() {
-        List<IngredientRef> pss = new ArrayList<>(PIZZA.getPurchasableSchmankies());
+        RecipeBox box = new RecipeBox();
+        List<IngredientRef> pss = new ArrayList<>(box.pizza.getPurchasableSchmankies());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
         assertEquals(10, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
