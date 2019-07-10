@@ -155,3 +155,7 @@ create table shopping_list_items
         foreign key (shopping_list_id) references shopping_list (id)
             on delete cascade
 );
+
+--changeset barneyb:separate-quantity-and-units
+alter table shopping_list_items
+    add column units varchar;

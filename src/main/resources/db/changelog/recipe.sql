@@ -94,3 +94,13 @@ where length(raw) > 0;
 --changeset barneyb:kill-old-raw-ingredients
 alter table ingredient
     drop raw_ingredients;
+
+--changeset barneyb:separate-quantity-and-units
+alter table recipe_ingredients
+    add column units varchar;
+
+alter table recipe_ingredients
+    alter column quantity type varchar;
+
+alter table recipe_ingredients
+    alter column preparation type varchar;
