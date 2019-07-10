@@ -1,6 +1,9 @@
 language: java
 jdk: openjdk8
 
+env:
+  - REACT_APP_VERSION="$TRAVIS_BUILD_NUMBER.$TRAVIS_COMMIT"
+
 before_install:
   - cd client
   - nvm install
