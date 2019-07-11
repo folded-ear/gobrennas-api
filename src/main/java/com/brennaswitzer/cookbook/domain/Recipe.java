@@ -107,8 +107,17 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     }
 
     public void addIngredient(String quantity, Ingredient ingredient, String preparation) {
-        if (ingredients == null) ingredients = new LinkedList<>();
+        ensureIngredients();
         ingredients.add(new IngredientRef<>(quantity, ingredient, preparation));
+    }
+
+    private void ensureIngredients() {
+        if (ingredients == null) ingredients = new LinkedList<>();
+    }
+
+    public void addRawIngredient(String raw) {
+        ensureIngredients();
+        ingredients.add(new IngredientRef<>(raw));
     }
 
     public Date getCreated_at() {
@@ -139,20 +148,40 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Override
     @JsonIgnore
-    public Collection<IngredientRef<PantryItem>> getPurchasableSchmankies() {
+    public Collection<IngredientRef<PantryItem>> assemblePantryItemRefs() {
         LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
+            if (! ref.hasIngredient()) continue;
             Ingredient ingredient = ref.getIngredient();
             if (ingredient instanceof PantryItem) {
                 //noinspection unchecked
                 refs.add((IngredientRef<PantryItem>) ref);
             } else if (ingredient instanceof AggregateIngredient) {
-                refs.addAll(((AggregateIngredient) ingredient).getPurchasableSchmankies());
+                refs.addAll(((AggregateIngredient) ingredient).assemblePantryItemRefs());
             } else {
-                throw new IllegalStateException("Recipe #" + getId() + " has non-" + PantryItem.class.getSimpleName() + ", non-" + AggregateIngredient.class.getSimpleName() + " IngredientRef<" + ingredient.getClass().getSimpleName() + ">?!");
+                throw new IllegalStateException("Recipe #" + getId() + " has non-" + PantryItem.class.getSimpleName() + ", non-" + AggregateIngredient.class.getSimpleName() + " IngredientRef<" + (ingredient == null ? "null" : ingredient.getClass().getSimpleName()) + ">?!");
             }
         }
         return refs;
     }
+
+    @Override
+    @JsonIgnore
+    public Collection<IngredientRef> assembleRawIngredientRefs() {
+        LinkedList<IngredientRef> refs = new LinkedList<>();
+        if (ingredients == null) return refs;
+        for (IngredientRef ref : ingredients) {
+            if (ref.hasIngredient()) {
+                Ingredient ingredient = ref.getIngredient();
+                if (ingredient instanceof AggregateIngredient) {
+                    refs.addAll(((AggregateIngredient) ingredient).assembleRawIngredientRefs());
+                }
+            } else {
+                refs.add(ref);
+            }
+        }
+        return refs;
+    }
+
 }

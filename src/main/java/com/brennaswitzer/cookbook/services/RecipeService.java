@@ -3,13 +3,14 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import javax.persistence.EntityManager;
 import java.util.Optional;
 
 @Service
@@ -21,6 +22,9 @@ public class RecipeService {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private UserPrincipalAccess principalAccess;
@@ -42,74 +46,49 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
-    private void saveSubtask(Task parent, String name) {
-        saveSubtask(parent, name, null);
-    }
-
-    private void saveSubtask(Task parent, String name, Identified provenance) {
-        Task t = new Task(name);
-        if (provenance != null) {
-            t.withProvenance(provenance);
-        }
-        parent.addSubtask(t);
-        taskRepository.save(t);
-    }
-
-    public void addPurchasableSchmankiesToList(
+    public void assembleShoppingList(
             AggregateIngredient agg,
             Task list,
             boolean withHeading
     ) {
+        ShoppingList l = new ShoppingList();
+        l.addAllPantryItems(agg);
+        entityManager.persist(l);
         if (withHeading) {
-            saveSubtask(list, agg.getName() + ":");
+            l.createTasks(agg.getName(), list);
+        } else {
+            l.createTasks(list);
         }
-        Map<PantryItem, IngredientRef<PantryItem>> grouped = new LinkedHashMap<>();
-        for (IngredientRef<PantryItem> ref : agg.getPurchasableSchmankies()) {
-            PantryItem ingredient = ref.getIngredient();
-            if (grouped.containsKey(ingredient)) {
-                grouped.put(ingredient, grouped.get(ingredient).plus(ref));
-            } else {
-                grouped.put(ingredient, ref);
-            }
-        }
-        for (IngredientRef ref : grouped.values()) {
-            StringBuilder sb = new StringBuilder().append(ref.getIngredient().getName());
-            if (ref.getQuantity() != null && ! ref.getQuantity().isEmpty()) {
-                sb.append(" (").append(ref.getQuantity()).append(')');
-            }
-            saveSubtask(list, sb.toString(), ref.getIngredient());
-        }
-    }
-
-    public void addPurchasableSchmankiesToList(Long recipeId, Long listId, boolean withHeading) {
-        addPurchasableSchmankiesToList(
-                recipeRepository.findById(recipeId).get(),
-                taskRepository.getOne(listId),
-                withHeading
-        );
-    }
-
-    public void addRawIngredientsToList(
-            Recipe recipe,
-            Task list,
-            boolean withHeading
-    ) {
-        if (withHeading) {
-            saveSubtask(list, recipe.getName() + ":");
-        }
-        for (IngredientRef ref : recipe.getIngredients()) {
+        // also do any raw ingredients
+        for (IngredientRef ref : agg.assembleRawIngredientRefs()) {
             String raw = ref.getRaw().trim();
             if (raw.isEmpty()) continue;
-            saveSubtask(list, raw, ref.getIngredient());
+            list.addSubtask(new Task(raw));
         }
     }
 
-    public void addRawIngredientsToList(Long recipeId, Long listId, boolean withHeading) {
-        addRawIngredientsToList(
+    public void assembleShoppingList(Long recipeId, Long listId, boolean withHeading) {
+        assembleShoppingList(
                 recipeRepository.findById(recipeId).get(),
                 taskRepository.getOne(listId),
                 withHeading
         );
+    }
+
+    @EventListener
+    public void taskCompleted(TaskCompletedEvent e) {
+        System.out.println("YO! WOO! Task #" + e.getId() + " was completed!");
+        entityManager.createQuery("select l\n" +
+                "from ShoppingList l\n" +
+                "    join l.items it\n" +
+                "    join it.task t\n" +
+                "where t.id = :taskId", ShoppingList.class)
+        .setParameter("taskId", e.getId())
+        .getResultList()
+        .forEach(l -> {
+            System.out.println("Yo! Woo! Shopping List #" + l.getId() + " had an item completed!");
+            l.taskCompleted(e.getId());
+        });
     }
 
 }

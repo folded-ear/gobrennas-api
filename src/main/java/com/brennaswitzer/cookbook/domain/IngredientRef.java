@@ -30,12 +30,20 @@ public class IngredientRef<I extends Ingredient> {
         setPreparation(preparation);
     }
 
+    public IngredientRef(String raw) {
+        setRaw(raw);
+    }
+
     public I getIngredient() {
         return ingredient;
     }
 
     public void setIngredient(I ingredient) {
         this.ingredient = ingredient;
+    }
+
+    public boolean hasIngredient() {
+        return ingredient != null;
     }
 
     public String getRaw() {
@@ -77,25 +85,6 @@ public class IngredientRef<I extends Ingredient> {
             sb.append(", ").append(preparation);
         }
         return sb.toString();
-    }
-
-    private String add(String a, String b, String def) {
-        if (a == null || a.isEmpty()) a = def;
-        if (b == null || b.isEmpty()) b = def;
-        if (a == null) return b;
-        if (b == null) return a;
-        return a + ", " + b;
-    }
-
-    public IngredientRef<I> plus(IngredientRef<I> ref) {
-        if (! ingredient.equals(ref.getIngredient())) {
-            throw new IllegalArgumentException("You can't add IngredientRefs w/ different Ingredients");
-        }
-        return new IngredientRef<I>(
-                add(quantity, ref.quantity, "1"),
-                ingredient,
-                add(preparation, ref.preparation, null)
-        );
     }
 
 }

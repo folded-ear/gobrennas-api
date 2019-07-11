@@ -3,38 +3,56 @@ package com.brennaswitzer.cookbook.util;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 
-public final class RecipeBox {
+import javax.persistence.EntityManager;
 
-    public static final Recipe
-            FRIED_CHICKEN,
-            PIZZA,
-            PIZZA_CRUST,
-            PIZZA_SAUCE;
+public class RecipeBox {
 
-    static {
-        PantryItem salt = new PantryItem("salt");
+    public final PantryItem
+            salt;
 
-        FRIED_CHICKEN = new Recipe("Fried Chicken");
-        FRIED_CHICKEN.addIngredient("2", new PantryItem("egg"), "shelled");
-        FRIED_CHICKEN.addIngredient(new PantryItem("chicken"), "deboned");
+    public final Recipe
+            friedChicken,
+            pizza,
+            pizzaCrust,
+            pizzaSauce;
 
-        PIZZA_SAUCE = new Recipe("Pizza Sauce");
-        PIZZA_SAUCE.addIngredient("1 lbs", new PantryItem("fresh tomatoes"), "seeded and crushed");
-        PIZZA_SAUCE.addIngredient("1 (6 oz) can", new PantryItem("tomato paste"));
-        PIZZA_SAUCE.addIngredient(new PantryItem("italian seasoning"));
-        PIZZA_SAUCE.addIngredient("1 tsp", salt);
+    public RecipeBox() {
+        salt = new PantryItem("salt");
 
-        PIZZA_CRUST = new Recipe("Pizza Crust");
-        PIZZA_CRUST.addIngredient("2 c", new PantryItem("flour"));
-        PIZZA_CRUST.addIngredient("1 c", new PantryItem("water"));
-        PIZZA_CRUST.addIngredient("1 packet", new PantryItem("yeast"));
-        PIZZA_CRUST.addIngredient("1 Tbsp", new PantryItem("sugar"));
-        PIZZA_SAUCE.addIngredient("0.5 tsp", salt);
+        friedChicken = new Recipe("Fried Chicken");
+        friedChicken.addIngredient("2", new PantryItem("egg"), "shelled");
+        friedChicken.addIngredient(new PantryItem("chicken"), "deboned");
 
-        PIZZA = new Recipe("Pizza");
-        PIZZA.addIngredient("4 oz", new PantryItem("pepperoni"));
-        PIZZA.addIngredient("8 oz", PIZZA_SAUCE);
-        PIZZA.addIngredient("1", PIZZA_CRUST);
+        pizzaSauce = new Recipe("Pizza Sauce");
+        pizzaSauce.addIngredient("1 lbs", new PantryItem("fresh tomatoes"), "seeded and crushed");
+        pizzaSauce.addIngredient("1 (6 oz) can", new PantryItem("tomato paste"));
+        pizzaSauce.addIngredient(new PantryItem("italian seasoning"));
+        pizzaSauce.addIngredient("1 tsp", salt);
+
+        pizzaCrust = new Recipe("Pizza Crust");
+        pizzaCrust.addIngredient("2 c", new PantryItem("flour"));
+        pizzaCrust.addIngredient("1 c", new PantryItem("water"));
+        pizzaCrust.addIngredient("1 packet", new PantryItem("yeast"));
+        pizzaCrust.addIngredient("1 Tbsp", new PantryItem("sugar"));
+        pizzaSauce.addIngredient("0.5 tsp", salt);
+
+        pizza = new Recipe("Pizza");
+        pizza.addRawIngredient("pepperoni");
+        pizza.addIngredient("8 oz", pizzaSauce);
+        pizza.addIngredient("1", pizzaCrust);
+    }
+
+    public void persist(EntityManager entityManager) {
+        persist(entityManager, friedChicken);
+        persist(entityManager, pizza);
+        persist(entityManager, pizzaCrust);
+        persist(entityManager, pizzaSauce);
+    }
+
+    private void persist(EntityManager entityManager, Recipe recipe) {
+        entityManager.persist(recipe);
+        recipe.assemblePantryItemRefs().forEach(ref ->
+                entityManager.persist(ref.getIngredient()));
     }
 
 }

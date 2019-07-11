@@ -38,10 +38,7 @@ public class Task extends BaseEntity {
     @ManyToOne
     private Task parent;
 
-    @Embedded
-    private Provenance provenance;
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private Set<Task> subtasks;
 
     public Task() {
@@ -109,7 +106,9 @@ public class Task extends BaseEntity {
 
     public void setParent(Task parent) {
         if (this.parent != null && this.parent.subtasks != null) {
-            this.parent.subtasks.remove(this);
+            if (! this.parent.subtasks.remove(this)) {
+                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of it's parent #" + this.parent.getId() + "?!");
+            }
             for (Task t : this.parent.subtasks) {
                 if (t.position < this.position) continue;
                 t.position -= 1;
@@ -123,6 +122,10 @@ public class Task extends BaseEntity {
             this.parent.subtasks.add(this);
             this.position = this.parent.subtasks.size() - 1;
         }
+    }
+
+    public boolean hasParent() {
+        return parent != null;
     }
 
     public TaskList getTaskList() {
@@ -220,18 +223,4 @@ public class Task extends BaseEntity {
         return of(after.parent, after);
     }
 
-    public Task withProvenance(Identified provenance) {
-        if (this.provenance != null) {
-            throw new IllegalStateException("Updating provenance doesn't make sense.");
-        }
-        if (provenance == null) {
-            throw new IllegalArgumentException("You can't set something's provenance to null");
-        }
-        this.provenance = new Provenance(provenance);
-        return this;
-    }
-
-    public Provenance getProvenance() {
-        return provenance;
-    }
 }

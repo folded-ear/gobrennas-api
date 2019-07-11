@@ -14,9 +14,15 @@ public interface AggregateIngredient {
     void addIngredient(String quantity, Ingredient ingredient, String preparation);
 
     /**
-     * I return the stuff for this Ingredient that you'd purchase at a store.
-     * I'm deliberately named in a gratuitously nonsensical manner. For now. :)
+     * I return the PantryItem IngredientRefs for this Ingredient, including
+     * those referenced recursively through nested `AggregateIngredient`s.
      */
-    Collection<IngredientRef<PantryItem>> getPurchasableSchmankies();
+    Collection<IngredientRef<PantryItem>> assemblePantryItemRefs();
+
+    /**
+     * I return all the "raw" IngredientRefs for this Ingredient, including
+     * those referenced recursively through nested `AggregateIngredient`s.
+     */
+    Collection<IngredientRef> assembleRawIngredientRefs();
 
 }
