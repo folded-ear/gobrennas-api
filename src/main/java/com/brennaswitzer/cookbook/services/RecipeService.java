@@ -46,7 +46,7 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
-    public void addPurchasableSchmankiesToList(
+    public void assembleShoppingList(
             AggregateIngredient agg,
             Task list,
             boolean withHeading
@@ -60,15 +60,15 @@ public class RecipeService {
             l.createTasks(list);
         }
         // also do any raw ingredients
-        for (IngredientRef ref : agg.getRawIngredientRefs()) {
+        for (IngredientRef ref : agg.assembleRawIngredientRefs()) {
             String raw = ref.getRaw().trim();
             if (raw.isEmpty()) continue;
             list.addSubtask(new Task(raw));
         }
     }
 
-    public void addIngredientsToList(Long recipeId, Long listId, boolean withHeading) {
-        addPurchasableSchmankiesToList(
+    public void assembleShoppingList(Long recipeId, Long listId, boolean withHeading) {
+        assembleShoppingList(
                 recipeRepository.findById(recipeId).get(),
                 taskRepository.getOne(listId),
                 withHeading
@@ -90,21 +90,5 @@ public class RecipeService {
             l.taskCompleted(e.getId());
         });
     }
-
-    public void addIngredientsToList(
-            Recipe recipe,
-            Task list,
-            boolean withHeading
-    ) {
-        if (withHeading) {
-            list.addSubtask(new Task(recipe.getName() + ":"));
-        }
-        for (IngredientRef ref : recipe.getIngredients()) {
-            String raw = ref.getRaw().trim();
-            if (raw.isEmpty()) continue;
-            list.addSubtask(new Task(raw));
-        }
-    }
-
 
 }

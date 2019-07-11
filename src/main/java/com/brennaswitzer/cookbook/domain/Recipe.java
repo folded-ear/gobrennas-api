@@ -148,7 +148,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Override
     @JsonIgnore
-    public Collection<IngredientRef<PantryItem>> getPurchasableSchmankies() {
+    public Collection<IngredientRef<PantryItem>> assemblePantryItemRefs() {
         LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
@@ -158,7 +158,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
                 //noinspection unchecked
                 refs.add((IngredientRef<PantryItem>) ref);
             } else if (ingredient instanceof AggregateIngredient) {
-                refs.addAll(((AggregateIngredient) ingredient).getPurchasableSchmankies());
+                refs.addAll(((AggregateIngredient) ingredient).assemblePantryItemRefs());
             } else {
                 throw new IllegalStateException("Recipe #" + getId() + " has non-" + PantryItem.class.getSimpleName() + ", non-" + AggregateIngredient.class.getSimpleName() + " IngredientRef<" + (ingredient == null ? "null" : ingredient.getClass().getSimpleName()) + ">?!");
             }
@@ -168,14 +168,14 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Override
     @JsonIgnore
-    public Collection<IngredientRef> getRawIngredientRefs() {
+    public Collection<IngredientRef> assembleRawIngredientRefs() {
         LinkedList<IngredientRef> refs = new LinkedList<>();
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
             if (ref.hasIngredient()) {
                 Ingredient ingredient = ref.getIngredient();
                 if (ingredient instanceof AggregateIngredient) {
-                    refs.addAll(((AggregateIngredient) ingredient).getRawIngredientRefs());
+                    refs.addAll(((AggregateIngredient) ingredient).assembleRawIngredientRefs());
                 }
             } else {
                 refs.add(ref);

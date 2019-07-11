@@ -48,37 +48,7 @@ public class RecipeServiceTest {
     }
 
     @Test
-    public void addRawIngredientsToList() {
-        RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
-
-        TaskList list = listRepo.save(new TaskList(alice, "Groceries"));
-        assertEquals(0, list.getSubtaskCount());
-        Consumer<Iterator<Task>> checkItems = itr -> {
-            assertEquals("2 c flour", itr.next().getName());
-            assertEquals("1 c water", itr.next().getName());
-            assertEquals("1 packet yeast", itr.next().getName());
-            assertEquals("1 Tbsp sugar", itr.next().getName());
-        };
-
-        service.addIngredientsToList(box.pizzaCrust, list, true);
-        assertEquals(1 + 4, list.getSubtaskCount());
-        Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
-        assertEquals("Pizza Crust:", itr.next().getName());
-        checkItems.accept(itr);
-        assertFalse(itr.hasNext());
-
-        service.addIngredientsToList(box.pizzaCrust, list, false);
-        assertEquals(1 + 4 + 4, list.getSubtaskCount());
-        itr = list.getOrderedSubtasksView().iterator();
-        assertEquals("Pizza Crust:", itr.next().getName());
-        checkItems.accept(itr);
-        checkItems.accept(itr);
-        assertFalse(itr.hasNext());
-    }
-
-    @Test
-    public void addPurchasableSchmankiesToList() {
+    public void assembleShoppingList() {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager);
 
@@ -101,13 +71,13 @@ public class RecipeServiceTest {
             assertEquals("pepperoni", itr.next().getName());
         };
 
-        service.addPurchasableSchmankiesToList(box.pizza, list, false);
+        service.assembleShoppingList(box.pizza, list, false);
         assertEquals(9, list.getSubtaskCount());
         Iterator<Task> itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
 
-        service.addPurchasableSchmankiesToList(box.pizza, list, true);
+        service.assembleShoppingList(box.pizza, list, true);
         assertEquals(9 + 1 + 9, list.getSubtaskCount());
         itr = list.getOrderedSubtasksView().iterator();
         checkItems.accept(itr);

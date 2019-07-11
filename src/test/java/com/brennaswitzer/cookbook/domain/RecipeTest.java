@@ -43,15 +43,15 @@ public class RecipeTest {
     }
 
     @Test
-    public void emptySchmankies() {
+    public void emptyPantryItems() {
         Recipe r = new Recipe();
-        assertTrue(r.getPurchasableSchmankies().isEmpty());
+        assertTrue(r.assemblePantryItemRefs().isEmpty());
     }
 
     @Test
-    public void simpleSchmankies() {
+    public void directPantryItems() {
         RecipeBox box = new RecipeBox();
-        List<IngredientRef> pss = new ArrayList<>(box.friedChicken.getPurchasableSchmankies());
+        List<IngredientRef> pss = new ArrayList<>(box.friedChicken.assemblePantryItemRefs());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
         assertEquals(2, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
@@ -66,9 +66,9 @@ public class RecipeTest {
     }
 
     @Test
-    public void recursiveSchmankies() {
+    public void recursivePantryItems() {
         RecipeBox box = new RecipeBox();
-        List<IngredientRef> pss = new ArrayList<>(box.pizza.getPurchasableSchmankies());
+        List<IngredientRef> pss = new ArrayList<>(box.pizza.assemblePantryItemRefs());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
         assertEquals(9, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();

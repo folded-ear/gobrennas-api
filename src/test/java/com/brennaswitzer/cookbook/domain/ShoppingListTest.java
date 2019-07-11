@@ -30,7 +30,7 @@ public class ShoppingListTest {
     public void addPantryItems() {
         RecipeBox box = new RecipeBox();
         ShoppingList l = new ShoppingList();
-        box.pizza.getPurchasableSchmankies().forEach(ref ->
+        box.pizza.assemblePantryItemRefs().forEach(ref ->
                 l.addPantryItem(ref.getQuantity(), ref.getIngredient()));
         assertEquals(8, l.getListItems().size());
         Iterator<ShoppingList.Item> itr = l.getListItems().iterator();

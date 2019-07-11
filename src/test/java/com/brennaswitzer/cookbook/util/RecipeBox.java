@@ -51,7 +51,7 @@ public class RecipeBox {
 
     private void persist(EntityManager entityManager, Recipe recipe) {
         entityManager.persist(recipe);
-        recipe.getPurchasableSchmankies().forEach(ref ->
+        recipe.assemblePantryItemRefs().forEach(ref ->
                 entityManager.persist(ref.getIngredient()));
     }
 

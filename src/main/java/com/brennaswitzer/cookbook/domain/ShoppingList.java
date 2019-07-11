@@ -133,7 +133,7 @@ public class ShoppingList extends BaseEntity {
     }
 
     public void addAllPantryItems(AggregateIngredient agg) {
-        for (IngredientRef<PantryItem> ref : agg.getPurchasableSchmankies()) {
+        for (IngredientRef<PantryItem> ref : agg.assemblePantryItemRefs()) {
             addPantryItem(ref.getQuantity(), ref.getIngredient());
         }
     }

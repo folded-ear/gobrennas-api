@@ -5,7 +5,7 @@ import com.brennaswitzer.cookbook.services.RecipeService;
 public class RecipeAction {
 
     public enum Type {
-        INGREDIENTS_TO_LIST,
+        ASSEMBLE_SHOPPING_LIST,
     }
 
     private Type type;
@@ -30,8 +30,8 @@ public class RecipeAction {
 
     public void execute(Long recipeId, RecipeService service) {
         switch (getType()) {
-            case INGREDIENTS_TO_LIST:
-                service.addIngredientsToList(recipeId, getListId(), true);
+            case ASSEMBLE_SHOPPING_LIST:
+                service.assembleShoppingList(recipeId, getListId(), true);
                 break;
         }
     }
