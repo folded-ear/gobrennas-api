@@ -25,13 +25,16 @@ public class ShoppingList extends BaseEntity {
 
         private String quantity;
 
+        private String units;
+
         @Column(name = "completed_at")
         private Instant completedAt;
 
         public Item() {}
 
-        public Item(String quantity, PantryItem ingredient) {
+        public Item(String quantity, String units, PantryItem ingredient) {
             setQuantity(quantity);
+            setUnits(units);
             setIngredient(ingredient);
         }
 
@@ -60,6 +63,14 @@ public class ShoppingList extends BaseEntity {
 
         public void setQuantity(String quantity) {
             this.quantity = quantity;
+        }
+
+        public String getUnits() {
+            return units;
+        }
+
+        public void setUnits(String units) {
+            this.units = units;
         }
 
         public Instant getCompletedAt() {
@@ -98,8 +109,11 @@ public class ShoppingList extends BaseEntity {
             return a + ", " + b;
         }
 
-        public void add(String quantity) {
-            setQuantity(add(getQuantity(), quantity, "1"));
+        public void add(String quantity, String units) {
+            setQuantity(add(
+                    add(getQuantity(), getUnits(), null),
+                    add(quantity, units, null),
+                    "1"));
         }
     }
 
@@ -121,12 +135,12 @@ public class ShoppingList extends BaseEntity {
         return items;
     }
 
-    public void addPantryItem(String quantity, PantryItem ingredient) {
+    public void addPantryItem(String quantity, String units, PantryItem ingredient) {
         ensureItemMap();
         if (itemMap.containsKey(ingredient)) {
-            itemMap.get(ingredient).add(quantity);
+            itemMap.get(ingredient).add(quantity, units);
         } else {
-            Item it = new Item(quantity, ingredient);
+            Item it = new Item(quantity, units, ingredient);
             itemMap.put(ingredient, it);
             items.add(it);
         }
@@ -134,7 +148,7 @@ public class ShoppingList extends BaseEntity {
 
     public void addAllPantryItems(AggregateIngredient agg) {
         for (IngredientRef<PantryItem> ref : agg.assemblePantryItemRefs()) {
-            addPantryItem(ref.getQuantity(), ref.getIngredient());
+            addPantryItem(ref.getQuantity(), ref.getUnits(), ref.getIngredient());
         }
     }
 

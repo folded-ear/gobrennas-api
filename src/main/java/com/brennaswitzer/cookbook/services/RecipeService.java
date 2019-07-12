@@ -1,12 +1,16 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
+import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
+import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +25,16 @@ public class RecipeService {
     private RecipeRepository recipeRepository;
 
     @Autowired
+    private PantryItemRepository pantryItemRepository;
+
+    @Autowired
     private TaskRepository taskRepository;
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTmpl;
 
     @Autowired
     private UserPrincipalAccess principalAccess;
@@ -91,4 +101,43 @@ public class RecipeService {
         });
     }
 
+    public void recordDissection(RawIngredientDissection dissection) {
+        String name = dissection.getNameText();
+        Ingredient ingredient = ensureIngredientByName(name);
+        // update raw refs w/ dissected parts
+        // this is a kludge to bulk update all equivalent refs. :)
+        jdbcTmpl.update("update recipe_ingredients\n" +
+                        "set quantity = ?,\n" +
+                        "    units = ?,\n" +
+                        "    ingredient_id = ?,\n" +
+                        "    preparation = ?\n" +
+                        "where ingredient_id is null\n" +
+                        "    and raw = ?",
+                dissection.getQuantityText(),
+                EnglishUtils.unpluralize(dissection.getUnitsText()),
+                ingredient.getId(),
+                dissection.getPrep(),
+                dissection.getRaw());
+
+    }
+
+    private Ingredient ensureIngredientByName(String name) {
+        String unpluralized = EnglishUtils.unpluralize(name);
+        // see if there's a pantry item...
+        Optional<PantryItem> pantryItem = pantryItemRepository.findOneByNameIgnoreCase(unpluralized);
+        if (pantryItem.isPresent()) {
+            return pantryItem.get();
+        }
+        // see if there's a recipe...
+        Optional<Recipe> recipe = recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), name);
+        if (recipe.isPresent()) {
+            return recipe.get();
+        }
+        recipe = recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), unpluralized);
+        if (recipe.isPresent()) {
+            return recipe.get();
+        }
+        // make a new pantry item
+        return pantryItemRepository.save(new PantryItem(unpluralized));
+    }
 }

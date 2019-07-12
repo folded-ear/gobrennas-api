@@ -13,6 +13,7 @@ public class IngredientRef<I extends Ingredient> {
 
     private String raw;
     private String quantity;
+    private String units;
     private String preparation;
 
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
@@ -62,6 +63,14 @@ public class IngredientRef<I extends Ingredient> {
         this.quantity = quantity;
     }
 
+    public String getUnits() {
+        return units;
+    }
+
+    public void setUnits(String units) {
+        this.units = units;
+    }
+
     public String getPreparation() {
         return preparation;
     }
@@ -77,11 +86,14 @@ public class IngredientRef<I extends Ingredient> {
 
     public String toString(boolean includePrep) {
         StringBuilder sb = new StringBuilder();
-        if (quantity != null && ! quantity.isEmpty()) {
+        if (quantity != null && !quantity.isEmpty()) {
             sb.append(quantity).append(' ');
         }
+        if (units != null && !units.isEmpty()) {
+            sb.append(units).append(' ');
+        }
         sb.append(ingredient.getName());
-        if (includePrep && preparation != null && ! preparation.isEmpty()) {
+        if (includePrep && preparation != null && !preparation.isEmpty()) {
             sb.append(", ").append(preparation);
         }
         return sb.toString();

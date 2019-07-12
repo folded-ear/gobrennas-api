@@ -15,6 +15,8 @@ public interface RecipeRepository extends CrudRepository<Recipe, Long> {
 
     Iterable<Recipe> findByOwner(User owner);
 
+    Optional<Recipe> findOneByOwnerAndNameIgnoreCase(User owner, String name);
+
     @Override
     Optional<Recipe> findById(Long aLong);
 
