@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.ManyToOne;
 import java.util.Comparator;
@@ -13,6 +14,9 @@ public class IngredientRef<I extends Ingredient> {
         String bn = b.hasIngredient() ? b.getIngredient().getName() : b.getRaw();
         return an.compareToIgnoreCase(bn);
     };
+
+    @Column(name = "_order")
+    private int _idx;
 
     private String raw;
     private String quantity;
@@ -32,6 +36,14 @@ public class IngredientRef<I extends Ingredient> {
         setQuantity(quantity);
         setIngredient(ingredient);
         setPreparation(preparation);
+    }
+
+    int get_idx() {
+        return _idx;
+    }
+
+    void set_idx(int _idx) {
+        this._idx = _idx;
     }
 
     public IngredientRef(String raw) {

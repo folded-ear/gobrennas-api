@@ -104,3 +104,13 @@ alter table recipe_ingredients
 
 alter table recipe_ingredients
     alter column preparation type varchar;
+
+--changeset barneyb:explicit-ingredient-ref-order
+alter table recipe_ingredients
+    -- this places non-JPA records last
+    add _order int not null default power(2, 30);
+
+create sequence temp_seq;
+update recipe_ingredients
+set _order = nextval('temp_seq');
+drop sequence temp_seq;
