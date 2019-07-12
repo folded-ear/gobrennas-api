@@ -119,6 +119,7 @@ public class ShoppingList extends BaseEntity {
 
     // this should be a Set, but it makes assertions harder, because iteration order is undefined
     @ElementCollection
+    @OrderBy("completedAt")
     private List<Item> items = new LinkedList<>();
 
     transient private Map<PantryItem, Item> itemMap;
