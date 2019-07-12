@@ -8,8 +8,11 @@ import java.util.Comparator;
 @Embeddable
 public class IngredientRef<I extends Ingredient> {
 
-    public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) ->
-            Ingredient.BY_NAME.compare(a.getIngredient(), b.getIngredient());
+    public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) -> {
+        String an = a.hasIngredient() ? a.getIngredient().getName() : a.getRaw();
+        String bn = b.hasIngredient() ? b.getIngredient().getName() : b.getRaw();
+        return an.compareToIgnoreCase(bn);
+    };
 
     private String raw;
     private String quantity;
