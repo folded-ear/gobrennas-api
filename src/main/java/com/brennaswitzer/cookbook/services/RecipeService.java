@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
+import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -113,7 +114,7 @@ public class RecipeService {
                         "where ingredient_id is null\n" +
                         "    and raw = ?",
                 dissection.getQuantityText(),
-                dissection.getUnitsText(),
+                EnglishUtils.unpluralize(dissection.getUnitsText()),
                 ingredient.getId(),
                 dissection.getPrep(),
                 dissection.getRaw());
@@ -121,8 +122,9 @@ public class RecipeService {
     }
 
     private Ingredient ensureIngredientByName(String name) {
+        String unpluralized = EnglishUtils.unpluralize(name);
         // see if there's a pantry item...
-        Optional<PantryItem> pantryItem = pantryItemRepository.findOneByNameIgnoreCase(name);
+        Optional<PantryItem> pantryItem = pantryItemRepository.findOneByNameIgnoreCase(unpluralized);
         if (pantryItem.isPresent()) {
             return pantryItem.get();
         }
@@ -131,7 +133,11 @@ public class RecipeService {
         if (recipe.isPresent()) {
             return recipe.get();
         }
+        recipe = recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), unpluralized);
+        if (recipe.isPresent()) {
+            return recipe.get();
+        }
         // make a new pantry item
-        return pantryItemRepository.save(new PantryItem(name));
+        return pantryItemRepository.save(new PantryItem(unpluralized));
     }
 }
