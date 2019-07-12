@@ -17,6 +17,8 @@ public class ShoppingList extends BaseEntity {
     @Table(name = "shopping_list_item")
     public static class Item {
 
+        private static final String MIXED_UNITS = "__mixed_units__";
+
         @ManyToOne
         private PantryItem ingredient;
 
@@ -62,15 +64,29 @@ public class ShoppingList extends BaseEntity {
         }
 
         public void setQuantity(String quantity) {
-            this.quantity = quantity;
+            this.quantity = quantity == null
+                    ? null
+                    : quantity.trim();
+        }
+
+        public boolean hasQuantity() {
+            return quantity != null && !quantity.isEmpty();
         }
 
         public String getUnits() {
-            return units;
+            return MIXED_UNITS.equals(units)
+                    ? null
+                    : units;
         }
 
         public void setUnits(String units) {
-            this.units = units;
+            this.units = units == null
+                    ? null
+                    : units.trim();
+        }
+
+        public boolean hasUnits() {
+            return units != null && !MIXED_UNITS.equals(units) && !units.isEmpty();
         }
 
         public Instant getCompletedAt() {
@@ -94,31 +110,46 @@ public class ShoppingList extends BaseEntity {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder().append(getIngredient().getName());
-            if (getQuantity() != null && !getQuantity().isEmpty()) {
-                sb.append(" (").append(getQuantity()).append(')');
-            }
-            return sb.toString();
+            return buildToString().toString();
         }
 
-        private String add(String a, String b, String def) {
-            if (a == null || a.isEmpty()) a = def;
-            if (b == null || b.isEmpty()) b = def;
-            if (a == null) return b;
-            if (b == null) return a;
-            return a + ", " + b;
+        private StringBuilder buildToString() {
+            StringBuilder sb = new StringBuilder().append(getIngredient().getName());
+            if (!hasQuantity()) return sb;
+            if (!hasUnits()) {
+                if ("1".equals(getQuantity())) return sb;
+                if ("one".equals(getQuantity())) return sb;
+            }
+            sb.append(" (").append(getQuantity());
+            if (hasUnits()) {
+                sb.append(' ').append(getUnits());
+            }
+            return sb.append(')');
         }
 
         public void add(String quantity, String units) {
-            setQuantity(add(
-                    add(getQuantity(), getUnits(), null),
-                    add(quantity, units, null),
-                    "1"));
+            if (quantity != null) {
+                quantity = quantity.trim();
+                if (quantity.isEmpty()) quantity = null;
+            }
+            if (units != null) {
+                units = units.trim();
+                if (units.isEmpty()) units = null;
+            }
+            if (! hasQuantity()) setQuantity("1");
+            if (quantity == null) quantity = "1";
+            if (hasUnits() ? ! getUnits().equals(units) : units != null) {
+                if (hasUnits()) setQuantity(getQuantity() + " " + getUnits());
+                if (units != null) quantity = quantity + " " + units;
+                setUnits(MIXED_UNITS);
+            }
+            setQuantity(getQuantity() + ", " + quantity);
         }
     }
 
     // this should be a Set, but it makes assertions harder, because iteration order is undefined
     @ElementCollection
+    @OrderBy("completedAt")
     private List<Item> items = new LinkedList<>();
 
     transient private Map<PantryItem, Item> itemMap;

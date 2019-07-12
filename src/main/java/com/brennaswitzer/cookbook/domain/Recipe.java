@@ -33,6 +33,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     private String directions;
 
     @ElementCollection
+    @OrderBy("_idx, raw")
     private List<IngredientRef> ingredients;
 
     @JsonFormat(pattern = "yyyy-mm-dd")
@@ -139,11 +140,20 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @PrePersist
     protected void onCreate() {
         this.created_at = new Date();
+        ensureRefOrder();
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updated_at = new Date();
+        ensureRefOrder();
+    }
+
+    private void ensureRefOrder() {
+        if (ingredients == null) return;
+        int order = 0;
+        for (IngredientRef ref : ingredients)
+            ref.set_idx(order++);
     }
 
     @Override
