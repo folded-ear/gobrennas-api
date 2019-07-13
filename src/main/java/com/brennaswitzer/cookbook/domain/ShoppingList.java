@@ -4,10 +4,7 @@ import org.springframework.util.Assert;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Table(name = "shopping_list")
@@ -162,8 +159,13 @@ public class ShoppingList extends BaseEntity {
 
     public ShoppingList() {}
 
-    public List<Item> getListItems() {
+    public List<Item> getItems() {
         return items;
+    }
+
+    public void resetItemOrder(Comparator<Item> comparator) {
+        if (items == null) return;
+        items.sort(comparator);
     }
 
     public void addPantryItem(String quantity, String units, PantryItem ingredient) {
@@ -184,7 +186,6 @@ public class ShoppingList extends BaseEntity {
     }
 
     public void createTasks(Task taskList) {
-        // todo: do magical ordering things!
         for (Item it : items) {
             taskList.addSubtask(it.getTask());
         }
@@ -197,10 +198,9 @@ public class ShoppingList extends BaseEntity {
 
     public void taskCompleted(Long id) {
         Assert.notNull(id, "Completing the null task makes no sense?!");
-        items
-                .stream()
+        items.stream()
                 .filter(it -> it.task != null && id.equals(it.task.getId()))
-                .filter(it -> ! it.isComplete())
+                .filter(it -> !it.isComplete())
                 .forEach(Item::markComplete);
     }
 

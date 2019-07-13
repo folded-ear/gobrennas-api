@@ -63,6 +63,8 @@ public class RecipeService {
     ) {
         ShoppingList l = new ShoppingList();
         l.addAllPantryItems(agg);
+        // todo: make this user specific
+        l.resetItemOrder(new MagicalListItemStatsComparator(jdbcTmpl));
         entityManager.persist(l);
         if (withHeading) {
             l.createTasks(agg.getName(), list);
