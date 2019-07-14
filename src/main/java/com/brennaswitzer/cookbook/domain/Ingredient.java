@@ -45,16 +45,6 @@ public abstract class Ingredient implements Identified {
         this.id = id;
     }
 
-    @Deprecated
-    public long getIngredientId() {
-        return id;
-    }
-
-    @Deprecated
-    public void setIngredientId(long ingredientId) {
-        this.id = ingredientId;
-    }
-
     public String getName() {
         return name;
     }
