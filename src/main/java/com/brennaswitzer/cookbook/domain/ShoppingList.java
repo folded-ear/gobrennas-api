@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.NumberUtils;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
@@ -33,10 +34,14 @@ public class ShoppingList extends BaseEntity {
 
         public Item() {}
 
-        public Item(String quantity, String units, PantryItem ingredient) {
-            setQuantity(quantity);
-            setUnits(units);
-            setIngredient(ingredient);
+        public Item(IngredientRef<PantryItem> ref) {
+            if (ref.hasAmount()) {
+                setAmount(ref.getAmount());
+            } else {
+                setQuantity(ref.getQuantity());
+            }
+            setUnits(ref.getUnits());
+            setIngredient(ref.getIngredient());
         }
 
         public PantryItem getIngredient() {
@@ -126,36 +131,52 @@ public class ShoppingList extends BaseEntity {
 
         private StringBuilder buildToString() {
             StringBuilder sb = new StringBuilder().append(getIngredient().getName());
-            if (!hasQuantity()) return sb;
+            if (!hasAmount() && !hasQuantity()) return sb;
+            String amount = hasAmount()
+                    ? NumberUtils.formatFloat(getAmount())
+                    : getQuantity();
             if (!hasUnits()) {
-                if ("1".equals(getQuantity())) return sb;
-                if ("one".equals(getQuantity())) return sb;
+                if ("1".equals(amount)) return sb;
+                if ("one".equals(amount)) return sb;
             }
-            sb.append(" (").append(getQuantity());
+            sb.append(" (").append(amount);
             if (hasUnits()) {
                 sb.append(' ').append(getUnits());
             }
             return sb.append(')');
         }
 
-        public void add(String quantity, String units) {
-            if (quantity != null) {
-                quantity = quantity.trim();
-                if (quantity.isEmpty()) quantity = null;
+        public void add(IngredientRef<PantryItem> ref) {
+            assert ingredient.equals(ref.getIngredient());
+            boolean unitsMatch = hasUnits()
+                    ? ref.hasUnits() && getUnits().equals(ref.getUnits())
+                    : !ref.hasUnits();
+            if (hasAmount()) {
+                if (ref.hasAmount() && unitsMatch) {
+                    // woo! happy path!
+                    setAmount(getAmount() + ref.getAmount());
+                    return;
+                }
+                setQuantity(NumberUtils.formatFloat(getAmount()));
+                setAmount(null);
             }
-            if (units != null) {
-                units = units.trim();
-                if (units.isEmpty()) units = null;
+            // we're doing quantity. :|
+            String refQuantity = ref.hasAmount()
+                    ? NumberUtils.formatFloat(ref.getAmount())
+                    : ref.getQuantity();
+            if (unitsMatch) {
+                setQuantity(getQuantity() + ", " + refQuantity);
+                return;
             }
-            if (! hasQuantity()) setQuantity("1");
-            if (quantity == null) quantity = "1";
-            if (hasUnits() ? ! getUnits().equals(units) : units != null) {
-                if (hasUnits()) setQuantity(getQuantity() + " " + getUnits());
-                if (units != null) quantity = quantity + " " + units;
-                setUnits(MIXED_UNITS);
-            }
-            setQuantity(getQuantity() + ", " + quantity);
+            // and with mixed units...
+            StringBuilder sb = new StringBuilder(getQuantity());
+            if (hasUnits()) sb.append(' ').append(getUnits());
+            sb.append(", ").append(refQuantity);
+            if (ref.hasUnits()) sb.append(' ').append(ref.getUnits());
+            setQuantity(sb.toString());
+            setUnits(MIXED_UNITS);
         }
+
     }
 
     // this should be a Set, but it makes assertions harder, because iteration order is undefined
@@ -182,21 +203,20 @@ public class ShoppingList extends BaseEntity {
         items.sort(comparator);
     }
 
-    public void addPantryItem(String quantity, String units, PantryItem ingredient) {
+    public void addPantryItem(IngredientRef<PantryItem> ref) {
         ensureItemMap();
+        PantryItem ingredient = ref.getIngredient();
         if (itemMap.containsKey(ingredient)) {
-            itemMap.get(ingredient).add(quantity, units);
+            itemMap.get(ingredient).add(ref);
         } else {
-            Item it = new Item(quantity, units, ingredient);
+            Item it = new Item(ref);
             itemMap.put(ingredient, it);
             items.add(it);
         }
     }
 
     public void addAllPantryItems(AggregateIngredient agg) {
-        for (IngredientRef<PantryItem> ref : agg.assemblePantryItemRefs()) {
-            addPantryItem(ref.getQuantity(), ref.getUnits(), ref.getIngredient());
-        }
+        agg.assemblePantryItemRefs().forEach(this::addPantryItem);
     }
 
     public void createTasks(Task taskList) {

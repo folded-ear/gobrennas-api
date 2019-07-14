@@ -8,6 +8,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.text.NumberFormat;
+
 public final class NumberUtils {
 
     protected static final Log logger = LogFactory.getLog(NumberUtils.class);
@@ -26,6 +28,10 @@ public final class NumberUtils {
             logger.error("Failed to parseFloat(" + str + ")", e);
             return null;
         }
+    }
+
+    public static String formatFloat(Float f) {
+        return NumberFormat.getNumberInstance().format(f);
     }
 
 }
