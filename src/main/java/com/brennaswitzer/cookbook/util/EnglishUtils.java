@@ -2,7 +2,7 @@ package com.brennaswitzer.cookbook.util;
 
 import java.util.regex.Pattern;
 
-public class EnglishUtils {
+public final class EnglishUtils {
 
     private static Pattern PLURAL_PATTERN = Pattern.compile("[^ai]s$");
 

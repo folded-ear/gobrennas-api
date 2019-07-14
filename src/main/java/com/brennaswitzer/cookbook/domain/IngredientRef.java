@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.NumberUtils;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -19,9 +21,12 @@ public class IngredientRef<I extends Ingredient> {
     private int _idx;
 
     private String raw;
+
     private String quantity;
     private String units;
     private String preparation;
+
+    private Float amount;
 
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
     private I ingredient;
@@ -29,11 +34,12 @@ public class IngredientRef<I extends Ingredient> {
     public IngredientRef() {}
 
     public IngredientRef(I ingredient) {
-        this(null, ingredient, null);
+        this(null, null, ingredient, null);
     }
 
-    public IngredientRef(String quantity, I ingredient, String preparation) {
+    public IngredientRef(String quantity, String units, I ingredient, String preparation) {
         setQuantity(quantity);
+        setUnits(units);
         setIngredient(ingredient);
         setPreparation(preparation);
     }
@@ -76,6 +82,11 @@ public class IngredientRef<I extends Ingredient> {
 
     public void setQuantity(String quantity) {
         this.quantity = quantity;
+        this.amount = NumberUtils.parseFloat(quantity);
+    }
+
+    public boolean hasQuantity() {
+        return quantity != null && !quantity.isEmpty();
     }
 
     public String getUnits() {
@@ -86,12 +97,32 @@ public class IngredientRef<I extends Ingredient> {
         this.units = units;
     }
 
+    public boolean hasUnits() {
+        return units != null && !units.isEmpty();
+    }
+
     public String getPreparation() {
         return preparation;
     }
 
     public void setPreparation(String preparation) {
         this.preparation = preparation;
+    }
+
+    public boolean hasPreparation() {
+        return preparation != null && !preparation.isEmpty();
+    }
+
+    public Float getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Float amount) {
+        this.amount = amount;
+    }
+
+    public boolean hasAmount() {
+        return amount != null;
     }
 
     @Override
@@ -101,14 +132,16 @@ public class IngredientRef<I extends Ingredient> {
 
     public String toString(boolean includePrep) {
         StringBuilder sb = new StringBuilder();
-        if (quantity != null && !quantity.isEmpty()) {
+        if (hasAmount()) {
+            sb.append(amount).append(' ');
+        } else if (hasQuantity()) {
             sb.append(quantity).append(' ');
         }
-        if (units != null && !units.isEmpty()) {
+        if (hasUnits()) {
             sb.append(units).append(' ');
         }
         sb.append(ingredient.getName());
-        if (includePrep && preparation != null && !preparation.isEmpty()) {
+        if (includePrep && hasPreparation()) {
             sb.append(", ").append(preparation);
         }
         return sb.toString();

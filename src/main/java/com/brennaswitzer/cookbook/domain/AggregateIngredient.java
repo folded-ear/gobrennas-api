@@ -10,8 +10,10 @@ public interface AggregateIngredient {
 
     void addIngredient(Ingredient ingredient);
     void addIngredient(String quantity, Ingredient ingredient);
+    void addIngredient(String quantity, String units, Ingredient ingredient);
     void addIngredient(Ingredient ingredient, String preparation);
     void addIngredient(String quantity, Ingredient ingredient, String preparation);
+    void addIngredient(String quantity, String units, Ingredient ingredient, String preparation);
 
     /**
      * I return the PantryItem IngredientRefs for this Ingredient, including

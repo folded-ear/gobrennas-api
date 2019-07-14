@@ -18,7 +18,7 @@ public class ShoppingListTest {
         assertEquals("fresh tomatoes (1 lbs)", itr.next().toString());
         assertEquals("tomato paste (1 (6 oz) can)", itr.next().toString());
         assertEquals("italian seasoning", itr.next().toString());
-        assertEquals("salt (1 tsp, 0.5 tsp)", itr.next().toString());
+        assertEquals("salt (1.5 tsp)", itr.next().toString());
         // crust
         assertEquals("flour (2 c)", itr.next().toString());
         assertEquals("water (1 c)", itr.next().toString());
@@ -30,8 +30,7 @@ public class ShoppingListTest {
     public void addPantryItems() {
         RecipeBox box = new RecipeBox();
         ShoppingList l = new ShoppingList();
-        box.pizza.assemblePantryItemRefs().forEach(ref ->
-                l.addPantryItem(ref.getQuantity(), ref.getUnits(), ref.getIngredient()));
+        box.pizza.assemblePantryItemRefs().forEach(l::addPantryItem);
         assertEquals(8, l.getItems().size());
         Iterator<ShoppingList.Item> itr = l.getItems().iterator();
         checkPizzaItems.accept(itr);

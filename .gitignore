@@ -1,6 +1,8 @@
 HELP.md
 /target/
 !.mvn/wrapper/maven-wrapper.jar
+/src/main/java/*.tokens
+/src/main/java/com/brennaswitzer/cookbook/antlr/*.*
 /src/main/resources/public/
 /src/main/resources/application-default.yml
 /src/main/resources/application-dev.yml

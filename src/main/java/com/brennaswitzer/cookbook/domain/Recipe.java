@@ -103,13 +103,23 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         addIngredient(quantity, ingredient, null);
     }
 
+    @Override
+    public void addIngredient(String quantity, String units, Ingredient ingredient) {
+        addIngredient(quantity, units, ingredient, null);
+    }
+
     public void addIngredient(Ingredient ingredient, String preparation) {
         addIngredient(null, ingredient, preparation);
     }
 
+    @Override
     public void addIngredient(String quantity, Ingredient ingredient, String preparation) {
+        addIngredient(quantity, null, ingredient, preparation);
+    }
+
+    public void addIngredient(String quantity, String units, Ingredient ingredient, String preparation) {
         ensureIngredients();
-        ingredients.add(new IngredientRef<>(quantity, ingredient, preparation));
+        ingredients.add(new IngredientRef<>(quantity, units, ingredient, preparation));
     }
 
     private void ensureIngredients() {
