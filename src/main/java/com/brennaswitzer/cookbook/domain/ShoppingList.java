@@ -26,6 +26,8 @@ public class ShoppingList extends BaseEntity {
 
         private String units;
 
+        private Float amount;
+
         @Column(name = "completed_at")
         private Instant completedAt;
 
@@ -84,6 +86,18 @@ public class ShoppingList extends BaseEntity {
 
         public boolean hasUnits() {
             return units != null && !MIXED_UNITS.equals(units) && !units.isEmpty();
+        }
+
+        public Float getAmount() {
+            return amount;
+        }
+
+        public void setAmount(Float amount) {
+            this.amount = amount;
+        }
+
+        public boolean hasAmount() {
+            return amount != null;
         }
 
         public Instant getCompletedAt() {

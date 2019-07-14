@@ -159,3 +159,7 @@ create table shopping_list_items
 --changeset barneyb:separate-quantity-and-units
 alter table shopping_list_items
     add column units varchar;
+
+--changeset barneyb:amount-on-shopping-list-item
+alter table shopping_list_items
+    add amount real;
