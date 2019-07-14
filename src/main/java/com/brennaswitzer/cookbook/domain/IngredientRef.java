@@ -34,11 +34,12 @@ public class IngredientRef<I extends Ingredient> {
     public IngredientRef() {}
 
     public IngredientRef(I ingredient) {
-        this(null, ingredient, null);
+        this(null, null, ingredient, null);
     }
 
-    public IngredientRef(String quantity, I ingredient, String preparation) {
+    public IngredientRef(String quantity, String units, I ingredient, String preparation) {
         setQuantity(quantity);
+        setUnits(units);
         setIngredient(ingredient);
         setPreparation(preparation);
     }

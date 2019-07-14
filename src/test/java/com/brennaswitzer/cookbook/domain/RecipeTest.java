@@ -78,7 +78,7 @@ public class RecipeTest {
         assertEquals("flour", itr.next().getIngredient().getName());
         ref = itr.next();
         assertEquals("fresh tomatoes", ref.getIngredient().getName());
-            assertEquals("1 lbs", ref.getQuantity());
+            assertEquals("1", ref.getQuantity());
             assertEquals("seeded and crushed", ref.getPreparation());
         assertEquals("italian seasoning", itr.next().getIngredient().getName());
         // pepperoni's a raw ingredient
