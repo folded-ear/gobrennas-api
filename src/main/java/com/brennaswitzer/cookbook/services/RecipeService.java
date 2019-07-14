@@ -105,6 +105,14 @@ public class RecipeService {
     }
 
     public void recordDissection(RawIngredientDissection dissection) {
+        // fail fast on unparseable quantity
+        String quantity = dissection.getQuantityText();
+        Float amount = NumberUtils.parseFloat(quantity);
+        if (quantity != null && amount == null) {
+            throw new RuntimeException("Quantity '" + quantity + "' cannot be parsed.");
+        }
+
+        // lets go!
         String name = dissection.getNameText();
         Ingredient ingredient = ensureIngredientByName(name);
         // update raw refs w/ dissected parts
@@ -117,11 +125,11 @@ public class RecipeService {
                         "    amount = ?\n" +
                         "where ingredient_id is null\n" +
                         "    and raw = ?",
-                dissection.getQuantityText(),
+                quantity,
                 EnglishUtils.unpluralize(dissection.getUnitsText()),
                 ingredient.getId(),
                 dissection.getPrep(),
-                NumberUtils.parseFloat(dissection.getQuantityText()),
+                amount,
                 dissection.getRaw());
 
     }
