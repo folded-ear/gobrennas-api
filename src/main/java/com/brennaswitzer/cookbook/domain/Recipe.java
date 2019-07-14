@@ -26,8 +26,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     // end access control emulation
 
-    private String displayTitle;
-
     private String externalUrl;
 
     private String directions;
@@ -47,28 +45,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     public Recipe(String name) {
         setName(name);
-    }
-
-    public String getDisplayTitle() {
-        return displayTitle == null
-                ? getName()
-                : displayTitle;
-    }
-
-    public void setDisplayTitle(String displayTitle) {
-        if (displayTitle == null || displayTitle.equals(getName())) {
-            this.displayTitle = null;
-            return;
-        }
-        this.displayTitle = displayTitle;
-    }
-
-    @Override
-    public void setName(String name) {
-        if (name != null && name.equals(displayTitle)) {
-            displayTitle = null;
-        }
-        super.setName(name);
     }
 
     public String getExternalUrl() {
