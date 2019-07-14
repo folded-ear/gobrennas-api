@@ -84,12 +84,20 @@ public class IngredientRef<I extends Ingredient> {
         this.amount = NumberUtils.parseFloat(quantity);
     }
 
+    public boolean hasQuantity() {
+        return quantity != null && !quantity.isEmpty();
+    }
+
     public String getUnits() {
         return units;
     }
 
     public void setUnits(String units) {
         this.units = units;
+    }
+
+    public boolean hasUnits() {
+        return units != null && !units.isEmpty();
     }
 
     public String getPreparation() {
@@ -100,12 +108,20 @@ public class IngredientRef<I extends Ingredient> {
         this.preparation = preparation;
     }
 
+    public boolean hasPreparation() {
+        return preparation != null && !preparation.isEmpty();
+    }
+
     public Float getAmount() {
         return amount;
     }
 
     public void setAmount(Float amount) {
         this.amount = amount;
+    }
+
+    public boolean hasAmount() {
+        return amount != null;
     }
 
     @Override
@@ -115,14 +131,16 @@ public class IngredientRef<I extends Ingredient> {
 
     public String toString(boolean includePrep) {
         StringBuilder sb = new StringBuilder();
-        if (quantity != null && !quantity.isEmpty()) {
+        if (hasAmount()) {
+            sb.append(amount).append(' ');
+        } else if (hasQuantity()) {
             sb.append(quantity).append(' ');
         }
-        if (units != null && !units.isEmpty()) {
+        if (hasUnits()) {
             sb.append(units).append(' ');
         }
         sb.append(ingredient.getName());
-        if (includePrep && preparation != null && !preparation.isEmpty()) {
+        if (includePrep && hasPreparation()) {
             sb.append(", ").append(preparation);
         }
         return sb.toString();
