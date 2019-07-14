@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.NumberUtils;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -19,6 +21,7 @@ public class IngredientRef<I extends Ingredient> {
     private int _idx;
 
     private String raw;
+
     private String quantity;
     private String units;
     private String preparation;
@@ -78,6 +81,7 @@ public class IngredientRef<I extends Ingredient> {
 
     public void setQuantity(String quantity) {
         this.quantity = quantity;
+        this.amount = NumberUtils.parseFloat(quantity);
     }
 
     public String getUnits() {
@@ -94,6 +98,14 @@ public class IngredientRef<I extends Ingredient> {
 
     public void setPreparation(String preparation) {
         this.preparation = preparation;
+    }
+
+    public Float getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Float amount) {
+        this.amount = amount;
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
+import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -112,13 +113,15 @@ public class RecipeService {
                         "set quantity = ?,\n" +
                         "    units = ?,\n" +
                         "    ingredient_id = ?,\n" +
-                        "    preparation = ?\n" +
+                        "    preparation = ?,\n" +
+                        "    amount = ?\n" +
                         "where ingredient_id is null\n" +
                         "    and raw = ?",
                 dissection.getQuantityText(),
                 EnglishUtils.unpluralize(dissection.getUnitsText()),
                 ingredient.getId(),
                 dissection.getPrep(),
+                NumberUtils.parseFloat(dissection.getQuantityText()),
                 dissection.getRaw());
 
     }
