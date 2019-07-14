@@ -114,3 +114,7 @@ create sequence temp_seq;
 update recipe_ingredients
 set _order = nextval('temp_seq');
 drop sequence temp_seq;
+
+--changeset barneyb:amount-on-ingredient-ref
+alter table recipe_ingredients
+    add amount real;

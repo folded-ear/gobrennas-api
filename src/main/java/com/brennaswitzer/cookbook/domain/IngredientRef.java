@@ -23,6 +23,8 @@ public class IngredientRef<I extends Ingredient> {
     private String units;
     private String preparation;
 
+    private Float amount;
+
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
     private I ingredient;
 
