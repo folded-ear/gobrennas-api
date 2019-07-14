@@ -32,6 +32,15 @@ public class RecipeController {
         return new ResponseEntity<>(recipe, HttpStatus.CREATED);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateRecipe(@Valid @RequestBody Recipe recipe, BindingResult result) {
+        ResponseEntity<?> errors = validationService.validationService(result);
+        if(errors != null) return errors;
+
+        Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
+        return new ResponseEntity<>(recipe, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getRecipeById(@PathVariable Long id) {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
