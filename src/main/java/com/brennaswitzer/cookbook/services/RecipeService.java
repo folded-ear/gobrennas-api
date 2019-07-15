@@ -105,6 +105,14 @@ public class RecipeService {
     }
 
     public void recordDissection(RawIngredientDissection dissection) {
+        // fail fast on unparseable quantity
+        String qText = dissection.getQuantityText();
+        Float quantity = NumberUtils.parseFloat(qText);
+        if (qText != null && quantity == null) {
+            throw new RuntimeException("Quantity '" + quantity + "' cannot be parsed.");
+        }
+
+        // lets go!
         String name = dissection.getNameText();
         Ingredient ingredient = ensureIngredientByName(name);
         // update raw refs w/ dissected parts
@@ -113,15 +121,13 @@ public class RecipeService {
                         "set quantity = ?,\n" +
                         "    units = ?,\n" +
                         "    ingredient_id = ?,\n" +
-                        "    preparation = ?,\n" +
-                        "    amount = ?\n" +
+                        "    preparation = ?\n" +
                         "where ingredient_id is null\n" +
                         "    and raw = ?",
-                dissection.getQuantityText(),
+                quantity,
                 EnglishUtils.unpluralize(dissection.getUnitsText()),
                 ingredient.getId(),
                 dissection.getPrep(),
-                NumberUtils.parseFloat(dissection.getQuantityText()),
                 dissection.getRaw());
 
     }
@@ -144,24 +150,6 @@ public class RecipeService {
         }
         // make a new pantry item
         return pantryItemRepository.save(new PantryItem(unpluralized));
-    }
-
-    public void reparseQuantities() {
-        jdbcTmpl.queryForList("select distinct quantity\n" +
-                "from recipe_ingredients\n" +
-                "where quantity is not null\n" +
-                "  and amount is null\n" +
-                "order by 1")
-                .forEach(row -> {
-                    String q = (String) row.get("quantity");
-                    Float a = NumberUtils.parseFloat(q);
-                    if (a == null) return;
-                    int n = jdbcTmpl.update("update recipe_ingredients\n" +
-                                    "set amount = ?\n" +
-                                    "where quantity = ?\n" +
-                                    "  and amount is null",
-                            a, q);
-                });
     }
 
 }

@@ -7,7 +7,6 @@ public class RecipeAction {
     public enum Type {
         ASSEMBLE_SHOPPING_LIST,
         DISSECT_RAW_INGREDIENT,
-        REPARSE_QUANTITIES,
     }
 
     private Type type;
@@ -47,9 +46,6 @@ public class RecipeAction {
                 break;
             case DISSECT_RAW_INGREDIENT:
                 service.recordDissection(dissection);
-                break;
-            case REPARSE_QUANTITIES:
-                service.reparseQuantities();
                 break;
         }
     }

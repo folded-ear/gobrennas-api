@@ -20,26 +20,26 @@ public class RecipeBox {
         salt = new PantryItem("salt");
 
         friedChicken = new Recipe("Fried Chicken");
-        friedChicken.addIngredient("2", new PantryItem("egg"), "shelled");
+        friedChicken.addIngredient(2f, new PantryItem("egg"), "shelled");
         friedChicken.addIngredient(new PantryItem("chicken"), "deboned");
 
         pizzaSauce = new Recipe("Pizza Sauce");
-        pizzaSauce.addIngredient("1", "lbs", new PantryItem("fresh tomatoes"), "seeded and crushed");
-        pizzaSauce.addIngredient("1", "(6 oz) can", new PantryItem("tomato paste"));
+        pizzaSauce.addIngredient(1f, "lbs", new PantryItem("fresh tomatoes"), "seeded and crushed");
+        pizzaSauce.addIngredient(1f, "(6 oz) can", new PantryItem("tomato paste"));
         pizzaSauce.addIngredient(new PantryItem("italian seasoning"));
-        pizzaSauce.addIngredient("1", "tsp", salt);
+        pizzaSauce.addIngredient(1f, "tsp", salt);
 
         pizzaCrust = new Recipe("Pizza Crust");
-        pizzaCrust.addIngredient("2", "c", new PantryItem("flour"));
-        pizzaCrust.addIngredient("1", "c", new PantryItem("water"));
-        pizzaCrust.addIngredient("1", "packet", new PantryItem("yeast"));
-        pizzaCrust.addIngredient("1", "Tbsp", new PantryItem("sugar"));
-        pizzaSauce.addIngredient("0.5", "tsp", salt);
+        pizzaCrust.addIngredient(2f, "c", new PantryItem("flour"));
+        pizzaCrust.addIngredient(1f, "c", new PantryItem("water"));
+        pizzaCrust.addIngredient(1f, "packet", new PantryItem("yeast"));
+        pizzaCrust.addIngredient(1f, "Tbsp", new PantryItem("sugar"));
+        pizzaSauce.addIngredient(0.5f, "tsp", salt);
 
         pizza = new Recipe("Pizza");
         pizza.addRawIngredient("pepperoni");
-        pizza.addIngredient("8", "oz", pizzaSauce);
-        pizza.addIngredient("1", pizzaCrust);
+        pizza.addIngredient(8f, "oz", pizzaSauce);
+        pizza.addIngredient(1f, pizzaCrust);
     }
 
     public void persist(EntityManager entityManager) {

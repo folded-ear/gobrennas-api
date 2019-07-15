@@ -163,3 +163,11 @@ alter table shopping_list_items
 --changeset barneyb:amount-on-shopping-list-item
 alter table shopping_list_items
     add amount real;
+
+--changeset barneyb:clean-up-shoppinglist-item-storage
+alter table shopping_list_items
+    drop units;
+alter table shopping_list_items
+    drop amount;
+alter table shopping_list_items
+    alter quantity type varchar;

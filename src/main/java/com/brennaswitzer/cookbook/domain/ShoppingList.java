@@ -11,11 +11,15 @@ import java.util.*;
 @Table(name = "shopping_list")
 public class ShoppingList extends BaseEntity {
 
+    private static final Comparator<String> STRING_BY_CASE_INSENSITIVE_NULL_FIRST = (a, b) -> {
+        if (a == null) return b == null ? 0 : -1;
+        if (b == null) return 1;
+        return a.compareToIgnoreCase(b);
+    };
+
     @Embeddable
     @Table(name = "shopping_list_item")
     public static class Item {
-
-        private static final String MIXED_UNITS = "__mixed_units__";
 
         @ManyToOne
         private PantryItem ingredient;
@@ -25,9 +29,7 @@ public class ShoppingList extends BaseEntity {
 
         private String quantity;
 
-        private String units;
-
-        private Float amount;
+        transient private Map<String, Float> byUnit;
 
         @Column(name = "completed_at")
         private Instant completedAt;
@@ -35,13 +37,8 @@ public class ShoppingList extends BaseEntity {
         public Item() {}
 
         public Item(IngredientRef<PantryItem> ref) {
-            if (ref.hasAmount()) {
-                setAmount(ref.getAmount());
-            } else {
-                setQuantity(ref.getQuantity());
-            }
-            setUnits(ref.getUnits());
             setIngredient(ref.getIngredient());
+            add(ref);
         }
 
         public PantryItem getIngredient() {
@@ -68,41 +65,7 @@ public class ShoppingList extends BaseEntity {
         }
 
         public void setQuantity(String quantity) {
-            this.quantity = quantity == null
-                    ? null
-                    : quantity.trim();
-        }
-
-        public boolean hasQuantity() {
-            return quantity != null && !quantity.isEmpty();
-        }
-
-        public String getUnits() {
-            return MIXED_UNITS.equals(units)
-                    ? null
-                    : units;
-        }
-
-        public void setUnits(String units) {
-            this.units = units == null
-                    ? null
-                    : units.trim();
-        }
-
-        public boolean hasUnits() {
-            return units != null && !MIXED_UNITS.equals(units) && !units.isEmpty();
-        }
-
-        public Float getAmount() {
-            return amount;
-        }
-
-        public void setAmount(Float amount) {
-            this.amount = amount;
-        }
-
-        public boolean hasAmount() {
-            return amount != null;
+            this.quantity = quantity;
         }
 
         public Instant getCompletedAt() {
@@ -126,55 +89,38 @@ public class ShoppingList extends BaseEntity {
 
         @Override
         public String toString() {
-            return buildToString().toString();
+            StringBuilder sb = new StringBuilder().append(getIngredient().getName());
+            if (!"1".equals(getQuantity())) {
+                sb.append(" (").append(getQuantity()).append(')');
+            }
+            return sb.toString();
         }
 
-        private StringBuilder buildToString() {
-            StringBuilder sb = new StringBuilder().append(getIngredient().getName());
-            if (!hasAmount() && !hasQuantity()) return sb;
-            String amount = hasAmount()
-                    ? NumberUtils.formatFloat(getAmount())
-                    : getQuantity();
-            if (!hasUnits()) {
-                if ("1".equals(amount)) return sb;
-                if ("one".equals(amount)) return sb;
+        private void ensureUnitMap(IngredientRef ref) {
+            if (byUnit == null) {
+                byUnit = new TreeMap<>(STRING_BY_CASE_INSENSITIVE_NULL_FIRST);
             }
-            sb.append(" (").append(amount);
-            if (hasUnits()) {
-                sb.append(' ').append(getUnits());
-            }
-            return sb.append(')');
+            byUnit.put(ref.getUnits(), (byUnit.containsKey(ref.getUnits())
+                    ? byUnit.get(ref.getUnits())
+                    : 0) + ref.getQuantity());
         }
 
         public void add(IngredientRef<PantryItem> ref) {
-            assert ingredient.equals(ref.getIngredient());
-            boolean unitsMatch = hasUnits()
-                    ? ref.hasUnits() && getUnits().equals(ref.getUnits())
-                    : !ref.hasUnits();
-            if (hasAmount()) {
-                if (ref.hasAmount() && unitsMatch) {
-                    // woo! happy path!
-                    setAmount(getAmount() + ref.getAmount());
-                    return;
+            if (!ingredient.equals(ref.getIngredient())) {
+                throw new IllegalArgumentException("Can't aggregate unlike ingredients");
+            }
+            ensureUnitMap(ref);
+            StringBuilder sb = new StringBuilder();
+            for (String units : byUnit.keySet()) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
                 }
-                setQuantity(NumberUtils.formatFloat(getAmount()));
-                setAmount(null);
+                sb.append(NumberUtils.formatFloat(byUnit.get(units)));
+                if (units != null) {
+                    sb.append(' ').append(units);
+                }
             }
-            // we're doing quantity. :|
-            String refQuantity = ref.hasAmount()
-                    ? NumberUtils.formatFloat(ref.getAmount())
-                    : ref.getQuantity();
-            if (unitsMatch) {
-                setQuantity(getQuantity() + ", " + refQuantity);
-                return;
-            }
-            // and with mixed units...
-            StringBuilder sb = new StringBuilder(getQuantity());
-            if (hasUnits()) sb.append(' ').append(getUnits());
-            sb.append(", ").append(refQuantity);
-            if (ref.hasUnits()) sb.append(' ').append(ref.getUnits());
             setQuantity(sb.toString());
-            setUnits(MIXED_UNITS);
         }
 
     }
