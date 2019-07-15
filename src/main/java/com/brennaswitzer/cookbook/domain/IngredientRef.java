@@ -1,7 +1,5 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.brennaswitzer.cookbook.util.NumberUtils;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -22,11 +20,9 @@ public class IngredientRef<I extends Ingredient> {
 
     private String raw;
 
-    private String quantity;
+    private Float quantity;
     private String units;
     private String preparation;
-
-    private Float amount;
 
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
     private I ingredient;
@@ -37,7 +33,7 @@ public class IngredientRef<I extends Ingredient> {
         this(null, null, ingredient, null);
     }
 
-    public IngredientRef(String quantity, String units, I ingredient, String preparation) {
+    public IngredientRef(Float quantity, String units, I ingredient, String preparation) {
         setQuantity(quantity);
         setUnits(units);
         setIngredient(ingredient);
@@ -76,19 +72,6 @@ public class IngredientRef<I extends Ingredient> {
         this.raw = raw;
     }
 
-    public String getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(String quantity) {
-        this.quantity = quantity;
-        this.amount = NumberUtils.parseFloat(quantity);
-    }
-
-    public boolean hasQuantity() {
-        return quantity != null && !quantity.isEmpty();
-    }
-
     public String getUnits() {
         return units;
     }
@@ -113,16 +96,16 @@ public class IngredientRef<I extends Ingredient> {
         return preparation != null && !preparation.isEmpty();
     }
 
-    public Float getAmount() {
-        return amount;
+    public Float getQuantity() {
+        return quantity == null ? 1 : quantity;
     }
 
-    public void setAmount(Float amount) {
-        this.amount = amount;
+    public void setQuantity(Float quantity) {
+        this.quantity = quantity;
     }
 
-    public boolean hasAmount() {
-        return amount != null;
+    public boolean hasQuantity() {
+        return quantity != null;
     }
 
     @Override
@@ -132,9 +115,7 @@ public class IngredientRef<I extends Ingredient> {
 
     public String toString(boolean includePrep) {
         StringBuilder sb = new StringBuilder();
-        if (hasAmount()) {
-            sb.append(amount).append(' ');
-        } else if (hasQuantity()) {
+        if (hasQuantity()) {
             sb.append(quantity).append(' ');
         }
         if (hasUnits()) {

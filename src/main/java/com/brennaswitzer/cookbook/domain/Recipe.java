@@ -75,12 +75,12 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         addIngredient(null, ingredient, null);
     }
 
-    public void addIngredient(String quantity, Ingredient ingredient) {
+    public void addIngredient(Float quantity, Ingredient ingredient) {
         addIngredient(quantity, ingredient, null);
     }
 
     @Override
-    public void addIngredient(String quantity, String units, Ingredient ingredient) {
+    public void addIngredient(Float quantity, String units, Ingredient ingredient) {
         addIngredient(quantity, units, ingredient, null);
     }
 
@@ -89,11 +89,11 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     }
 
     @Override
-    public void addIngredient(String quantity, Ingredient ingredient, String preparation) {
+    public void addIngredient(Float quantity, Ingredient ingredient, String preparation) {
         addIngredient(quantity, null, ingredient, preparation);
     }
 
-    public void addIngredient(String quantity, String units, Ingredient ingredient, String preparation) {
+    public void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation) {
         ensureIngredients();
         ingredients.add(new IngredientRef<>(quantity, units, ingredient, preparation));
     }

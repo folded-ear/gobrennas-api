@@ -43,6 +43,7 @@ public final class NumberUtils {
     }
 
     public static String formatFloat(Float f) {
+        if (f == null) throw new IllegalArgumentException("Can't format the null Float");
         return NumberFormat.getNumberInstance().format(f);
     }
 

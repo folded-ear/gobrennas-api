@@ -9,11 +9,11 @@ public interface AggregateIngredient {
     Collection<IngredientRef> getIngredients();
 
     void addIngredient(Ingredient ingredient);
-    void addIngredient(String quantity, Ingredient ingredient);
-    void addIngredient(String quantity, String units, Ingredient ingredient);
+    void addIngredient(Float quantity, Ingredient ingredient);
+    void addIngredient(Float quantity, String units, Ingredient ingredient);
     void addIngredient(Ingredient ingredient, String preparation);
-    void addIngredient(String quantity, Ingredient ingredient, String preparation);
-    void addIngredient(String quantity, String units, Ingredient ingredient, String preparation);
+    void addIngredient(Float quantity, Ingredient ingredient, String preparation);
+    void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation);
 
     /**
      * I return the PantryItem IngredientRefs for this Ingredient, including

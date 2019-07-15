@@ -29,7 +29,7 @@ public class RecipeTest {
         assertEquals("deboned", ref.getPreparation());
         ref = itr.next();
         assertEquals("egg", ref.getIngredient().getName());
-        assertEquals("2", ref.getQuantity());
+        assertEquals(2f, ref.getQuantity(), 0.001);
         assertEquals("shelled", ref.getPreparation());
         assertFalse(itr.hasNext());
     }
@@ -47,7 +47,7 @@ public class RecipeTest {
         assertEquals("flour", itr.next().getIngredient().getName());
         ref = itr.next();
         assertEquals("fresh tomatoes", ref.getIngredient().getName());
-            assertEquals("1", ref.getQuantity());
+            assertEquals(1, ref.getQuantity(), 0.001);
             assertEquals("seeded and crushed", ref.getPreparation());
         assertEquals("italian seasoning", itr.next().getIngredient().getName());
         // pepperoni's a raw ingredient

@@ -118,3 +118,10 @@ drop sequence temp_seq;
 --changeset barneyb:amount-on-ingredient-ref
 alter table recipe_ingredients
     add amount real;
+
+--changeset barneyb:no-unparsed-quantities
+alter table recipe_ingredients
+    drop quantity;
+
+alter table recipe_ingredients
+    rename column amount to quantity;
