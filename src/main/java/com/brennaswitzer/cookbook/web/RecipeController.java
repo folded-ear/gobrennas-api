@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
+import com.brennaswitzer.cookbook.payload.RecipeInfo;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.NoResultException;
 import javax.validation.Valid;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -24,8 +27,12 @@ public class RecipeController {
     private ValidationService validationService;
 
     @GetMapping("/")
-    public Iterable<Recipe> getRecipes() {
-        return recipeService.findAllRecipes();
+    public Iterable<RecipeInfo> getRecipes(
+    ) {
+        return recipeService.findAllRecipes()
+                .stream()
+                .map(RecipeInfo::fromRecipe)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("")
@@ -47,9 +54,10 @@ public class RecipeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getRecipeById(@PathVariable Long id) {
+    public RecipeInfo getRecipeById(@PathVariable("id") Long id) {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
-        return new ResponseEntity<>(recipe, HttpStatus.OK);
+        recipe.orElseThrow(NoResultException::new);
+        return RecipeInfo.fromRecipe(recipe.get());
     }
 
     @DeleteMapping("/{id}")
