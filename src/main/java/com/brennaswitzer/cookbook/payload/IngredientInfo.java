@@ -1,12 +1,14 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RecipeInfo {
+public class IngredientInfo {
 
     public static class Ref {
 
@@ -56,7 +58,7 @@ public class RecipeInfo {
             this.preparation = preparation;
         }
 
-        public static Ref fromIngredientRef(IngredientRef ref) {
+        public static Ref from(IngredientRef ref) {
             Ref info = new Ref();
             info.setRaw(ref.getRaw());
             info.setQuantity(ref.getQuantity());
@@ -115,16 +117,29 @@ public class RecipeInfo {
         this.ingredients = ingredients;
     }
 
-    public static RecipeInfo fromRecipe(Recipe r) {
-        RecipeInfo info = new RecipeInfo();
-        info.setId(r.getId());
-        info.setName(r.getName());
+    public static IngredientInfo from(Recipe r) {
+        IngredientInfo info = from((AggregateIngredient) r);
         info.setExternalUrl(r.getExternalUrl());
-        info.setIngredients(r.getIngredients()
-                .stream()
-                .map(Ref::fromIngredientRef)
-                .collect(Collectors.toList()));
         info.setDirections(r.getDirections());
         return info;
     }
+
+    public static IngredientInfo from(AggregateIngredient it) {
+        IngredientInfo info = new IngredientInfo();
+        info.setId(it.getId());
+        info.setName(it.getName());
+        info.setIngredients(it.getIngredients()
+                .stream()
+                .map(Ref::from)
+                .collect(Collectors.toList()));
+        return info;
+    }
+
+    public static IngredientInfo from(PantryItem it) {
+        IngredientInfo info = new IngredientInfo();
+        info.setId(it.getId());
+        info.setName(it.getName());
+        return info;
+    }
+
 }

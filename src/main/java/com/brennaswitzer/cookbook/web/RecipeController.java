@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
-import com.brennaswitzer.cookbook.payload.RecipeInfo;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +27,11 @@ public class RecipeController {
     private ValidationService validationService;
 
     @GetMapping("/")
-    public Iterable<RecipeInfo> getRecipes(
+    public Iterable<IngredientInfo> getRecipes(
     ) {
         return recipeService.findAllRecipes()
                 .stream()
-                .map(RecipeInfo::fromRecipe)
+                .map(IngredientInfo::from)
                 .collect(Collectors.toList());
     }
 
@@ -54,10 +54,10 @@ public class RecipeController {
     }
 
     @GetMapping("/{id}")
-    public RecipeInfo getRecipeById(@PathVariable("id") Long id) {
+    public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
         recipe.orElseThrow(NoResultException::new);
-        return RecipeInfo.fromRecipe(recipe.get());
+        return IngredientInfo.from(recipe.get());
     }
 
     @DeleteMapping("/{id}")
