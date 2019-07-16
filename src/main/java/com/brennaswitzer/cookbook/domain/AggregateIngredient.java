@@ -4,6 +4,8 @@ import java.util.Collection;
 
 public interface AggregateIngredient {
 
+    Long getId();
+
     String getName();
 
     Collection<IngredientRef> getIngredients();
