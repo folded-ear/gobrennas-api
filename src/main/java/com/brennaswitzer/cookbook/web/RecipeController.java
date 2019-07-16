@@ -23,6 +23,11 @@ public class RecipeController {
     @Autowired
     private ValidationService validationService;
 
+    @GetMapping("/")
+    public Iterable<Recipe> getRecipes() {
+        return recipeService.findAllRecipes();
+    }
+
     @PostMapping("")
     public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe, BindingResult result) {
         ResponseEntity<?> errors = validationService.validationService(result);
@@ -45,11 +50,6 @@ public class RecipeController {
     public ResponseEntity<?> getRecipeById(@PathVariable Long id) {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
         return new ResponseEntity<>(recipe, HttpStatus.OK);
-    }
-
-    @GetMapping("/all")
-    public Iterable<Recipe> getAllRecipes() {
-        return recipeService.findAllRecipes();
     }
 
     @DeleteMapping("/{id}")
