@@ -50,7 +50,7 @@ public class RecipeService {
     }
 
     public Iterable<Recipe> findAllRecipes() {
-        return recipeRepository.findByOwner(principalAccess.getUser());
+        return recipeRepository.findByOwnerOrderByName(principalAccess.getUser());
     }
 
     public void deleteRecipeById(Long id) {

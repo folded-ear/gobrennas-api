@@ -13,7 +13,7 @@ public interface RecipeRepository extends CrudRepository<Recipe, Long> {
     @Override
     Iterable<Recipe> findAll();
 
-    Iterable<Recipe> findByOwner(User owner);
+    Iterable<Recipe> findByOwnerOrderByName(User owner);
 
     Optional<Recipe> findOneByOwnerAndNameIgnoreCase(User owner, String name);
 
