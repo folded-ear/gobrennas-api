@@ -72,6 +72,7 @@ public class IngredientInfo {
     }
 
     private Long id;
+    private String type;
     private String name;
     private String externalUrl;
     private String directions;
@@ -83,6 +84,14 @@ public class IngredientInfo {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getName() {
@@ -119,6 +128,7 @@ public class IngredientInfo {
 
     public static IngredientInfo from(Recipe r) {
         IngredientInfo info = from((AggregateIngredient) r);
+        info.setType("Recipe");
         info.setExternalUrl(r.getExternalUrl());
         info.setDirections(r.getDirections());
         return info;
@@ -137,6 +147,7 @@ public class IngredientInfo {
 
     public static IngredientInfo from(PantryItem it) {
         IngredientInfo info = new IngredientInfo();
+        info.setType("PantryItem");
         info.setId(it.getId());
         info.setName(it.getName());
         return info;
