@@ -81,12 +81,19 @@ public class RecipeService {
         }
     }
 
-    public void assembleShoppingList(Long recipeId, Long listId, boolean withHeading) {
-        assembleShoppingList(
-                recipeRepository.findById(recipeId).get(),
-                taskRepository.getOne(listId),
-                withHeading
-        );
+    public void assembleShoppingList(Long recipeId, List<Long> additionalRecipeIds, Long listId, boolean withHeading) {
+        Recipe r;
+        if (additionalRecipeIds == null || additionalRecipeIds.isEmpty()) {
+            // simple case - a single recipe
+            r = recipeRepository.findById(recipeId).get();
+        } else {
+            // synthetic aggregate recipe
+            r = new Recipe("Shopping List");
+            r.addIngredient(recipeRepository.findById(recipeId).get());
+            additionalRecipeIds.forEach(id ->
+                    r.addIngredient(recipeRepository.findById(id).get()));
+        }
+        assembleShoppingList(r, taskRepository.getOne(listId), withHeading);
     }
 
     @EventListener
