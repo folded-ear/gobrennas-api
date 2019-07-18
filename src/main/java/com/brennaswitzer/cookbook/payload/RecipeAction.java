@@ -2,6 +2,8 @@ package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.services.RecipeService;
 
+import java.util.List;
+
 public class RecipeAction {
 
     public enum Type {
@@ -12,6 +14,8 @@ public class RecipeAction {
     private Type type;
 
     private Long listId;
+
+    private List<Long> additionalRecipeIds;
 
     private RawIngredientDissection dissection;
 
@@ -39,10 +43,18 @@ public class RecipeAction {
         this.dissection = dissection;
     }
 
+    public List<Long> getAdditionalRecipeIds() {
+        return additionalRecipeIds;
+    }
+
+    public void setAdditionalRecipeIds(List<Long> additionalRecipeIds) {
+        this.additionalRecipeIds = additionalRecipeIds;
+    }
+
     public void execute(Long recipeId, RecipeService service) {
         switch (getType()) {
             case ASSEMBLE_SHOPPING_LIST:
-                service.assembleShoppingList(recipeId, getListId(), true);
+                service.assembleShoppingList(recipeId, additionalRecipeIds, getListId(), true);
                 break;
             case DISSECT_RAW_INGREDIENT:
                 service.recordDissection(dissection);
