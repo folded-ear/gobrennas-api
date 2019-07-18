@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -49,7 +50,7 @@ public class RecipeService {
         return recipeRepository.findById(id);
     }
 
-    public Iterable<Recipe> findAllRecipes() {
+    public List<Recipe> findAllRecipes() {
         return recipeRepository.findByOwner(principalAccess.getUser());
     }
 

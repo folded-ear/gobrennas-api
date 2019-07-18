@@ -2,18 +2,19 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface RecipeRepository extends CrudRepository<Recipe, Long> {
+public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     @Override
-    Iterable<Recipe> findAll();
+    List<Recipe> findAll();
 
-    Iterable<Recipe> findByOwner(User owner);
+    List<Recipe> findByOwner(User owner);
 
     Optional<Recipe> findOneByOwnerAndNameIgnoreCase(User owner, String name);
 
