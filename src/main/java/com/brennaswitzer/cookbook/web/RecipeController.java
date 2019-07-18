@@ -44,7 +44,7 @@ public class RecipeController {
         if(errors != null) return errors;
 
         Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
-        return new ResponseEntity<>(recipe1, HttpStatus.CREATED);
+        return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -56,7 +56,7 @@ public class RecipeController {
         if(errors != null) return errors;
 
         Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
-        return new ResponseEntity<>(recipe1, HttpStatus.OK);
+        return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
