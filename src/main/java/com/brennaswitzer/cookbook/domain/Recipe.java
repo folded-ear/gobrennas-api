@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
-@JsonTypeName("PantryItem")
+@JsonTypeName("Recipe")
 public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     // this will gracefully store the same way as an @Embedded Acl will
