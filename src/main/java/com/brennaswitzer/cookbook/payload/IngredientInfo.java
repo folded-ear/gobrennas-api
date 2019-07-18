@@ -1,10 +1,8 @@
 package com.brennaswitzer.cookbook.payload;
 
-import com.brennaswitzer.cookbook.domain.AggregateIngredient;
-import com.brennaswitzer.cookbook.domain.IngredientRef;
-import com.brennaswitzer.cookbook.domain.PantryItem;
-import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.*;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,6 +54,18 @@ public class IngredientInfo {
 
         public void setPreparation(String preparation) {
             this.preparation = preparation;
+        }
+
+        public IngredientRef asIngredientRef(EntityManager em) {
+            IngredientRef<Ingredient> ref = new IngredientRef<>();
+            ref.setRaw(getRaw());
+            ref.setQuantity(getQuantity());
+            ref.setUnits(getUnits());
+            ref.setPreparation(getPreparation());
+            if (getIngredientId() != null) {
+                ref.setIngredient(em.find(Ingredient.class, getIngredientId()));
+            }
+            return ref;
         }
 
         public static Ref from(IngredientRef ref) {
@@ -124,6 +134,20 @@ public class IngredientInfo {
 
     public void setIngredients(List<Ref> ingredients) {
         this.ingredients = ingredients;
+    }
+
+    public Recipe asRecipe(EntityManager em) {
+        Recipe r = getId() == null
+                ? new Recipe()
+                : em.find(Recipe.class, getId());
+        r.setName(getName());
+        r.setExternalUrl(getExternalUrl());
+        r.setDirections(getDirections());
+        r.setIngredients(getIngredients()
+                .stream()
+                .map(ref -> ref.asIngredientRef(em))
+                .collect(Collectors.toList()));
+        return r;
     }
 
     public static IngredientInfo from(Recipe r) {

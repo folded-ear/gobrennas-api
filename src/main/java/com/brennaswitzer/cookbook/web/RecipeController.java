@@ -48,12 +48,15 @@ public class RecipeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateRecipe(@Valid @RequestBody Recipe recipe, BindingResult result) {
+    public ResponseEntity<?> updateRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        // begin kludge (1 of 2)
+        Recipe recipe = info.asRecipe(em);
+        // end kludge (1 of 2)
         ResponseEntity<?> errors = validationService.validationService(result);
         if(errors != null) return errors;
 
         Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
-        return new ResponseEntity<>(recipe, HttpStatus.OK);
+        return new ResponseEntity<>(recipe1, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -63,7 +66,7 @@ public class RecipeController {
         return IngredientInfo.from(recipe.get());
     }
 
-    // begin kludge
+    // begin kludge (2 of 2)
     @Autowired private EntityManager em;
     @SuppressWarnings("JavaReflectionMemberAccess")
     @GetMapping("/or-ingredient/{id}")
@@ -90,7 +93,7 @@ public class RecipeController {
                 .getMethod("from", i.getClass())
                 .invoke(null, i);
     }
-    // end kludge
+    // end kludge (2 of 2)
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
