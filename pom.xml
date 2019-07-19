@@ -88,6 +88,11 @@
             <artifactId>antlr4-runtime</artifactId>
             <version>${org.antlr.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.23</version>
+        </dependency>
     </dependencies>
 
     <build>

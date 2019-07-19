@@ -1,0 +1,22 @@
+#
+# Because of a weakness in the loader, conversions may only reference units
+# which are listed earlier in the file. So be careful.
+#
+# Removal of aliases and conversions is not supported by the loader. Addition of
+# new aliases and conversions is supported. Updating existing conversions with a
+# new factor is also supported.
+#
+# Renaming or removal of units is not supported by the loader.
+#
+name: gram
+aliases: [g, grams]
+---
+name: kilogram
+aliases: [kg, kilograms]
+conversions:
+  gram: 1000
+---
+name: pound
+aliases: [lbs, pounds]
+conversions:
+  gram: 454
