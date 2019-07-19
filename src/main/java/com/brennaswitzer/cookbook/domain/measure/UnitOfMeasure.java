@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain.measure;
 
 import com.brennaswitzer.cookbook.util.IdUtils;
+import org.springframework.util.Assert;
 
 import javax.persistence.*;
 import java.util.*;
@@ -43,6 +44,7 @@ public class UnitOfMeasure {
     }
 
     public void setName(String name) {
+        Assert.notNull(name, "Can't have the null UoM");
         this.name = name;
     }
 
@@ -52,6 +54,7 @@ public class UnitOfMeasure {
     }
 
     public boolean addAlias(String alias) {
+        Assert.notNull(alias, "Can't alias null");
         if (aliases == null) aliases = new HashSet<>();
         return aliases.add(alias);
     }
@@ -79,6 +82,8 @@ public class UnitOfMeasure {
     }
 
     public Float addConversion(UnitOfMeasure uom, Float factor) {
+        Assert.notNull(uom, "Can't convert to the null UoM");
+        Assert.notNull(factor, "UoM conversion factor's can't be null");
         uom.conversions.put(this, 1f / factor);
         return conversions.put(uom, factor);
     }
