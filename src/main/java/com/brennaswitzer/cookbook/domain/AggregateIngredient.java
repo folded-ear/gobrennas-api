@@ -10,11 +10,26 @@ public interface AggregateIngredient {
 
     Collection<IngredientRef> getIngredients();
 
-    void addIngredient(Ingredient ingredient);
-    void addIngredient(Float quantity, Ingredient ingredient);
-    void addIngredient(Float quantity, String units, Ingredient ingredient);
-    void addIngredient(Ingredient ingredient, String preparation);
-    void addIngredient(Float quantity, Ingredient ingredient, String preparation);
+    default void addIngredient(Ingredient ingredient) {
+        addIngredient(null, ingredient, null);
+    }
+
+    default void addIngredient(Float quantity, Ingredient ingredient) {
+        addIngredient(quantity, ingredient, null);
+    }
+
+    default void addIngredient(Float quantity, String units, Ingredient ingredient) {
+        addIngredient(quantity, units, ingredient, null);
+    }
+
+    default void addIngredient(Ingredient ingredient, String preparation) {
+        addIngredient(null, ingredient, preparation);
+    }
+
+    default void addIngredient(Float quantity, Ingredient ingredient, String preparation) {
+        addIngredient(quantity, null, ingredient, preparation);
+    }
+
     void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation);
 
     /**

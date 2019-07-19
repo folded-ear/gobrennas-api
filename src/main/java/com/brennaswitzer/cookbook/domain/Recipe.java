@@ -71,28 +71,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         this.ingredients = ingredients;
     }
 
-    public void addIngredient(Ingredient ingredient) {
-        addIngredient(null, ingredient, null);
-    }
-
-    public void addIngredient(Float quantity, Ingredient ingredient) {
-        addIngredient(quantity, ingredient, null);
-    }
-
     @Override
-    public void addIngredient(Float quantity, String units, Ingredient ingredient) {
-        addIngredient(quantity, units, ingredient, null);
-    }
-
-    public void addIngredient(Ingredient ingredient, String preparation) {
-        addIngredient(null, ingredient, preparation);
-    }
-
-    @Override
-    public void addIngredient(Float quantity, Ingredient ingredient, String preparation) {
-        addIngredient(quantity, null, ingredient, preparation);
-    }
-
     public void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation) {
         ensureIngredients();
         ingredients.add(new IngredientRef<>(quantity, units, ingredient, preparation));
