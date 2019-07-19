@@ -2,16 +2,24 @@ package com.brennaswitzer.cookbook.domain.measure;
 
 import com.brennaswitzer.cookbook.util.IdUtils;
 
+import javax.persistence.*;
 import java.util.*;
 
+@Entity
 public class UnitOfMeasure {
 
+    @Id
     private Long id = IdUtils.next(getClass());
 
     private String name;
 
+    @ElementCollection
+    @Column(name = "alias")
     private Set<String> aliases;
 
+    @ElementCollection
+    @MapKeyJoinColumn(name = "target_id")
+    @Column(name = "factor")
     private Map<UnitOfMeasure, Float> conversions = new HashMap<>();
 
     public UnitOfMeasure() {

@@ -125,3 +125,30 @@ alter table recipe_ingredients
 
 alter table recipe_ingredients
     rename column amount to quantity;
+
+--changeset barneyb:unit-storage
+create table unit_of_measure
+(
+    id   bigint not null,
+    name varchar,
+    constraint pk_uom primary key (id),
+    constraint uk_uom_name unique (name)
+);
+create table unit_of_measure_aliases
+(
+    unit_of_measure_id bigint not null,
+    alias              varchar,
+    constraint pk_uom_aliases primary key (unit_of_measure_id, alias),
+    constraint fk_uom_aliases_oum_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade
+);
+create index idx_uom_alias on unit_of_measure_aliases (alias);
+create table unit_of_measure_conversions
+(
+    unit_of_measure_id bigint not null,
+    target_id          bigint not null,
+    factor             real,
+    constraint pk_uom_conversions primary key (unit_of_measure_id, target_id),
+    constraint fk_oum_conversions_oum_id foreign key (target_id) references unit_of_measure on delete cascade ,
+    constraint fk_oum_conversions_target_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade
+);
+
