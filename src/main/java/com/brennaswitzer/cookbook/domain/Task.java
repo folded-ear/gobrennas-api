@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
+import org.hibernate.annotations.BatchSize;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -39,6 +41,7 @@ public class Task extends BaseEntity {
     private Task parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @BatchSize(size = 100)
     private Set<Task> subtasks;
 
     public Task() {
