@@ -2,6 +2,9 @@
 # Because of a weakness in the loader, conversions may only reference units
 # which are listed earlier in the file. So be careful.
 #
+# `pluralName` is defaulted to `name` with a trailing "s". If that's not how to
+# pluralize, supply the key explicitly.
+#
 # Removal of aliases and conversions is not supported by the loader. Addition of
 # new aliases and conversions is supported. Updating existing conversions with a
 # new factor is also supported.
@@ -9,14 +12,15 @@
 # Renaming or removal of units is not supported by the loader.
 #
 name: gram
-aliases: [g, grams]
+pluralName: grams # unneeded; for demonstration
+aliases: [g]
 ---
 name: kilogram
-aliases: [kg, kilograms]
+aliases: [kg]
 conversions:
   gram: 1000
 ---
 name: pound
-aliases: [lbs, pounds]
+aliases: [lbs, "#"]
 conversions:
   gram: 454

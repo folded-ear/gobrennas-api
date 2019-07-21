@@ -14,6 +14,8 @@ public class UnitOfMeasure {
 
     private String name;
 
+    private String pluralName;
+
     @ElementCollection
     @Column(name = "alias")
     private Set<String> aliases;
@@ -46,6 +48,14 @@ public class UnitOfMeasure {
     public void setName(String name) {
         Assert.notNull(name, "Can't have the null UoM");
         this.name = name;
+    }
+
+    public String getPluralName() {
+        return pluralName;
+    }
+
+    public void setPluralName(String pluralName) {
+        this.pluralName = pluralName;
     }
 
     public boolean hasAlias(String alias) {

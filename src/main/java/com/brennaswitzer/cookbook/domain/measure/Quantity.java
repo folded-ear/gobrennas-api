@@ -45,16 +45,10 @@ public class Quantity {
         queue.add(this);
         while (!queue.isEmpty()) {
             Quantity q = queue.remove();
-            if (!visited.add(q.units)) {
-                continue;
-            }
-            if (q.units.equals(uom)) {
-                return q;
-            }
+            if (!visited.add(q.units)) continue;
+            if (q.units.equals(uom)) return q;
             for (Map.Entry<UnitOfMeasure, Float> e : q.units.getConversions().entrySet()) {
-                if (visited.contains(e.getKey())) {
-                    continue;
-                }
+                if (visited.contains(e.getKey())) continue;
                 queue.add(new Quantity(
                         q.quantity * e.getValue(),
                         e.getKey()));

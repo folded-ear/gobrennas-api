@@ -12,6 +12,8 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.*;
 
 @Service
@@ -22,9 +24,10 @@ public class UnitLoader {
     private EntityManager entityManager;
 
     public static class UomInfo {
-        String name;
-        String[] aliases;
-        HashMap<String, Float> conversions;
+        private String name;
+        private String pluralName;
+        private String[] aliases;
+        private HashMap<String, Float> conversions;
 
         public String getName() {
             return name;
@@ -32,6 +35,15 @@ public class UnitLoader {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getPluralName() {
+            if (pluralName == null) return name + "s";
+            return pluralName;
+        }
+
+        public void setPluralName(String pluralName) {
+            this.pluralName = pluralName;
         }
 
         public String[] getAliases() {
@@ -54,6 +66,11 @@ public class UnitLoader {
         public String toString() {
             final StringBuilder sb = new StringBuilder("UomInfo{");
             sb.append("name='").append(name).append('\'');
+            sb.append("pluralName=");
+            if (pluralName == null)
+                sb.append("null");
+            else
+                sb.append('\'').append(pluralName).append('\'');
             sb.append(", aliases=").append(Arrays.toString(aliases));
             sb.append(", conversions=").append(conversions);
             sb.append('}');
@@ -63,11 +80,22 @@ public class UnitLoader {
 
     @EventListener
     public void onStart(ApplicationStartedEvent e) {
+        loadUnits("units.yml");
+    }
+
+    protected Collection<UnitOfMeasure> loadUnits(String resourceName) {
+        return loadUnits(this.getClass()
+                        .getClassLoader()
+                        .getResourceAsStream(resourceName));
+    }
+
+    protected Collection<UnitOfMeasure> loadUnits(InputStream inputStream) {
+        return loadUnits(new InputStreamReader(inputStream));
+    }
+
+    protected Collection<UnitOfMeasure> loadUnits(Reader reader) {
         Yaml yaml = new Yaml(new Constructor(UomInfo.class));
-        InputStream inputStream = this.getClass()
-                .getClassLoader()
-                .getResourceAsStream("units.yml");
-        Iterable<Object> infos = yaml.loadAll(inputStream);
+        Iterable<Object> infos = yaml.loadAll(reader);
         Map<String, UnitOfMeasure> unitMap = new HashMap<>();
         TypedQuery<UnitOfMeasure> unitByName = null;
         if (entityManager != null) {
@@ -103,6 +131,7 @@ public class UnitLoader {
                         uom.addConversion(unitMap.get(u), f));
             }
         }
+        return unitMap.values();
     }
 
 }

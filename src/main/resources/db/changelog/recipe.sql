@@ -152,3 +152,6 @@ create table unit_of_measure_conversions
     constraint fk_oum_conversions_target_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade
 );
 
+--changeset barneyb:unit-plural-name
+alter table unit_of_measure
+    add plural_name varchar;
