@@ -27,6 +27,10 @@ public class ShoppingList extends BaseEntity {
         @ManyToOne
         private Task task;
 
+        // This may end up being "1 cup, 300 grams, and 2 ribs", for example,
+        // if several recipes need celery, but they're using diverse units w/out
+        // a suitable conversion. As the conversion machinery and data are
+        // richened, it'll become less common, but it'll always be possible.
         private String quantity;
 
         transient private Map<String, Double> byUnit;
