@@ -20,7 +20,7 @@ public class IngredientRef<I extends Ingredient> {
 
     private String raw;
 
-    private Float quantity;
+    private Double quantity;
     private String units;
     private String preparation;
 
@@ -33,7 +33,11 @@ public class IngredientRef<I extends Ingredient> {
         this(null, null, ingredient, null);
     }
 
-    public IngredientRef(Float quantity, String units, I ingredient, String preparation) {
+    public IngredientRef(int quantity, String units, I ingredient, String preparation) {
+        this((double) quantity, units, ingredient, preparation);
+    }
+
+    public IngredientRef(Double quantity, String units, I ingredient, String preparation) {
         setQuantity(quantity);
         setUnits(units);
         setIngredient(ingredient);
@@ -96,11 +100,11 @@ public class IngredientRef<I extends Ingredient> {
         return preparation != null && !preparation.isEmpty();
     }
 
-    public Float getQuantity() {
+    public Double getQuantity() {
         return quantity == null ? 1 : quantity;
     }
 
-    public void setQuantity(Float quantity) {
+    public void setQuantity(Double quantity) {
         this.quantity = quantity;
     }
 

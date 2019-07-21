@@ -4,23 +4,23 @@ import java.util.*;
 
 public class Quantity {
 
-    private float quantity;
+    private double quantity;
 
     private UnitOfMeasure units;
 
     public Quantity() {
     }
 
-    public Quantity(float quantity, UnitOfMeasure units) {
+    public Quantity(double quantity, UnitOfMeasure units) {
         this.quantity = quantity;
         this.units = units;
     }
 
-    public float getQuantity() {
+    public double getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(float quantity) {
+    public void setQuantity(double quantity) {
         this.quantity = quantity;
     }
 
@@ -47,7 +47,7 @@ public class Quantity {
             Quantity q = queue.remove();
             if (!visited.add(q.units)) continue;
             if (q.units.equals(uom)) return q;
-            for (Map.Entry<UnitOfMeasure, Float> e : q.units.getConversions().entrySet()) {
+            for (Map.Entry<UnitOfMeasure, Double> e : q.units.getConversions().entrySet()) {
                 if (visited.contains(e.getKey())) continue;
                 queue.add(new Quantity(
                         q.quantity * e.getValue(),

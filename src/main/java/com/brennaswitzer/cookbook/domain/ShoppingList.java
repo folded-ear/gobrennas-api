@@ -29,7 +29,7 @@ public class ShoppingList extends BaseEntity {
 
         private String quantity;
 
-        transient private Map<String, Float> byUnit;
+        transient private Map<String, Double> byUnit;
 
         @Column(name = "completed_at")
         private Instant completedAt;
@@ -115,7 +115,7 @@ public class ShoppingList extends BaseEntity {
                 if (sb.length() > 0) {
                     sb.append(", ");
                 }
-                sb.append(NumberUtils.formatFloat(byUnit.get(units)));
+                sb.append(NumberUtils.formatNumber(byUnit.get(units)));
                 if (units != null) {
                     sb.append(' ').append(units);
                 }

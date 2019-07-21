@@ -14,11 +14,19 @@ public interface AggregateIngredient {
         addIngredient(null, ingredient, null);
     }
 
-    default void addIngredient(Float quantity, Ingredient ingredient) {
+    default void addIngredient(int quantity, Ingredient ingredient) {
+        addIngredient((double) quantity, ingredient);
+    }
+
+    default void addIngredient(Double quantity, Ingredient ingredient) {
         addIngredient(quantity, ingredient, null);
     }
 
-    default void addIngredient(Float quantity, String units, Ingredient ingredient) {
+    default void addIngredient(int quantity, String units, Ingredient ingredient) {
+        addIngredient((double) quantity, units, ingredient);
+    }
+
+    default void addIngredient(Double quantity, String units, Ingredient ingredient) {
         addIngredient(quantity, units, ingredient, null);
     }
 
@@ -26,11 +34,19 @@ public interface AggregateIngredient {
         addIngredient(null, ingredient, preparation);
     }
 
-    default void addIngredient(Float quantity, Ingredient ingredient, String preparation) {
+    default void addIngredient(int quantity, Ingredient ingredient, String preparation) {
+        addIngredient((double) quantity, ingredient, preparation);
+    }
+
+    default void addIngredient(Double quantity, Ingredient ingredient, String preparation) {
         addIngredient(quantity, null, ingredient, preparation);
     }
 
-    void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation);
+    default void addIngredient(int quantity, String units, Ingredient ingredient, String preparation) {
+        addIngredient((double) quantity, units, ingredient, preparation);
+    }
+
+    void addIngredient(Double quantity, String units, Ingredient ingredient, String preparation);
 
     /**
      * I return the PantryItem IngredientRefs for this Ingredient, including

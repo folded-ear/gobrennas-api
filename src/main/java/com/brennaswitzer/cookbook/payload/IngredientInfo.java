@@ -11,7 +11,7 @@ public class IngredientInfo {
     public static class Ref {
 
         private String raw;
-        private Float quantity;
+        private Double quantity;
         private String units;
         private Long ingredientId;
         private String preparation;
@@ -24,11 +24,11 @@ public class IngredientInfo {
             this.raw = raw;
         }
 
-        public Float getQuantity() {
+        public Double getQuantity() {
             return quantity;
         }
 
-        public void setQuantity(Float quantity) {
+        public void setQuantity(Double quantity) {
             this.quantity = quantity;
         }
 

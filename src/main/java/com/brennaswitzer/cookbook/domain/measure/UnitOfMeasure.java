@@ -23,7 +23,7 @@ public class UnitOfMeasure {
     @ElementCollection
     @MapKeyJoinColumn(name = "target_id")
     @Column(name = "factor")
-    private Map<UnitOfMeasure, Float> conversions = new HashMap<>();
+    private Map<UnitOfMeasure, Double> conversions = new HashMap<>();
 
     public UnitOfMeasure() {
     }
@@ -87,22 +87,26 @@ public class UnitOfMeasure {
         return conversions.containsKey(uom);
     }
 
-    public Float getConversion(UnitOfMeasure uom) {
+    public Double getConversion(UnitOfMeasure uom) {
         return conversions.get(uom);
     }
 
-    public Float addConversion(UnitOfMeasure uom, Float factor) {
+    public Double addConversion(UnitOfMeasure uom, int factor) {
+        return addConversion(uom, (double) factor);
+    }
+
+    public Double addConversion(UnitOfMeasure uom, Double factor) {
         Assert.notNull(uom, "Can't convert to the null UoM");
         Assert.notNull(factor, "UoM conversion factor's can't be null");
-        uom.conversions.put(this, 1f / factor);
+        uom.conversions.put(this, 1.0 / factor);
         return conversions.put(uom, factor);
     }
 
-    public Float removeConversion(UnitOfMeasure uom) {
+    public Double removeConversion(UnitOfMeasure uom) {
         return conversions.remove(uom);
     }
 
-    public Map<UnitOfMeasure, Float> getConversions() {
+    public Map<UnitOfMeasure, Double> getConversions() {
         return Collections.unmodifiableMap(conversions);
     }
 

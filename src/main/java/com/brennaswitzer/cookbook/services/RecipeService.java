@@ -115,7 +115,7 @@ public class RecipeService {
     public void recordDissection(RawIngredientDissection dissection) {
         // fail fast on unparseable quantity
         String qText = dissection.getQuantityText();
-        Float quantity = NumberUtils.parseFloat(qText);
+        Double quantity = NumberUtils.parseNumber(qText);
         if (qText != null && quantity == null) {
             throw new RuntimeException("Quantity '" + quantity + "' cannot be parsed.");
         }

@@ -29,7 +29,7 @@ public class RecipeTest {
         assertEquals("deboned", ref.getPreparation());
         ref = itr.next();
         assertEquals("egg", ref.getIngredient().getName());
-        assertEquals(2f, ref.getQuantity(), 0.001);
+        assertEquals(2, ref.getQuantity(), 0.001);
         assertEquals("shelled", ref.getPreparation());
         assertFalse(itr.hasNext());
     }

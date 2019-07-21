@@ -155,3 +155,9 @@ create table unit_of_measure_conversions
 --changeset barneyb:unit-plural-name
 alter table unit_of_measure
     add plural_name varchar;
+
+--changeset barneyb:quantities-are-doubles
+alter table recipe_ingredients
+    alter column quantity type double precision;
+alter table unit_of_measure_conversions
+    alter column factor type double precision;

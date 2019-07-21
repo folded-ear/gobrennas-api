@@ -39,7 +39,7 @@ public class ShoppingListTest {
     }
 
     private void addMoarSalt(ShoppingList l, RecipeBox box) {
-        l.addPantryItem(new IngredientRef<>(3f, "Tbsp", box.salt, null));
+        l.addPantryItem(new IngredientRef<>(3, "Tbsp", box.salt, null));
     }
 
     @Test

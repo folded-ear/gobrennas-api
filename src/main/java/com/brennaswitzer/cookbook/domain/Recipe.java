@@ -72,7 +72,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     }
 
     @Override
-    public void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation) {
+    public void addIngredient(Double quantity, String units, Ingredient ingredient, String preparation) {
         ensureIngredients();
         ingredients.add(new IngredientRef<>(quantity, units, ingredient, preparation));
     }

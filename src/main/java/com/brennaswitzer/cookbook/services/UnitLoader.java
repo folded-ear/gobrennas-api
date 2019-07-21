@@ -27,7 +27,7 @@ public class UnitLoader {
         private String name;
         private String pluralName;
         private String[] aliases;
-        private HashMap<String, Float> conversions;
+        private HashMap<String, Double> conversions;
 
         public String getName() {
             return name;
@@ -54,11 +54,11 @@ public class UnitLoader {
             this.aliases = aliases;
         }
 
-        public HashMap<String, Float> getConversions() {
+        public HashMap<String, Double> getConversions() {
             return conversions;
         }
 
-        public void setConversions(HashMap<String, Float> conversions) {
+        public void setConversions(HashMap<String, Double> conversions) {
             this.conversions = conversions;
         }
 
