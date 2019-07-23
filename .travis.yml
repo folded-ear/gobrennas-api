@@ -29,7 +29,7 @@ cache:
 
 before_deploy:
   - sed -i 's/NR_LICENSE_KEY/'${NR_LICENSE_KEY}'/' newrelic.yml
-  - cp newrelic.yml /target/newrelic.yml
+  - cp newrelic.yml target/newrelic.yml
   # store files w/ a .yaml extension for easier editing, but EB needs .config
   - for f in .ebextensions/*.yaml; do mv $f $f.config; done
   - zip target/eb_bundle.zip -r .ebextensions
