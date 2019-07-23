@@ -115,7 +115,7 @@ public class UnitLoader {
             if (! info.name.equals(info.name.toLowerCase())) {
                 uom.addAlias(info.name.toLowerCase());
             }
-            unitMap.put(uom.getName(), uom);
+            unitMap.put(info.name, uom);
             if (info.conversions != null) {
                 info.conversions.forEach((u, f) -> {
                     if (! unitMap.containsKey(u)) {
