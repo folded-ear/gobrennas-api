@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.brennaswitzer.cookbook.util.NumberUtils;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
@@ -10,12 +9,6 @@ import java.util.*;
 @Entity
 @Table(name = "shopping_list")
 public class ShoppingList extends BaseEntity {
-
-    private static final Comparator<String> STRING_BY_CASE_INSENSITIVE_NULL_FIRST = (a, b) -> {
-        if (a == null) return b == null ? 0 : -1;
-        if (b == null) return 1;
-        return a.compareToIgnoreCase(b);
-    };
 
     @Embeddable
     @Table(name = "shopping_list_item")
@@ -27,9 +20,13 @@ public class ShoppingList extends BaseEntity {
         @ManyToOne
         private Task task;
 
+        // This may end up being "1 cup, 300 grams, and 2 ribs", for example,
+        // if several recipes need celery, but they're using diverse units w/out
+        // a suitable conversion. As the conversion machinery and data are
+        // richened, it'll become less common, but it'll always be possible.
         private String quantity;
 
-        transient private Map<String, Float> byUnit;
+        transient private Map<UnitOfMeasure, Quantity> byUnit;
 
         @Column(name = "completed_at")
         private Instant completedAt;
@@ -98,11 +95,12 @@ public class ShoppingList extends BaseEntity {
 
         private void ensureUnitMap(IngredientRef ref) {
             if (byUnit == null) {
-                byUnit = new TreeMap<>(STRING_BY_CASE_INSENSITIVE_NULL_FIRST);
+                byUnit = new TreeMap<>(UnitOfMeasure.BY_NAME);
             }
-            byUnit.put(ref.getUnits(), (byUnit.containsKey(ref.getUnits())
-                    ? byUnit.get(ref.getUnits())
-                    : 0) + ref.getQuantity());
+            Quantity q = ref.hasQuantity()
+                    ? ref.getQuantity()
+                    : Quantity.ONE;
+            byUnit.merge(q.getUnits(), q, Quantity::plus);
         }
 
         public void add(IngredientRef<PantryItem> ref) {
@@ -111,14 +109,15 @@ public class ShoppingList extends BaseEntity {
             }
             ensureUnitMap(ref);
             StringBuilder sb = new StringBuilder();
-            for (String units : byUnit.keySet()) {
+            for (Iterator<UnitOfMeasure> itr = byUnit.keySet().iterator(); itr.hasNext(); ) {
+                UnitOfMeasure uom = itr.next();
                 if (sb.length() > 0) {
                     sb.append(", ");
+                    if (! itr.hasNext()) {
+                        sb.append("and ");
+                    }
                 }
-                sb.append(NumberUtils.formatFloat(byUnit.get(units)));
-                if (units != null) {
-                    sb.append(' ').append(units);
-                }
+                sb.append(byUnit.get(uom));
             }
             setQuantity(sb.toString());
         }

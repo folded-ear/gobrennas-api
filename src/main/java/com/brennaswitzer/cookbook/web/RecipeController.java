@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.services.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +40,11 @@ public class RecipeController {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe, BindingResult result) {
+    @Transactional
+    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) {
+        // begin kludge (1 of 3)
+        Recipe recipe = info.asRecipe(em);
+        // end kludge (1 of 3)
         ResponseEntity<?> errors = validationService.validationService(result);
         if(errors != null) return errors;
 
@@ -48,10 +53,11 @@ public class RecipeController {
     }
 
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<?> updateRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // begin kludge (1 of 2)
+        // begin kludge (2 of 3)
         Recipe recipe = info.asRecipe(em);
-        // end kludge (1 of 2)
+        // end kludge (2 of 3)
         ResponseEntity<?> errors = validationService.validationService(result);
         if(errors != null) return errors;
 
@@ -66,7 +72,7 @@ public class RecipeController {
         return IngredientInfo.from(recipe.get());
     }
 
-    // begin kludge (2 of 2)
+    // begin kludge (3 of 3)
     @Autowired private EntityManager em;
     @SuppressWarnings("JavaReflectionMemberAccess")
     @GetMapping("/or-ingredient/{id}")
@@ -93,7 +99,7 @@ public class RecipeController {
                 .getMethod("from", i.getClass())
                 .invoke(null, i);
     }
-    // end kludge (2 of 2)
+    // end kludge (3 of 3)
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {

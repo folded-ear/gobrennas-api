@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.util;
 
-import com.brennaswitzer.cookbook.antlr.FloatLexer;
-import com.brennaswitzer.cookbook.antlr.FloatParser;
+import com.brennaswitzer.cookbook.antlr.NumberLexer;
+import com.brennaswitzer.cookbook.antlr.NumberParser;
 import org.antlr.v4.runtime.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -12,14 +12,14 @@ public final class NumberUtils {
 
     protected static final Log logger = LogFactory.getLog(NumberUtils.class);
 
-    public static Float parseFloat(String str) {
+    public static Double parseNumber(String str) {
         if (str == null) return null;
         str = str.trim();
         if (str.isEmpty()) return null;
         try {
-            FloatLexer lexer = new FloatLexer(CharStreams.fromString(str.toLowerCase()));
+            NumberLexer lexer = new NumberLexer(CharStreams.fromString(str.toLowerCase()));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            FloatParser parser = new FloatParser(tokens);
+            NumberParser parser = new NumberParser(tokens);
             parser.setErrorHandler(new BailErrorStrategy());
             parser.addErrorListener(new BaseErrorListener() {
                 @Override
@@ -34,17 +34,17 @@ public final class NumberUtils {
                     throw e;
                 }
             });
-            FloatParser.StartContext tree = parser.start();
-            return Math.round(tree.val * 1000) / 1000f;
+            NumberParser.StartContext tree = parser.start();
+            return Math.round(tree.val * 1000) / 1000.0;
         } catch (Exception e) {
-            logger.error("Failed to parseFloat(\"" + str + "\")", e);
+            logger.error("Failed to parseNumber(\"" + str + "\")", e);
             return null;
         }
     }
 
-    public static String formatFloat(Float f) {
-        if (f == null) throw new IllegalArgumentException("Can't format the null Float");
-        return NumberFormat.getNumberInstance().format(f);
+    public static String formatNumber(Double n) {
+        if (n == null) throw new IllegalArgumentException("Can't format the null Float");
+        return NumberFormat.getNumberInstance().format(n);
     }
 
 }

@@ -1,0 +1,84 @@
+#
+# Because of a weakness in the loader, conversions may only reference units
+# which are listed earlier in the file. So be careful.
+#
+# `pluralName` is defaulted to `name` with a trailing "s". If that's not how to
+# pluralize, supply the key explicitly.
+#
+# Removal of aliases and conversions is not supported by the loader. Addition of
+# new aliases and conversions is supported. Updating existing conversions with a
+# new factor is also supported.
+#
+# Renaming or removal of units is not supported by the loader.
+#
+
+#
+# Mass
+#
+
+name: gram
+aliases: [g]
+---
+
+#
+# Weight
+#
+
+name: oz
+pluralName: oz
+aliases: [ounce, ounces]
+conversions:
+  gram: 28.349
+---
+name: pound
+aliases: [lbs, "#"]
+conversions:
+  oz: 16
+---
+
+#
+# Volume
+#
+
+name: tsp
+pluralName: tsp
+aliases: [teaspoon, teaspoons]
+conversions:
+---
+name: Tbsp
+pluralName: Tbsp
+aliases: [tablespoon, tablespoons]
+conversions:
+  tsp: 3
+---
+name: fl oz
+pluralName: fl oz
+aliases: [fl ounce, fl ounce, fluid ounce, fluid ounces]
+conversions:
+  Tbsp: 2
+---
+name: cup
+aliases: [c]
+conversions:
+  fl oz: 8
+---
+name: pint
+aliases: [pt]
+conversions:
+  cup: 2
+---
+name: quart
+aliases: [qt]
+conversions:
+  pint: 2
+---
+name: liter
+aliases: [l, litre, litres]
+conversions:
+  quart: 1.0567
+---
+name: gal
+pluralName: gal
+aliases: [gallon, gallons]
+conversions:
+  quart: 4

@@ -11,26 +11,18 @@ public interface AggregateIngredient {
     Collection<IngredientRef> getIngredients();
 
     default void addIngredient(Ingredient ingredient) {
-        addIngredient(null, ingredient, null);
+        addIngredient(Quantity.ONE, ingredient, null);
     }
 
-    default void addIngredient(Float quantity, Ingredient ingredient) {
+    default void addIngredient(Quantity quantity, Ingredient ingredient) {
         addIngredient(quantity, ingredient, null);
     }
 
-    default void addIngredient(Float quantity, String units, Ingredient ingredient) {
-        addIngredient(quantity, units, ingredient, null);
-    }
-
     default void addIngredient(Ingredient ingredient, String preparation) {
-        addIngredient(null, ingredient, preparation);
+        addIngredient(Quantity.ONE, ingredient, preparation);
     }
 
-    default void addIngredient(Float quantity, Ingredient ingredient, String preparation) {
-        addIngredient(quantity, null, ingredient, preparation);
-    }
-
-    void addIngredient(Float quantity, String units, Ingredient ingredient, String preparation);
+    void addIngredient(Quantity quantity, Ingredient ingredient, String preparation);
 
     /**
      * I return the PantryItem IngredientRefs for this Ingredient, including

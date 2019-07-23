@@ -11,7 +11,7 @@ public class IngredientInfo {
     public static class Ref {
 
         private String raw;
-        private Float quantity;
+        private Double quantity;
         private String units;
         private Long ingredientId;
         private String preparation;
@@ -24,12 +24,16 @@ public class IngredientInfo {
             this.raw = raw;
         }
 
-        public Float getQuantity() {
+        public Double getQuantity() {
             return quantity;
         }
 
-        public void setQuantity(Float quantity) {
+        public void setQuantity(Double quantity) {
             this.quantity = quantity;
+        }
+
+        public boolean hasQuantity() {
+            return quantity != null;
         }
 
         public String getUnits() {
@@ -38,6 +42,10 @@ public class IngredientInfo {
 
         public void setUnits(String units) {
             this.units = units;
+        }
+
+        public boolean hasUnits() {
+            return units != null && !"".equals(units) && !units.trim().isEmpty();
         }
 
         public Long getIngredientId() {
@@ -59,8 +67,12 @@ public class IngredientInfo {
         public IngredientRef asIngredientRef(EntityManager em) {
             IngredientRef<Ingredient> ref = new IngredientRef<>();
             ref.setRaw(getRaw());
-            ref.setQuantity(getQuantity());
-            ref.setUnits(getUnits());
+            if (hasQuantity()) {
+                UnitOfMeasure uom = hasUnits()
+                        ? UnitOfMeasure.ensure(em, getUnits())
+                        : null;
+                ref.setQuantity(new Quantity(getQuantity(), uom));
+            }
             ref.setPreparation(getPreparation());
             if (getIngredientId() != null) {
                 ref.setIngredient(em.find(Ingredient.class, getIngredientId()));
@@ -71,8 +83,13 @@ public class IngredientInfo {
         public static Ref from(IngredientRef ref) {
             Ref info = new Ref();
             info.setRaw(ref.getRaw());
-            info.setQuantity(ref.getQuantity());
-            info.setUnits(ref.getUnits());
+            if (ref.hasQuantity()) {
+                Quantity q = ref.getQuantity();
+                info.setQuantity(q.getQuantity());
+                if (q.hasUnits()) {
+                    info.setUnits(q.getUnits().getName());
+                }
+            }
             info.setIngredientId(ref.hasIngredient()
                     ? ref.getIngredient().getId()
                     : null);
