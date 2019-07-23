@@ -11,16 +11,74 @@
 #
 # Renaming or removal of units is not supported by the loader.
 #
+
+#
+# Mass
+#
+
 name: gram
-pluralName: grams # unneeded; for demonstration
 aliases: [g]
 ---
-name: kilogram
-aliases: [kg]
+
+#
+# Weight
+#
+
+name: oz
+pluralName: oz
+aliases: [ounce, ounces]
 conversions:
-  gram: 1000
+  gram: 28.349
 ---
 name: pound
 aliases: [lbs, "#"]
 conversions:
-  gram: 454
+  oz: 16
+---
+
+#
+# Volume
+#
+
+name: tsp
+pluralName: tsp
+aliases: [teaspoon, teaspoons]
+conversions:
+---
+name: Tbsp
+pluralName: Tbsp
+aliases: [tablespoon, tablespoons]
+conversions:
+  tsp: 3
+---
+name: fl oz
+pluralName: fl oz
+aliases: [fl ounce, fl ounce, fluid ounce, fluid ounces]
+conversions:
+  Tbsp: 2
+---
+name: cup
+aliases: [c]
+conversions:
+  fl oz: 8
+---
+name: pint
+aliases: [pt]
+conversions:
+  cup: 2
+---
+name: quart
+aliases: [qt]
+conversions:
+  pint: 2
+---
+name: liter
+aliases: [l, litre, litres]
+conversions:
+  quart: 1.0567
+---
+name: gal
+pluralName: gal
+aliases: [gallon, gallons]
+conversions:
+  quart: 4
