@@ -28,6 +28,8 @@ cache:
 #      - secure: "Icn7Vj/Qilt8hE4PXfxEDwp7OuPQXZ9+RiSDvykKPvb77m36WrKfBrvyKGmjb8mFKjXjd90tscRr7C4rIdoTXGgHYpp+07rBo3SmnwdevYKGyqMSFYqdDEtBHRZEoV7w81eO8HE6oJaFZgW/YW8jh1/oH3nJiwxTXDRBAeMF6Gfe5FiQsDcxhhf+Gzpcg0RDHadFm45LcPe22pMxel+Uav6Oc2/rTQKVj6GKET7P25ZMmNVlRzSy+2IIIo0mKxClUIdJqloGSiOU3xEw4LtWUYn0Q7dPxpBZ5G1cBw1kU2RVRjLo/fUd6VsY5aQXE8wkT1Gz0Wya0VOGIX3kDA/7vBvZWHPEOFoNROp+STh2HHx0lCre+92/HTlMYxZ0sZR6Yz03W02rb/pfDlQhSPJWO42xNsiOXq4+y6Us4KePzvUB+5EMkR7rTBUnGTD3iNSr7PC57ybuRHC7UbPXVABVVzUDG871XmpgikWq2TZPbOqfCSytARE3MUFulEq+gpA6iCbHvxO8+qg/GEb66TrADAoRulZa8bJsUsJwlHQJ9yfho4vAZzr+uF6lAXQIFSV7WFnlopVC16MU37okvfobIF84l/6uAbWGhPdvkw34EyCnckwIRFq+6j9bN2jAXxbbRz4I++ACwkiotGBpodp/Cae0YH0ZNHV39jYrXGzubv0="
 
 before_deploy:
+  - sed -i 's/NR_LICENSE_KEY/${NR_LICENSE_KEY}' newrelic.yml
+  - cp newrelic.yml /target/newrelic.yml
   # store files w/ a .yaml extension for easier editing, but EB needs .config
   - for f in .ebextensions/*.yaml; do mv $f $f.config; done
   - zip target/eb_bundle.zip -r .ebextensions
