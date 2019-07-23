@@ -14,7 +14,10 @@ import javax.persistence.TypedQuery;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -98,37 +101,28 @@ public class UnitLoader {
         Iterable<Object> infos = yaml.loadAll(reader);
         Map<String, UnitOfMeasure> unitMap = new HashMap<>();
         TypedQuery<UnitOfMeasure> unitByName = null;
-        if (entityManager != null) {
-            unitByName = entityManager.createQuery(
-                    "select u\n" +
-                            "from UnitOfMeasure u\n" +
-                            "where name = ?1", UnitOfMeasure.class);
-
-        }
         for (Object o : infos) {
             UomInfo info = (UomInfo) o;
-            List<UnitOfMeasure> us;
-            if (unitByName != null) {
-                us = unitByName
-                        .setParameter(1, info.name)
-                        .getResultList();
-            } else {
-                us = Collections.EMPTY_LIST;
-            }
             UnitOfMeasure uom;
-            if (us.isEmpty()) {
+            if (entityManager != null) {
+                uom = UnitOfMeasure.ensure(entityManager, info.name);
+            } else {
                 uom = new UnitOfMeasure(info.name);
-                if (entityManager != null) entityManager.persist(uom);
-            } else { // there's a unique key preventing more than one result
-                uom = us.get(0);
             }
             if (info.aliases != null) {
                 uom.addAliases(info.aliases);
             }
+            if (! info.name.equals(info.name.toLowerCase())) {
+                uom.addAlias(info.name.toLowerCase());
+            }
             unitMap.put(uom.getName(), uom);
             if (info.conversions != null) {
-                info.conversions.forEach((u, f) ->
-                        uom.addConversion(unitMap.get(u), f));
+                info.conversions.forEach((u, f) -> {
+                    if (! unitMap.containsKey(u)) {
+                        throw new IllegalArgumentException("No '" + u + "' unit is available (converting from '" + info.name + "')");
+                    }
+                    uom.addConversion(unitMap.get(u), f);
+                });
             }
         }
         return unitMap.values();
