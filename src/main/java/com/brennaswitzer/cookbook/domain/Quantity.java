@@ -1,11 +1,29 @@
-package com.brennaswitzer.cookbook.domain.measure;
+package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.NumberUtils;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Embeddable;
+import javax.persistence.ManyToOne;
 import java.util.*;
 
+@Embeddable
+@Access(AccessType.FIELD)   // It is unclear why this is needed. The only JPA
+                            // annotation at field or prop level is on a field.
+                            // Clearly still something to learn here. :)
 public class Quantity {
+
+    public static final Quantity ZERO = count(0);
+    public static final Quantity ONE = count(1);
+
+    public static Quantity count(double count) {
+        return new Quantity(count, null);
+    }
 
     private double quantity;
 
+    @ManyToOne
     private UnitOfMeasure units;
 
     public Quantity() {
@@ -30,6 +48,10 @@ public class Quantity {
 
     public void setUnits(UnitOfMeasure units) {
         this.units = units;
+    }
+
+    public boolean hasUnits() {
+        return units != null;
     }
 
     public Quantity convertTo(UnitOfMeasure uom) {
@@ -57,9 +79,19 @@ public class Quantity {
         throw new NoConversionException(units, uom);
     }
 
+    public Quantity plus(Quantity that) {
+        if (Objects.equals(units, that.units)) {
+            return new Quantity(quantity + that.quantity, units);
+        }
+        return plus(that.convertTo(units));
+    }
+
     @Override
     public String toString() {
-        return quantity + " " + units.getName();
+        String qs = NumberUtils.formatNumber(quantity);
+        return hasUnits()
+                ? qs + " " + units.getName()
+                : qs;
     }
 
     @Override
@@ -67,7 +99,7 @@ public class Quantity {
         if (this == o) return true;
         if (!(o instanceof Quantity)) return false;
         Quantity that = (Quantity) o;
-        return units.equals(that.units)
+        return Objects.equals(units, that.units)
                 && Math.abs(quantity - that.quantity) < 0.001;
     }
 
@@ -75,4 +107,5 @@ public class Quantity {
     public int hashCode() {
         return Objects.hash(quantity, units);
     }
+
 }

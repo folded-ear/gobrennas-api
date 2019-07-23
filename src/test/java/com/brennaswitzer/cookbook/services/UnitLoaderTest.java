@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.measure.UnitOfMeasure;
+import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import org.junit.Test;
 
 import java.util.Collection;

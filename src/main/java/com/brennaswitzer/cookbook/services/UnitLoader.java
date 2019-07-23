@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.measure.UnitOfMeasure;
+import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;

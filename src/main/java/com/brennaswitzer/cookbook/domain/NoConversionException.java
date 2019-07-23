@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.domain.measure;
+package com.brennaswitzer.cookbook.domain;
 
 public class NoConversionException extends RuntimeException {
 

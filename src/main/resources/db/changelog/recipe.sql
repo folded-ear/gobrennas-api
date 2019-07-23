@@ -129,8 +129,9 @@ alter table recipe_ingredients
 --changeset barneyb:unit-storage
 create table unit_of_measure
 (
-    id   bigint not null,
-    name varchar,
+    id          bigserial not null,
+    name        varchar,
+    plural_name varchar,
     constraint pk_uom primary key (id),
     constraint uk_uom_name unique (name)
 );
@@ -146,18 +147,36 @@ create table unit_of_measure_conversions
 (
     unit_of_measure_id bigint not null,
     target_id          bigint not null,
-    factor             real,
+    factor             double precision,
     constraint pk_uom_conversions primary key (unit_of_measure_id, target_id),
     constraint fk_oum_conversions_oum_id foreign key (target_id) references unit_of_measure on delete cascade ,
     constraint fk_oum_conversions_target_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade
 );
 
---changeset barneyb:unit-plural-name
-alter table unit_of_measure
-    add plural_name varchar;
-
---changeset barneyb:quantities-are-doubles
 alter table recipe_ingredients
     alter column quantity type double precision;
-alter table unit_of_measure_conversions
-    alter column factor type double precision;
+alter table recipe_ingredients
+    add units_id bigint;
+alter table recipe_ingredients
+    add constraint fk_recipe_ingredients_units_id foreign key (units_id) references unit_of_measure (id) on delete set null;
+
+insert into unit_of_measure
+    (name)
+select distinct units
+from recipe_ingredients ri
+where not exists(
+        select 1
+        from unit_of_measure
+        where name = ri.units
+    )
+order by 1;
+
+update recipe_ingredients
+set units_id = (
+    select id
+    from unit_of_measure
+    where name = recipe_ingredients.units
+);
+
+alter table recipe_ingredients
+    drop column units;

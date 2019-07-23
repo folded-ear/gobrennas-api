@@ -18,7 +18,7 @@ public class ShoppingListTest {
         assertEquals("fresh tomatoes (1 lbs)", itr.next().toString());
         assertEquals("tomato paste (1 (6 oz) can)", itr.next().toString());
         assertEquals("italian seasoning", itr.next().toString());
-        assertEquals("salt (3 Tbsp, 1.5 tsp)", itr.next().toString());
+        assertEquals("salt (3 Tbsp, and 1.5 tsp)", itr.next().toString());
         // crust
         assertEquals("flour (2 c)", itr.next().toString());
         assertEquals("water (1 c)", itr.next().toString());
@@ -39,7 +39,7 @@ public class ShoppingListTest {
     }
 
     private void addMoarSalt(ShoppingList l, RecipeBox box) {
-        l.addPantryItem(new IngredientRef<>(3, "Tbsp", box.salt, null));
+        l.addPantryItem(new IngredientRef<>(new Quantity(3, new UnitOfMeasure("Tbsp")), box.salt, null));
     }
 
     @Test

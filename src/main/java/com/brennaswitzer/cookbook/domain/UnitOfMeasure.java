@@ -1,5 +1,6 @@
-package com.brennaswitzer.cookbook.domain.measure;
+package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.IdUtils;
 import org.springframework.util.Assert;
 
@@ -7,7 +8,38 @@ import javax.persistence.*;
 import java.util.*;
 
 @Entity
+@NamedQuery(name = "UnitOfMeasure.byName", query = "select uom\n" +
+        "from UnitOfMeasure uom\n" +
+        "    left join uom.aliases a\n" +
+        "where uom.name = :name\n" +
+        "    or uom.pluralName = :name\n" +
+        "    or a = :name\n" +
+        "order by case :name when uom.name then 1\n" +
+        "when uom.pluralName then 2\n" +
+        "else 3\n" +
+        "end")
 public class UnitOfMeasure {
+
+    public static final Comparator<UnitOfMeasure> BY_NAME = (a, b) -> {
+        if (a == null) return b == null ? 0 : 1;
+        if (b == null) return -1;
+        return a.name.compareTo(b.name);
+    };
+
+    public static UnitOfMeasure ensure(EntityManager entityManager, String name) {
+        if (name == null) return null;
+        name = EnglishUtils.unpluralize(name);
+        List<UnitOfMeasure> uoms = entityManager.createNamedQuery(
+                "UnitOfMeasure.byName",
+                UnitOfMeasure.class
+        )
+                .setParameter("name", name.toLowerCase())
+                .getResultList();
+        if (!uoms.isEmpty()) return uoms.get(0);
+        UnitOfMeasure uom = new UnitOfMeasure(name);
+        entityManager.persist(uom);
+        return uom;
+    }
 
     @Id
     private Long id = IdUtils.next(getClass());
@@ -25,7 +57,7 @@ public class UnitOfMeasure {
     @Column(name = "factor")
     private Map<UnitOfMeasure, Double> conversions = new HashMap<>();
 
-    public UnitOfMeasure() {
+    private UnitOfMeasure() {
     }
 
     public UnitOfMeasure(String name, String... aliases) {
@@ -120,11 +152,15 @@ public class UnitOfMeasure {
         if (this == o) return true;
         if (!(o instanceof UnitOfMeasure)) return false;
         UnitOfMeasure that = (UnitOfMeasure) o;
-        return id.equals(that.id);
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public Quantity quantity(double quantity) {
+        return new Quantity(quantity, this);
     }
 }

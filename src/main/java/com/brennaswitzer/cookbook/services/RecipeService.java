@@ -123,17 +123,19 @@ public class RecipeService {
         // lets go!
         String name = dissection.getNameText();
         Ingredient ingredient = ensureIngredientByName(name);
+        UnitOfMeasure uom = UnitOfMeasure.ensure(entityManager, dissection.getUnitsText());
         // update raw refs w/ dissected parts
         // this is a kludge to bulk update all equivalent refs. :)
+        entityManager.flush();
         jdbcTmpl.update("update recipe_ingredients\n" +
                         "set quantity = ?,\n" +
-                        "    units = ?,\n" +
+                        "    units_id = ?,\n" +
                         "    ingredient_id = ?,\n" +
                         "    preparation = ?\n" +
                         "where ingredient_id is null\n" +
                         "    and raw = ?",
                 quantity,
-                EnglishUtils.unpluralize(dissection.getUnitsText()),
+                uom == null ? null : uom.getId(),
                 ingredient.getId(),
                 dissection.getPrep(),
                 dissection.getRaw());
