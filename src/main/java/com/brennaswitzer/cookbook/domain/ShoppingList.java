@@ -97,12 +97,10 @@ public class ShoppingList extends BaseEntity {
             if (byUnit == null) {
                 byUnit = new TreeMap<>(UnitOfMeasure.BY_NAME);
             }
-            UnitOfMeasure uom = ref.getQuantity().getUnits();
-            byUnit.merge(
-                    ref.getQuantity().getUnits(),
-                    ref.getQuantity(),
-                    Quantity::plus
-            );
+            Quantity q = ref.hasQuantity()
+                    ? ref.getQuantity()
+                    : Quantity.ONE;
+            byUnit.merge(q.getUnits(), q, Quantity::plus);
         }
 
         public void add(IngredientRef<PantryItem> ref) {
