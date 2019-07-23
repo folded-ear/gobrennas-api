@@ -33,6 +33,14 @@ public class UnitOfMeasure {
                 "UnitOfMeasure.byName",
                 UnitOfMeasure.class
         )
+                .setParameter("name", name)
+                .getResultList();
+        if (!uoms.isEmpty()) return uoms.get(0);
+        // fine. try lowercased
+        uoms = entityManager.createNamedQuery(
+                "UnitOfMeasure.byName",
+                UnitOfMeasure.class
+        )
                 .setParameter("name", name.toLowerCase())
                 .getResultList();
         if (!uoms.isEmpty()) return uoms.get(0);
