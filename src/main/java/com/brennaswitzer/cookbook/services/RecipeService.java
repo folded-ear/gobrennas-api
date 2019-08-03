@@ -132,8 +132,7 @@ public class RecipeService {
                         "    units_id = ?,\n" +
                         "    ingredient_id = ?,\n" +
                         "    preparation = ?\n" +
-                        "where ingredient_id is null\n" +
-                        "    and raw = ?",
+                        "where raw = ?",
                 quantity,
                 uom == null ? null : uom.getId(),
                 ingredient.getId(),
