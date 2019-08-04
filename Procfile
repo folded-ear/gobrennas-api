@@ -1,0 +1,1 @@
+web: java -jar -javaagent:/var/app/current/newrelic/newrelic.jar application.jar
