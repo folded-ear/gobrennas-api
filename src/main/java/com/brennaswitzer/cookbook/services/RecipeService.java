@@ -121,9 +121,10 @@ public class RecipeService {
         }
 
         // lets go!
-        String name = dissection.getNameText();
-        Ingredient ingredient = ensureIngredientByName(name);
-        UnitOfMeasure uom = UnitOfMeasure.ensure(entityManager, dissection.getUnitsText());
+        Ingredient ingredient = ensureIngredientByName(
+                EnglishUtils.canonicalize(dissection.getNameText()));
+        UnitOfMeasure uom = UnitOfMeasure.ensure(entityManager,
+                EnglishUtils.canonicalize(dissection.getUnitsText()));
         // update raw refs w/ dissected parts
         // this is a kludge to bulk update all equivalent refs. :)
         entityManager.flush();
