@@ -34,7 +34,6 @@ before_deploy:
   - zip target/eb_bundle.zip -r newrelic
   - zip target/eb_bundle.zip -r .ebextensions
   - zip target/eb_bundle.zip -j target/cookbook-*.jar
-  - zip target/eb_bundle.zip Procfile
 
 deploy:
   provider: elasticbeanstalk
