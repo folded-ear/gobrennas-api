@@ -1,0 +1,55 @@
+raw|amount|astart|aend|unit|ustart|uend|name|nstart|nend
+1 ¾  pounds large or extra-large shrimp, shelled|1 ¾|0|3||||||
+1 cup flour|1|0|1||||||
+1 _cup_ flour|1|0|1|cup|2|7|||
+1 garbage _cup_ flour|1|0|1|cup|10|15|||
+1 cup "flour"|1|0|1||||flour|6|13
+1 cup garbage "flour"|1|0|1||||flour|14|21
+1 cup "flour" garbage|1|0|1||||flour|6|13
+1 cup garbage "flour" garbage|1|0|1||||flour|14|21
+1 cup flour, sifted|1|0|1||||||
+1 _cup_ "flour", sifted|1|0|1|cup|2|7|flour|8|15
+1 garbage _cup_ "flour", sifted|1|0|1|cup|10|15|flour|16|23
+1 _cup_ garbage "flour", sifted|1|0|1|cup|2|7|flour|16|23
+1 _cup_ "flour" garbage, sifted|1|0|1|cup|2|7|flour|8|15
+1 garbage _cup_ garbage "flour" garbage, sifted|1|0|1|cup|10|15|flour|24|31
+¾  pounds macaroni|¾|0|1||||||
+1    ¾   pounds     large   or    extra-large shrimp, shelled|1    ¾|0|6||||||
+1 ¾  pounds large or extra-large shrimp, shelled|1 ¾|0|3||||||
+1 ¾  pounds shrimp, large or extra-large, shelled|1 ¾|0|3||||||
+1/2 cup yellow onion, finely diced|1/2|0|3||||||
+12 fl ounces water|12|0|2||||||
+12 ounces sharp cheddar, shredded|12|0|2||||||
+  12 oz water|12|2|4||||||
+1/2 pound elbow macaroni|1/2|0|3||||||
+1/2 tsp paprika|1/2|0|3||||||
+1 avocado|1|0|1||||||
+ 1 bay leaf|1|1|2||||||
+1 cup OJ|1|0|1||||||
+1 cup panko bread crumbs|1|0|1||||||
+1 egg, scrambled|1|0|1||||||
+1   glass|1|0|1||||||
+1 grill|1|0|1||||||
+1 large egg|1|0|1||||||
+1 quart peanut oil|1|0|1||||||
+1 slice of cheese|1|0|1||||||
+1 Tbsp jam (or jelly)|1|0|1||||||
+1 teaspoon kosher salt|1|0|1||||||
+2 avocados|2|0|1||||||
+2 eggs|2|0|1||||||
+2 ice cubes|2|0|1||||||
+2 slices bread|2|0|1||||||
+2 Tbsp peanut butter|2|0|1||||||
+3 cups milk|3|0|1||||||
+3 tablespoons butter|3|0|1||||||
+3 Tbsps flour|3|0|1||||||
+4 fried chicken|4|0|1||||||
+4 tsp aisjodaijf|4|0|1||||||
+Baked Macaroni and Cheese|||||||||
+breakfast|||||||||
+chicken and waffles|||||||||
+Fresh black pepper|||||||||
+Fried Chicken|||||||||
+ice|||||||||
+vermouth (optional)|||||||||
+vodka|||||||||
