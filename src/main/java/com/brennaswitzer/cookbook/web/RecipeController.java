@@ -108,8 +108,15 @@ public class RecipeController {
         return new ResponseEntity<String>("Recipe was deleted", HttpStatus.OK);
     }
 
+    @PostMapping("/_actions")
+    public void performGlobalAction(
+            @RequestBody RecipeAction action
+    ) {
+        action.execute(recipeService);
+    }
+
     @PostMapping("/{id}/_actions")
-    public void performAction(
+    public void performRecipeAction(
             @PathVariable("id") Long id,
             @RequestBody RecipeAction action
     ) {

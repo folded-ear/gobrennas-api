@@ -51,14 +51,25 @@ public class RecipeAction {
         this.additionalRecipeIds = additionalRecipeIds;
     }
 
+    public void execute(RecipeService service) {
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (getType()) {
+            case DISSECT_RAW_INGREDIENT:
+                service.recordDissection(dissection);
+                break;
+            default:
+                throw new UnsupportedOperationException("Can't process " + getType());
+        }
+    }
+
     public void execute(Long recipeId, RecipeService service) {
+        //noinspection SwitchStatementWithTooFewBranches
         switch (getType()) {
             case ASSEMBLE_SHOPPING_LIST:
                 service.assembleShoppingList(recipeId, additionalRecipeIds, getListId(), true);
                 break;
-            case DISSECT_RAW_INGREDIENT:
-                service.recordDissection(dissection);
-                break;
+            default:
+                throw new UnsupportedOperationException("Can't process " + getType());
         }
     }
 
