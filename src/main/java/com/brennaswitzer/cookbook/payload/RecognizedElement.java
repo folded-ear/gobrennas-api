@@ -1,9 +1,6 @@
 package com.brennaswitzer.cookbook.payload;
 
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class RecognizedElement {
 
@@ -19,6 +16,7 @@ public class RecognizedElement {
     }
 
     public enum Type {
+        UNKNOWN,
         AMOUNT,
         UNIT,
         NEW_UNIT,
@@ -35,6 +33,10 @@ public class RecognizedElement {
         private Type type;
 
         public Range() {
+        }
+
+        public Range(int start, int end) {
+            this(start, end, Type.UNKNOWN);
         }
 
         public Range(int start, int end, Type type) {
@@ -65,6 +67,19 @@ public class RecognizedElement {
 
         public void setType(Type type) {
             this.type = type;
+        }
+
+        public boolean overlaps(Range r) {
+            // this wraps r
+            if (this.start <= r.start && this.end >= r.end) return true;
+            // this is inside r
+            if (this.start >= r.start && this.end <= r.end) return true;
+            // this spans r's start
+            if (this.start <= r.start && this.end >= r.start) return true;
+            // this spans r's end
+            if (this.start <= r.end && this.end >= r.end) return true;
+            // no overlap
+            return false;
         }
 
         @Override
@@ -211,6 +226,24 @@ public class RecognizedElement {
         sb.append(", completions=").append(completions);
         sb.append('}');
         return sb.toString();
+    }
+
+    /**
+     * I return an Iterable over all the words in the raw element which have not
+     * been recognized yet.
+     */
+    public Iterable<Range> unrecognizedWords() {
+        List<Range> result = new LinkedList<>();
+        String[] words = raw.split(" ");
+        int pos = 0;
+        for (String w : words) {
+            Range r = new Range(pos, pos + w.length());
+            if (ranges == null || ranges.stream().noneMatch(r::overlaps)) {
+                result.add(r);
+            }
+            pos += w.length() + 1; // for the split space
+        }
+        return result;
     }
 
 }
