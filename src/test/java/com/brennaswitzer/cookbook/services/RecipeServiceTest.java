@@ -99,9 +99,14 @@ public class RecipeServiceTest {
         assertEquals(RAW, el.getRaw());
         Iterator<RecognizedElement.Range> ri = el.getRanges().iterator();
         assertEquals(new RecognizedElement.Range(0, 7, RecognizedElement.Type.AMOUNT), ri.next());
+        assertEquals(new RecognizedElement.Range(8, 11, RecognizedElement.Type.UNIT), ri.next());
+        assertEquals(new RecognizedElement.Range(24, 29, RecognizedElement.Type.ITEM), ri.next());
         assertFalse(ri.hasNext());
-        Iterator<RecognizedElement.Completion> ci = el.getCompletions().iterator();
-        assertFalse(ci.hasNext());
+        Iterator<RecognizedElement.Suggestion> si = el.getSuggestions().iterator();
+        // currently we just randomly suggest something for every unknown word...
+        assertEquals(new RecognizedElement.Range(12, 17, RecognizedElement.Type.ITEM), si.next().getTarget());
+        assertEquals(new RecognizedElement.Range(18, 23, RecognizedElement.Type.ITEM), si.next().getTarget());
+        assertFalse(si.hasNext());
     }
 
 }

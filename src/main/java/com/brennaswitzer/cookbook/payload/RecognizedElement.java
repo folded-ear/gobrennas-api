@@ -6,7 +6,7 @@ public class RecognizedElement {
 
     private String raw;
     private Set<Range> ranges;
-    private Set<Completion> completions;
+    private Set<Suggestion> suggestions;
 
     public RecognizedElement() {
     }
@@ -31,6 +31,7 @@ public class RecognizedElement {
         private int start;
         private int end;
         private Type type;
+        private Object value;
 
         public Range() {
         }
@@ -43,6 +44,11 @@ public class RecognizedElement {
             this.start = start;
             this.end = end;
             this.type = type;
+        }
+
+        public Range(int start, int end, Type type, Object value) {
+            this(start, end, type);
+            this.value = value;
         }
 
         public int getStart() {
@@ -67,6 +73,22 @@ public class RecognizedElement {
 
         public void setType(Type type) {
             this.type = type;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+
+        public Range of(Type type) {
+            return new Range(
+                    getStart(),
+                    getEnd(),
+                    type
+            );
         }
 
         public boolean overlaps(Range r) {
@@ -106,19 +128,24 @@ public class RecognizedElement {
             sb.append('}');
             return sb.toString();
         }
+
+        public Range withValue(Object value) {
+            setValue(value);
+            return this;
+        }
     }
 
-    public static class Completion {
+    public static class Suggestion {
 
-        public static Comparator<Completion> BY_POSITION = Comparator.comparingInt(a -> a.target.start);
+        public static Comparator<Suggestion> BY_POSITION = Comparator.comparingInt(a -> a.target.start);
 
         private String name;
         private Range target;
 
-        public Completion() {
+        public Suggestion() {
         }
 
-        public Completion(String name, Range target) {
+        public Suggestion(String name, Range target) {
             this.name = name;
             this.target = target;
         }
@@ -142,8 +169,8 @@ public class RecognizedElement {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Completion)) return false;
-            Completion that = (Completion) o;
+            if (!(o instanceof Suggestion)) return false;
+            Suggestion that = (Suggestion) o;
             return name.equals(that.name) &&
                     target.equals(that.target);
         }
@@ -182,15 +209,15 @@ public class RecognizedElement {
         this.ranges = ranges;
     }
 
-    public Set<Completion> getCompletions() {
-        if (completions == null) {
-            completions = new TreeSet<>(Completion.BY_POSITION);
+    public Set<Suggestion> getSuggestions() {
+        if (suggestions == null) {
+            suggestions = new TreeSet<>(Suggestion.BY_POSITION);
         }
-        return completions;
+        return suggestions;
     }
 
-    public void setCompletions(Set<Completion> completions) {
-        this.completions = completions;
+    public void setSuggestions(Set<Suggestion> suggestions) {
+        this.suggestions = suggestions;
     }
 
     public RecognizedElement withRange(Range r) {
@@ -198,8 +225,8 @@ public class RecognizedElement {
         return this;
     }
 
-    public RecognizedElement withCompletion(Completion c) {
-        getCompletions().add(c);
+    public RecognizedElement withSuggestion(Suggestion c) {
+        getSuggestions().add(c);
         return this;
     }
 
@@ -210,12 +237,12 @@ public class RecognizedElement {
         RecognizedElement that = (RecognizedElement) o;
         return raw.equals(that.raw) &&
                 Objects.equals(ranges, that.ranges) &&
-                Objects.equals(completions, that.completions);
+                Objects.equals(suggestions, that.suggestions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(raw, ranges, completions);
+        return Objects.hash(raw, ranges, suggestions);
     }
 
     @Override
@@ -223,7 +250,7 @@ public class RecognizedElement {
         final StringBuilder sb = new StringBuilder("RecognizedElement{");
         sb.append("raw='").append(raw).append('\'');
         sb.append(", ranges=").append(ranges);
-        sb.append(", completions=").append(completions);
+        sb.append(", suggestions=").append(suggestions);
         sb.append('}');
         return sb.toString();
     }

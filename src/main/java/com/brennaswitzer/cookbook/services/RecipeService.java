@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -144,24 +145,28 @@ public class RecipeService {
 
     }
 
-    private Ingredient ensureIngredientByName(String name) {
+    private Optional<? extends Ingredient> findIngredientByName(String name) {
         String unpluralized = EnglishUtils.unpluralize(name);
         // see if there's a pantry item...
         Optional<PantryItem> pantryItem = pantryItemRepository.findOneByNameIgnoreCase(unpluralized);
         if (pantryItem.isPresent()) {
-            return pantryItem.get();
+            return pantryItem;
         }
         // see if there's a recipe...
         Optional<Recipe> recipe = recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), name);
         if (recipe.isPresent()) {
-            return recipe.get();
+            return recipe;
         }
-        recipe = recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), unpluralized);
-        if (recipe.isPresent()) {
-            return recipe.get();
+        return recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), unpluralized);
+    }
+
+    private Ingredient ensureIngredientByName(String name) {
+        Optional<? extends Ingredient> oing = findIngredientByName(name);
+        if (oing.isPresent()) {
+            return oing.get();
         }
         // make a new pantry item
-        return pantryItemRepository.save(new PantryItem(unpluralized));
+        return pantryItemRepository.save(new PantryItem(EnglishUtils.unpluralize(name)));
     }
 
     public RecognizedElement recognizeElement(String raw) {
@@ -169,29 +174,67 @@ public class RecipeService {
         if (raw.trim().isEmpty()) return null;
         RecognizedElement el = new RecognizedElement(raw);
         RawIngredientDissection d = RawUtils.dissect(raw);
-        RawIngredientDissection.Section s = d.getQuantity();
-        if (s != null) {
+        RawIngredientDissection.Section secAmount = d.getQuantity();
+        if (secAmount != null) {
             el.withRange(new RecognizedElement.Range(
-                    s.getStart(),
-                    s.getEnd(),
+                    secAmount.getStart(),
+                    secAmount.getEnd(),
                     RecognizedElement.Type.AMOUNT
-            ));
+            ).withValue(NumberUtils.parseNumber(secAmount.getText())));
         }
-        s = d.getUnits();
-        if (s != null) {
+        RawIngredientDissection.Section secUnit = d.getUnits();
+        if (secUnit != null) {
+            Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
+                    entityManager,
+                    secUnit.getText());
             el.withRange(new RecognizedElement.Range(
-                    s.getStart(),
-                    s.getEnd(),
-                    RecognizedElement.Type.NEW_UNIT
+                    secUnit.getStart(),
+                    secUnit.getEnd(),
+                    ouom.isPresent()
+                            ? RecognizedElement.Type.UNIT
+                            : RecognizedElement.Type.NEW_UNIT,
+                    ouom.map(UnitOfMeasure::getId).orElse(null)
             ));
+        } else if (secAmount != null) {
+            for (RecognizedElement.Range r : el.unrecognizedWords()) {
+                Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
+                        entityManager,
+                        raw.substring(r.getStart(), r.getEnd()));
+                if (!ouom.isPresent()) continue;
+                el.withRange(r.of(RecognizedElement.Type.UNIT).withValue(ouom.get().getId()));
+            }
         }
-        s = d.getName();
-        if (s != null) {
+        RawIngredientDissection.Section secName = d.getName();
+        if (secName != null) {
+            Optional<? extends Ingredient> oing = findIngredientByName(
+                    secName.getText());
             el.withRange(new RecognizedElement.Range(
-                    s.getStart(),
-                    s.getEnd(),
-                    RecognizedElement.Type.NEW_ITEM
+                    secName.getStart(),
+                    secName.getEnd(),
+                    oing.isPresent()
+                            ? RecognizedElement.Type.ITEM
+                            : RecognizedElement.Type.NEW_ITEM,
+                    oing.map(Ingredient::getId).orElse(null)
             ));
+        } else {
+            Iterator<PantryItem> items = pantryItemRepository.findAll().iterator();
+            for (RecognizedElement.Range r : el.unrecognizedWords()) {
+                Optional<? extends Ingredient> oing = findIngredientByName(
+                        raw.substring(r.getStart(), r.getEnd()));
+                if (!oing.isPresent()) {
+                    // todo: random suggestions aren't _that_ helpful...
+                    if (items.hasNext()) {
+                        PantryItem it = items.next();
+                        el.withSuggestion(new RecognizedElement.Suggestion(
+                                it.getName(),
+                                r.of(RecognizedElement.Type.ITEM)
+                                        .withValue(it.getId())
+                        ));
+                    }
+                    continue;
+                }
+                el.withRange(r.of(RecognizedElement.Type.ITEM).withValue(oing.get().getId()));
+            }
         }
         return el;
     }

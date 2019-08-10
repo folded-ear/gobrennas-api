@@ -25,16 +25,16 @@ public class UnitOfMeasure extends BaseEntity {
         return a.name.compareTo(b.name);
     };
 
-    public static UnitOfMeasure ensure(EntityManager entityManager, String name) {
-        if (name == null) return null;
-        name = EnglishUtils.unpluralize(name);
+    public static Optional<UnitOfMeasure> find(EntityManager entityManager, String name) {
+        if (name == null) return Optional.empty();
+        name = EnglishUtils.unpluralize(name.trim());
         List<UnitOfMeasure> uoms = entityManager.createNamedQuery(
                 "UnitOfMeasure.byName",
                 UnitOfMeasure.class
         )
                 .setParameter("name", name)
                 .getResultList();
-        if (!uoms.isEmpty()) return uoms.get(0);
+        if (!uoms.isEmpty()) return Optional.of(uoms.get(0));
         // fine. try lowercased
         uoms = entityManager.createNamedQuery(
                 "UnitOfMeasure.byName",
@@ -42,10 +42,19 @@ public class UnitOfMeasure extends BaseEntity {
         )
                 .setParameter("name", name.toLowerCase())
                 .getResultList();
-        if (!uoms.isEmpty()) return uoms.get(0);
-        UnitOfMeasure uom = new UnitOfMeasure(name);
-        entityManager.persist(uom);
-        return uom;
+        if (!uoms.isEmpty()) return Optional.of(uoms.get(0));
+        return Optional.empty();
+    }
+
+    public static UnitOfMeasure ensure(EntityManager entityManager, String name) {
+        if (name == null) throw new NullPointerException();
+        return find(entityManager, name)
+                .orElseGet(() -> {
+                    UnitOfMeasure uom = new UnitOfMeasure(
+                            EnglishUtils.unpluralize(name.trim()));
+                    entityManager.persist(uom);
+                    return uom;
+                });
     }
 
     private String name;
@@ -145,5 +154,10 @@ public class UnitOfMeasure extends BaseEntity {
 
     public Quantity quantity(double quantity) {
         return new Quantity(quantity, this);
+    }
+
+    public UnitOfMeasure withAlias(String alias) {
+        addAlias(alias);
+        return this;
     }
 }
