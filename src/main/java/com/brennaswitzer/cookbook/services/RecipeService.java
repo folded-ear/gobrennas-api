@@ -2,12 +2,14 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
+import com.brennaswitzer.cookbook.payload.RecognizedElement;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
+import com.brennaswitzer.cookbook.util.RawUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -162,4 +164,35 @@ public class RecipeService {
         return pantryItemRepository.save(new PantryItem(unpluralized));
     }
 
+    public RecognizedElement recognizeElement(String raw) {
+        if (raw == null) return null;
+        if (raw.trim().isEmpty()) return null;
+        RecognizedElement el = new RecognizedElement(raw);
+        RawIngredientDissection d = RawUtils.dissect(raw);
+        RawIngredientDissection.Section s = d.getQuantity();
+        if (s != null) {
+            el.withRange(new RecognizedElement.Range(
+                    s.getStart(),
+                    s.getEnd(),
+                    RecognizedElement.Type.AMOUNT
+            ));
+        }
+        s = d.getUnits();
+        if (s != null) {
+            el.withRange(new RecognizedElement.Range(
+                    s.getStart(),
+                    s.getEnd(),
+                    RecognizedElement.Type.NEW_UNIT
+            ));
+        }
+        s = d.getName();
+        if (s != null) {
+            el.withRange(new RecognizedElement.Range(
+                    s.getStart(),
+                    s.getEnd(),
+                    RecognizedElement.Type.NEW_ITEM
+            ));
+        }
+        return el;
+    }
 }

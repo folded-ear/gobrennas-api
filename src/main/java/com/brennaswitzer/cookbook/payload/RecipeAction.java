@@ -9,6 +9,7 @@ public class RecipeAction {
     public enum Type {
         ASSEMBLE_SHOPPING_LIST,
         DISSECT_RAW_INGREDIENT,
+        RECOGNIZE_ELEMENT,
     }
 
     private Type type;
@@ -18,6 +19,8 @@ public class RecipeAction {
     private List<Long> additionalRecipeIds;
 
     private RawIngredientDissection dissection;
+
+    private String rawElement;
 
     public Type getType() {
         return type;
@@ -51,18 +54,28 @@ public class RecipeAction {
         this.additionalRecipeIds = additionalRecipeIds;
     }
 
-    public void execute(RecipeService service) {
-        //noinspection SwitchStatementWithTooFewBranches
+    public String getRawElement() {
+        return rawElement;
+    }
+
+    public void setRawElement(String rawElement) {
+        this.rawElement = rawElement;
+    }
+
+    public Object execute(RecipeService service) {
         switch (getType()) {
             case DISSECT_RAW_INGREDIENT:
                 service.recordDissection(dissection);
                 break;
+            case RECOGNIZE_ELEMENT:
+                return service.recognizeElement(rawElement);
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());
         }
+        return true;
     }
 
-    public void execute(Long recipeId, RecipeService service) {
+    public Object execute(Long recipeId, RecipeService service) {
         //noinspection SwitchStatementWithTooFewBranches
         switch (getType()) {
             case ASSEMBLE_SHOPPING_LIST:
@@ -71,6 +84,7 @@ public class RecipeAction {
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());
         }
+        return true;
     }
 
 }

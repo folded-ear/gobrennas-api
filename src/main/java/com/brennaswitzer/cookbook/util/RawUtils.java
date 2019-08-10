@@ -7,6 +7,8 @@ public class RawUtils {
     private static final char SPACE = ' ';
 
     public static RawIngredientDissection dissect(String raw) {
+        if (raw == null) return null;
+        if (raw.trim().isEmpty()) return null;
         RawIngredientDissection d = new RawIngredientDissection(raw);
         NumberUtils.NumberWithRange n = NumberUtils.parseNumberWithRange(raw);
         int pos = 0;

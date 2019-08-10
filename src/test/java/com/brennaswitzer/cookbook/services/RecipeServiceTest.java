@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.RecognizedElement;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.RecipeBox;
@@ -84,6 +85,23 @@ public class RecipeServiceTest {
         assertEquals("Pizza:", itr.next().getName());
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
+    }
+
+    @Test
+    public void recognizeElement() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager);
+
+        final String RAW = "3 & 1/2 cup whole wheat flour";
+        RecognizedElement el = service.recognizeElement(RAW);
+        System.out.println(el);
+
+        assertEquals(RAW, el.getRaw());
+        Iterator<RecognizedElement.Range> ri = el.getRanges().iterator();
+        assertEquals(new RecognizedElement.Range(0, 7, RecognizedElement.Type.AMOUNT), ri.next());
+        assertFalse(ri.hasNext());
+        Iterator<RecognizedElement.Completion> ci = el.getCompletions().iterator();
+        assertFalse(ci.hasNext());
     }
 
 }
