@@ -9,6 +9,11 @@ import javax.persistence.EntityManager;
 
 public class RecipeBox {
 
+    public final UnitOfMeasure tsp,
+            cup,
+            tbsp,
+            lbs;
+
     public final PantryItem
             salt;
 
@@ -19,10 +24,10 @@ public class RecipeBox {
             pizzaSauce;
 
     public RecipeBox() {
-        UnitOfMeasure tsp = new UnitOfMeasure("tsp"),
-                cup = new UnitOfMeasure("c"),
-                tbsp = new UnitOfMeasure("Tbsp"),
-                lbs = new UnitOfMeasure("lbs");
+        tsp = new UnitOfMeasure("tsp");
+        cup = new UnitOfMeasure("c");
+        tbsp = new UnitOfMeasure("Tbsp");
+        lbs = new UnitOfMeasure("lbs");
 
         salt = new PantryItem("salt");
 

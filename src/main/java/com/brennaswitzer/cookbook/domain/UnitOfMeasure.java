@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.EnglishUtils;
-import com.brennaswitzer.cookbook.util.IdUtils;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
@@ -18,7 +17,7 @@ import java.util.*;
         "when uom.pluralName then 2\n" +
         "else 3\n" +
         "end")
-public class UnitOfMeasure {
+public class UnitOfMeasure extends BaseEntity {
 
     public static final Comparator<UnitOfMeasure> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -49,9 +48,6 @@ public class UnitOfMeasure {
         return uom;
     }
 
-    @Id
-    private Long id = IdUtils.next(getClass());
-
     private String name;
 
     private String pluralName;
@@ -71,14 +67,6 @@ public class UnitOfMeasure {
     public UnitOfMeasure(String name, String... aliases) {
         setName(name);
         addAliases(aliases);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -153,19 +141,6 @@ public class UnitOfMeasure {
     @Override
     public String toString() {
         return getName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UnitOfMeasure)) return false;
-        UnitOfMeasure that = (UnitOfMeasure) o;
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 
     public Quantity quantity(double quantity) {

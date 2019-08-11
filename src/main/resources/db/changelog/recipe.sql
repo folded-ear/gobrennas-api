@@ -180,3 +180,30 @@ set units_id = (
 
 alter table recipe_ingredients
     drop column units;
+
+--changeset barneyb:cant-use-longs-in-js
+alter table unit_of_measure
+    add _eqkey bigint default extract(epoch from now());
+alter table unit_of_measure
+    add created_at timestamp with time zone not null default now();
+alter table unit_of_measure
+    add updated_at timestamp with time zone not null default now();
+
+alter table unit_of_measure_aliases
+    drop constraint fk_uom_aliases_oum_id;
+alter table unit_of_measure_conversions
+    drop constraint fk_oum_conversions_oum_id;
+alter table unit_of_measure_conversions
+    drop constraint fk_oum_conversions_target_id;
+
+update unit_of_measure set id = abs(id << 20) >> 20;
+update unit_of_measure_aliases set unit_of_measure_id = abs(unit_of_measure_id << 20) >> 20;
+update unit_of_measure_conversions set target_id = abs(target_id << 20) >> 20;
+update unit_of_measure_conversions set unit_of_measure_id = abs(unit_of_measure_id << 20) >> 20;
+
+alter table unit_of_measure_aliases
+    add constraint fk_uom_aliases_oum_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade;
+alter table unit_of_measure_conversions
+    add constraint fk_oum_conversions_oum_id foreign key (target_id) references unit_of_measure on delete cascade;
+alter table unit_of_measure_conversions
+    add constraint fk_oum_conversions_target_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade;
