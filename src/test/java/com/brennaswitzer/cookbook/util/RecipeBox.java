@@ -25,7 +25,8 @@ public class RecipeBox {
 
     public RecipeBox() {
         tsp = new UnitOfMeasure("tsp");
-        cup = new UnitOfMeasure("c");
+        cup = new UnitOfMeasure("c")
+                .withAlias("cup");
         tbsp = new UnitOfMeasure("Tbsp");
         lbs = new UnitOfMeasure("lbs");
 

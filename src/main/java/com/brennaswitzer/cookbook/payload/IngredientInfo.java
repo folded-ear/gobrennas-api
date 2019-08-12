@@ -13,6 +13,8 @@ public class IngredientInfo {
         private String raw;
         private Double quantity;
         private String units;
+        private Long uomId;
+        private String ingredient;
         private Long ingredientId;
         private String preparation;
 
@@ -36,16 +38,43 @@ public class IngredientInfo {
             return quantity != null;
         }
 
+        @Deprecated
         public String getUnits() {
             return units;
         }
 
+        @Deprecated
         public void setUnits(String units) {
             this.units = units;
         }
 
+        @Deprecated
         public boolean hasUnits() {
             return units != null && !"".equals(units) && !units.trim().isEmpty();
+        }
+
+        public Long getUomId() {
+            return uomId;
+        }
+
+        public void setUomId(Long uomId) {
+            this.uomId = uomId;
+        }
+
+        public boolean hasUomId() {
+            return uomId != null;
+        }
+
+        public String getIngredient() {
+            return ingredient;
+        }
+
+        public void setIngredient(String ingredient) {
+            this.ingredient = ingredient;
+        }
+
+        public boolean hasIngredient() {
+            return this.ingredient != null;
         }
 
         public Long getIngredientId() {
@@ -54,6 +83,10 @@ public class IngredientInfo {
 
         public void setIngredientId(Long ingredientId) {
             this.ingredientId = ingredientId;
+        }
+
+        public boolean hasIngredientId() {
+            return this.ingredientId != null;
         }
 
         public String getPreparation() {
@@ -68,14 +101,20 @@ public class IngredientInfo {
             IngredientRef<Ingredient> ref = new IngredientRef<>();
             ref.setRaw(getRaw());
             if (hasQuantity()) {
-                UnitOfMeasure uom = hasUnits()
+                UnitOfMeasure uom = hasUomId()
+                        ? em.find(UnitOfMeasure.class, getUomId())
+                        : hasUnits()
                         ? UnitOfMeasure.ensure(em, getUnits())
                         : null;
                 ref.setQuantity(new Quantity(getQuantity(), uom));
             }
             ref.setPreparation(getPreparation());
-            if (getIngredientId() != null) {
+            if (hasIngredientId()) {
                 ref.setIngredient(em.find(Ingredient.class, getIngredientId()));
+            } else if (hasIngredient()) {
+                PantryItem it = new PantryItem(getIngredient());
+                em.persist(it);
+                ref.setIngredient(it);
             }
             return ref;
         }
@@ -87,12 +126,14 @@ public class IngredientInfo {
                 Quantity q = ref.getQuantity();
                 info.setQuantity(q.getQuantity());
                 if (q.hasUnits()) {
+                    info.setUomId(q.getUnits().getId());
                     info.setUnits(q.getUnits().getName());
                 }
             }
-            info.setIngredientId(ref.hasIngredient()
-                    ? ref.getIngredient().getId()
-                    : null);
+            if (ref.hasIngredient()) {
+                info.setIngredientId(ref.getIngredient().getId());
+                info.setIngredient(ref.getIngredient().getName());
+            }
             info.setPreparation(ref.getPreparation());
             return info;
         }
