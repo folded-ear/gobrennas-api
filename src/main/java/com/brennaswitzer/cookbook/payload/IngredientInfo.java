@@ -201,10 +201,12 @@ public class IngredientInfo {
         r.setName(getName());
         r.setExternalUrl(getExternalUrl());
         r.setDirections(getDirections());
-        r.setIngredients(getIngredients()
-                .stream()
-                .map(ref -> ref.asIngredientRef(em))
-                .collect(Collectors.toList()));
+        if (getIngredients() != null) {
+            r.setIngredients(getIngredients()
+                    .stream()
+                    .map(ref -> ref.asIngredientRef(em))
+                    .collect(Collectors.toList()));
+        }
         return r;
     }
 
@@ -220,10 +222,12 @@ public class IngredientInfo {
         IngredientInfo info = new IngredientInfo();
         info.setId(it.getId());
         info.setName(it.getName());
-        info.setIngredients(it.getIngredients()
-                .stream()
-                .map(Ref::from)
-                .collect(Collectors.toList()));
+        if (it.getIngredients() != null) {
+            info.setIngredients(it.getIngredients()
+                    .stream()
+                    .map(Ref::from)
+                    .collect(Collectors.toList()));
+        }
         return info;
     }
 
