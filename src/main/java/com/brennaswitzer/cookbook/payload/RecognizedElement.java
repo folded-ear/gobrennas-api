@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.util.EnglishUtils;
+
 import java.util.*;
 
 public class RecognizedElement {
@@ -264,7 +266,17 @@ public class RecognizedElement {
         String[] words = raw.split(" ");
         int pos = 0;
         for (String w : words) {
-            Range r = new Range(pos, pos + w.length());
+            String c = EnglishUtils.canonicalize(w);
+            Range r;
+            if (w.equals(c)) {
+                r = new Range(pos, pos + w.length());
+            } else {
+                int start = w.indexOf(c);
+                r = new Range(
+                        pos + start,
+                        pos + start + c.length()
+                );
+            }
             if (ranges == null || ranges.stream().noneMatch(r::overlaps)) {
                 result.add(r);
             }
