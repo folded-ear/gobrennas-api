@@ -6,6 +6,7 @@ public final class EnglishUtils {
 
     private static Pattern PLURAL_PATTERN = Pattern.compile(".*[^ai]s$");
     private static Pattern SPACES = Pattern.compile("  +");
+    private static Pattern END_PUNCT = Pattern.compile("(^[^a-zA-Z0-9]+)|([^a-zA-Z0-9]+$)");
 
     public static String unpluralize(String word) {
         if (word == null) return word;
@@ -18,7 +19,10 @@ public final class EnglishUtils {
 
     public static String canonicalize(String s) {
         if (s == null) return s;
-        return SPACES.matcher(s.trim()).replaceAll(" ");
+        s = SPACES.matcher(s).replaceAll(" ");
+        s = END_PUNCT.matcher(s).replaceAll("");
+        s = s.trim();
+        return s;
     }
 
 }

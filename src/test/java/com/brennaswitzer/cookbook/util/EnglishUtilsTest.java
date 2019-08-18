@@ -11,4 +11,11 @@ public class EnglishUtilsTest {
         assertEquals("cup", EnglishUtils.unpluralize("cup"));
         assertEquals("cup", EnglishUtils.unpluralize("cups"));
     }
+
+    @Test
+    public void canonicalize() {
+        assertEquals("egg", EnglishUtils.canonicalize("egg,"));
+        assertEquals("egg", EnglishUtils.canonicalize(" egg , "));
+    }
+
 }
