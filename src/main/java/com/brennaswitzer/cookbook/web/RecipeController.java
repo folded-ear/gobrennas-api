@@ -17,6 +17,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.Valid;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -32,8 +33,12 @@ public class RecipeController {
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
+            @RequestParam(name = "scope", defaultValue = "mine") String scope
     ) {
-        return recipeService.findAllRecipes()
+        List<Recipe> recipes = "everyone".equals(scope)
+                ? recipeService.findEveryonesRecipes()
+                : recipeService.findMyRecipes();
+        return recipes
                 .stream()
                 .map(IngredientInfo::from)
                 .collect(Collectors.toList());
@@ -48,7 +53,7 @@ public class RecipeController {
         ResponseEntity<?> errors = validationService.validationService(result);
         if(errors != null) return errors;
 
-        Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
+        Recipe recipe1 = recipeService.createNewRecipe(recipe);
         return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.CREATED);
     }
 
@@ -61,7 +66,7 @@ public class RecipeController {
         ResponseEntity<?> errors = validationService.validationService(result);
         if(errors != null) return errors;
 
-        Recipe recipe1 = recipeService.saveOrUpdateRecipe(recipe);
+        Recipe recipe1 = recipeService.updateRecipe(recipe);
         return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.OK);
     }
 

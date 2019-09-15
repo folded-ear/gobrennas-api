@@ -44,8 +44,16 @@ public class RecipeService {
     @Autowired
     private UserPrincipalAccess principalAccess;
 
-    public Recipe saveOrUpdateRecipe(Recipe recipe) {
+    public Recipe createNewRecipe(Recipe recipe) {
         recipe.setOwner(principalAccess.getUser());
+        return recipeRepository.save(recipe);
+    }
+
+    public Recipe updateRecipe(Recipe recipe) {
+        Recipe existing = recipeRepository.getOne(recipe.getId());
+        if (!existing.getOwner().equals(principalAccess.getUser())) {
+            throw new RuntimeException("You can't update other people's recipes.");
+        }
         return recipeRepository.save(recipe);
     }
 
@@ -53,8 +61,18 @@ public class RecipeService {
         return recipeRepository.findById(id);
     }
 
-    public List<Recipe> findAllRecipes() {
+    public List<Recipe> findMyRecipes() {
         return recipeRepository.findByOwner(principalAccess.getUser());
+    }
+
+    /** use {@link #findMyRecipes} instead */
+    @Deprecated
+    public List<Recipe> findAllRecipes() {
+        return findMyRecipes();
+    }
+
+    public List<Recipe> findEveryonesRecipes() {
+        return recipeRepository.findAll();
     }
 
     public void deleteRecipeById(Long id) {
