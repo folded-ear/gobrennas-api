@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Transactional
@@ -115,6 +113,52 @@ public class RecipeService {
                     r.addIngredient(recipeRepository.findById(id).get()));
         }
         assembleShoppingList(r, taskRepository.getOne(listId), withHeading);
+    }
+
+    private void sendToShoppingList(Recipe r, Task list) {
+        class Pair {
+            private final double factor;
+            private final Recipe recipe;
+
+            private Pair(double factor, Recipe r) {
+                this.factor = factor;
+                this.recipe = r;
+            }
+        }
+        Queue<Pair> queue = new LinkedList<>();
+        queue.add(new Pair(1, r));
+        while (!queue.isEmpty()) {
+            Pair p = queue.remove();
+            ShoppingList l = new ShoppingList();
+            p.recipe.getIngredients().forEach(ref -> {
+                if (!ref.hasIngredient()) return; // do it later...
+                Ingredient ing = ref.getIngredient();
+                Quantity q = ref.getQuantity();
+                if (ing instanceof Recipe) {
+                    queue.add(new Pair(
+                            p.factor * q.getQuantity(),
+                            (Recipe) ing));
+                } else {
+                    l.addPantryItem(new IngredientRef<>(
+                            q.times(p.factor),
+                            (PantryItem) ing,
+                            ref.getPreparation()
+                    ));
+                }
+            });
+            l.createTasks(p.recipe.getName(), list);
+            p.recipe.getIngredients().forEach(ref -> {
+                if (ref.hasIngredient()) return; // already did it
+                String raw = ref.getRaw().trim();
+                if (raw.isEmpty()) return;
+                list.addSubtask(new Task(raw));
+            });
+        }
+    }
+
+    public void sendToShoppingList(Long recipeId, Long listId) {
+        Recipe r = recipeRepository.findById(recipeId).get();
+        sendToShoppingList(r, taskRepository.getOne(listId));
     }
 
     @EventListener

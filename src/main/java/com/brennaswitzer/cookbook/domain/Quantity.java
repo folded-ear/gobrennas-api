@@ -86,6 +86,11 @@ public class Quantity {
         return plus(that.convertTo(units));
     }
 
+    public Quantity times(Double factor) {
+        if (factor.equals(1d)) return this;
+        return new Quantity(quantity * factor, units);
+    }
+
     @Override
     public String toString() {
         String qs = NumberUtils.formatNumber(quantity);

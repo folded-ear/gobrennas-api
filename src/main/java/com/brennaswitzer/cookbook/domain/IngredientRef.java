@@ -99,6 +99,7 @@ public class IngredientRef<I extends Ingredient> {
     }
 
     public String toString(boolean includePrep) {
+        if (! hasIngredient()) return raw;
         StringBuilder sb = new StringBuilder();
         if (hasQuantity()) {
             sb.append(quantity).append(' ');
