@@ -238,6 +238,7 @@ public class RecipeService {
         RawIngredientDissection d = RawUtils.dissect(raw);
         RawIngredientDissection.Section secAmount = d.getQuantity();
         if (secAmount != null) {
+            // there's an amount
             el.withRange(new RecognizedElement.Range(
                     secAmount.getStart(),
                     secAmount.getEnd(),
@@ -246,6 +247,7 @@ public class RecipeService {
         }
         RawIngredientDissection.Section secUnit = d.getUnits();
         if (secUnit != null) {
+            // there's an explicit unit
             Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                     entityManager,
                     secUnit.getText());
@@ -257,19 +259,14 @@ public class RecipeService {
                             : RecognizedElement.Type.NEW_UNIT,
                     ouom.map(UnitOfMeasure::getId).orElse(null)
             ));
-        } else if (secAmount != null) {
-            for (RecognizedElement.Range r : el.unrecognizedWords()) {
-                Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
-                        entityManager,
-                        raw.substring(r.getStart(), r.getEnd()));
-                if (!ouom.isPresent()) continue;
-                el.withRange(r.of(RecognizedElement.Type.UNIT).withValue(ouom.get().getId()));
-            }
         }
         RawIngredientDissection.Section secName = d.getName();
+        int idxNameStart = -1;
         if (secName != null) {
+            // there's an explicit name
             Optional<? extends Ingredient> oing = findIngredientByName(
                     secName.getText());
+            idxNameStart = secName.getStart();
             el.withRange(new RecognizedElement.Range(
                     secName.getStart(),
                     secName.getEnd(),
@@ -279,23 +276,40 @@ public class RecipeService {
                     oing.map(Ingredient::getId).orElse(null)
             ));
         } else {
-            Iterator<PantryItem> items = pantryItemRepository.findAll().iterator();
+            // no name, so see if there's an implicit one
             for (RecognizedElement.Range r : el.unrecognizedWords()) {
                 Optional<? extends Ingredient> oing = findIngredientByName(
                         raw.substring(r.getStart(), r.getEnd()));
-                if (!oing.isPresent()) {
-                    // todo: random suggestions aren't _that_ helpful...
-                    if (items.hasNext()) {
-                        PantryItem it = items.next();
-                        el.withSuggestion(new RecognizedElement.Suggestion(
-                                it.getName(),
-                                r.of(RecognizedElement.Type.ITEM)
-                                        .withValue(it.getId())
-                        ));
-                    }
-                    continue;
-                }
+                if (!oing.isPresent()) continue;
+                idxNameStart = r.getStart();
                 el.withRange(r.of(RecognizedElement.Type.ITEM).withValue(oing.get().getId()));
+                break;
+            }
+        }
+        if (secAmount != null && secUnit == null) {
+            // there's an amount, but no explicit unit, so see if there's an implicit one
+            for (RecognizedElement.Range r : el.unrecognizedWords()) {
+                // unit must precede name, so abort if we get there
+                if (idxNameStart >= 0 && idxNameStart < r.getStart()) break;
+                Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
+                        entityManager,
+                        raw.substring(r.getStart(), r.getEnd()));
+                if (!ouom.isPresent()) continue;
+                el.withRange(r.of(RecognizedElement.Type.UNIT).withValue(ouom.get().getId()));
+                break;
+            }
+        }
+        // make some random suggestions for anything still unrecognized
+        Iterator<PantryItem> items = pantryItemRepository.findAll().iterator();
+        for (RecognizedElement.Range r : el.unrecognizedWords()) {
+            // todo: random suggestions aren't _that_ helpful...
+            if (items.hasNext()) {
+                PantryItem it = items.next();
+                el.withSuggestion(new RecognizedElement.Suggestion(
+                        it.getName(),
+                        r.of(RecognizedElement.Type.ITEM)
+                                .withValue(it.getId())
+                ));
             }
         }
         return el;
