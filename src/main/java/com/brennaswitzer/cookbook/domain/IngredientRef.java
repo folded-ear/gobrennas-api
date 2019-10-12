@@ -70,6 +70,7 @@ public class IngredientRef<I extends Ingredient> {
     }
 
     public Quantity getQuantity() {
+        if (quantity == null) return Quantity.ONE;
         return quantity;
     }
 
