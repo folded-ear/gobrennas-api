@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/tasks.sql
   - include:
       file: db/changelog/users.sql
+  - include:
+      file: db/changelog/labels.sql

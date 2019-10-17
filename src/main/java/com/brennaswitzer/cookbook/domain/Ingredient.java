@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.persistence.*;
-import java.util.Comparator;
+import java.util.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -18,7 +18,7 @@ import java.util.Comparator;
         @JsonSubTypes.Type(value = PantryItem.class, name = "PantryItem"),
         @JsonSubTypes.Type(value = Recipe.class, name = "Recipe")
 })
-public abstract class Ingredient implements Identified {
+public abstract class Ingredient implements Identified, Labeled {
 
     public static Comparator<Ingredient> BY_NAME = (a, b) ->
             a.getName().compareToIgnoreCase(b.getName());
@@ -28,6 +28,9 @@ public abstract class Ingredient implements Identified {
     private Long id;
 
     private String name;
+
+    @ElementCollection
+    private Set<LabelRef> labels = new HashSet<>();
 
     Ingredient() {
     }
@@ -52,6 +55,27 @@ public abstract class Ingredient implements Identified {
     public void setName(String name) {
         this.name = name;
     }
+
+    public Set<Label> getLabels() {
+        Set<Label> s = new HashSet<>();
+        for (LabelRef ref : labels) {
+            s.add(ref.getLabel());
+        }
+        return s;
+    }
+
+    public void addLabel(Label label) {
+        labels.add(new LabelRef(label));
+    }
+
+    public void removeLabel(Label label) {
+        labels.remove(new LabelRef(label));
+    }
+
+    public void clearLabels() {
+        this.labels.clear();
+    }
+
 
 }
 

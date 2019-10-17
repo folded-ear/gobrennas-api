@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -109,4 +111,11 @@ public class RecipeServiceTest {
         assertFalse(si.hasNext());
     }
 
+    @Test
+    public void findRecipeByNameTest() {
+        Recipe recipe = new Recipe("chicken things");
+        service.createNewRecipe(recipe);
+        Iterable<Recipe> recipes = service.findRecipeByName("chicken");
+        System.out.println(recipes);
+    }
 }
