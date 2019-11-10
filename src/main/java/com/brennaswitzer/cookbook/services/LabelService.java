@@ -27,6 +27,10 @@ public class LabelService {
         l.addLabel(ensureLabel(label));
     }
 
+    public void removeLabel(Labeled l, String label) {
+        l.removeLabel(ensureLabel(label));
+    }
+
     public void updateLabels(Labeled l, List<String> labels) {
         // loop through the array of strings and make a Label out of each of them
         // and then clear out whatever was in the Labeled and add all the new shit
