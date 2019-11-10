@@ -3,10 +3,8 @@ package com.brennaswitzer.cookbook.payload;
 import com.brennaswitzer.cookbook.domain.*;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class IngredientInfo {
@@ -149,6 +147,7 @@ public class IngredientInfo {
     private String directions;
     private List<Ref> ingredients;
     private List<String> labels;
+    private Long ownerId;
 
     public Long getId() {
         return id;
@@ -206,6 +205,14 @@ public class IngredientInfo {
         this.labels = labels;
     }
 
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
     public Recipe asRecipe(EntityManager em) {
         Recipe r = getId() == null
                 ? new Recipe()
@@ -231,6 +238,9 @@ public class IngredientInfo {
                 .stream()
                 .map(Label::getName)
                 .collect(Collectors.toList()));
+        if (r.getOwner() != null) {
+            info.setOwnerId(r.getOwner().getId());
+        }
         return info;
     }
 

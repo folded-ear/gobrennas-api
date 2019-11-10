@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.Valid;
-import javax.xml.ws.Response;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -137,6 +135,17 @@ public class RecipeController {
         Recipe recipe = getRecipe(id);
         labelService.addLabel(recipe, label);
         return new ResponseEntity<>(label, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}/labels/{label}")
+    @Transactional
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeLable(
+            @PathVariable Long id,
+            @PathVariable String label
+    ) {
+        Recipe recipe = getRecipe(id);
+        labelService.removeLabel(recipe, label);
     }
 
     @PostMapping("/_actions")
