@@ -23,6 +23,8 @@ public class RecipeAction {
 
     private String rawElement;
 
+    private Integer cursorPosition;
+
     public Type getType() {
         return type;
     }
@@ -63,13 +65,21 @@ public class RecipeAction {
         this.rawElement = rawElement;
     }
 
+    public Integer getCursorPosition() {
+        return cursorPosition;
+    }
+
+    public void setCursorPosition(Integer cursorPosition) {
+        this.cursorPosition = cursorPosition;
+    }
+
     public Object execute(RecipeService service) {
         switch (getType()) {
             case DISSECT_RAW_INGREDIENT:
                 service.recordDissection(dissection);
                 break;
             case RECOGNIZE_ELEMENT:
-                return service.recognizeElement(rawElement);
+                return service.recognizeElement(rawElement, cursorPosition == null ? rawElement.length() : cursorPosition);
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());
         }

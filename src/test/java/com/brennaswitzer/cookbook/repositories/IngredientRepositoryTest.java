@@ -1,0 +1,59 @@
+package com.brennaswitzer.cookbook.repositories;
+
+import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.util.RecipeBox;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import java.util.Iterator;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@Transactional
+public class IngredientRepositoryTest {
+
+    @Autowired
+    IngredientRepository repo;
+
+    @Autowired
+    EntityManager entityManager;
+
+    @Test
+    public void nameContainsPrefixMatching() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager);
+
+        Iterator<Ingredient> itr = repo.findByNameContains("f")
+                .iterator();
+        assertEquals("flour", itr.next().getName());
+        assertEquals("fresh tomatoes", itr.next().getName());
+        assertEquals("Fried Chicken", itr.next().getName());
+        assertFalse(itr.hasNext());
+
+        itr = repo.findByNameContains("fr")
+                .iterator();
+        assertEquals("fresh tomatoes", itr.next().getName());
+        assertEquals("Fried Chicken", itr.next().getName());
+        assertFalse(itr.hasNext());
+
+        itr = repo.findByNameContains("ea")
+                .iterator();
+        assertEquals("italian seasoning", itr.next().getName());
+        assertEquals("yeast", itr.next().getName());
+        assertFalse(itr.hasNext());
+
+        itr = repo.findByNameContains("cru")
+                .iterator();
+        assertEquals("Pizza Crust", itr.next().getName());
+        assertFalse(itr.hasNext());
+    }
+
+}
