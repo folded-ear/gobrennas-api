@@ -159,4 +159,8 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         return refs;
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

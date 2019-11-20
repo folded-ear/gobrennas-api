@@ -7,6 +7,7 @@ import java.util.*;
 public class RecognizedElement {
 
     private String raw;
+    private int cursor;
     private Set<Range> ranges;
     private Set<Suggestion> suggestions;
 
@@ -14,7 +15,12 @@ public class RecognizedElement {
     }
 
     public RecognizedElement(String raw) {
+        this(raw, raw.length());
+    }
+
+    public RecognizedElement(String raw, int cursor) {
         this.raw = raw;
+        this.cursor = Math.min(Math.max(cursor, 0), raw.length());
     }
 
     public enum Type {
@@ -140,6 +146,7 @@ public class RecognizedElement {
     public static class Suggestion {
 
         public static Comparator<Suggestion> BY_POSITION = Comparator.comparingInt(a -> a.target.start);
+        public static Comparator<Suggestion> BY_POSITION_AND_NAME = BY_POSITION.thenComparing(a -> a.name, String.CASE_INSENSITIVE_ORDER);
 
         private String name;
         private Range target;
@@ -200,6 +207,14 @@ public class RecognizedElement {
         this.raw = raw;
     }
 
+    public int getCursor() {
+        return cursor;
+    }
+
+    public void setCursor(int cursor) {
+        this.cursor = cursor;
+    }
+
     public Set<Range> getRanges() {
         if (ranges == null) {
             ranges = new TreeSet<>(Range.BY_POSITION);
@@ -213,7 +228,7 @@ public class RecognizedElement {
 
     public Set<Suggestion> getSuggestions() {
         if (suggestions == null) {
-            suggestions = new TreeSet<>(Suggestion.BY_POSITION);
+            suggestions = new TreeSet<>(Suggestion.BY_POSITION_AND_NAME);
         }
         return suggestions;
     }
@@ -238,19 +253,21 @@ public class RecognizedElement {
         if (!(o instanceof RecognizedElement)) return false;
         RecognizedElement that = (RecognizedElement) o;
         return raw.equals(that.raw) &&
+                cursor == that.cursor &&
                 Objects.equals(ranges, that.ranges) &&
                 Objects.equals(suggestions, that.suggestions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(raw, ranges, suggestions);
+        return Objects.hash(raw, cursor, ranges, suggestions);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("RecognizedElement{");
         sb.append("raw='").append(raw).append('\'');
+        sb.append(", cursor=").append(cursor);
         sb.append(", ranges=").append(ranges);
         sb.append(", suggestions=").append(suggestions);
         sb.append('}');

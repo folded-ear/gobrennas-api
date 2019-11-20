@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedElement;
+import com.brennaswitzer.cookbook.repositories.IngredientRepository;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
@@ -18,7 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -29,6 +34,9 @@ public class RecipeService {
 
     @Autowired
     private PantryItemRepository pantryItemRepository;
+
+    @Autowired
+    private IngredientRepository ingredientRepository;
 
     @Autowired
     private TaskRepository taskRepository;
@@ -241,8 +249,14 @@ public class RecipeService {
 
     public RecognizedElement recognizeElement(String raw) {
         if (raw == null) return null;
+        // if no cursor location is specified, assume it's at the end
+        return recognizeElement(raw, raw.length());
+    }
+
+    public RecognizedElement recognizeElement(String raw, int cursor) {
+        if (raw == null) return null;
         if (raw.trim().isEmpty()) return null;
-        RecognizedElement el = new RecognizedElement(raw);
+        RecognizedElement el = new RecognizedElement(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
         RawIngredientDissection.Section secAmount = d.getQuantity();
         if (secAmount != null) {
@@ -283,7 +297,7 @@ public class RecipeService {
                             : RecognizedElement.Type.NEW_ITEM,
                     oing.map(Ingredient::getId).orElse(null)
             ));
-        } else {
+        } else if (!raw.contains("\"")) {
             // no name, so see if there's an implicit one
             for (RecognizedElement.Range r : el.unrecognizedWords()) {
                 Optional<? extends Ingredient> oing = findIngredientByName(
@@ -294,7 +308,7 @@ public class RecipeService {
                 break;
             }
         }
-        if (secAmount != null && secUnit == null) {
+        if (secAmount != null && secUnit == null && !raw.contains("_")) {
             // there's an amount, but no explicit unit, so see if there's an implicit one
             for (RecognizedElement.Range r : el.unrecognizedWords()) {
                 // unit must precede name, so abort if we get there
@@ -307,17 +321,41 @@ public class RecipeService {
                 break;
             }
         }
-        // make some random suggestions for anything still unrecognized
-        Iterator<PantryItem> items = pantryItemRepository.findAll().iterator();
-        for (RecognizedElement.Range r : el.unrecognizedWords()) {
-            // todo: random suggestions aren't _that_ helpful...
-            if (items.hasNext()) {
-                PantryItem it = items.next();
-                el.withSuggestion(new RecognizedElement.Suggestion(
-                        it.getName(),
-                        r.of(RecognizedElement.Type.ITEM)
-                                .withValue(it.getId())
-                ));
+        if (idxNameStart < 0) { // there's no name, explicit or implicit
+            // based on cursor position, see if we can suggest any names
+            // start with looking backwards for a quote
+            int start = raw.lastIndexOf('"', el.getCursor());
+            boolean hasQuote = true;
+            boolean hasSpace = false;
+            if (start < 0) { // look backwards for a space
+                start = raw.lastIndexOf(' ', el.getCursor());
+                hasQuote = false;
+                hasSpace = true;
+            }
+            if (start < 0) { // whole prefix, i guess
+                start = 0;
+                hasQuote = false;
+                hasSpace = false;
+            }
+            int replaceStart = hasSpace ? start + 1 : start;
+            String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, el.getCursor())
+                    .trim()
+                    .toLowerCase();
+            if (!search.isEmpty()) {
+                Iterable<Ingredient> matches = ingredientRepository.findByNameContains(search);
+                StreamSupport.stream(matches.spliterator(), false)
+                        .limit(10)
+                        .forEach(i -> {
+                            el.withSuggestion(new RecognizedElement.Suggestion(
+                                    i.getName(),
+                                    new RecognizedElement.Range(
+                                            replaceStart,
+                                            el.getCursor(),
+                                            RecognizedElement.Type.ITEM,
+                                            i.getId()
+                                    )
+                            ));
+                        });
             }
         }
         return el;

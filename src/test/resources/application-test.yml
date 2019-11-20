@@ -10,7 +10,7 @@ spring:
     username: sa
     password:
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: create-drop
     generate-ddl: true
