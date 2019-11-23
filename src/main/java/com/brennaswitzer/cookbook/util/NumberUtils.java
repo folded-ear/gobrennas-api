@@ -115,7 +115,7 @@ public final class NumberUtils {
                     tree.stop.getStopIndex() + 1 // we want end, not stop
             );
         } catch (Exception e) {
-            logger.error("Failed to parseNumber(\"" + str + "\")", e);
+            logger.info("Failed to parseNumber(\"" + str + "\")");
             return null;
         }
     }
