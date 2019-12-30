@@ -2,12 +2,6 @@ server:
   port: 5000
 
 spring:
-  datasource:
-    driverClassName: org.postgresql.Driver
-    platform: postgres
-    url: jdbc:postgresql://${RDS_HOSTNAME}:5432/${RDS_DB_NAME}
-    username: ${RDS_USERNAME}
-    password: ${RDS_PASSWORD}
   jpa:
     show-sql: false
     properties:
