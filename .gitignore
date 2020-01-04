@@ -37,6 +37,9 @@ HELP.md
 ### Emacs ###
 *~
 
+### Vi(m) ###
+*.swp
+
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
