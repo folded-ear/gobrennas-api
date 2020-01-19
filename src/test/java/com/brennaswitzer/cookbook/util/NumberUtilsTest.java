@@ -35,6 +35,9 @@ public class NumberUtilsTest {
 
         assertEquals(0.333, parseNumber("1/3"), 0.001);
         assertEquals(0.667, parseNumber("2/3"), 0.001);
+
+        // U+2044 : FRACTION SLASH {solidus (in typography)}
+        assertEquals(0.5, parseNumber("1⁄2"), 0.001);
     }
 
     @Test

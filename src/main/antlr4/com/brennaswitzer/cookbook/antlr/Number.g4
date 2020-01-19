@@ -137,7 +137,8 @@ DOT
     ;
 
 SLASH
-    :   '/'
+    :   '/' // normal slash (solidus)
+    |   '⁄' // U+2044 : FRACTION SLASH
     ;
 
 WHITESPACE
