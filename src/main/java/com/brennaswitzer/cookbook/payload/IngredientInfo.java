@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.payload;
 import com.brennaswitzer.cookbook.domain.*;
 
 import javax.persistence.EntityManager;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -198,6 +199,10 @@ public class IngredientInfo {
     }
 
     public List<String> getLabels() {
+        if (labels == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
         return labels;
     }
 
