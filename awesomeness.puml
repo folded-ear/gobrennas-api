@@ -1,0 +1,7 @@
+@startuml
+Brenna -> Barney: We should make a sequence diagram.
+Barney --> Brenna: How about PlantUML?
+
+Brenna -> Barney: That sounds Awesome!
+Brenna <-- Barney: Woo! Cocktails!
+@enduml
