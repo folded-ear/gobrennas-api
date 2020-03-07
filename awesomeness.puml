@@ -1,7 +1,43 @@
 @startuml
-Brenna -> Barney: We should make a sequence diagram.
-Barney --> Brenna: How about PlantUML?
+actor Brenna
+participant Library as L
+participant List
+participant Board
+participant Planner as P
 
-Brenna -> Barney: That sounds Awesome!
-Brenna <-- Barney: Woo! Cocktails!
+Brenna -> P++: initialize_week(today)
+create Plan
+P -> Plan: create plan
+P -> P--: activate plan
+
+Brenna -> L: filter_by(criteria)
+activate L
+
+L -> Brenna: recipes_list
+deactivate L
+
+Brenna -> Plan: add(recipe)
+create "Recipe" as RC
+Plan -> RC: copy(recipe)
+
+Brenna -> Plan++: edit_recipe
+Plan -> Brenna--: edit_form
+Brenna -> Plan++: save_edits
+Plan -> RC--: save_recipe_state
+
+Brenna -> Plan++: add_thing(wine)
+Plan -> Brenna--:
+
+Brenna -> Plan++: show the plan
+Plan -> Brenna--: plans
+
+Brenna -> List ++ : show grocery list
+
+List -> Board++: get items
+List <- Board--: items
+
+List -> Plan++: get_items
+Plan -> List--: items
+
+
 @enduml

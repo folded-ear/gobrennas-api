@@ -1,0 +1,6 @@
+@startuml
+participant Plan
+
+create Section
+Plan -> Section: create_section
+@enduml
