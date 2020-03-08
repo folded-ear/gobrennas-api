@@ -1,0 +1,119 @@
+@startuml
+hide empty fields
+hide empty methods
+
+package RecipeLibrary {
+    interface Resource {
+        String name
+    }
+
+    class PurchasedResource implements Resource {
+    }
+
+    class Recipe implements Resource {
+        String externalUrl
+        Quantity yield
+        Duration time
+        String directions
+    }
+
+    class RecipeItem {
+        String raw
+        Quantity quantity
+        String preparation
+    }
+    Recipe *-r- "*" RecipeItem : items
+    Resource "1" --o RecipeItem : resource
+}
+
+package Planner {
+    class PlanItem {
+        String name
+        boolean deleted
+        DateTime scheduledFor
+    }
+    PlanItem o-r- "*" PlanItem : children
+    note bottom on link : plan hierarchy
+    PlanItem *- "*" PlanItem : recipeComponents
+    note bottom on link
+        other PlanItems, regardless
+        of location, which came from
+        this PlanItem's "create event"
+    end note
+    PlanItem o-l- "1" PlanItemStatus : status
+    RecipeItem "?" -o PlanItem : recipeItem
+    Recipe "1" --o PlanItem : recipe
+
+    class Plan extends PlanItem {
+        Owner owner
+    }
+
+    enum PlanItemStatus {
+        NEEDED
+        ACQUIRED
+        COMPLETED
+    }
+
+    /'
+    package impl {
+        class SectionItemImpl extends PlanItem {
+            String name
+            DateTime scheduledFor
+            List<PlanItem> children
+        }
+        class RecipeItemImpl extends PlanItem {
+            String name
+            Recipe recipe
+            List<PlanItem> children
+            List<PlanItem> recipeComponents
+        }
+        SectionItemImpl -[hidden]> RecipeItemImpl
+        class SplitItemImpl extends PlanItem {
+            String name
+            Recipe recipe
+            List<PlanItem> children
+            PlanItem componentOf
+        }
+        class IngredientItemImpl extends PlanItem {
+            String name
+            PlanItem componentOf
+        }
+        class AdHocItemImpl extends PlanItem {
+            String name
+        }
+    }
+    '/
+}
+
+package Tasks {
+    class Task {
+        String name
+        boolean deleted
+    }
+    Task *- "*" Task : children
+
+    class TaskList extends Task {
+        Owner owner
+    }
+}
+
+package Shopping {
+    class ShoppingList {
+        Owner owner
+    }
+    ShoppingList *-- "*" ShoppingListItem : items
+    ShoppingList o-l- "*" TaskList : includedLists
+    ShoppingList o- "*" Plan : includedPlans
+
+    abstract ShoppingListItem {
+        String name
+        boolean deleted
+    }
+
+    class ShoppingListTaskItem extends ShoppingListItem
+    Task "1" -o ShoppingListTaskItem
+
+    class ShoppingListPlanItem extends ShoppingListItem
+    ShoppingListPlanItem o- "+" PlanItem
+}
+@enduml
