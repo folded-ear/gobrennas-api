@@ -18,7 +18,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     List<Recipe> findByOwner(User owner);
 
-    @Query("select recipe\n" +
+    @Query("select distinct recipe\n" +
             "from Recipe recipe\n" +
             "   left join recipe.labels rl\n" +
             "   left join rl.label label\n" +
@@ -30,7 +30,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             @Param("term") String filter
     );
 
-    @Query("select recipe\n" +
+    @Query("select distinct recipe\n" +
             "from Recipe recipe\n" +
             "   left join recipe.labels rl\n" +
             "   left join rl.label label\n" +
