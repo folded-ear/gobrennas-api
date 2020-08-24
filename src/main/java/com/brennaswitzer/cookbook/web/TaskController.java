@@ -82,6 +82,15 @@ public class TaskController {
         taskService.renameTask(id, info.getName());
     }
 
+    @PutMapping("/{id}/parentId")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetParent(
+            @PathVariable("id") Long id,
+            @RequestBody ParentId parent
+    ) {
+        taskService.resetParent(id, parent.getParentId());
+    }
+
     @PutMapping("/{id}/subtaskIds")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resetSubtasks(

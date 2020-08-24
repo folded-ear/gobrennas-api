@@ -120,6 +120,18 @@ public class TaskService {
         return t;
     }
 
+    public void resetParent(Long id, Long parentId) {
+        Task t = getTaskById(id);
+        Task p = t.getParent();
+        Task np = getTaskById(parentId);
+        p.removeSubtask(t);
+        if (np == p.getParent()) {
+            np.addSubtaskAfter(t, p);
+        } else {
+            np.addSubtask(t);
+        }
+    }
+
     public Task renameTask(Long id, String name) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         t.setName(name);
