@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.util;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.util.SerializationUtils;
 
 import javax.servlet.http.Cookie;
@@ -29,6 +31,14 @@ public class CookieUtils {
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);
+    }
+
+    public static void addCookie(HttpServletResponse response, ResponseCookie cookie) {
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    public static void addCookie(HttpServletResponse response, ResponseCookie.ResponseCookieBuilder builder) {
+        addCookie(response, builder.build());
     }
 
     public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {

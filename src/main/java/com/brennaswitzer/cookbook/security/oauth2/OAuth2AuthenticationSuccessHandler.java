@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.security.TokenProvider;
 import com.brennaswitzer.cookbook.util.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -68,7 +69,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String token = tokenProvider.createToken(authentication);
 
-        CookieUtils.addCookie(response, TOKEN_COOKIE_NAME, token, (int)(tokenExpirationMsec / 1000));
+        ResponseCookie.ResponseCookieBuilder cb = ResponseCookie.from(TOKEN_COOKIE_NAME, token)
+                .path("/")
+                .maxAge(tokenExpirationMsec / 1000);
+        if (request.isSecure()) {
+            // If we're on a secure endpoint, set it up for cross-origin use by
+            // the import bookmarklet. If isn't secure... bummer?
+            cb.secure(true)
+                    .sameSite("None");
+        }
+        CookieUtils.addCookie(response, cb);
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("token", token)
                 .build().toUriString();
