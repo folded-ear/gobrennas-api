@@ -1,8 +1,9 @@
 package com.brennaswitzer.cookbook.config;
 
+import com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter;
 import com.brennaswitzer.cookbook.security.CustomUserDetailsService;
+import com.brennaswitzer.cookbook.security.HeaderTokenAuthenticationFilter;
 import com.brennaswitzer.cookbook.security.RestAuthenticationEntryPoint;
-import com.brennaswitzer.cookbook.security.TokenAuthenticationFilter;
 import com.brennaswitzer.cookbook.security.oauth2.CustomOAuth2UserService;
 import com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationFailureHandler;
@@ -20,6 +21,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter.TOKEN_COOKIE_NAME;
 
 
 /**
@@ -71,8 +74,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Bean
-    public TokenAuthenticationFilter tokenAuthenticationFilter() {
-        return new TokenAuthenticationFilter();
+    public HeaderTokenAuthenticationFilter headerTokenAuthenticationFilter() {
+        return new HeaderTokenAuthenticationFilter();
+    }
+
+    @Bean
+    public CookieTokenAuthenticationFilter cookieTokenAuthenticationFilter() {
+        return new CookieTokenAuthenticationFilter();
     }
 
     /*
@@ -119,7 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                 .logout()
                     .logoutSuccessUrl(publicUrl)
-                    .deleteCookies("JSESSIONID")
+                    .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
                     .permitAll()
                     .and()
                 .authorizeRequests()
@@ -154,7 +162,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .failureHandler(oAuth2AuthenticationFailureHandler);
 
         // Add our custom Token based authentication filter
-        http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(cookieTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(headerTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
 }

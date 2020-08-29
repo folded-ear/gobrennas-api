@@ -5,10 +5,12 @@ import com.brennaswitzer.cookbook.exceptions.BadRequestException;
 import com.brennaswitzer.cookbook.security.TokenProvider;
 import com.brennaswitzer.cookbook.util.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -17,10 +19,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
+import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter.TOKEN_COOKIE_NAME;
 import static com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    @Value("${app.auth.tokenExpirationMsec}")
+    private long tokenExpirationMsec;
 
     private TokenProvider tokenProvider;
 
@@ -62,6 +68,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String token = tokenProvider.createToken(authentication);
 
+        CookieUtils.addCookie(response, TOKEN_COOKIE_NAME, token, (int)(tokenExpirationMsec / 1000));
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("token", token)
                 .build().toUriString();
