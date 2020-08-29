@@ -126,6 +126,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .authenticationEntryPoint(new RestAuthenticationEntryPoint())
                     .and()
                 .logout()
+                    .logoutUrl("/oauth2/logout")
                     .logoutSuccessUrl(publicUrl)
                     .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
                     .permitAll()
