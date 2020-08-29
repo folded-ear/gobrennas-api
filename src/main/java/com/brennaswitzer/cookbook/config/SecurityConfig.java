@@ -8,6 +8,7 @@ import com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationR
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -50,6 +51,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
         prePostEnabled = true
 )
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Value("${app.public-url}")
+    String publicUrl;
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
@@ -112,6 +116,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .disable()
                 .exceptionHandling()
                     .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                    .and()
+                .logout()
+                    .logoutSuccessUrl(publicUrl)
+                    .deleteCookies("JSESSIONID")
+                    .permitAll()
                     .and()
                 .authorizeRequests()
                     .antMatchers("/",

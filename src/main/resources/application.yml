@@ -35,6 +35,8 @@ spring:
               - email
               - profile
 app:
+  # where 'index.html' lives from the UA's perspective
+  public-url: http://localhost:3001/
   auth:
     tokenSecret: ${TOKEN_SECRET}
     tokenExpirationMsec: 864000000
