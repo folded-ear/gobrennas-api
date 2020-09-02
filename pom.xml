@@ -103,6 +103,7 @@
                 <version>${org.antlr.version}</version>
                 <executions>
                     <execution>
+                        <id>antlr-java</id>
                         <goals>
                             <goal>antlr4</goal>
                         </goals>
@@ -112,6 +113,18 @@
                             <treatWarningsAsErrors>true</treatWarningsAsErrors>
                             <listener>false</listener>
                             <visitor>false</visitor>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>antlr-javascript</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>${basedir}/src/main/antlr4</sourceDirectory>
+                            <outputDirectory>${basedir}/client/src</outputDirectory>
+                            <treatWarningsAsErrors>true</treatWarningsAsErrors>
+                            <arguments>-Dlanguage=JavaScript</arguments>
                         </configuration>
                     </execution>
                 </executions>

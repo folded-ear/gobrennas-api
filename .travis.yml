@@ -5,6 +5,7 @@ env:
   - REACT_APP_VERSION="$TRAVIS_BUILD_NUMBER.$TRAVIS_COMMIT"
 
 before_install:
+  - mvn compile
   - nvm install
   - cd client
   - npm ci

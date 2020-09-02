@@ -10,12 +10,6 @@ import static org.junit.Assert.assertNull;
 public class NumberUtilsTest {
 
     @Test
-    public void parseSimpleNames() {
-        NumberUtils.NAMES.keySet().forEach(n ->
-                assertEquals(NumberUtils.NAMES.get(n), parseNumber(n), 0.001));
-    }
-
-    @Test
     public void parseDecimal() {
         assertEquals(1, parseNumber("1"), 0.001);
         assertEquals(1, parseNumber("1.0"), 0.001);
