@@ -1,15 +1,18 @@
 package com.brennaswitzer.cookbook.util;
 
+import com.brennaswitzer.cookbook.antlr.NumberBaseVisitor;
 import com.brennaswitzer.cookbook.antlr.NumberLexer;
 import com.brennaswitzer.cookbook.antlr.NumberParser;
 import com.brennaswitzer.cookbook.util.antlr.FastFailErrorListener;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.text.NumberFormat;
+import java.util.function.BiFunction;
 
 public final class NumberUtils {
 
@@ -40,13 +43,78 @@ public final class NumberUtils {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("NumberWithRange{");
-            sb.append("number=").append(number);
-            sb.append(", start=").append(start);
-            sb.append(", end=").append(end);
-            sb.append('}');
-            return sb.toString();
+            return "NumberWithRange{" + "number=" + number +
+                    ", start=" + start +
+                    ", end=" + end +
+                    '}';
         }
+    }
+
+    private static class NumVis extends NumberBaseVisitor<NumberWithRange> {
+
+        @Override
+        public NumberWithRange visitFraction(NumberParser.FractionContext ctx) {
+            if (ctx.vf != null) {
+                return visitVulgarFraction(ctx.vf);
+            }
+            return aggregateResult(
+                    visitInteger(ctx.n),
+                    visitInteger(ctx.d),
+                    (n, d) -> n / d
+            );
+        }
+
+        @Override
+        public NumberWithRange visitNumber(NumberParser.NumberContext ctx) {
+            if (ctx.f != null) {
+                return aggregateResult(visitInteger(ctx.i), visitFraction(ctx.f));
+            }
+            return super.visitNumber(ctx);
+        }
+
+        @Override
+        public NumberWithRange visitDecimal(NumberParser.DecimalContext ctx) {
+            return val(Double.parseDouble(ctx.getText()), ctx);
+        }
+
+        @Override
+        public NumberWithRange visitInteger(NumberParser.IntegerContext ctx) {
+            return val(Double.parseDouble(ctx.getText()), ctx);
+        }
+
+        @Override
+        public NumberWithRange visitVulgarFraction(NumberParser.VulgarFractionContext ctx) {
+            return val(ctx.val, ctx);
+        }
+
+        @Override
+        public NumberWithRange visitName(NumberParser.NameContext ctx) {
+            return val(ctx.val, ctx);
+        }
+
+        @Override
+        protected NumberWithRange aggregateResult(NumberWithRange aggregate, NumberWithRange nextResult) {
+            return aggregateResult(aggregate, nextResult, Double::sum);
+        }
+
+        private NumberWithRange aggregateResult(NumberWithRange aggregate, NumberWithRange nextResult, BiFunction<Double, Double, Double> combiner) {
+            if (aggregate == null) return nextResult;
+            if (nextResult == null) return aggregate;
+            return new NumberWithRange(
+                    combiner.apply(aggregate.number, nextResult.number),
+                    Math.min(aggregate.start, nextResult.start),
+                    Math.max(aggregate.end, nextResult.end)
+            );
+        }
+
+        private NumberWithRange val(double val, ParserRuleContext ctx) {
+            return new NumberWithRange(
+                    val,
+                    ctx.start.getStartIndex(),
+                    ctx.stop.getStopIndex() + 1
+            );
+        }
+
     }
 
     public static NumberWithRange parseNumberWithRange(String str) {
@@ -58,11 +126,11 @@ public final class NumberUtils {
             NumberParser parser = new NumberParser(tokens);
             parser.setErrorHandler(new BailErrorStrategy());
             parser.addErrorListener(new FastFailErrorListener());
-            NumberParser.StartContext tree = parser.start();
+            NumberWithRange result = new NumVis().visitStart(parser.start());
             return new NumberWithRange(
-                    Math.round(tree.val * 1000) / 1000.0,
-                    tree.start.getStartIndex(),
-                    tree.stop.getStopIndex() + 1 // we want end, not stop
+                    Math.round(result.number * 1000) / 1000.0,
+                    result.start,
+                    result.end
             );
         } catch (Exception e) {
             logger.info("Failed to parseNumber(\"" + str + "\")");

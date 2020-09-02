@@ -112,7 +112,6 @@
                             <outputDirectory>${basedir}/src/main/java</outputDirectory>
                             <treatWarningsAsErrors>true</treatWarningsAsErrors>
                             <listener>false</listener>
-                            <visitor>false</visitor>
                         </configuration>
                     </execution>
                     <execution>
@@ -124,6 +123,7 @@
                             <sourceDirectory>${basedir}/src/main/antlr4</sourceDirectory>
                             <outputDirectory>${basedir}/client/src</outputDirectory>
                             <treatWarningsAsErrors>true</treatWarningsAsErrors>
+                            <listener>false</listener>
                             <arguments>-Dlanguage=JavaScript</arguments>
                         </configuration>
                     </execution>

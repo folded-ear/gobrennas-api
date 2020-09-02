@@ -67,6 +67,13 @@ public class NumberUtilsTest {
     }
 
     @Test
+    public void parseMixedThings() {
+        assertEquals(3.5, parseNumber("three and 1/2"), 0.001);
+        assertEquals(3.5, parseNumber("three & 1/2"), 0.001);
+        assertEquals(3.5, parseNumber("one and 1 1/2 and ½ & 0.5"), 0.001);
+    }
+
+    @Test
     public void parseWithCoords() {
         NumberUtils.NumberWithRange nwr = parseNumberWithRange("  1 and 2/3 cups fish");
         System.out.println(nwr);

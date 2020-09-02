@@ -1,32 +1,33 @@
 grammar Number;
 
-start returns [double val]
-    :   a=atom { $val = $a.val; }
-        (AND b=atom { $val += $b.val; } )*
+start
+    :   a=atom
+        (AND b=atom)*
     ;
 
-atom returns [double val]
-    :   number { $val = $number.val; }
-    |   name { $val = $name.val; }
-    |   fraction { $val = $fraction.val; }
+atom
+    :   number
+    |   name
+    |   fraction
     ;
 
-number returns [double val]
-    :   integer { $val = $integer.val; }
-        (AND? fraction { $val += $fraction.val; } )?
-    |   decimal { $val = $decimal.val; }
+number
+    :   i=integer
+        (AND? f=fraction)?
+    |   d=decimal
     ;
 
-integer returns [double val]
-    :   INTEGER { $val = Double.parseDouble($INTEGER.text); };
-
-decimal returns [double val]
-    :   DECIMAL { $val = Double.parseDouble($DECIMAL.text); }
+integer
+    :   INTEGER
     ;
 
-fraction returns [double val]
-    :   n=integer SLASH d=integer { $val = $n.val / $d.val; }
-    |   vf=vulgarFraction { $val = $vf.val; }
+decimal
+    :   DECIMAL
+    ;
+
+fraction
+    :   n=integer SLASH d=integer
+    |   vf=vulgarFraction
     ;
 
 vulgarFraction returns [double val]
