@@ -146,6 +146,18 @@
                                 <include>*.tokens</include>
                             </includes>
                         </fileset>
+                        <fileset>
+                            <directory>${basedir}/client/src/com/brennaswitzer/cookbook/antlr</directory>
+                            <includes>
+                                <include>*.*</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>${basedir}/client/src</directory>
+                            <includes>
+                                <include>*.tokens</include>
+                            </includes>
+                        </fileset>
                     </filesets>
                 </configuration>
             </plugin>
