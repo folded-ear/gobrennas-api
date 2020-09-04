@@ -257,7 +257,7 @@ WHITESPACE
     ;
 
 // This is so the lexer can "soak up" anything, and all the error handling
-// happens at the parsing layer. Since we're runnning a boolean distinction for
+// happens at the parsing layer. Since we're running a boolean distinction for
 // recognition, differentiating the layers is irrelevant.
 ExtraGarbage
     :   .
