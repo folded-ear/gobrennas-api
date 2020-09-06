@@ -45,6 +45,9 @@ public class Task extends BaseEntity implements Item {
     @ManyToOne
     private Task parent;
 
+    @ManyToOne(cascade = {CascadeType.MERGE})
+    private Ingredient ingredient;
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @BatchSize(size = 100)
     private Set<Task> subtasks;
@@ -60,6 +63,17 @@ public class Task extends BaseEntity implements Item {
         setName(name);
         setPosition(position);
     }
+
+    public Task(Ingredient ingredient) {
+        this(null, ingredient, null);
+    }
+
+    public Task(Quantity quantity, Ingredient ingredient, String preparation) {
+        setQuantity(quantity);
+        setIngredient(ingredient);
+        setPreparation(preparation);
+    }
+
 
     public String getName() {
         return name;
@@ -247,11 +261,20 @@ public class Task extends BaseEntity implements Item {
         return preparation;
     }
 
+    @Override
+    public Ingredient getIngredient() {
+        return ingredient;
+    }
+
     public void setQuantity(Quantity quantity) {
         this.quantity = quantity;
     }
 
     public void setPreparation(String preparation) {
         this.preparation = preparation;
+    }
+
+    public void setIngredient(Ingredient ingredient) {
+        this.ingredient = ingredient;
     }
 }
