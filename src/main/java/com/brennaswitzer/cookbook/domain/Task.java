@@ -64,15 +64,17 @@ public class Task extends BaseEntity implements Item {
         setPosition(position);
     }
 
-    public Task(Ingredient ingredient) {
-        this(null, ingredient, null);
-    }
-
-    public Task(Quantity quantity, Ingredient ingredient, String preparation) {
+    public Task(String name, Quantity quantity, Ingredient ingredient, String preparation) {
+        setName(name);
         setQuantity(quantity);
         setIngredient(ingredient);
         setPreparation(preparation);
     }
+
+    public Task(String name, Ingredient ingredient) {
+        this(name, null, ingredient, null);
+    }
+
 
 
     public String getName() {
