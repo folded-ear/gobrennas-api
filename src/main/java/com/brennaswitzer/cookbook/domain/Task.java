@@ -34,6 +34,11 @@ public class Task extends BaseEntity implements Item {
     @NotNull
     private String name;
 
+    @Embedded
+    private Quantity quantity;
+
+    private String preparation;
+
     @NotNull
     private int position;
 
@@ -228,16 +233,25 @@ public class Task extends BaseEntity implements Item {
 
     @Override
     public String getRaw() {
-        return null;
+        return name;
     }
 
     @Override
     public Quantity getQuantity() {
-        return null;
+        if (quantity == null) return Quantity.ONE;
+        return quantity;
     }
 
     @Override
     public String getPreparation() {
-        return null;
+        return preparation;
+    }
+
+    public void setQuantity(Quantity quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setPreparation(String preparation) {
+        this.preparation = preparation;
     }
 }
