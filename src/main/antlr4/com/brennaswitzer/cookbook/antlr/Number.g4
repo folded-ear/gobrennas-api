@@ -185,7 +185,7 @@ INTEGER
 DECIMAL
     :   (   INTEGER
         |   ZERO
-        ) DOT DIGIT+
+        )? DOT DIGIT+
     ;
 
 NAME
