@@ -11,7 +11,7 @@ import java.util.*;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("task")
-public class Task extends BaseEntity {
+public class Task extends BaseEntity implements Item {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -34,11 +34,19 @@ public class Task extends BaseEntity {
     @NotNull
     private String name;
 
+    @Embedded
+    private Quantity quantity;
+
+    private String preparation;
+
     @NotNull
     private int position;
 
     @ManyToOne
     private Task parent;
+
+    @ManyToOne(cascade = {CascadeType.MERGE})
+    private Ingredient ingredient;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @BatchSize(size = 100)
@@ -55,6 +63,19 @@ public class Task extends BaseEntity {
         setName(name);
         setPosition(position);
     }
+
+    public Task(String name, Quantity quantity, Ingredient ingredient, String preparation) {
+        setName(name);
+        setQuantity(quantity);
+        setIngredient(ingredient);
+        setPreparation(preparation);
+    }
+
+    public Task(String name, Ingredient ingredient) {
+        this(name, null, ingredient, null);
+    }
+
+
 
     public String getName() {
         return name;
@@ -226,4 +247,36 @@ public class Task extends BaseEntity {
         return of(after.parent, after);
     }
 
+    @Override
+    public String getRaw() {
+        return name;
+    }
+
+    @Override
+    public Quantity getQuantity() {
+        if (quantity == null) return Quantity.ONE;
+        return quantity;
+    }
+
+    @Override
+    public String getPreparation() {
+        return preparation;
+    }
+
+    @Override
+    public Ingredient getIngredient() {
+        return ingredient;
+    }
+
+    public void setQuantity(Quantity quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setPreparation(String preparation) {
+        this.preparation = preparation;
+    }
+
+    public void setIngredient(Ingredient ingredient) {
+        this.ingredient = ingredient;
+    }
 }

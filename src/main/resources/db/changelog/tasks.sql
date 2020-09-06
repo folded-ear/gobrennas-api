@@ -171,3 +171,25 @@ alter table shopping_list_items
     drop amount;
 alter table shopping_list_items
     alter quantity type varchar;
+
+--changeset switzerb:task-implements-item
+alter table task
+    add column quantity double precision;
+
+alter table task
+    add column units_id bigint;
+
+alter table task
+    add column ingredient_id bigint;
+
+alter table task
+    add column preparation varchar;
+
+alter table task
+    add constraint fk_task_ingredients_id
+        foreign key (ingredient_id) references ingredient (id);
+
+alter table task
+    add constraint fk_task_ingredients_units_id
+        foreign key (units_id) references unit_of_measure (id)
+            on delete set null;

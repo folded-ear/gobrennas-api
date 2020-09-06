@@ -2,10 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.NumberUtils;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Embeddable;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.util.*;
 
 @Embeddable
@@ -21,6 +18,8 @@ public class Quantity {
         return new Quantity(count, null);
     }
 
+    @SuppressWarnings("DefaultAnnotationParam")
+    @Column(nullable = true)
     private double quantity;
 
     @ManyToOne

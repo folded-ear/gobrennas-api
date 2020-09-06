@@ -32,8 +32,7 @@ public abstract class Ingredient implements Identified, Labeled {
     @ElementCollection
     private Set<LabelRef> labels = new HashSet<>();
 
-    Ingredient() {
-    }
+    public Ingredient() {}
 
     Ingredient(String name) {
         setName(name);

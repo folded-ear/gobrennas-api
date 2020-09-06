@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.RecipeBox;
 import org.junit.Test;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
@@ -212,6 +213,13 @@ public class TaskTest {
         bread.after(salsa);
 
         System.out.println(renderTree("Shopping", groceries));
+    }
+
+    @Test
+    public void taskCanBeItem() {
+        RecipeBox box = new RecipeBox();
+        Task saltTask = new Task("salt", box.salt);
+        System.out.println(saltTask);
     }
 
 }
