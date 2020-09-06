@@ -11,7 +11,7 @@ import java.util.*;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("task")
-public class Task extends BaseEntity {
+public class Task extends BaseEntity implements Item {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -226,4 +226,18 @@ public class Task extends BaseEntity {
         return of(after.parent, after);
     }
 
+    @Override
+    public String getRaw() {
+        return null;
+    }
+
+    @Override
+    public Quantity getQuantity() {
+        return null;
+    }
+
+    @Override
+    public String getPreparation() {
+        return null;
+    }
 }
