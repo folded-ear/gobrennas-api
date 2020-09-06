@@ -192,5 +192,5 @@ alter table task
 
 alter table task
     add constraint fk_task_ingredients_units_id
-        foreign key (units_id) references ingredient (id)
+        foreign key (units_id) references unit_of_measure (id)
             on delete cascade;
