@@ -171,3 +171,10 @@ alter table shopping_list_items
     drop amount;
 alter table shopping_list_items
     alter quantity type varchar;
+
+--changeset switzerb:quantity-and-preparation
+alter table task
+    add column quantity double precision;
+
+alter table task
+    add column preparation varchar;
