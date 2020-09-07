@@ -1,19 +1,20 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.Task;
-import com.brennaswitzer.cookbook.domain.TaskList;
-import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
+import com.brennaswitzer.cookbook.util.EnglishUtils;
+import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,6 +24,9 @@ import java.util.List;
 @Service
 @Transactional
 public class TaskService {
+
+    @Autowired
+    EntityManager entityManager;
 
     @Autowired
     private TaskRepository taskRepo;
@@ -38,6 +42,12 @@ public class TaskService {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    ItemService itemService;
+
+    @Autowired
+    IngredientService ingredientService;
 
     public Iterable<TaskList> getTaskLists(User owner) {
         return getTaskLists(owner.getId());
@@ -103,6 +113,7 @@ public class TaskService {
 
     public Task createSubtask(Long parentId, String name) {
         Task t = new Task(name);
+        doItemProcessing(t);
         getTaskById(parentId, AccessLevel.CHANGE)
             .insertSubtask(0, t);
         taskRepo.save(t);
@@ -114,6 +125,7 @@ public class TaskService {
             throw new IllegalArgumentException("You can't create a subtask after 'null'");
         }
         Task t = new Task(name);
+        doItemProcessing(t);
         getTaskById(parentId, AccessLevel.CHANGE)
                 .addSubtaskAfter(t, getTaskById(afterId));
         taskRepo.save(t);
@@ -135,7 +147,26 @@ public class TaskService {
     public Task renameTask(Long id, String name) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         t.setName(name);
+        doItemProcessing(t);
         return t;
+    }
+
+    private void doItemProcessing(Task t) {
+        RawIngredientDissection dissection = RawIngredientDissection.fromRecognizedItem(
+                itemService.recognizeItem(t.getName()));
+        if (!dissection.hasName()) return;
+        t.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
+        t.setPreparation(dissection.getPrep());
+        if (!dissection.hasQuantity()) return;
+        Quantity q = new Quantity();
+        Double quantity = NumberUtils.parseNumber(dissection.getQuantityText());
+        if (quantity == null) return; // couldn't parse?
+        q.setQuantity(quantity);
+        if (dissection.hasUnits()) {
+            q.setUnits(UnitOfMeasure.ensure(entityManager,
+                    EnglishUtils.canonicalize(dissection.getUnitsText())));
+        }
+        t.setQuantity(q);
     }
 
     public Task resetSubtasks(Long id, long[] subtaskIds) {

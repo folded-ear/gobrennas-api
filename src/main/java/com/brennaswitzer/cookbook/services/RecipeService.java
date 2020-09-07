@@ -28,7 +28,8 @@ public class RecipeService {
     @Autowired
     private RecipeRepository recipeRepository;
 
-    @Autowired IngredientService ingredientService;
+    @Autowired
+    IngredientService ingredientService;
 
     @Autowired
     private TaskRepository taskRepository;

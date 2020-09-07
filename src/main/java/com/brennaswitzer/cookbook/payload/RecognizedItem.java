@@ -99,6 +99,7 @@ public class RecognizedItem {
             );
         }
 
+        @SuppressWarnings("RedundantIfStatement")
         public boolean overlaps(Range r) {
             // this wraps r
             if (this.start <= r.start && this.end >= r.end) return true;

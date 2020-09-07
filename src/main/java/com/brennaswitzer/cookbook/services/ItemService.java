@@ -35,14 +35,18 @@ public class ItemService {
     }
 
     public RecognizedItem recognizeItem(String raw, int cursor) {
+        return recognizeItem(raw, cursor, true);
+    }
+
+    public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions) {
         if (raw == null) return null;
         if (raw.trim().isEmpty()) return null;
-        RecognizedItem el = new RecognizedItem(raw, cursor);
+        RecognizedItem item = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
         RawIngredientDissection.Section secAmount = d.getQuantity();
         if (secAmount != null) {
             // there's an amount
-            el.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedItem.Range(
                     secAmount.getStart(),
                     secAmount.getEnd(),
                     RecognizedItem.Type.AMOUNT
@@ -54,7 +58,7 @@ public class ItemService {
             Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                     entityManager,
                     secUnit.getText());
-            el.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedItem.Range(
                     secUnit.getStart(),
                     secUnit.getEnd(),
                     ouom.isPresent()
@@ -70,7 +74,7 @@ public class ItemService {
             Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
             idxNameStart = secName.getStart();
-            el.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedItem.Range(
                     secName.getStart(),
                     secName.getEnd(),
                     oing.isPresent()
@@ -80,36 +84,36 @@ public class ItemService {
             ));
         } else if (!raw.contains("\"")) {
             // no name, so see if there's an implicit one
-            for (RecognizedItem.Range r : el.unrecognizedWords()) {
+            for (RecognizedItem.Range r : item.unrecognizedWords()) {
                 Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
                         raw.substring(r.getStart(), r.getEnd()));
                 if (!oing.isPresent()) continue;
                 idxNameStart = r.getStart();
-                el.withRange(r.of(RecognizedItem.Type.ITEM).withValue(oing.get().getId()));
+                item.withRange(r.of(RecognizedItem.Type.ITEM).withValue(oing.get().getId()));
                 break;
             }
         }
         if (secAmount != null && secUnit == null && !raw.contains("_")) {
             // there's an amount, but no explicit unit, so see if there's an implicit one
-            for (RecognizedItem.Range r : el.unrecognizedWords()) {
+            for (RecognizedItem.Range r : item.unrecognizedWords()) {
                 // unit must precede name, so abort if we get there
                 if (idxNameStart >= 0 && idxNameStart < r.getStart()) break;
                 Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                         entityManager,
                         raw.substring(r.getStart(), r.getEnd()));
                 if (!ouom.isPresent()) continue;
-                el.withRange(r.of(RecognizedItem.Type.UNIT).withValue(ouom.get().getId()));
+                item.withRange(r.of(RecognizedItem.Type.UNIT).withValue(ouom.get().getId()));
                 break;
             }
         }
-        if (idxNameStart < 0) { // there's no name, explicit or implicit
+        if (withSuggestions && idxNameStart < 0) { // there's no name, explicit or implicit
             // based on cursor position, see if we can suggest any names
             // start with looking backwards for a quote
-            int start = raw.lastIndexOf('"', el.getCursor());
+            int start = raw.lastIndexOf('"', item.getCursor());
             boolean hasQuote = true;
             boolean hasSpace = false;
             if (start < 0) { // look backwards for a space
-                start = raw.lastIndexOf(' ', el.getCursor());
+                start = raw.lastIndexOf(' ', item.getCursor());
                 hasQuote = false;
                 hasSpace = true;
             }
@@ -119,25 +123,25 @@ public class ItemService {
                 hasSpace = false;
             }
             int replaceStart = hasSpace ? start + 1 : start;
-            String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, el.getCursor())
+            String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
                     .trim()
                     .toLowerCase();
             if (!search.isEmpty()) {
                 Iterable<Ingredient> matches = ingredientRepository.findByNameContains(search);
                 StreamSupport.stream(matches.spliterator(), false)
                         .limit(10)
-                        .forEach(i -> el.withSuggestion(new RecognizedItem.Suggestion(
+                        .forEach(i -> item.withSuggestion(new RecognizedItem.Suggestion(
                                 i.getName(),
                                 new RecognizedItem.Range(
                                         replaceStart,
-                                        el.getCursor(),
+                                        item.getCursor(),
                                         RecognizedItem.Type.ITEM,
                                         i.getId()
                                 )
                         )));
             }
         }
-        return el;
+        return item;
     }
 
 }
