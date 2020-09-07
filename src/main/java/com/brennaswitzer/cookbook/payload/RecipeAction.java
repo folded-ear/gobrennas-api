@@ -10,7 +10,7 @@ public class RecipeAction {
         ASSEMBLE_SHOPPING_LIST, // aggregate PantryItems
         SEND_TO_SHOPPING_LIST, // new section per recipe (no aggregation)
         DISSECT_RAW_INGREDIENT,
-        RECOGNIZE_ELEMENT,
+        RECOGNIZE_ITEM,
     }
 
     private Type type;
@@ -21,7 +21,7 @@ public class RecipeAction {
 
     private RawIngredientDissection dissection;
 
-    private String rawElement;
+    private String raw;
 
     private Integer cursorPosition;
 
@@ -57,12 +57,12 @@ public class RecipeAction {
         this.additionalRecipeIds = additionalRecipeIds;
     }
 
-    public String getRawElement() {
-        return rawElement;
+    public String getRaw() {
+        return raw;
     }
 
-    public void setRawElement(String rawElement) {
-        this.rawElement = rawElement;
+    public void setRaw(String raw) {
+        this.raw = raw;
     }
 
     public Integer getCursorPosition() {
@@ -78,8 +78,8 @@ public class RecipeAction {
             case DISSECT_RAW_INGREDIENT:
                 service.recordDissection(dissection);
                 break;
-            case RECOGNIZE_ELEMENT:
-                return service.recognizeElement(rawElement, cursorPosition == null ? rawElement.length() : cursorPosition);
+            case RECOGNIZE_ITEM:
+                return service.recognizeItem(raw, cursorPosition == null ? raw.length() : cursorPosition);
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());
         }

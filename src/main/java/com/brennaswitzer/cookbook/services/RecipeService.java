@@ -2,7 +2,7 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
-import com.brennaswitzer.cookbook.payload.RecognizedElement;
+import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.IngredientRepository;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
@@ -247,24 +247,24 @@ public class RecipeService {
         return pantryItemRepository.save(new PantryItem(EnglishUtils.unpluralize(name)));
     }
 
-    public RecognizedElement recognizeElement(String raw) {
+    public RecognizedItem recognizeItem(String raw) {
         if (raw == null) return null;
         // if no cursor location is specified, assume it's at the end
-        return recognizeElement(raw, raw.length());
+        return recognizeItem(raw, raw.length());
     }
 
-    public RecognizedElement recognizeElement(String raw, int cursor) {
+    public RecognizedItem recognizeItem(String raw, int cursor) {
         if (raw == null) return null;
         if (raw.trim().isEmpty()) return null;
-        RecognizedElement el = new RecognizedElement(raw, cursor);
+        RecognizedItem el = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
         RawIngredientDissection.Section secAmount = d.getQuantity();
         if (secAmount != null) {
             // there's an amount
-            el.withRange(new RecognizedElement.Range(
+            el.withRange(new RecognizedItem.Range(
                     secAmount.getStart(),
                     secAmount.getEnd(),
-                    RecognizedElement.Type.AMOUNT
+                    RecognizedItem.Type.AMOUNT
             ).withValue(NumberUtils.parseNumber(secAmount.getText())));
         }
         RawIngredientDissection.Section secUnit = d.getUnits();
@@ -273,12 +273,12 @@ public class RecipeService {
             Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                     entityManager,
                     secUnit.getText());
-            el.withRange(new RecognizedElement.Range(
+            el.withRange(new RecognizedItem.Range(
                     secUnit.getStart(),
                     secUnit.getEnd(),
                     ouom.isPresent()
-                            ? RecognizedElement.Type.UNIT
-                            : RecognizedElement.Type.NEW_UNIT,
+                            ? RecognizedItem.Type.UNIT
+                            : RecognizedItem.Type.NEW_UNIT,
                     ouom.map(UnitOfMeasure::getId).orElse(null)
             ));
         }
@@ -289,35 +289,35 @@ public class RecipeService {
             Optional<? extends Ingredient> oing = findIngredientByName(
                     secName.getText());
             idxNameStart = secName.getStart();
-            el.withRange(new RecognizedElement.Range(
+            el.withRange(new RecognizedItem.Range(
                     secName.getStart(),
                     secName.getEnd(),
                     oing.isPresent()
-                            ? RecognizedElement.Type.ITEM
-                            : RecognizedElement.Type.NEW_ITEM,
+                            ? RecognizedItem.Type.ITEM
+                            : RecognizedItem.Type.NEW_ITEM,
                     oing.map(Ingredient::getId).orElse(null)
             ));
         } else if (!raw.contains("\"")) {
             // no name, so see if there's an implicit one
-            for (RecognizedElement.Range r : el.unrecognizedWords()) {
+            for (RecognizedItem.Range r : el.unrecognizedWords()) {
                 Optional<? extends Ingredient> oing = findIngredientByName(
                         raw.substring(r.getStart(), r.getEnd()));
                 if (!oing.isPresent()) continue;
                 idxNameStart = r.getStart();
-                el.withRange(r.of(RecognizedElement.Type.ITEM).withValue(oing.get().getId()));
+                el.withRange(r.of(RecognizedItem.Type.ITEM).withValue(oing.get().getId()));
                 break;
             }
         }
         if (secAmount != null && secUnit == null && !raw.contains("_")) {
             // there's an amount, but no explicit unit, so see if there's an implicit one
-            for (RecognizedElement.Range r : el.unrecognizedWords()) {
+            for (RecognizedItem.Range r : el.unrecognizedWords()) {
                 // unit must precede name, so abort if we get there
                 if (idxNameStart >= 0 && idxNameStart < r.getStart()) break;
                 Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                         entityManager,
                         raw.substring(r.getStart(), r.getEnd()));
                 if (!ouom.isPresent()) continue;
-                el.withRange(r.of(RecognizedElement.Type.UNIT).withValue(ouom.get().getId()));
+                el.withRange(r.of(RecognizedItem.Type.UNIT).withValue(ouom.get().getId()));
                 break;
             }
         }
@@ -345,17 +345,15 @@ public class RecipeService {
                 Iterable<Ingredient> matches = ingredientRepository.findByNameContains(search);
                 StreamSupport.stream(matches.spliterator(), false)
                         .limit(10)
-                        .forEach(i -> {
-                            el.withSuggestion(new RecognizedElement.Suggestion(
-                                    i.getName(),
-                                    new RecognizedElement.Range(
-                                            replaceStart,
-                                            el.getCursor(),
-                                            RecognizedElement.Type.ITEM,
-                                            i.getId()
-                                    )
-                            ));
-                        });
+                        .forEach(i -> el.withSuggestion(new RecognizedItem.Suggestion(
+                                i.getName(),
+                                new RecognizedItem.Range(
+                                        replaceStart,
+                                        el.getCursor(),
+                                        RecognizedItem.Type.ITEM,
+                                        i.getId()
+                                )
+                        )));
             }
         }
         return el;

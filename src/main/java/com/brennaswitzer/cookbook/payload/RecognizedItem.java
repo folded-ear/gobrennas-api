@@ -4,21 +4,21 @@ import com.brennaswitzer.cookbook.util.EnglishUtils;
 
 import java.util.*;
 
-public class RecognizedElement {
+public class RecognizedItem {
 
     private String raw;
     private int cursor;
     private Set<Range> ranges;
     private Set<Suggestion> suggestions;
 
-    public RecognizedElement() {
+    public RecognizedItem() {
     }
 
-    public RecognizedElement(String raw) {
+    public RecognizedItem(String raw) {
         this(raw, raw.length());
     }
 
-    public RecognizedElement(String raw, int cursor) {
+    public RecognizedItem(String raw, int cursor) {
         this.raw = raw;
         this.cursor = Math.min(Math.max(cursor, 0), raw.length());
     }
@@ -129,12 +129,10 @@ public class RecognizedElement {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("Range{");
-            sb.append("start=").append(start);
-            sb.append(", end=").append(end);
-            sb.append(", type=").append(type);
-            sb.append('}');
-            return sb.toString();
+            return "Range{" + "start=" + start +
+                    ", end=" + end +
+                    ", type=" + type +
+                    '}';
         }
 
         public Range withValue(Object value) {
@@ -191,11 +189,9 @@ public class RecognizedElement {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("Completion{");
-            sb.append("name='").append(name).append('\'');
-            sb.append(", target=").append(target);
-            sb.append('}');
-            return sb.toString();
+            return "Completion{" + "name='" + name + '\'' +
+                    ", target=" + target +
+                    '}';
         }
     }
 
@@ -237,12 +233,12 @@ public class RecognizedElement {
         this.suggestions = suggestions;
     }
 
-    public RecognizedElement withRange(Range r) {
+    public RecognizedItem withRange(Range r) {
         getRanges().add(r);
         return this;
     }
 
-    public RecognizedElement withSuggestion(Suggestion c) {
+    public RecognizedItem withSuggestion(Suggestion c) {
         getSuggestions().add(c);
         return this;
     }
@@ -250,8 +246,8 @@ public class RecognizedElement {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RecognizedElement)) return false;
-        RecognizedElement that = (RecognizedElement) o;
+        if (!(o instanceof RecognizedItem)) return false;
+        RecognizedItem that = (RecognizedItem) o;
         return raw.equals(that.raw) &&
                 cursor == that.cursor &&
                 Objects.equals(ranges, that.ranges) &&
@@ -265,17 +261,15 @@ public class RecognizedElement {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RecognizedElement{");
-        sb.append("raw='").append(raw).append('\'');
-        sb.append(", cursor=").append(cursor);
-        sb.append(", ranges=").append(ranges);
-        sb.append(", suggestions=").append(suggestions);
-        sb.append('}');
-        return sb.toString();
+        return "RecognizedItem{" + "raw='" + raw + '\'' +
+                ", cursor=" + cursor +
+                ", ranges=" + ranges +
+                ", suggestions=" + suggestions +
+                '}';
     }
 
     /**
-     * I return an Iterable over all the words in the raw element which have not
+     * I return an Iterable over all the words in the raw string which have not
      * been recognized yet.
      */
     public Iterable<Range> unrecognizedWords() {
