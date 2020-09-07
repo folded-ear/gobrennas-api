@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,6 +25,15 @@ public class TaskInfo {
             for (Task t : task.getOrderedSubtasksView()) {
                 info.subtaskIds[i++] = t.getId();
             }
+        }
+        if (task.hasIngredient()) {
+            info.ingredientId = task.getIngredient().getId();
+            Quantity q = task.getQuantity();
+            info.quantity = q.getQuantity();
+            if (q.hasUnits()) {
+                info.uomId = q.getUnits().getId();
+            }
+            info.preparation = task.getPreparation();
         }
         return info;
     }
@@ -60,6 +70,11 @@ public class TaskInfo {
     private AclInfo acl;
 
     private long[] subtaskIds;
+
+    private Double quantity;
+    private Long uomId;
+    private Long ingredientId;
+    private String preparation;
 
     public Long getId() {
         return id;
@@ -104,4 +119,37 @@ public class TaskInfo {
     public void setAcl(AclInfo acl) {
         this.acl = acl;
     }
+
+    public Double getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Double quantity) {
+        this.quantity = quantity;
+    }
+
+    public Long getUomId() {
+        return uomId;
+    }
+
+    public void setUomId(Long uomId) {
+        this.uomId = uomId;
+    }
+
+    public Long getIngredientId() {
+        return ingredientId;
+    }
+
+    public void setIngredientId(Long ingredientId) {
+        this.ingredientId = ingredientId;
+    }
+
+    public String getPreparation() {
+        return preparation;
+    }
+
+    public void setPreparation(String preparation) {
+        this.preparation = preparation;
+    }
+
 }

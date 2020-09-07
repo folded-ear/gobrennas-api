@@ -139,7 +139,7 @@ public class TaskControllerTest {
         perform(
                 makeJson(put("/api/tasks/{id}/name", appleId),
                         new TaskName("apples")))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         ti = forInfo(
                 get("/api/tasks/{id}", appleId),
@@ -262,7 +262,7 @@ public class TaskControllerTest {
         // alice can rename
         MockHttpServletRequestBuilder renameReq = put("/api/tasks/{id}/name", root.getId());
         perform(makeJson(renameReq, new TaskName("Root Alice")), alice) // default, but be explicit
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
         // bob and eve cannot
         perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
                 .andExpect(status().isForbidden());
@@ -279,7 +279,7 @@ public class TaskControllerTest {
 
         // now bob can rename too!
         perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         root = listRepo.getOne(root.getId());
         assertEquals("Root Bob", root.getName());

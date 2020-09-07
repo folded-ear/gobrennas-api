@@ -268,6 +268,10 @@ public class Task extends BaseEntity implements Item {
         return ingredient;
     }
 
+    public boolean hasIngredient() {
+        return ingredient != null;
+    }
+
     public void setQuantity(Quantity quantity) {
         this.quantity = quantity;
     }

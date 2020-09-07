@@ -34,6 +34,7 @@ public class TaskController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public TaskInfo createTaskList(
             @RequestBody TaskName info
     ) {
@@ -62,6 +63,7 @@ public class TaskController {
 
     @PostMapping("/{id}/subtasks")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public TaskInfo createSubtask(
             @PathVariable("id") Long parentId,
             @RequestParam(name = "after", required = false) Long afterId,
@@ -74,12 +76,14 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/name")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void renameTask(
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public TaskInfo renameTask(
             @PathVariable("id") Long id,
             @RequestBody TaskName info
     ) {
-        taskService.renameTask(id, info.getName());
+        return TaskInfo.fromTask(taskService
+                .renameTask(id, info.getName()));
     }
 
     @PutMapping("/{id}/parentId")
