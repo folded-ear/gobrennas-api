@@ -139,6 +139,7 @@ public class IngredientInfo {
             info.setPreparation(ref.getPreparation());
             return info;
         }
+
     }
 
     private Long id;
@@ -149,6 +150,9 @@ public class IngredientInfo {
     private List<Ref> ingredients;
     private List<String> labels;
     private Long ownerId;
+    private Integer yield;
+    private Integer calories;
+    private Integer totalTime;
 
     public Long getId() {
         return id;
@@ -218,6 +222,30 @@ public class IngredientInfo {
         this.ownerId = ownerId;
     }
 
+    public Integer getYield() {
+        return yield;
+    }
+
+    public void setYield(Integer yield) {
+        this.yield = yield;
+    }
+
+    public Integer getCalories() {
+        return calories;
+    }
+
+    public void setCalories(Integer calories) {
+        this.calories = calories;
+    }
+
+    public Integer getTotalTime() {
+        return totalTime;
+    }
+
+    public void setTotalTime(Integer totalTime) {
+        this.totalTime = totalTime;
+    }
+
     public Recipe asRecipe(EntityManager em) {
         Recipe r = getId() == null
                 ? new Recipe()
@@ -225,6 +253,9 @@ public class IngredientInfo {
         r.setName(getName());
         r.setExternalUrl(getExternalUrl());
         r.setDirections(getDirections());
+        r.setYield(getYield());
+        r.setTotalTime(getTotalTime());
+        r.setCalories(getCalories());
         if (getIngredients() != null) {
             r.setIngredients(getIngredients()
                     .stream()
@@ -239,6 +270,9 @@ public class IngredientInfo {
         info.setType("Recipe");
         info.setExternalUrl(r.getExternalUrl());
         info.setDirections(r.getDirections());
+        info.setYield(r.getYield());
+        info.setTotalTime(r.getTotalTime());
+        info.setCalories(r.getCalories());
         info.setLabels(r.getLabels()
                 .stream()
                 .map(Label::getName)
