@@ -212,3 +212,11 @@ alter table unit_of_measure_conversions
     add constraint fk_oum_conversions_target_id foreign key (unit_of_measure_id) references unit_of_measure on delete cascade;
 alter table recipe_ingredients
     add constraint fk_recipe_ingredients_units_id foreign key (units_id) references unit_of_measure (id) on delete set null;
+
+--changeset switzerb:yield-calories-time-on-recipe
+alter table ingredient
+    add yield int;
+alter table ingredient
+    add calories int;
+alter table ingredient
+    add total_time int;

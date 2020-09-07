@@ -30,6 +30,15 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     private String directions;
 
+    private Integer yield;
+
+    private Integer calories;
+
+    /**
+     * Time is stored in milliseconds
+     */
+    private Integer totalTime;
+
     @ElementCollection
     @OrderBy("_idx, raw")
     private List<IngredientRef> ingredients;
@@ -162,5 +171,29 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @Override
     public String toString() {
         return getName();
+    }
+
+    public Integer getYield() {
+        return yield;
+    }
+
+    public void setYield(Integer yield) {
+        this.yield = yield;
+    }
+
+    public Integer getCalories() {
+        return calories;
+    }
+
+    public void setCalories(Integer calories) {
+        this.calories = calories;
+    }
+
+    public Integer getTotalTime() {
+        return totalTime;
+    }
+
+    public void setTotalTime(Integer totalTime) {
+        this.totalTime = totalTime;
     }
 }
