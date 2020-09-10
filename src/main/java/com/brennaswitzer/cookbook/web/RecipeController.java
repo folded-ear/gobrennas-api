@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
+import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.ValidationService;
@@ -34,6 +35,9 @@ public class RecipeController {
 
     @Autowired
     private LabelService labelService;
+
+    @Autowired
+    private ItemService itemService;
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
@@ -67,6 +71,10 @@ public class RecipeController {
         ResponseEntity<?> errors = validationService.validationService(result);
         if(errors != null) return errors;
 
+        if (info.isCookThis()) {
+            recipe.getIngredients().forEach(itemService::autoRecognize);
+        }
+
         Recipe recipe1 = recipeService.createNewRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
         return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.CREATED);
@@ -74,7 +82,7 @@ public class RecipeController {
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<?> updateRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public ResponseEntity<?> updateRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) {
         // begin kludge (2 of 3)
         Recipe recipe = info.asRecipe(em);
         // end kludge (2 of 3)
@@ -165,7 +173,7 @@ public class RecipeController {
         return action.execute(id, recipeService);
     }
 
-    private Recipe getRecipe(@PathVariable("id") Long id) {
+    private Recipe getRecipe(Long id) {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
         recipe.orElseThrow(NoResultException::new);
         return recipe.get();

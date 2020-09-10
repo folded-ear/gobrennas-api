@@ -153,6 +153,7 @@ public class IngredientInfo {
     private Integer yield;
     private Integer calories;
     private Integer totalTime;
+    private boolean cookThis;
 
     public Long getId() {
         return id;
@@ -244,6 +245,14 @@ public class IngredientInfo {
 
     public void setTotalTime(Integer totalTime) {
         this.totalTime = totalTime;
+    }
+
+    public boolean isCookThis() {
+        return cookThis;
+    }
+
+    public void setCookThis(boolean cookThis) {
+        this.cookThis = cookThis;
     }
 
     public Recipe asRecipe(EntityManager em) {

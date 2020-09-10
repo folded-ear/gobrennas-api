@@ -1,10 +1,13 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.MutableItem;
+import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.IngredientRepository;
+import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,6 +145,24 @@ public class ItemService {
             }
         }
         return item;
+    }
+
+    public void autoRecognize(MutableItem<Ingredient> it) {
+        RawIngredientDissection dissection = RawIngredientDissection
+                .fromRecognizedItem(recognizeItem(it.getRaw()));
+        if (!dissection.hasName()) return;
+        it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
+        it.setPreparation(dissection.getPrep());
+        if (!dissection.hasQuantity()) return;
+        Quantity q = new Quantity();
+        Double quantity = NumberUtils.parseNumber(dissection.getQuantityText());
+        if (quantity == null) return; // couldn't parse?
+        q.setQuantity(quantity);
+        if (dissection.hasUnits()) {
+            q.setUnits(UnitOfMeasure.ensure(entityManager,
+                    EnglishUtils.canonicalize(dissection.getUnitsText())));
+        }
+        it.setQuantity(q);
     }
 
 }

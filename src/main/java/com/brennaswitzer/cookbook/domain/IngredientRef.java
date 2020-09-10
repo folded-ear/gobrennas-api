@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Comparator;
 
 @Embeddable
-public class IngredientRef<I extends Ingredient> implements Item {
+public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
 
     public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) -> {
         String an = a.hasIngredient() ? a.getIngredient().getName() : a.getRaw();
