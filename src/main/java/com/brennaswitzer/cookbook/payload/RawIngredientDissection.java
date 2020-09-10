@@ -1,9 +1,65 @@
 package com.brennaswitzer.cookbook.payload;
 
 import javax.validation.constraints.NotNull;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
 
 public class RawIngredientDissection {
+
+    // this is "duplicated" as processRecognizedItem
+    public static RawIngredientDissection fromRecognizedItem(RecognizedItem it) {
+        Optional<RecognizedItem.Range> qr = it.getRanges().stream()
+                .filter(r -> RecognizedItem.Type.AMOUNT.equals(r.getType()))
+                .findFirst();
+        Optional<RecognizedItem.Range> ur = it.getRanges().stream()
+                .filter(r -> RecognizedItem.Type.UNIT.equals(r.getType()) || RecognizedItem.Type.NEW_UNIT.equals(r.getType()))
+                .findFirst();
+        Optional<RecognizedItem.Range> nr = it.getRanges().stream()
+                .filter(r -> RecognizedItem.Type.ITEM.equals(r.getType()) || RecognizedItem.Type.NEW_ITEM.equals(r.getType()))
+                .findFirst();
+
+        Function<String, String> stripMarkers = s -> {
+            if (s == null) return s;
+            if (s.length() < 3) return s;
+            char c = s.charAt(0);
+            if (c != s.charAt(s.length() - 1)) return s;
+            if (Character.isLetterOrDigit(c)) return s;
+            return s.substring(1, s.length() - 1);
+        };
+
+        Function<Optional<RecognizedItem.Range>, Section> sectionFromRange = or ->
+                or.map(r -> new Section(
+                        stripMarkers.apply(
+                            it.getRaw().substring(r.getStart(), r.getEnd())),
+                        r.getStart(),
+                        r.getEnd())
+                )
+                        .orElse(null);
+
+        List<Optional<RecognizedItem.Range>> ranges = new ArrayList<>(3);
+        ranges.add(qr);
+        ranges.add(ur);
+        ranges.add(nr);
+        String p = ranges.stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .sorted(Comparator.comparingInt(RecognizedItem.Range::getStart).reversed())
+                .sequential()
+                .reduce(
+                        it.getRaw(),
+                        (s, r) -> s.substring(0, r.getStart()) + s.substring(r.getEnd()),
+                        (a, b) -> { throw new UnsupportedOperationException(); })
+                .trim()
+                .replaceAll("\\s+", " ")
+                .replaceAll("^\\s*,", "");
+
+        RawIngredientDissection d = new RawIngredientDissection(it.getRaw());
+        d.quantity = sectionFromRange.apply(qr);
+        d.units = sectionFromRange.apply(ur);
+        d.name = sectionFromRange.apply(nr);
+        d.prep = p;
+        return d;
+    }
 
     @NotNull
     private String raw;
@@ -27,6 +83,10 @@ public class RawIngredientDissection {
         this.raw = raw;
     }
 
+    public boolean hasQuantity() {
+        return quantity != null;
+    }
+
     public Section getQuantity() {
         return quantity;
     }
@@ -40,6 +100,10 @@ public class RawIngredientDissection {
         return this.quantity.text;
     }
 
+    public boolean hasUnits() {
+        return units != null;
+    }
+
     public Section getUnits() {
         return units;
     }
@@ -51,6 +115,10 @@ public class RawIngredientDissection {
     public String getUnitsText() {
         if (this.units == null) return null;
         return this.units.text;
+    }
+
+    public boolean hasName() {
+        return name != null;
     }
 
     public Section getName() {
@@ -130,12 +198,10 @@ public class RawIngredientDissection {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("Section{");
-            sb.append("start=").append(start);
-            sb.append(", end=").append(end);
-            sb.append(", text='").append(text).append('\'');
-            sb.append('}');
-            return sb.toString();
+            return "Section{" + "start=" + start +
+                    ", end=" + end +
+                    ", text='" + text + '\'' +
+                    '}';
         }
     }
 
@@ -158,13 +224,11 @@ public class RawIngredientDissection {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RawIngredientDissection{");
-        sb.append("raw='").append(raw).append('\'');
-        sb.append(", quantity=").append(quantity);
-        sb.append(", units=").append(units);
-        sb.append(", name=").append(name);
-        sb.append(", prep='").append(prep).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "RawIngredientDissection{" + "raw='" + raw + '\'' +
+                ", quantity=" + quantity +
+                ", units=" + units +
+                ", name=" + name +
+                ", prep='" + prep + '\'' +
+                '}';
     }
 }

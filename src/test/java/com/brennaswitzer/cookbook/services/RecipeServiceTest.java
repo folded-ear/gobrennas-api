@@ -4,7 +4,6 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.RecognizedElement;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.RecipeBox;
@@ -86,81 +85,6 @@ public class RecipeServiceTest {
         assertEquals("Pizza:", itr.next().getName());
         checkItems.accept(itr);
         assertFalse(itr.hasNext());
-    }
-
-    @Test
-    public void recognizeElement() {
-        RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
-
-        final String RAW = "3 & 1/2 cup whole wheat flour";
-        RecognizedElement el = service.recognizeElement(RAW);
-        System.out.println(el);
-
-        assertEquals(RAW, el.getRaw());
-        Iterator<RecognizedElement.Range> ri = el.getRanges().iterator();
-        assertEquals(new RecognizedElement.Range(0, 7, RecognizedElement.Type.AMOUNT), ri.next());
-        assertEquals(new RecognizedElement.Range(8, 11, RecognizedElement.Type.UNIT), ri.next());
-        assertEquals(new RecognizedElement.Range(24, 29, RecognizedElement.Type.ITEM), ri.next());
-        assertFalse(ri.hasNext());
-    }
-
-    @Test
-    public void recognizeAndSuggestSimple() {
-        RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
-
-        // with no cursor; we're at the end
-        RecognizedElement el = service.recognizeElement("1 gram f");
-        Iterator<RecognizedElement.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedElement.Suggestion("flour",
-                new RecognizedElement.Range(7, 8, RecognizedElement.Type.ITEM)), itr.next());
-        assertEquals(  new RecognizedElement.Suggestion("fresh tomatoes",
-                new RecognizedElement.Range(7, 8, RecognizedElement.Type.ITEM)), itr.next());
-        assertEquals(new RecognizedElement.Suggestion("Fried Chicken",
-                new RecognizedElement.Range(7, 8, RecognizedElement.Type.ITEM)), itr.next());
-        assertFalse(itr.hasNext());
-
-        // cursor after the 'fr'
-        el = service.recognizeElement("1 gram fr, dehydrated", 9);
-        itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedElement.Suggestion("fresh tomatoes",
-                new RecognizedElement.Range(7, 9, RecognizedElement.Type.ITEM)), itr.next());
-        assertEquals(new RecognizedElement.Suggestion("Fried Chicken",
-                new RecognizedElement.Range(7, 9, RecognizedElement.Type.ITEM)), itr.next());
-    }
-
-    @Test
-    public void recognizeAndSuggestQuoted() {
-        RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
-        // cursor after the 'cru'
-        RecognizedElement el = service.recognizeElement("1 gram \"cru, dehydrated", 11);
-        Iterator<RecognizedElement.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedElement.Suggestion("Pizza Crust",
-                new RecognizedElement.Range(7, 11, RecognizedElement.Type.ITEM)), itr.next());
-    }
-
-    @Test
-    public void recognizeAndSuggestMidWord() {
-        RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
-        // cursor after the 'cru'
-        RecognizedElement el = service.recognizeElement("1 gram \"crumbs", 11);
-        Iterator<RecognizedElement.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedElement.Suggestion("Pizza Crust",
-                new RecognizedElement.Range(7, 11, RecognizedElement.Type.ITEM)), itr.next());
-    }
-
-    @Test
-    public void recognizeAndSuggestMultiWord() {
-        RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
-        // cursor after the 'pizza cru'
-        RecognizedElement el = service.recognizeElement("1 gram \"pizza cru, dehydrated", 17);
-        Iterator<RecognizedElement.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedElement.Suggestion("Pizza Crust",
-                new RecognizedElement.Range(7, 17, RecognizedElement.Type.ITEM)), itr.next());
     }
 
     @Test
