@@ -211,3 +211,7 @@ alter table task_list_grants
 
 alter table task_list_grants
     drop level;
+
+--changeset bboisvert:task-status
+alter table task
+    add status_id bigint not null default 0; -- needed

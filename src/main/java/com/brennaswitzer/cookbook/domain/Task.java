@@ -34,6 +34,9 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
     @NotNull
     private String name;
 
+    @Column(name = "status_id")
+    private TaskStatus status = TaskStatus.NEEDED;
+
     @Embedded
     private Quantity quantity;
 
@@ -83,6 +86,14 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
     }
 
     public int getPosition() {
