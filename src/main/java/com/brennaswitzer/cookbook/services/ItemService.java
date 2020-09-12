@@ -148,8 +148,13 @@ public class ItemService {
     }
 
     public void autoRecognize(MutableItem<Ingredient> it) {
+        if (it == null) return;
+        String raw = it.getRaw();
+        if (raw == null || raw.trim().isEmpty()) return;
+        RecognizedItem recog = recognizeItem(raw);
+        if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection
-                .fromRecognizedItem(recognizeItem(it.getRaw()));
+                .fromRecognizedItem(recog);
         if (!dissection.hasName()) return;
         it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
         it.setPreparation(dissection.getPrep());
