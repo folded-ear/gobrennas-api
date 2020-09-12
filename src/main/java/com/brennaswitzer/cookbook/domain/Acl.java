@@ -17,8 +17,7 @@ public class Acl {
 
     @ElementCollection
     @MapKeyJoinColumn(name = "user_id")
-    @Column(name = "level")
-    @Enumerated(EnumType.STRING)
+    @Column(name = "level_id")
     private Map<User, AccessLevel> grants;
 
     public User getOwner() {

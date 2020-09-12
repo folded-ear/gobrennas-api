@@ -193,3 +193,21 @@ alter table task
     add constraint fk_task_ingredients_units_id
         foreign key (units_id) references unit_of_measure (id)
             on delete set null;
+
+--changeset bboisvert:access-level-as-id
+alter table task_list_grants
+    add level_id bigint;
+
+-- noinspection SqlWithoutWhere
+update task_list_grants set
+    level_id = case upper(level)
+        when 'VIEW' then 1
+        when 'CHANGE' then 2
+        when 'ADMINISTER' then 16
+    end;
+
+alter table task_list_grants
+    alter level_id set not null;
+
+alter table task_list_grants
+    drop level;
