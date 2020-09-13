@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.payload;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.LinkedList;
@@ -16,6 +17,7 @@ public class TaskInfo {
         TaskInfo info = new TaskInfo();
         info.id = task.getId();
         info.name = task.getName();
+        info.status = task.getStatus();
         if (task.isSubtask()) {
             info.parentId = task.getParent().getId();
         }
@@ -65,6 +67,8 @@ public class TaskInfo {
     @JsonInclude
     private String name;
 
+    private TaskStatus status;
+
     private Long parentId;
 
     private AclInfo acl;
@@ -90,6 +94,14 @@ public class TaskInfo {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
     }
 
     public Long getParentId() {
