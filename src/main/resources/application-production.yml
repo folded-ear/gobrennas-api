@@ -18,12 +18,6 @@ spring:
             scope:
               - email
               - profile
-  resources:
-    cache:
-      cachecontrol:
-        cache-public: true
-        max-age: 864000 # this one is seconds (like the docs say)
-        s-max-age: 864000000 # this appears to be in milliseconds, even though the docs say it's seconds
 app:
   # where 'index.html' lives from the UA's perspective
   public-url: https://cook.brennaswitzer.com/

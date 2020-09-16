@@ -18,11 +18,35 @@ server {
     }
 
     location / {
+        #
+        # I (Barney) know very little about Nginx. Duplicating the proxy config
+        # here at / and at /static seems a fairly ridiculous price to have
+        # different expirations set on the paths. Less idiotic approaches would
+        # be well appreciated!
+        #
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
         proxy_set_header   Connection      "";
         proxy_set_header   Host            $host;
         proxy_set_header   X-Real-IP       $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # The part that is different.
+        expires epoch;
+
+        location /static {
+            #
+            # Here it is again!
+            #
+            proxy_pass http://localhost:5000;
+            proxy_http_version 1.1;
+            proxy_set_header   Connection      "";
+            proxy_set_header   Host            $host;
+            proxy_set_header   X-Real-IP       $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            # The part that is different.
+            expires max;
+        }
     }
 }
