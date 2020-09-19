@@ -11,6 +11,7 @@ before_install:
   - npm ci
   - npm run lint
   - npm run build
+  - mv build ../public_html
   - cd ..
 
 before_script:
@@ -32,6 +33,7 @@ before_deploy:
   - sed -i 's/NR_LICENSE_KEY/'${NR_LICENSE_KEY}'/' newrelic/newrelic.yml
   # store files w/ a .yaml extension for easier editing, but EB needs .config
   - for f in .ebextensions/*.yaml; do mv $f $f.config; done
+  - zip target/eb_bundle.zip -r public_html
   - zip target/eb_bundle.zip -r newrelic
   - zip target/eb_bundle.zip -r .ebextensions
   - zip target/eb_bundle.zip -j target/cookbook-*.jar

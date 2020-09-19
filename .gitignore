@@ -4,7 +4,6 @@ HELP.md
 !.mvn/wrapper/maven-wrapper.jar
 /src/main/java/*.tokens
 /src/main/java/com/brennaswitzer/cookbook/antlr/*.*
-/src/main/resources/public/
 /src/main/resources/application-default.yml
 /src/main/resources/application-dev.yml
 
@@ -44,3 +43,4 @@ HELP.md
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+/public_html/
