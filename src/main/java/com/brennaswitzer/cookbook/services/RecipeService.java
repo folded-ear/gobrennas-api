@@ -5,12 +5,13 @@ import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
-import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
+import com.brennaswitzer.cookbook.services.events.TaskStatusEvent;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -177,20 +178,27 @@ public class RecipeService {
         sendToShoppingList(r, taskRepository.getOne(listId));
     }
 
-    @EventListener
-    public void taskCompleted(TaskCompletedEvent e) {
-        System.out.println("YO! WOO! Task #" + e.getId() + " was completed!");
+    private void taskCompleted(Long id) {
+        System.out.println("YO! WOO! Task #" + id + " was completed!");
         entityManager.createQuery("select l\n" +
                 "from ShoppingList l\n" +
                 "    join l.items it\n" +
                 "    join it.task t\n" +
                 "where t.id = :taskId", ShoppingList.class)
-        .setParameter("taskId", e.getId())
+        .setParameter("taskId", id)
         .getResultList()
         .forEach(l -> {
             System.out.println("Yo! Woo! Shopping List #" + l.getId() + " had an item completed!");
-            l.taskCompleted(e.getId());
+            l.taskCompleted(id);
         });
+    }
+
+    @EventListener
+    @Order(1) // this needs to first so the FK isn't wiped by the DELETE
+    public void taskStatusChanged(TaskStatusEvent e) {
+        if (TaskStatus.COMPLETED.equals(e.getStatus())) {
+            taskCompleted(e.getId());
+        }
     }
 
     public void recordDissection(RawIngredientDissection dissection) {

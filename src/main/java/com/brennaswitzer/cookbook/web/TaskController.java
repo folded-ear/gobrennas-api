@@ -104,20 +104,23 @@ public class TaskController {
         taskService.resetSubtasks(id, info.getSubtaskIds());
     }
 
-    @PutMapping("/{id}/complete")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void completeTask(
-            @PathVariable("id") Long id
-    ) {
-        taskService.completeTask(id);
-    }
-
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(
             @PathVariable("id") Long id
     ) {
         taskService.deleteTask(id);
+    }
+
+    @PutMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public TaskInfo setStatus(
+            @PathVariable("id") Long id,
+            @RequestBody TaskInfo info
+    ) {
+        return TaskInfo.fromTask(taskService
+                .setStatus(id, info.getStatus()));
     }
 
     @GetMapping("/{id}/acl")
