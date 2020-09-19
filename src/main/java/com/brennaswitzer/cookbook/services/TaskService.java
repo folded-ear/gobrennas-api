@@ -1,16 +1,14 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.Task;
-import com.brennaswitzer.cookbook.domain.TaskList;
-import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
-import com.brennaswitzer.cookbook.services.events.TaskCompletedEvent;
+import com.brennaswitzer.cookbook.services.events.TaskStatusEvent;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,6 +149,23 @@ public class TaskService {
         return t;
     }
 
+    public Task setStatus(Long id, TaskStatus status) {
+        Task t = getTaskById(id, AccessLevel.CHANGE);
+        t.setStatus(status);
+        applicationEventPublisher.publishEvent(new TaskStatusEvent(t));
+        return t;
+    }
+
+    @EventListener
+    public void taskStatusChanged(TaskStatusEvent e) {
+        if (TaskStatus.COMPLETED.equals(e.getStatus())) {
+            deleteTask(e.getId());
+        }
+        if (TaskStatus.DELETED.equals(e.getStatus())) {
+            deleteTask(e.getId());
+        }
+    }
+
     public Task resetSubtasks(Long id, long[] subtaskIds) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         Task prev = null;
@@ -171,12 +186,6 @@ public class TaskService {
             t.getParent().removeSubtask(t);
         }
         taskRepo.delete(t);
-    }
-
-    public void completeTask(Long id) {
-        Task t = getTaskById(id, AccessLevel.CHANGE);
-        applicationEventPublisher.publishEvent(new TaskCompletedEvent(t));
-        deleteTask(t);
     }
 
     public TaskList setGrantOnList(Long listId, Long userId, AccessLevel level) {

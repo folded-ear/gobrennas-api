@@ -1,18 +1,17 @@
 package com.brennaswitzer.cookbook.services.events;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskStatus;
 
-public class TaskCompletedEvent {
+public class TaskStatusEvent {
 
     private Long id;
 
     private Task task;
 
-    public TaskCompletedEvent(Long id) {
-        setId(id);
-    }
+    private TaskStatus status;
 
-    public TaskCompletedEvent(Task task) {
+    public TaskStatusEvent(Task task) {
         setTask(task);
     }
 
@@ -31,5 +30,14 @@ public class TaskCompletedEvent {
     public void setTask(Task task) {
         setId(task.getId());
         this.task = task;
+        setStatus(task.getStatus());
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
     }
 }
