@@ -30,10 +30,12 @@ public class TaskInfo {
         }
         if (task.hasIngredient()) {
             info.ingredientId = task.getIngredient().getId();
+            info.ingredient = task.getIngredient().getName();
             Quantity q = task.getQuantity();
             info.quantity = q.getQuantity();
             if (q.hasUnits()) {
                 info.uomId = q.getUnits().getId();
+                info.units = q.getUnits().getName();
             }
             info.preparation = task.getPreparation();
         }
@@ -76,7 +78,9 @@ public class TaskInfo {
     private long[] subtaskIds;
 
     private Double quantity;
+    private String units;
     private Long uomId;
+    private String ingredient;
     private Long ingredientId;
     private String preparation;
 
@@ -148,12 +152,28 @@ public class TaskInfo {
         this.uomId = uomId;
     }
 
+    public String getUnits() {
+        return units;
+    }
+
+    public void setUnits(String units) {
+        this.units = units;
+    }
+
     public Long getIngredientId() {
         return ingredientId;
     }
 
     public void setIngredientId(Long ingredientId) {
         this.ingredientId = ingredientId;
+    }
+
+    public String getIngredient() {
+        return ingredient;
+    }
+
+    public void setIngredient(String ingredient) {
+        this.ingredient = ingredient;
     }
 
     public String getPreparation() {
