@@ -34,6 +34,8 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     private Integer calories;
 
+    private String photo; //maybe use embeddable to grow more information about reference?
+
     /**
      * Time is stored in milliseconds
      */
@@ -195,5 +197,13 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     public void setTotalTime(Integer totalTime) {
         this.totalTime = totalTime;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 }

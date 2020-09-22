@@ -4,20 +4,21 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
-import com.brennaswitzer.cookbook.services.ItemService;
-import com.brennaswitzer.cookbook.services.LabelService;
-import com.brennaswitzer.cookbook.services.RecipeService;
-import com.brennaswitzer.cookbook.services.ValidationService;
+import com.brennaswitzer.cookbook.services.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,9 @@ public class RecipeController {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    StorageService storageService;
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
@@ -62,14 +66,20 @@ public class RecipeController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("")
+    @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) {
+    public ResponseEntity<?> createNewRecipe(@RequestParam("info") String recipeData, @RequestParam MultipartFile photo) throws IOException {
+
+        IngredientInfo info;
+        ObjectMapper objectMapper = new ObjectMapper();
+        info = objectMapper.readValue(recipeData, IngredientInfo.class);
+
+        String photoRef = storageService.store(photo);
+
         // begin kludge (1 of 3)
         Recipe recipe = info.asRecipe(em);
+        recipe.setPhoto(photoRef);
         // end kludge (1 of 3)
-        ResponseEntity<?> errors = validationService.validationService(result);
-        if(errors != null) return errors;
 
         if (info.isCookThis()) {
             recipe.getIngredients().forEach(itemService::autoRecognize);
