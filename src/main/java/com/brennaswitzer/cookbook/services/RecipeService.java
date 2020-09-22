@@ -178,6 +178,27 @@ public class RecipeService {
         sendToShoppingList(r, taskRepository.getOne(listId));
     }
 
+    private void sendToPlan(AggregateIngredient r, Task plan) {
+        Task rTask = new Task(r.getName());
+        plan.addSubtask(rTask);
+        r.getIngredients().forEach(ir ->
+                sendToPlan(ir, rTask));
+    }
+
+    private void sendToPlan(IngredientRef<?> ir, Task rTask) {
+        Task t = new Task(ir.getRaw(), ir.getQuantity(), ir.getIngredient(), ir.getPreparation());
+        rTask.addSubtask(t);
+        if (ir.getIngredient() instanceof AggregateIngredient) {
+            sendToPlan((AggregateIngredient) ir.getIngredient(), t);
+        }
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public void sendToPlan(Long recipeId, Long planId) {
+        Recipe r = recipeRepository.findById(recipeId).get();
+        sendToPlan(r, taskRepository.getOne(planId));
+    }
+
     private void taskCompleted(Long id) {
         System.out.println("YO! WOO! Task #" + id + " was completed!");
         entityManager.createQuery("select l\n" +
