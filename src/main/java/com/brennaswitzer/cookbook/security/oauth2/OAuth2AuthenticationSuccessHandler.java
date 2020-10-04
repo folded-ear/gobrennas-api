@@ -72,7 +72,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         ResponseCookie.ResponseCookieBuilder cb = ResponseCookie.from(TOKEN_COOKIE_NAME, token)
                 .path("/")
                 .maxAge(tokenExpirationMsec / 1000);
-        if (request.isSecure()) {
+        if (request.isSecure() || "true".equals(request.getHeader("X-Is-Secure"))) {
             // If we're on a secure endpoint, set it up for cross-origin use by
             // the import bookmarklet. If isn't secure... bummer?
             cb.secure(true)
