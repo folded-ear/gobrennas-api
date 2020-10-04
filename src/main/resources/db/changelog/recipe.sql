@@ -220,3 +220,30 @@ alter table ingredient
     add calories int;
 alter table ingredient
     add total_time int;
+
+--changeset barneyb:pantry-item-store-order
+alter table ingredient
+    add store_order int null;
+
+with raw as (
+    select i.id
+         , i.name
+         , case when shopping_list_id is null
+             then 1
+             else percent_rank() over (partition by shopping_list_id order by completed_at)
+         end rank
+    from ingredient i
+        left join shopping_list_items li on li.ingredient_id = i.id
+            and li.completed_at is not null
+    where i.dtype = 'PantryItem'
+),
+orders as (
+    select r.id
+         , row_number() over (order by avg(r.rank), r.name) store_order
+    from raw r
+    group by r.id, r.name
+)
+update ingredient set
+    store_order = orders.store_order
+from orders
+where orders.id = ingredient.id;

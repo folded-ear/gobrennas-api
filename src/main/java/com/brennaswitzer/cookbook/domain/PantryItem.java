@@ -12,6 +12,9 @@ public class PantryItem extends Ingredient {
 
     private String aisle;
 
+    // todo: make this user specific
+    private int storeOrder;
+
     public PantryItem() {}
 
     public PantryItem(String name) {
@@ -24,6 +27,14 @@ public class PantryItem extends Ingredient {
 
     public void setAisle(String aisle) {
         this.aisle = aisle;
+    }
+
+    public int getStoreOrder() {
+        return storeOrder;
+    }
+
+    public void setStoreOrder(int storeOrder) {
+        this.storeOrder = storeOrder;
     }
 
     @Override

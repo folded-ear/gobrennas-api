@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;
@@ -8,8 +9,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class IngredientInfo {
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public static class Ref {
 
         private String raw;
@@ -145,6 +148,7 @@ public class IngredientInfo {
     private Long id;
     private String type;
     private String name;
+    private Integer storeOrder;
     private String externalUrl;
     private String directions;
     private List<Ref> ingredients;
@@ -177,6 +181,14 @@ public class IngredientInfo {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getStoreOrder() {
+        return storeOrder;
+    }
+
+    public void setStoreOrder(Integer storeOrder) {
+        this.storeOrder = storeOrder;
     }
 
     public String getExternalUrl() {
@@ -310,6 +322,7 @@ public class IngredientInfo {
         info.setType("PantryItem");
         info.setId(it.getId());
         info.setName(it.getName());
+        info.setStoreOrder(it.getStoreOrder());
         return info;
     }
 
