@@ -194,7 +194,7 @@ public class RecipeService {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void sendToPlan(Long recipeId, Long planId) {
         Recipe r = recipeRepository.findById(recipeId).get();
-        Task rTask = new Task(r.getName());
+        Task rTask = new Task(r.getName(), r);
         taskRepository.getOne(planId).addSubtask(rTask);
         sendToPlan(r, rTask);
     }
