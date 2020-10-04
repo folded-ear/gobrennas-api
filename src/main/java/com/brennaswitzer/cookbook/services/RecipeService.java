@@ -178,9 +178,7 @@ public class RecipeService {
         sendToShoppingList(r, taskRepository.getOne(listId));
     }
 
-    private void sendToPlan(AggregateIngredient r, Task plan) {
-        Task rTask = new Task(r.getName());
-        plan.addSubtask(rTask);
+    private void sendToPlan(AggregateIngredient r, Task rTask) {
         r.getIngredients().forEach(ir ->
                 sendToPlan(ir, rTask));
     }
@@ -196,7 +194,9 @@ public class RecipeService {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void sendToPlan(Long recipeId, Long planId) {
         Recipe r = recipeRepository.findById(recipeId).get();
-        sendToPlan(r, taskRepository.getOne(planId));
+        Task rTask = new Task(r.getName());
+        taskRepository.getOne(planId).addSubtask(rTask);
+        sendToPlan(r, rTask);
     }
 
     private void taskCompleted(Long id) {
