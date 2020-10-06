@@ -68,21 +68,23 @@ public class RecipeController {
 
     @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> createNewRecipe(@RequestParam("info") String recipeData, @RequestParam MultipartFile photo) throws IOException {
+    public ResponseEntity<?> createNewRecipe(@RequestParam("info") String recipeData, @RequestParam(required = false) MultipartFile photo) throws IOException {
 
         IngredientInfo info;
         ObjectMapper objectMapper = new ObjectMapper();
         info = objectMapper.readValue(recipeData, IngredientInfo.class);
 
-        String photoRef = storageService.store(photo);
-
         // begin kludge (1 of 3)
         Recipe recipe = info.asRecipe(em);
-        recipe.setPhoto(photoRef);
         // end kludge (1 of 3)
 
         if (info.isCookThis()) {
             recipe.getIngredients().forEach(itemService::autoRecognize);
+        }
+
+        if(photo != null) {
+            String photoRef = storageService.store(photo);
+            recipe.setPhoto(photoRef);
         }
 
         Recipe recipe1 = recipeService.createNewRecipe(recipe);
