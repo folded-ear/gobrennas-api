@@ -11,13 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -68,11 +66,9 @@ public class RecipeController {
 
     @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> createNewRecipe(@RequestParam("info") String recipeData, @RequestParam(required = false) MultipartFile photo) throws IOException {
+    public ResponseEntity<?> createNewRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
 
-        IngredientInfo info;
-        ObjectMapper objectMapper = new ObjectMapper();
-        info = objectMapper.readValue(recipeData, IngredientInfo.class);
+        IngredientInfo info = mapToInfo(r);
 
         // begin kludge (1 of 3)
         Recipe recipe = info.asRecipe(em);
@@ -82,7 +78,7 @@ public class RecipeController {
             recipe.getIngredients().forEach(itemService::autoRecognize);
         }
 
-        if(photo != null) {
+        if (photo != null) {
             String photoRef = storageService.store(photo);
             recipe.setPhoto(photoRef);
         }
@@ -93,15 +89,20 @@ public class RecipeController {
         return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> updateRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) {
+    public ResponseEntity<?> updateRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
+
+        IngredientInfo info = mapToInfo(r);
+
         // begin kludge (2 of 3)
         Recipe recipe = info.asRecipe(em);
         // end kludge (2 of 3)
 
-        ResponseEntity<?> errors = validationService.validationService(result);
-        if(errors != null) return errors;
+        if (photo != null) {
+            String photoRef = storageService.store(photo);
+            recipe.setPhoto(photoRef);
+        }
 
         Recipe recipe1 = recipeService.updateRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
@@ -208,5 +209,11 @@ public class RecipeController {
         }
         return info;
     }
+
+    private IngredientInfo mapToInfo(String recipeData) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(recipeData, IngredientInfo.class);
+    }
+
 
 }
