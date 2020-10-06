@@ -10,7 +10,7 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String store(MultipartFile file) {
-        // write it to disk
+        Assert.notNull(file, "File is required.");
         return "images/pork_chops.jpg";
     }
 

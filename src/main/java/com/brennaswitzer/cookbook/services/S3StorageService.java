@@ -25,7 +25,7 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String store(MultipartFile file) throws IOException {
-
+        Assert.notNull(file, "File is required.");
         File temp = File.createTempFile("recipe_", "img");
         temp.deleteOnExit();
         file.transferTo(temp);
@@ -39,6 +39,7 @@ public class S3StorageService implements StorageService {
                 objectKey,
                 temp
         );
+        //noinspection ResultOfMethodCallIgnored
         temp.delete();
         return objectKey;
     }
