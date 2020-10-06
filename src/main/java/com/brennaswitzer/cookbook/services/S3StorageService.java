@@ -1,6 +1,8 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.amazonaws.services.s3.AmazonS3;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -8,7 +10,11 @@ import java.io.IOException;
 
 public class S3StorageService implements StorageService {
 
+    private final String S3_URL = "https://s3-us-west-2.amazonaws.com";
     private final AmazonS3 client;
+
+    @Value("${app.bucket-name}")
+    String bucketName;
 
     public S3StorageService(AmazonS3 s3client) {
         this.client = s3client;
@@ -29,7 +35,7 @@ public class S3StorageService implements StorageService {
         String objectKey = file.getOriginalFilename();
 
         client.putObject(
-                "foodinger",
+                bucketName,
                 objectKey,
                 temp
         );
@@ -38,7 +44,8 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
-    public String load(String filename) {
-        return "https://foodinger.s3-us-west-2.amazonaws.com/pork_chops.jpg";
+    public String load(String objectKey) {
+        Assert.notNull(objectKey, "Filename is required");
+        return  S3_URL + "/" + bucketName + "/" + objectKey;
     }
 }

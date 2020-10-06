@@ -62,7 +62,7 @@ public class RecipeController {
 
         return recipes
                 .stream()
-                .map(IngredientInfo::from)
+                .map(this::getRecipeInfo)
                 .collect(Collectors.toList());
     }
 
@@ -87,7 +87,8 @@ public class RecipeController {
 
         Recipe recipe1 = recipeService.createNewRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
-        return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.CREATED);
+
+        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -102,13 +103,14 @@ public class RecipeController {
 
         Recipe recipe1 = recipeService.updateRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
-        return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.OK);
+
+        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Recipe recipe = getRecipe(id);
-        return IngredientInfo.from(recipe);
+        return getRecipeInfo(recipe);
     }
 
     // begin kludge (3 of 3)
@@ -134,9 +136,17 @@ public class RecipeController {
 //        }
 
         // just reflect it. Screw. That. Poop.
-        return (IngredientInfo) IngredientInfo.class
-                .getMethod("from", i.getClass())
-                .invoke(null, i);
+        IngredientInfo info;
+
+        if (i instanceof Recipe) {
+            info = getRecipeInfo((Recipe) i);
+        } else {
+            info = (IngredientInfo) IngredientInfo.class
+                    .getMethod("from", i.getClass())
+                    .invoke(null, i);
+        }
+
+        return info;
     }
     // end kludge (3 of 3)
 
@@ -189,5 +199,12 @@ public class RecipeController {
         return recipe.get();
     }
 
+    private IngredientInfo getRecipeInfo(Recipe r) {
+        IngredientInfo info = IngredientInfo.from(r);
+        if(r.getPhoto() != null) {
+            info.setPhoto(storageService.load(r.getPhoto()));
+        }
+        return info;
+    }
 
 }
