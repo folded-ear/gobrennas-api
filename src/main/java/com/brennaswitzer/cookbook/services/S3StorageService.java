@@ -26,27 +26,37 @@ public class S3StorageService implements StorageService {
     @Override
     public String store(MultipartFile file) throws IOException {
         Assert.notNull(file, "File is required.");
-        File temp = File.createTempFile("recipe_", "img");
-        temp.deleteOnExit();
-        file.transferTo(temp);
-
-        // TODO: namespace key to avoid collision
-        // try/catch block and then add finally so that on exit it will be removed
         String objectKey = file.getOriginalFilename();
-
-        client.putObject(
-                bucketName,
-                objectKey,
-                temp
-        );
-        //noinspection ResultOfMethodCallIgnored
-        temp.delete();
+        put(file, objectKey);
         return objectKey;
+    }
+
+    @Override
+    public String store(MultipartFile file, String filename) throws IOException {
+        Assert.notNull(file, "File is required.");
+        Assert.notNull(filename, "Filename is required.");
+        put(file, filename);
+        return filename;
     }
 
     @Override
     public String load(String objectKey) {
         Assert.notNull(objectKey, "Filename is required");
         return  S3_URL + "/" + bucketName + "/" + objectKey;
+    }
+
+    private void put(MultipartFile file, String objectKey) throws IOException {
+        File temp = File.createTempFile("recipe_", "img");
+        file.transferTo(temp);
+        try {
+            client.putObject(
+                    bucketName,
+                    objectKey,
+                    temp
+            );
+        } finally {
+            //noinspection ResultOfMethodCallIgnored
+            temp.delete();
+        }
     }
 }

@@ -78,12 +78,11 @@ public class RecipeController {
             recipe.getIngredients().forEach(itemService::autoRecognize);
         }
 
+        Recipe recipe1 = recipeService.createNewRecipe(recipe);
         if (photo != null) {
-            String photoRef = storageService.store(photo);
-            recipe.setPhoto(photoRef);
+            setPhoto(photo, recipe1);
         }
 
-        Recipe recipe1 = recipeService.createNewRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
 
         return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
@@ -100,8 +99,7 @@ public class RecipeController {
         // end kludge (2 of 3)
 
         if (photo != null) {
-            String photoRef = storageService.store(photo);
-            recipe.setPhoto(photoRef);
+            setPhoto(photo, recipe);
         }
 
         Recipe recipe1 = recipeService.updateRecipe(recipe);
@@ -156,7 +154,6 @@ public class RecipeController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
         recipeService.deleteRecipeById(id);
-
         return new ResponseEntity<>("Recipe was deleted", HttpStatus.OK);
     }
 
@@ -215,5 +212,11 @@ public class RecipeController {
         return objectMapper.readValue(recipeData, IngredientInfo.class);
     }
 
+    private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
+        String name = photo.getOriginalFilename() != null ? photo.getOriginalFilename().replaceAll("[^a-zA-Z0-9.\\-]", "_") : "photo";
+        String filename = "recipe_" + recipe.getId().toString() + "_" + name;
+        String photoRef = storageService.store(photo, filename);
+        recipe.setPhoto(photoRef);
+    }
 
 }
