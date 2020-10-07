@@ -12,7 +12,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,9 +21,6 @@ import java.util.List;
 @Service
 @Transactional
 public class TaskService {
-
-    @Autowired
-    EntityManager entityManager;
 
     @Autowired
     private TaskRepository taskRepo;
@@ -42,10 +38,7 @@ public class TaskService {
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    ItemService itemService;
-
-    @Autowired
-    IngredientService ingredientService;
+    private ItemService itemService;
 
     public Iterable<TaskList> getTaskLists(User owner) {
         return getTaskLists(owner.getId());
@@ -160,8 +153,7 @@ public class TaskService {
     public void taskStatusChanged(TaskStatusEvent e) {
         if (TaskStatus.COMPLETED.equals(e.getStatus())) {
             deleteTask(e.getId());
-        }
-        if (TaskStatus.DELETED.equals(e.getStatus())) {
+        } else if (TaskStatus.DELETED.equals(e.getStatus())) {
             deleteTask(e.getId());
         }
     }
