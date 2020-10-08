@@ -217,7 +217,7 @@ public class RecipeController {
 
     private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
         String name = photo.getOriginalFilename() != null ? photo.getOriginalFilename().replaceAll("[^a-zA-Z0-9.\\-]", "_") : "photo";
-        String filename = "recipe/" + recipe.getId().toString() + "/" + name;
+        String filename = "recipe/" + recipe.getId() + "/" + name;
         String photoRef = storageService.store(photo, filename);
         recipe.setPhoto(photoRef);
     }
