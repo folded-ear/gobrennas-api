@@ -23,6 +23,7 @@ public class StorageConfig {
     @Value("${app.aws-secret-key}")
     String secretKey;
 
+    @Profile({"production", "development"})
     @Bean
     public StorageService s3Storage() {
 
