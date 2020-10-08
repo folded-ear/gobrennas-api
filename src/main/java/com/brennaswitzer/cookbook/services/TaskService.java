@@ -4,11 +4,9 @@ import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
-import com.brennaswitzer.cookbook.services.events.TaskStatusEvent;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -144,18 +142,12 @@ public class TaskService {
 
     public Task setStatus(Long id, TaskStatus status) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
-        t.setStatus(status);
-        applicationEventPublisher.publishEvent(new TaskStatusEvent(t));
-        return t;
-    }
-
-    @EventListener
-    public void taskStatusChanged(TaskStatusEvent e) {
-        if (TaskStatus.COMPLETED.equals(e.getStatus())) {
-            deleteTask(e.getId());
-        } else if (TaskStatus.DELETED.equals(e.getStatus())) {
-            deleteTask(e.getId());
+        if (TaskStatus.COMPLETED.equals(status) || TaskStatus.DELETED.equals(status)) {
+            deleteTask(id);
+        } else {
+            t.setStatus(status);
         }
+        return t;
     }
 
     public Task resetSubtasks(Long id, long[] subtaskIds) {

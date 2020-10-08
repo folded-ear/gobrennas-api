@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
         property = "type"
 )
 @JsonSubTypes({
@@ -20,8 +21,11 @@ import java.util.*;
 })
 public abstract class Ingredient implements Identified, Labeled {
 
-    public static Comparator<Ingredient> BY_NAME = (a, b) ->
-            a.getName().compareToIgnoreCase(b.getName());
+    public static Comparator<Ingredient> BY_NAME = (a, b) -> {
+        if (a == null) return b == null ? 0 : 1;
+        if (b == null) return -1;
+        return a.getName().compareToIgnoreCase(b.getName());
+    };
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -215,3 +215,7 @@ alter table task_list_grants
 --changeset bboisvert:task-status
 alter table task
     add status_id bigint not null default 0; -- needed
+
+--changeset barneyb:remove-shopping-list-staging-area
+drop table shopping_list_items;
+drop table shopping_list;
