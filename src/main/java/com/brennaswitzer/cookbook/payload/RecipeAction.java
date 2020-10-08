@@ -7,8 +7,6 @@ import java.util.List;
 public class RecipeAction {
 
     public enum Type {
-        ASSEMBLE_SHOPPING_LIST, // aggregate PantryItems
-        SEND_TO_SHOPPING_LIST, // new section per recipe (no aggregation)
         SEND_TO_PLAN, // new parent for recipe w/ ingredients nested
         DISSECT_RAW_INGREDIENT,
         RECOGNIZE_ITEM,
@@ -97,13 +95,8 @@ public class RecipeAction {
     }
 
     public Object execute(Long recipeId, RecipeService service) {
+        //noinspection SwitchStatementWithTooFewBranches
         switch (getType()) {
-            case ASSEMBLE_SHOPPING_LIST:
-                service.assembleShoppingList(recipeId, additionalRecipeIds, getListId(), true);
-                break;
-            case SEND_TO_SHOPPING_LIST:
-                service.sendToShoppingList(recipeId, getListId());
-                break;
             case SEND_TO_PLAN:
                 service.sendToPlan(recipeId, getPlanId());
                 break;

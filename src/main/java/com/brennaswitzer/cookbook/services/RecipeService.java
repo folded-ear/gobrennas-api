@@ -5,22 +5,17 @@ import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
-import com.brennaswitzer.cookbook.services.events.TaskStatusEvent;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 
 @Service
 @Transactional
@@ -91,93 +86,6 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
-    public void assembleShoppingList(
-            AggregateIngredient agg,
-            Task list,
-            boolean withHeading
-    ) {
-        ShoppingList l = new ShoppingList();
-        l.addAllPantryItems(agg);
-        // todo: make this user specific
-        l.resetItemOrder(new MagicalListItemStatsComparator(jdbcTmpl));
-        entityManager.persist(l);
-        if (withHeading) {
-            l.createTasks(agg.getName(), list);
-        } else {
-            l.createTasks(list);
-        }
-        // also do any raw ingredients
-        //noinspection rawtypes
-        for (IngredientRef ref : agg.assembleRawIngredientRefs()) {
-            String raw = ref.getRaw().trim();
-            if (raw.isEmpty()) continue;
-            list.addSubtask(new Task(raw));
-        }
-    }
-
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public void assembleShoppingList(Long recipeId, List<Long> additionalRecipeIds, Long listId, boolean withHeading) {
-        Recipe r;
-        if (additionalRecipeIds == null || additionalRecipeIds.isEmpty()) {
-            // simple case - a single recipe
-            r = recipeRepository.findById(recipeId).get();
-        } else {
-            // synthetic aggregate recipe
-            r = new Recipe("Shopping List");
-            r.addIngredient(recipeRepository.findById(recipeId).get());
-            additionalRecipeIds.forEach(id ->
-                    r.addIngredient(recipeRepository.findById(id).get()));
-        }
-        assembleShoppingList(r, taskRepository.getOne(listId), withHeading);
-    }
-
-    private void sendToShoppingList(Recipe r, Task list) {
-        class Pair {
-            private final double factor;
-            private final Recipe recipe;
-
-            private Pair(double factor, Recipe r) {
-                this.factor = factor;
-                this.recipe = r;
-            }
-        }
-        Queue<Pair> queue = new LinkedList<>();
-        queue.add(new Pair(1, r));
-        while (!queue.isEmpty()) {
-            Pair p = queue.remove();
-            ShoppingList l = new ShoppingList();
-            p.recipe.getIngredients().forEach(ref -> {
-                if (!ref.hasIngredient()) return; // do it later...
-                Ingredient ing = ref.getIngredient();
-                Quantity q = ref.getQuantity();
-                if (ing instanceof Recipe) {
-                    queue.add(new Pair(
-                            p.factor * q.getQuantity(),
-                            (Recipe) ing));
-                } else {
-                    l.addPantryItem(new IngredientRef<>(
-                            q.times(p.factor),
-                            (PantryItem) ing,
-                            ref.getPreparation()
-                    ));
-                }
-            });
-            l.createTasks(p.recipe.getName(), list);
-            p.recipe.getIngredients().forEach(ref -> {
-                if (ref.hasIngredient()) return; // already did it
-                String raw = ref.getRaw().trim();
-                if (raw.isEmpty()) return;
-                list.addSubtask(new Task(raw));
-            });
-        }
-    }
-
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public void sendToShoppingList(Long recipeId, Long listId) {
-        Recipe r = recipeRepository.findById(recipeId).get();
-        sendToShoppingList(r, taskRepository.getOne(listId));
-    }
-
     private void sendToPlan(AggregateIngredient r, Task rTask) {
         r.getIngredients().forEach(ir ->
                 sendToPlan(ir, rTask));
@@ -197,29 +105,6 @@ public class RecipeService {
         Task rTask = new Task(r.getName(), r);
         taskRepository.getOne(planId).addSubtask(rTask);
         sendToPlan(r, rTask);
-    }
-
-    private void taskCompleted(Long id) {
-        System.out.println("YO! WOO! Task #" + id + " was completed!");
-        entityManager.createQuery("select l\n" +
-                "from ShoppingList l\n" +
-                "    join l.items it\n" +
-                "    join it.task t\n" +
-                "where t.id = :taskId", ShoppingList.class)
-        .setParameter("taskId", id)
-        .getResultList()
-        .forEach(l -> {
-            System.out.println("Yo! Woo! Shopping List #" + l.getId() + " had an item completed!");
-            l.taskCompleted(id);
-        });
-    }
-
-    @EventListener
-    @Order(1) // this needs to first so the FK isn't wiped by the DELETE
-    public void taskStatusChanged(TaskStatusEvent e) {
-        if (TaskStatus.COMPLETED.equals(e.getStatus())) {
-            taskCompleted(e.getId());
-        }
     }
 
     public void recordDissection(RawIngredientDissection dissection) {
@@ -257,7 +142,6 @@ public class RecipeService {
      * additional processing and exist purely to ease wiring at the controller
      * level. I should not be used in new code.
      */
-    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public RecognizedItem recognizeItem(String raw, int cursor) {
         return itemService.recognizeItem(raw, cursor);
