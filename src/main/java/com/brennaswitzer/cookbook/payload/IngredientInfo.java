@@ -157,6 +157,7 @@ public class IngredientInfo {
     private Integer yield;
     private Integer calories;
     private Integer totalTime;
+    private String photo;
     private boolean cookThis;
 
     public Long getId() {
@@ -265,6 +266,14 @@ public class IngredientInfo {
 
     public void setCookThis(boolean cookThis) {
         this.cookThis = cookThis;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 
     public Recipe asRecipe(EntityManager em) {

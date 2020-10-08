@@ -4,20 +4,19 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
-import com.brennaswitzer.cookbook.services.ItemService;
-import com.brennaswitzer.cookbook.services.LabelService;
-import com.brennaswitzer.cookbook.services.RecipeService;
-import com.brennaswitzer.cookbook.services.ValidationService;
+import com.brennaswitzer.cookbook.services.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.validation.Valid;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +38,9 @@ public class RecipeController {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    StorageService storageService;
+
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
@@ -58,47 +60,58 @@ public class RecipeController {
 
         return recipes
                 .stream()
-                .map(IngredientInfo::from)
+                .map(this::getRecipeInfo)
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("")
+    @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) {
+    public ResponseEntity<?> createNewRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
+
+        IngredientInfo info = mapToInfo(r);
+
         // begin kludge (1 of 3)
         Recipe recipe = info.asRecipe(em);
         // end kludge (1 of 3)
-        ResponseEntity<?> errors = validationService.validationService(result);
-        if(errors != null) return errors;
 
         if (info.isCookThis()) {
             recipe.getIngredients().forEach(itemService::autoRecognize);
         }
 
         Recipe recipe1 = recipeService.createNewRecipe(recipe);
+        if (photo != null) {
+            setPhoto(photo, recipe1);
+        }
+
         labelService.updateLabels(recipe1, info.getLabels());
-        return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.CREATED);
+
+        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> updateRecipe(@Valid @RequestBody IngredientInfo info, BindingResult result) {
+    public ResponseEntity<?> updateRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
+
+        IngredientInfo info = mapToInfo(r);
+
         // begin kludge (2 of 3)
         Recipe recipe = info.asRecipe(em);
         // end kludge (2 of 3)
 
-        ResponseEntity<?> errors = validationService.validationService(result);
-        if(errors != null) return errors;
+        if (photo != null) {
+            setPhoto(photo, recipe);
+        }
 
         Recipe recipe1 = recipeService.updateRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
-        return new ResponseEntity<>(IngredientInfo.from(recipe1), HttpStatus.OK);
+
+        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Recipe recipe = getRecipe(id);
-        return IngredientInfo.from(recipe);
+        return getRecipeInfo(recipe);
     }
 
     // begin kludge (3 of 3)
@@ -124,16 +137,23 @@ public class RecipeController {
 //        }
 
         // just reflect it. Screw. That. Poop.
-        return (IngredientInfo) IngredientInfo.class
-                .getMethod("from", i.getClass())
-                .invoke(null, i);
+        IngredientInfo info;
+
+        if (i instanceof Recipe) {
+            info = getRecipeInfo((Recipe) i);
+        } else {
+            info = (IngredientInfo) IngredientInfo.class
+                    .getMethod("from", i.getClass())
+                    .invoke(null, i);
+        }
+
+        return info;
     }
     // end kludge (3 of 3)
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
         recipeService.deleteRecipeById(id);
-
         return new ResponseEntity<>("Recipe was deleted", HttpStatus.OK);
     }
 
@@ -179,5 +199,24 @@ public class RecipeController {
         return recipe.get();
     }
 
+    private IngredientInfo getRecipeInfo(Recipe r) {
+        IngredientInfo info = IngredientInfo.from(r);
+        if(r.getPhoto() != null) {
+            info.setPhoto(storageService.load(r.getPhoto()));
+        }
+        return info;
+    }
+
+    private IngredientInfo mapToInfo(String recipeData) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(recipeData, IngredientInfo.class);
+    }
+
+    private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
+        String name = photo.getOriginalFilename() != null ? photo.getOriginalFilename().replaceAll("[^a-zA-Z0-9.\\-]", "_") : "photo";
+        String filename = "recipe_" + recipe.getId().toString() + "_" + name;
+        String photoRef = storageService.store(photo, filename);
+        recipe.setPhoto(photoRef);
+    }
 
 }

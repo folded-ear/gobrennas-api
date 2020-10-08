@@ -21,6 +21,7 @@ spring:
 app:
   # where 'index.html' lives from the UA's perspective
   public-url: https://cook.brennaswitzer.com/
+  bucket-name: foodinger
   auth:
     tokenSecret: ${TOKEN_SECRET}
     tokenExpirationMsec: 864000000

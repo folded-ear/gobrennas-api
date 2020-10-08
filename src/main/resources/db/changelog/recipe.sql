@@ -247,3 +247,7 @@ update ingredient set
     store_order = orders.store_order
 from orders
 where orders.id = ingredient.id;
+
+--changeset switzerb:photo-on-recipe
+alter table ingredient
+    add photo varchar;

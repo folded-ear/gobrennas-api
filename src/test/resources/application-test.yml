@@ -17,3 +17,7 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
   liquibase:
     enabled: false
+app:
+  aws-access-key: oh-my-its-so-glergy
+  aws-secret-key: glerg-fest
+  bucket-name: s3-bucketname
