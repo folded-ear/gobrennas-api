@@ -1,9 +1,9 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
+import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +43,12 @@ public class PlanService {
     }
 
     public List<Task> getTreeById(Long id) {
-        Task t = getTaskById(id, AccessLevel.VIEW);
+        return treeHelper(getTaskById(id, AccessLevel.VIEW));
+    }
+
+    private List<Task> treeHelper(Task task) {
         List<Task> result = new LinkedList<>();
-        treeHelper(t, result);
+        treeHelper(task, result);
         return result;
     }
 
@@ -79,5 +82,37 @@ public class PlanService {
         return messagingTemplate != null;
     }
 
+    private void sendToPlan(AggregateIngredient r, Task rTask) {
+        r.getIngredients().forEach(ir ->
+                sendToPlan(ir, rTask));
+    }
+
+    private void sendToPlan(IngredientRef<?> ir, Task rTask) {
+        Task t = new Task(ir.getRaw(), ir.getQuantity(), ir.getIngredient(), ir.getPreparation());
+        rTask.addSubtask(t);
+        if (ir.getIngredient() instanceof AggregateIngredient) {
+            sendToPlan((AggregateIngredient) ir.getIngredient(), t);
+        }
+    }
+
+    public void addRecipe(Long planId, Recipe r) {
+        Task rTask = new Task(r.getName(), r);
+        Task plan = getTaskById(planId, AccessLevel.CHANGE);
+        plan.addSubtask(rTask);
+        sendToPlan(r, rTask);
+        if (isMessagingCapable()) {
+            taskRepo.flush(); // so that IDs will be available to send out
+            PlanMessage m = new PlanMessage();
+            m.setId(planId);
+            m.setType("create");
+            List<Task> tree = new LinkedList<>();
+            tree.add(plan);
+            treeHelper(rTask, tree);
+            m.setInfo(TaskInfo.fromTasks(tree));
+            messagingTemplate.convertAndSend(
+                    "/topic/plan/" + planId,
+                    m);
+        }
+    }
 }
 

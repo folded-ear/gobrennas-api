@@ -1,10 +1,11 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
-import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
@@ -28,7 +29,7 @@ public class RecipeService {
     IngredientService ingredientService;
 
     @Autowired
-    private TaskRepository taskRepository;
+    private PlanService planService;
 
     @Autowired
     private EntityManager entityManager;
@@ -86,25 +87,10 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
-    private void sendToPlan(AggregateIngredient r, Task rTask) {
-        r.getIngredients().forEach(ir ->
-                sendToPlan(ir, rTask));
-    }
-
-    private void sendToPlan(IngredientRef<?> ir, Task rTask) {
-        Task t = new Task(ir.getRaw(), ir.getQuantity(), ir.getIngredient(), ir.getPreparation());
-        rTask.addSubtask(t);
-        if (ir.getIngredient() instanceof AggregateIngredient) {
-            sendToPlan((AggregateIngredient) ir.getIngredient(), t);
-        }
-    }
-
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void sendToPlan(Long recipeId, Long planId) {
-        Recipe r = recipeRepository.findById(recipeId).get();
-        Task rTask = new Task(r.getName(), r);
-        taskRepository.getOne(planId).addSubtask(rTask);
-        sendToPlan(r, rTask);
+        planService.addRecipe(planId,
+                recipeRepository.findById(recipeId).get());
     }
 
     public void recordDissection(RawIngredientDissection dissection) {
@@ -142,6 +128,7 @@ public class RecipeService {
      * additional processing and exist purely to ease wiring at the controller
      * level. I should not be used in new code.
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public RecognizedItem recognizeItem(String raw, int cursor) {
         return itemService.recognizeItem(raw, cursor);
