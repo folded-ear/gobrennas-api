@@ -136,7 +136,7 @@ public class TaskService {
     public Task renameTask(Long id, String name) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         t.setName(name);
-        itemService.autoRecognize(t);
+        itemService.updateAutoRecognition(t);
         return t;
     }
 
