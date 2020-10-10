@@ -73,7 +73,7 @@ public abstract class BaseEntity implements Identified {
     @Override
     public boolean equals(Object object) {
         if (object == null) return false;
-        if (!getClass().isAssignableFrom(object.getClass())) return false;
+        if (!BaseEntity.class.isAssignableFrom(object.getClass())) return false;
         return this.get_eqkey().equals(((BaseEntity) object).get_eqkey());
     }
 
