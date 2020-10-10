@@ -1,11 +1,15 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.EnglishUtils;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
 import java.util.*;
 
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @NamedQuery(name = "UnitOfMeasure.byName", query = "select uom\n" +
         "from UnitOfMeasure uom\n" +
@@ -57,8 +61,13 @@ public class UnitOfMeasure extends BaseEntity {
                 });
     }
 
+    @NonNull
+    @Getter
+    @Setter
     private String name;
 
+    @Getter
+    @Setter
     private String pluralName;
 
     @ElementCollection
@@ -76,23 +85,6 @@ public class UnitOfMeasure extends BaseEntity {
     public UnitOfMeasure(String name, String... aliases) {
         setName(name);
         addAliases(aliases);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        Assert.notNull(name, "Can't have the null UoM");
-        this.name = name;
-    }
-
-    public String getPluralName() {
-        return pluralName;
-    }
-
-    public void setPluralName(String pluralName) {
-        this.pluralName = pluralName;
     }
 
     public boolean hasAlias(String alias) {
@@ -116,7 +108,10 @@ public class UnitOfMeasure extends BaseEntity {
     }
 
     public Set<String> getAliases() {
-        if (aliases == null) return Collections.EMPTY_SET;
+        if (aliases == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_SET;
+        }
         return Collections.unmodifiableSet(aliases);
     }
 

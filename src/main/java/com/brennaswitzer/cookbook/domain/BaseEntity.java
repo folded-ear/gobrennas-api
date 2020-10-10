@@ -1,55 +1,38 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.IdUtils;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
 
-@SuppressWarnings("WeakerAccess")
 @MappedSuperclass
 public abstract class BaseEntity implements Identified {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
+    @Setter
     private Long id;
 
     @NotNull
     @Column(updatable = false)
+    @Getter
     private final Long _eqkey = IdUtils.next(getClass());
 
     @NotNull
     @Column(name = "created_at")
+    @Getter
+    @Setter
     private Instant createdAt;
 
     @NotNull
     @Version
     @Column(name = "updated_at")
+    @Getter
     private Instant updatedAt;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long get_eqkey() {
-        return this._eqkey;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    private void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
 
     @PrePersist
     protected void onPersist() {

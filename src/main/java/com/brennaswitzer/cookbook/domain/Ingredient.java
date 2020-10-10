@@ -2,6 +2,8 @@ package com.brennaswitzer.cookbook.domain;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Comparator;
@@ -29,8 +31,12 @@ public abstract class Ingredient implements Identified, Labeled {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
+    @Setter
     private Long id;
 
+    @Getter
+    @Setter
     private String name;
 
     @ElementCollection
@@ -40,23 +46,6 @@ public abstract class Ingredient implements Identified, Labeled {
 
     Ingredient(String name) {
         setName(name);
-    }
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Set<Label> getLabels() {

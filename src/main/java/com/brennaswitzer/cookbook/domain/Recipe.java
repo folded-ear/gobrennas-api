@@ -3,6 +3,8 @@ package com.brennaswitzer.cookbook.domain;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -26,19 +28,31 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     // end access control emulation
 
+    @Getter
+    @Setter
     private String externalUrl;
 
+    @Getter
+    @Setter
     private String directions;
 
+    @Getter
+    @Setter
     private Integer yield;
 
+    @Getter
+    @Setter
     private Integer calories;
 
+    @Getter
+    @Setter
     private String photo; //maybe use embeddable to grow more information about reference?
 
     /**
      * Time is stored in milliseconds
      */
+    @Getter
+    @Setter
     private Integer totalTime;
 
     @ElementCollection
@@ -46,9 +60,13 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     private List<IngredientRef> ingredients;
 
     @JsonFormat(pattern = "yyyy-mm-dd")
+    @Getter
+    @Setter
     private Date created_at;
 
     @JsonFormat(pattern = "yyyy-mm-dd")
+    @Getter
+    @Setter
     private Date updated_at;
 
     public Recipe() {
@@ -56,22 +74,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     public Recipe(String name) {
         setName(name);
-    }
-
-    public String getExternalUrl() {
-        return externalUrl;
-    }
-
-    public void setExternalUrl(String externalUrl) {
-        this.externalUrl = externalUrl;
-    }
-
-    public String getDirections() {
-        return directions;
-    }
-
-    public void setDirections(String directions) {
-        this.directions = directions;
     }
 
     public List<IngredientRef> getIngredients() {
@@ -95,22 +97,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     public void addRawIngredient(String raw) {
         ensureIngredients();
         ingredients.add(new IngredientRef<>(raw));
-    }
-
-    public Date getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(Date created_at) {
-        this.created_at = created_at;
-    }
-
-    public Date getUpdated_at() {
-        return updated_at;
-    }
-
-    public void setUpdated_at(Date updated_at) {
-        this.updated_at = updated_at;
     }
 
     @PrePersist
@@ -175,35 +161,4 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         return getName();
     }
 
-    public Integer getYield() {
-        return yield;
-    }
-
-    public void setYield(Integer yield) {
-        this.yield = yield;
-    }
-
-    public Integer getCalories() {
-        return calories;
-    }
-
-    public void setCalories(Integer calories) {
-        this.calories = calories;
-    }
-
-    public Integer getTotalTime() {
-        return totalTime;
-    }
-
-    public void setTotalTime(Integer totalTime) {
-        this.totalTime = totalTime;
-    }
-
-    public String getPhoto() {
-        return photo;
-    }
-
-    public void setPhoto(String photo) {
-        this.photo = photo;
-    }
 }

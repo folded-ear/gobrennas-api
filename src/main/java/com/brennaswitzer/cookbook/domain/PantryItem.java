@@ -1,6 +1,8 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -18,31 +20,19 @@ public class PantryItem extends Ingredient {
         return a.getName().compareTo(b.getName());
     };
 
+    @Getter
+    @Setter
     private String aisle;
 
     // todo: make this user specific
+    @Getter
+    @Setter
     private int storeOrder = 999_999_999;
 
     public PantryItem() {}
 
     public PantryItem(String name) {
         super(name);
-    }
-
-    public String getAisle() {
-        return aisle;
-    }
-
-    public void setAisle(String aisle) {
-        this.aisle = aisle;
-    }
-
-    public int getStoreOrder() {
-        return storeOrder;
-    }
-
-    public void setStoreOrder(int storeOrder) {
-        this.storeOrder = storeOrder;
     }
 
     @Override

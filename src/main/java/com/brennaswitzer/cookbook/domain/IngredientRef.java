@@ -1,9 +1,13 @@
 package com.brennaswitzer.cookbook.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.Comparator;
 
 @Embeddable
+@SuppressWarnings("JpaDataSourceORMInspection") // it's @Embeddable, and IntelliJ's too dumb
 public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
 
     public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) -> {
@@ -13,16 +17,24 @@ public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
     };
 
     @Column(name = "_order")
+    @Getter
+    @Setter
     private int _idx;
 
+    @Setter
     private String raw;
 
     @Embedded
+    @Setter
     private Quantity quantity;
 
+    @Getter
+    @Setter
     private String preparation;
 
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
+    @Getter
+    @Setter
     private I ingredient;
 
     public IngredientRef() {}
@@ -37,24 +49,8 @@ public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
         setPreparation(preparation);
     }
 
-    int get_idx() {
-        return _idx;
-    }
-
-    void set_idx(int _idx) {
-        this._idx = _idx;
-    }
-
     public IngredientRef(String raw) {
         setRaw(raw);
-    }
-
-    public I getIngredient() {
-        return ingredient;
-    }
-
-    public void setIngredient(I ingredient) {
-        this.ingredient = ingredient;
     }
 
     public boolean hasIngredient() {
@@ -65,29 +61,13 @@ public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
         return raw == null ? toString() : raw;
     }
 
-    public void setRaw(String raw) {
-        this.raw = raw;
-    }
-
     public Quantity getQuantity() {
         if (quantity == null) return Quantity.ONE;
         return quantity;
     }
 
-    public void setQuantity(Quantity quantity) {
-        this.quantity = quantity;
-    }
-
     public boolean hasQuantity() {
         return quantity != null;
-    }
-
-    public String getPreparation() {
-        return preparation;
-    }
-
-    public void setPreparation(String preparation) {
-        this.preparation = preparation;
     }
 
     public boolean hasPreparation() {

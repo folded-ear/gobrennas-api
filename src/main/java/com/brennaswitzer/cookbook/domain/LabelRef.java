@@ -1,5 +1,8 @@
 package com.brennaswitzer.cookbook.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Embeddable;
 import javax.persistence.ManyToOne;
 import java.util.Objects;
@@ -8,6 +11,8 @@ import java.util.Objects;
 public class LabelRef {
 
     @ManyToOne
+    @Getter
+    @Setter
     private Label label;
 
     public LabelRef() {
@@ -15,14 +20,6 @@ public class LabelRef {
 
     public LabelRef(Label name) {
         setLabel(name);
-    }
-
-    public Label getLabel() {
-        return label;
-    }
-
-    public void setLabel(Label label) {
-        this.label = label;
     }
 
     @Override

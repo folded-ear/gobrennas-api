@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
@@ -32,23 +34,34 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
     };
 
     @NotNull
+    @Getter
+    @Setter
     private String name;
 
     @Column(name = "status_id")
+    @Getter
+    @Setter
     private TaskStatus status = TaskStatus.NEEDED;
 
     @Embedded
+    @Setter
     private Quantity quantity;
 
+    @Getter
+    @Setter
     private String preparation;
 
     @NotNull
+    @Getter
     private int position;
 
     @ManyToOne
+    @Getter
     private Task parent;
 
     @ManyToOne(cascade = {CascadeType.MERGE})
+    @Getter
+    @Setter
     private Ingredient ingredient;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
@@ -76,28 +89,6 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
 
     public Task(String name, Ingredient ingredient) {
         this(name, null, ingredient, null);
-    }
-
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-    public int getPosition() {
-        return position;
     }
 
     public void setPosition(int position) {
@@ -133,10 +124,6 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
 
     public boolean hasSubtasks() {
         return getSubtaskCount() != 0;
-    }
-
-    public Task getParent() {
-        return parent;
     }
 
     public void setParent(Task parent) {
@@ -269,29 +256,8 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
         return quantity;
     }
 
-    @Override
-    public String getPreparation() {
-        return preparation;
-    }
-
-    @Override
-    public Ingredient getIngredient() {
-        return ingredient;
-    }
-
     public boolean hasIngredient() {
         return ingredient != null;
     }
 
-    public void setQuantity(Quantity quantity) {
-        this.quantity = quantity;
-    }
-
-    public void setPreparation(String preparation) {
-        this.preparation = preparation;
-    }
-
-    public void setIngredient(Ingredient ingredient) {
-        this.ingredient = ingredient;
-    }
 }

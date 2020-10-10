@@ -1,6 +1,8 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.NumberUtils;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.*;
@@ -20,9 +22,13 @@ public class Quantity {
 
     @SuppressWarnings("DefaultAnnotationParam")
     @Column(nullable = true)
+    @Getter
+    @Setter
     private double quantity;
 
     @ManyToOne
+    @Getter
+    @Setter
     private UnitOfMeasure units;
 
     public Quantity() {
@@ -30,22 +36,6 @@ public class Quantity {
 
     public Quantity(double quantity, UnitOfMeasure units) {
         this.quantity = quantity;
-        this.units = units;
-    }
-
-    public double getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(double quantity) {
-        this.quantity = quantity;
-    }
-
-    public UnitOfMeasure getUnits() {
-        return units;
-    }
-
-    public void setUnits(UnitOfMeasure units) {
         this.units = units;
     }
 

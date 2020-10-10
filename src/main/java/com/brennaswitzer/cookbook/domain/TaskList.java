@@ -1,5 +1,8 @@
 package com.brennaswitzer.cookbook.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -11,6 +14,8 @@ public class TaskList extends Task implements AccessControlled {
 
     @Embedded
     @NotNull
+    @Getter
+    @Setter
     private Acl acl = new Acl();
 
     public TaskList() {}
@@ -32,14 +37,6 @@ public class TaskList extends Task implements AccessControlled {
     @Override
     public TaskList getTaskList() {
         return this;
-    }
-
-    public Acl getAcl() {
-        return acl;
-    }
-
-    public void setAcl(Acl acl) {
-        this.acl = acl;
     }
 
 }
