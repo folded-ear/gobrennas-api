@@ -19,19 +19,21 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        return a.name.compareTo(b.name);
+        return a.getName().compareTo(b.getName());
     };
 
     public static final Comparator<Task> BY_NAME_IGNORE_CASE = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        return a.name.compareToIgnoreCase(b.name);
+        return a.getName().compareToIgnoreCase(b.getName());
     };
 
     public static final Comparator<Task> BY_ORDER = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        return a.position - b.position;
+        int c = a.getPosition() - b.getPosition();
+        if (c != 0) return c;
+        return a.getName().compareToIgnoreCase(b.getName());
     };
 
     @NotNull
@@ -54,6 +56,7 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
 
     @NotNull
     @Getter
+    @Setter
     private int position;
 
     @ManyToOne
@@ -92,58 +95,72 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
         this(name, null, ingredient, null);
     }
 
-    public void setPosition(int position) {
-        if (!isSubtask()) {
-            this.position = position;
-            return;
+    public void setChildPosition(Task child, int position) {
+        for (Task t : subtasks) {
+            if (t.getPosition() >= position) t.setPosition(t.getPosition() + 1);
         }
-        // ensure there's a hole
-        for (Task t : this.parent.subtasks) {
-            if (t.position >= position) t.position += 1;
-        }
-        this.position = position;
-        this.parent.resetSubtaskPositions();
+        child.setPosition(position);
+        resetSubtaskPositions();
     }
 
     private void resetSubtaskPositions() {
         AtomicInteger seq = new AtomicInteger();
         for (Task t : getOrderedSubtasksView()) {
-            t.position = seq.getAndIncrement();
+            t.setPosition(seq.getAndIncrement());
         }
     }
 
     public boolean isSubtask() {
-        return parent != null;
+        return getParent() != null;
     }
 
     public boolean hasSubtasks() {
         return getSubtaskCount() != 0;
     }
 
+    public boolean isDescendant(Task t) {
+        for (; t != null; t = t.getParent()) {
+            if (t == this) return true;
+        }
+        return false;
+    }
+
     public void setParent(Task parent) {
-        if (this.parent != null && this.parent.subtasks != null) {
-            if (! this.parent.subtasks.remove(this)) {
-                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of it's parent #" + this.parent.getId() + "?!");
+        // see if it's a no-op
+        if (parent == null ? getParent() == null : parent.equals(getParent())) {
+            return;
+        }
+        if (isDescendant(parent)) {
+            throw new IllegalArgumentException("You can't make a task a descendant of one of its descendants");
+        }
+        // tear down the old one
+        if (getParent() != null && getParent().subtasks != null) {
+            if (! getParent().subtasks.remove(this)) {
+                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of it's parent #" + getParent().getId() + "?!");
             }
-            this.parent.resetSubtaskPositions();
+            getParent().resetSubtaskPositions();
+        }
+        // wire up the new one
+        if (parent != null) {
+            if (parent.subtasks == null) {
+                parent.subtasks = new HashSet<>();
+            }
+            if (parent.subtasks.add(this)) {
+                parent.setChildPosition(this, 1 + parent.subtasks
+                        .stream()
+                        .map(Task::getPosition)
+                        .reduce(0, Integer::max));
+            }
         }
         this.parent = parent;
-        if (this.parent != null) {
-            if (this.parent.subtasks == null) {
-                this.parent.subtasks = new HashSet<>();
-            }
-            this.parent.subtasks.add(this);
-            this.position = this.parent.subtasks.size() - 1;
-            this.parent.resetSubtaskPositions();
-        }
     }
 
     public boolean hasParent() {
-        return parent != null;
+        return getParent() != null;
     }
 
     public TaskList getTaskList() {
-        return parent.getTaskList();
+        return getParent().getTaskList();
     }
 
     /**
@@ -161,11 +178,11 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
-        if (after != null && after.parent != this) {
+        if (after != null && !this.equals(after.getParent())) {
             throw new IllegalArgumentException("The 'after' task isn't a child of this; that makes no sense.");
         }
-        if (task.parent != null) {
-            task.parent.removeSubtask(task);
+        if (task.getParent() != null) {
+            task.getParent().removeSubtask(task);
         }
         int position = after == null ? 0 : after.getPosition() + 1;
         insertSubtask(position, task);
@@ -179,7 +196,7 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
         addSubtask(task);
-        task.setPosition(position);
+        setChildPosition(task, position);
     }
 
     public void removeSubtask(Task task) {
@@ -217,10 +234,10 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(name);
+        StringBuilder sb = new StringBuilder(getName());
         if (isSubtask()) {
             sb.append(" [")
-                    .append(parent.name) // NOT .toString()!
+                    .append(getParent().getName()) // NOT .toString()!
                     .append(']');
         }
         return sb.toString();
@@ -237,12 +254,12 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
     }
 
     public Task after(Task after) {
-        return of(after.parent, after);
+        return of(after.getParent(), after);
     }
 
     @Override
     public String getRaw() {
-        return name;
+        return getName();
     }
 
     @Override

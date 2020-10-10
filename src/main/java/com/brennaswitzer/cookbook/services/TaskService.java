@@ -104,7 +104,7 @@ public class TaskService {
         Task t = new Task(name);
         itemService.autoRecognize(t);
         getTaskById(parentId, AccessLevel.CHANGE)
-            .insertSubtask(0, t);
+            .addSubtaskAfter(t, null);
         taskRepo.save(t);
         return t;
     }

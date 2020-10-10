@@ -89,7 +89,7 @@ public class TaskTest {
     }
 
     @Test
-    public void setOrder() {
+    public void setChildPosition() {
         Task groceries = new Task("Groceries");
         Task apples = new Task("Apples");
         Task bagels = new Task("Bagels");
@@ -101,13 +101,13 @@ public class TaskTest {
         assertEquals(1, bagels.getPosition());
         assertEquals(2, chicken.getPosition());
 
-        bagels.setPosition(0);
+        groceries.setChildPosition(bagels, 0);
 
         assertEquals(0, bagels.getPosition());
         assertEquals(1, apples.getPosition());
         assertEquals(2, chicken.getPosition());
 
-        bagels.setPosition(2);
+        groceries.setChildPosition(bagels, 2);
 
         assertEquals(0, apples.getPosition());
         assertEquals(1, bagels.getPosition());

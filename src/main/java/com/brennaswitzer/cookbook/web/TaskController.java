@@ -88,7 +88,7 @@ public class TaskController {
 
     @PutMapping("/{id}/parentId")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetParent(
+    public void resetParent( // todo: remove?
             @PathVariable("id") Long id,
             @RequestBody ParentId parent
     ) {
@@ -97,7 +97,7 @@ public class TaskController {
 
     @PutMapping("/{id}/subtaskIds")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetSubtasks(
+    public void resetSubtasks( // todo: remove?
             @PathVariable("id") Long id,
             @RequestBody SubtaskIds info
     ) {
