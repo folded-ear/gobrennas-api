@@ -15,6 +15,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("api/pantryitem")
+@MessageMapping("/pantry-item")
 public class PantryItemController {
 
     @Autowired
@@ -31,7 +32,7 @@ public class PantryItemController {
         return new ResponseEntity<>(newItem, HttpStatus.CREATED);
     }
 
-    @MessageMapping("/pantry-item/order-for-store")
+    @MessageMapping("/order-for-store")
     public void orderForStore(@Payload OrderForStore action) {
         Long id = action.getId();
         Long targetId = action.getTargetId();
