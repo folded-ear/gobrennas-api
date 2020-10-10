@@ -3,7 +3,10 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.*;
+import com.brennaswitzer.cookbook.payload.AclInfo;
+import com.brennaswitzer.cookbook.payload.GrantInfo;
+import com.brennaswitzer.cookbook.payload.TaskInfo;
+import com.brennaswitzer.cookbook.payload.TaskName;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,24 +87,6 @@ public class TaskController {
     ) {
         return TaskInfo.fromTask(taskService
                 .renameTask(id, info.getName()));
-    }
-
-    @PutMapping("/{id}/parentId")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetParent( // todo: remove?
-            @PathVariable("id") Long id,
-            @RequestBody ParentId parent
-    ) {
-        taskService.resetParent(id, parent.getParentId());
-    }
-
-    @PutMapping("/{id}/subtaskIds")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetSubtasks( // todo: remove?
-            @PathVariable("id") Long id,
-            @RequestBody SubtaskIds info
-    ) {
-        taskService.resetSubtasks(id, info.getSubtaskIds());
     }
 
     @DeleteMapping("/{id}")

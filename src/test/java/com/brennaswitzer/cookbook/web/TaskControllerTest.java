@@ -4,7 +4,10 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.*;
+import com.brennaswitzer.cookbook.payload.AclInfo;
+import com.brennaswitzer.cookbook.payload.GrantInfo;
+import com.brennaswitzer.cookbook.payload.TaskInfo;
+import com.brennaswitzer.cookbook.payload.TaskName;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
@@ -67,112 +70,6 @@ public class TaskControllerTest {
         alice = userRepository.getByName("Alice");
         bob = userRepository.getByName("Bob");
         eve = userRepository.getByName("Eve");
-    }
-
-    @Test
-    public void theWholeShebang() throws Exception {
-        TaskInfo ti;
-
-        // sanity check before we start ...
-        assertEquals(0, forInfoList(
-                get("/api/tasks"),
-                status().isOk())
-                .size());
-
-        ti = forInfo(
-                makeJson(
-                        post("/api/tasks"),
-                        new TaskName("Groceries")),
-                status().isCreated());
-        Long groceryId = ti.getId();
-        assertNotNull(ti.getId());
-        assertEquals("Groceries", ti.getName());
-
-        ti = forInfo(
-                makeJson(
-                        post("/api/tasks/{id}/subtasks", groceryId),
-                        new TaskName("apple")),
-                status().isCreated());
-        Long appleId = ti.getId();
-        assertNotNull(ti.getId());
-        assertEquals("apple", ti.getName());
-
-        // did it assemble right?
-        ti = forInfo(get("/api/tasks/{id}", groceryId), status().isOk());
-        assertArrayEquals(new long[] {
-                appleId,
-        }, ti.getSubtaskIds());
-
-        ti = forInfo(
-                makeJson(
-                        post("/api/tasks/{id}/subtasks", groceryId),
-                        new TaskName("OJ")), status().isCreated());
-        Long ojId = ti.getId();
-        assertNotNull(ti.getId());
-        assertEquals(groceryId, ti.getParentId());
-        assertEquals("OJ", ti.getName());
-
-        // did it assemble right?
-        ti = forInfo(get("/api/tasks/{id}", groceryId), status().isOk());
-        assertArrayEquals(new long[] {
-                ojId,
-                appleId,
-        }, ti.getSubtaskIds());
-
-        ti = forInfo(
-                makeJson(
-                        post("/api/tasks/{id}/subtasks?after={afterId}", groceryId, ojId),
-                        new TaskName("bagel")),
-                status().isCreated());
-        Long bagelId = ti.getId();
-        assertNotNull(ti.getId());
-        assertEquals("bagel", ti.getName());
-
-        // did it assemble right?
-        ti = forInfo(get("/api/tasks/{id}", groceryId), status().isOk());
-        assertArrayEquals(new long[] {
-                ojId,
-                bagelId,
-                appleId,
-        }, ti.getSubtaskIds());
-
-        perform(
-                makeJson(put("/api/tasks/{id}/name", appleId),
-                        new TaskName("apples")))
-                .andExpect(status().isOk());
-
-        ti = forInfo(
-                get("/api/tasks/{id}", appleId),
-                status().isOk());
-        assertEquals(appleId, ti.getId());
-        assertEquals("apples", ti.getName());
-
-        treeView("First Version");
-
-        perform(
-                makeJson(put("/api/tasks/{id}/subtaskIds", groceryId),
-                        new SubtaskIds(appleId, ojId, bagelId)))
-                .andExpect(status().isNoContent());
-
-        ti = forInfo(get("/api/tasks/{id}", groceryId), status().isOk());
-        assertArrayEquals(new long[] {
-                appleId,
-                ojId,
-                bagelId,
-        }, ti.getSubtaskIds());
-
-        treeView("Second Version");
-
-        perform(delete("/api/tasks/{id}", ojId))
-                .andExpect(status().isNoContent());
-
-        ti = forInfo(get("/api/tasks/{id}", groceryId), status().isOk());
-        assertArrayEquals(new long[] {
-                appleId,
-                bagelId,
-        }, ti.getSubtaskIds());
-
-        treeView("Third Version");
     }
 
     @Test
