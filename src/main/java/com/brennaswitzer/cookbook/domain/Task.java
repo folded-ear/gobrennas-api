@@ -7,6 +7,7 @@ import org.hibernate.annotations.BatchSize;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
@@ -96,26 +97,19 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
             this.position = position;
             return;
         }
-        if (position > this.position) {
-            boolean match = false;
-            for (Task t : this.parent.subtasks) {
-                if (t.position < this.position) continue;
-                if (t.position > position) continue;
-                if (t.position == position) {
-                    match = true;
-                    continue;
-                }
-                t.position -= 1;
-            }
-            if (match) position -= 1;
-        } else {
-            for (Task t : this.parent.subtasks) {
-                if (t.position < position) continue;
-                if (t.position >= this.position) continue;
-                t.position += 1;
-            }
+        // ensure there's a hole
+        for (Task t : this.parent.subtasks) {
+            if (t.position >= position) t.position += 1;
         }
         this.position = position;
+        this.parent.resetSubtaskPositions();
+    }
+
+    private void resetSubtaskPositions() {
+        AtomicInteger seq = new AtomicInteger();
+        for (Task t : getOrderedSubtasksView()) {
+            t.position = seq.getAndIncrement();
+        }
     }
 
     public boolean isSubtask() {
@@ -131,10 +125,7 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
             if (! this.parent.subtasks.remove(this)) {
                 throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of it's parent #" + this.parent.getId() + "?!");
             }
-            for (Task t : this.parent.subtasks) {
-                if (t.position < this.position) continue;
-                t.position -= 1;
-            }
+            this.parent.resetSubtaskPositions();
         }
         this.parent = parent;
         if (this.parent != null) {
@@ -143,6 +134,7 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
             }
             this.parent.subtasks.add(this);
             this.position = this.parent.subtasks.size() - 1;
+            this.parent.resetSubtaskPositions();
         }
     }
 
@@ -169,10 +161,13 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
-        int position = after == null ? 0 : after.getPosition() + 1;
-        if (task.parent != null && (after == null || task.parent != after.parent)) {
+        if (after != null && after.parent != this) {
+            throw new IllegalArgumentException("The 'after' task isn't a child of this; that makes no sense.");
+        }
+        if (task.parent != null) {
             task.parent.removeSubtask(task);
         }
+        int position = after == null ? 0 : after.getPosition() + 1;
         insertSubtask(position, task);
     }
 
@@ -184,7 +179,7 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
         addSubtask(task);
-        if (position < getSubtaskCount() - 1) task.setPosition(position);
+        task.setPosition(position);
     }
 
     public void removeSubtask(Task task) {

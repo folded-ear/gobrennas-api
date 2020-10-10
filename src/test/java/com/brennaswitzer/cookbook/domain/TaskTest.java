@@ -55,12 +55,19 @@ public class TaskTest {
         groceries.addSubtask(oj);
         groceries.addSubtask(bagels);
         groceries.addSubtaskAfter(apples, null);
-        groceries.addSubtaskAfter(iceCream, oj);
+        groceries.addSubtaskAfter(iceCream, apples);
 
         assertEquals(0, apples.getPosition());
+        assertEquals(1, iceCream.getPosition());
+        assertEquals(2, oj.getPosition());
+        assertEquals(3, bagels.getPosition());
+
+        // oops, Ice Cream is after OJ
+
+        groceries.addSubtaskAfter(iceCream, oj);
+
         assertEquals(1, oj.getPosition());
         assertEquals(2, iceCream.getPosition());
-        assertEquals(3, bagels.getPosition());
     }
 
     @Test
