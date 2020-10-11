@@ -8,6 +8,11 @@ import static org.junit.Assert.*;
 
 public class TaskTest {
 
+    private void assertBefore(Task first, Task second) {
+        assertTrue(first.getName() + " (" + first.getPosition() + ") is before " + second.getName() + " (" + second.getPosition() + ")",
+                first.getPosition() < second.getPosition());
+    }
+
     @Test
     public void addSubtask_basics() {
         Task groceries = new Task("Groceries");
@@ -39,10 +44,9 @@ public class TaskTest {
         groceries.addSubtask(bagels);
         groceries.addSubtask(iceCream);
 
-        assertEquals(0, apples.getPosition());
-        assertEquals(1, oj.getPosition());
-        assertEquals(2, bagels.getPosition());
-        assertEquals(3, iceCream.getPosition());
+        assertBefore(apples, oj);
+        assertBefore(oj, bagels);
+        assertBefore(bagels, iceCream);
     }
 
     @Test
@@ -55,12 +59,19 @@ public class TaskTest {
         groceries.addSubtask(oj);
         groceries.addSubtask(bagels);
         groceries.addSubtaskAfter(apples, null);
+        groceries.addSubtaskAfter(iceCream, apples);
+
+        assertBefore(apples, iceCream);
+        assertBefore(iceCream, oj);
+        assertBefore(oj, bagels);
+
+        // oops, Ice Cream is after OJ
+
         groceries.addSubtaskAfter(iceCream, oj);
 
-        assertEquals(0, apples.getPosition());
-        assertEquals(1, oj.getPosition());
-        assertEquals(2, iceCream.getPosition());
-        assertEquals(3, bagels.getPosition());
+        assertBefore(apples, oj);
+        assertBefore(oj, iceCream);
+        assertBefore(iceCream, bagels);
     }
 
     @Test
@@ -73,16 +84,15 @@ public class TaskTest {
         groceries.addSubtask(apples);
         groceries.addSubtask(oj);
         groceries.addSubtask(bagels);
-        groceries.insertSubtask(2, iceCream);
+        groceries.insertSubtask(bagels.getPosition(), iceCream);
 
-        assertEquals(0, apples.getPosition());
-        assertEquals(1, oj.getPosition());
-        assertEquals(2, iceCream.getPosition());
-        assertEquals(3, bagels.getPosition());
+        assertBefore(apples, oj);
+        assertBefore(oj, iceCream);
+        assertBefore(iceCream, bagels);
     }
 
     @Test
-    public void setOrder() {
+    public void setChildPosition() {
         Task groceries = new Task("Groceries");
         Task apples = new Task("Apples");
         Task bagels = new Task("Bagels");
@@ -90,21 +100,18 @@ public class TaskTest {
         groceries.addSubtask(apples);
         groceries.addSubtask(bagels);
         groceries.addSubtask(chicken);
-        assertEquals(0, apples.getPosition());
-        assertEquals(1, bagels.getPosition());
-        assertEquals(2, chicken.getPosition());
+        assertBefore(apples, bagels);
+        assertBefore(bagels, chicken);
 
-        bagels.setPosition(0);
+        groceries.setChildPosition(bagels, 0);
 
-        assertEquals(0, bagels.getPosition());
-        assertEquals(1, apples.getPosition());
-        assertEquals(2, chicken.getPosition());
+        assertBefore(bagels, apples);
+        assertBefore(apples, chicken);
 
-        bagels.setPosition(2);
+        groceries.setChildPosition(bagels, 2);
 
-        assertEquals(0, apples.getPosition());
-        assertEquals(1, bagels.getPosition());
-        assertEquals(2, chicken.getPosition());
+        assertBefore(apples, bagels);
+        assertBefore(bagels, chicken);
     }
 
     @Test

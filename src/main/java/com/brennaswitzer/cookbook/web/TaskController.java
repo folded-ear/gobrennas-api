@@ -3,7 +3,10 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.*;
+import com.brennaswitzer.cookbook.payload.AclInfo;
+import com.brennaswitzer.cookbook.payload.GrantInfo;
+import com.brennaswitzer.cookbook.payload.TaskInfo;
+import com.brennaswitzer.cookbook.payload.TaskName;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,20 +64,6 @@ public class TaskController {
                 .getOrderedSubtasksView());
     }
 
-    @PostMapping("/{id}/subtasks")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public TaskInfo createSubtask(
-            @PathVariable("id") Long parentId,
-            @RequestParam(name = "after", required = false) Long afterId,
-            @RequestBody TaskName info
-    ) {
-        return TaskInfo.fromTask(afterId == null
-                ? taskService.createSubtask(parentId, info.getName())
-                : taskService.createSubtaskAfter(parentId, info.getName(), afterId)
-        );
-    }
-
     @PutMapping("/{id}/name")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -84,43 +73,6 @@ public class TaskController {
     ) {
         return TaskInfo.fromTask(taskService
                 .renameTask(id, info.getName()));
-    }
-
-    @PutMapping("/{id}/parentId")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetParent(
-            @PathVariable("id") Long id,
-            @RequestBody ParentId parent
-    ) {
-        taskService.resetParent(id, parent.getParentId());
-    }
-
-    @PutMapping("/{id}/subtaskIds")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetSubtasks(
-            @PathVariable("id") Long id,
-            @RequestBody SubtaskIds info
-    ) {
-        taskService.resetSubtasks(id, info.getSubtaskIds());
-    }
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTask(
-            @PathVariable("id") Long id
-    ) {
-        taskService.deleteTask(id);
-    }
-
-    @PutMapping("/{id}/status")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public TaskInfo setStatus(
-            @PathVariable("id") Long id,
-            @RequestBody TaskInfo info
-    ) {
-        return TaskInfo.fromTask(taskService
-                .setStatus(id, info.getStatus()));
     }
 
     @GetMapping("/{id}/acl")
