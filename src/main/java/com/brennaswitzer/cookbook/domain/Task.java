@@ -96,17 +96,25 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
     }
 
     public void setChildPosition(Task child, int position) {
-        for (Task t : subtasks) {
-            if (t.getPosition() >= position) t.setPosition(t.getPosition() + 1);
-        }
-        child.setPosition(position);
-        resetSubtaskPositions();
-    }
-
-    private void resetSubtaskPositions() {
         AtomicInteger seq = new AtomicInteger();
+        boolean pending = true;
         for (Task t : getOrderedSubtasksView()) {
-            t.setPosition(seq.getAndIncrement());
+            if (t == child) continue;
+            int min = seq.getAndIncrement();
+            if (pending && min >= position) {
+                pending = false;
+                child.setPosition(position);
+                min = seq.getAndIncrement();
+            }
+            int curr = t.getPosition();
+            if (curr < min) {
+                t.setPosition(min);
+            } else if (curr > min) {
+                seq.set(curr + 1);
+            }
+        }
+        if (pending) {
+            child.setPosition(seq.get());
         }
     }
 
@@ -138,7 +146,6 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
             if (! getParent().subtasks.remove(this)) {
                 throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of it's parent #" + getParent().getId() + "?!");
             }
-            getParent().resetSubtaskPositions();
         }
         // wire up the new one
         if (parent != null) {
@@ -146,7 +153,7 @@ public class Task extends BaseEntity implements MutableItem<Ingredient> {
                 parent.subtasks = new HashSet<>();
             }
             if (parent.subtasks.add(this)) {
-                parent.setChildPosition(this, 1 + parent.subtasks
+                setPosition(1 + parent.subtasks
                         .stream()
                         .map(Task::getPosition)
                         .reduce(0, Integer::max));
