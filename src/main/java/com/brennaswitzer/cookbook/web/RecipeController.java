@@ -4,7 +4,10 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
-import com.brennaswitzer.cookbook.services.*;
+import com.brennaswitzer.cookbook.services.ItemService;
+import com.brennaswitzer.cookbook.services.LabelService;
+import com.brennaswitzer.cookbook.services.RecipeService;
+import com.brennaswitzer.cookbook.services.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,16 +33,16 @@ public class RecipeController {
     private RecipeService recipeService;
 
     @Autowired
-    private ValidationService validationService;
-
-    @Autowired
     private LabelService labelService;
 
     @Autowired
     private ItemService itemService;
 
     @Autowired
-    StorageService storageService;
+    private StorageService storageService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
@@ -88,6 +91,7 @@ public class RecipeController {
         return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
     }
 
+    @SuppressWarnings("MVCPathVariableInspection")
     @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> updateRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
@@ -208,7 +212,6 @@ public class RecipeController {
     }
 
     private IngredientInfo mapToInfo(String recipeData) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(recipeData, IngredientInfo.class);
     }
 
