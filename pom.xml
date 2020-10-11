@@ -108,6 +108,12 @@
 <!--            <artifactId>aws-java-sdk</artifactId>-->
             <version>1.11.859</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.14</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
