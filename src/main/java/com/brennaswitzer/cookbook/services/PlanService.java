@@ -151,5 +151,40 @@ public class PlanService {
         }
     }
 
+    public void setItemStatus(Long id, TaskStatus status) {
+        if (TaskStatus.COMPLETED.equals(status) || TaskStatus.DELETED.equals(status)) {
+            deleteItem(id);
+            return;
+        }
+        Task task = getTaskById(id, AccessLevel.CHANGE);
+        task.setStatus(status);
+        if (isMessagingCapable()) {
+            PlanMessage m = new PlanMessage();
+            m.setId(task.getId());
+            m.setType("update");
+            m.setInfo(TaskInfo.fromTask(task));
+            sendMessage(task, m);
+        }
+    }
+
+    public void deleteItem(Long id) {
+        Task task = getTaskById(id, AccessLevel.CHANGE);
+        Task plan = task.getTaskList();
+        deleteItem(task);
+        if (isMessagingCapable()) {
+            PlanMessage m = new PlanMessage();
+            m.setId(id);
+            m.setType("delete");
+            sendMessage(plan, m);
+        }
+    }
+
+    private void deleteItem(Task t) {
+        if (t.hasParent()) {
+            t.getParent().removeSubtask(t);
+        }
+        taskRepo.delete(t);
+    }
+
 }
 

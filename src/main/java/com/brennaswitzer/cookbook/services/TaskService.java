@@ -1,12 +1,14 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,6 @@ public class TaskService {
 
     @Autowired
     private UserPrincipalAccess principalAccess;
-
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     private ItemService itemService;
@@ -121,32 +120,10 @@ public class TaskService {
         return t;
     }
 
-    public void resetParent(Long id, Long parentId) {
-        Task t = getTaskById(id);
-        Task p = t.getParent();
-        Task np = getTaskById(parentId);
-        p.removeSubtask(t);
-        if (np == p.getParent()) {
-            np.addSubtaskAfter(t, p);
-        } else {
-            np.addSubtask(t);
-        }
-    }
-
     public Task renameTask(Long id, String name) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         t.setName(name);
         itemService.updateAutoRecognition(t);
-        return t;
-    }
-
-    public Task setStatus(Long id, TaskStatus status) {
-        Task t = getTaskById(id, AccessLevel.CHANGE);
-        if (TaskStatus.COMPLETED.equals(status) || TaskStatus.DELETED.equals(status)) {
-            deleteTask(id);
-        } else {
-            t.setStatus(status);
-        }
         return t;
     }
 

@@ -1,8 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.message.CreatePlanTreeItem;
-import com.brennaswitzer.cookbook.message.MutatePlanTree;
-import com.brennaswitzer.cookbook.message.RenamePlanTreeItem;
+import com.brennaswitzer.cookbook.message.*;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +47,16 @@ public class PlanController {
     @MessageMapping("/{id}/rename")
     public void renameItem(@Payload RenamePlanTreeItem action) {
         planService.renameItem(action.getId(), action.getName());
+    }
+
+    @MessageMapping("/{id}/status")
+    public void setStatus(@Payload SetPlanTreeItemStatus action) {
+        planService.setItemStatus(action.getId(), action.getStatus());
+    }
+
+    @MessageMapping("/{id}/delete")
+    public void deleteItem(@Payload DeletePlanTreeItem action) {
+        planService.deleteItem(action.getId());
     }
 
 }
