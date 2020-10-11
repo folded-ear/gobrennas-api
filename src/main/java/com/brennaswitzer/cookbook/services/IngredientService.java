@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,16 +39,18 @@ public class IngredientService {
     public Optional<? extends Ingredient> findIngredientByName(String name) {
         String unpluralized = EnglishUtils.unpluralize(name);
         // see if there's a pantry item...
-        Optional<PantryItem> pantryItem = pantryItemRepository.findOneByNameIgnoreCase(unpluralized);
-        if (pantryItem.isPresent()) {
-            return pantryItem;
+        List<PantryItem> pantryItem = pantryItemRepository.findByNameIgnoreCaseOrderById(unpluralized);
+        if (!pantryItem.isEmpty()) {
+            return pantryItem.stream().findFirst();
         }
         // see if there's a recipe...
-        Optional<Recipe> recipe = recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), name);
-        if (recipe.isPresent()) {
-            return recipe;
+        List<Recipe> recipe = recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(principalAccess.getUser(), name);
+        if (!recipe.isEmpty()) {
+            return recipe.stream().findFirst();
         }
-        return recipeRepository.findOneByOwnerAndNameIgnoreCase(principalAccess.getUser(), unpluralized);
+        return recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(principalAccess.getUser(), unpluralized)
+                .stream()
+                .findFirst();
     }
 
 }

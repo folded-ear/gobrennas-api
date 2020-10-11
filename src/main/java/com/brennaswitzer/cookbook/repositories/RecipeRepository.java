@@ -41,7 +41,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             @Param("term") String filter
     );
 
-    Optional<Recipe> findOneByOwnerAndNameIgnoreCase(User owner, String name);
+    List<Recipe> findByOwnerAndNameIgnoreCaseOrderById(User owner, String name);
 
     @Override
     Optional<Recipe> findById(Long aLong);
