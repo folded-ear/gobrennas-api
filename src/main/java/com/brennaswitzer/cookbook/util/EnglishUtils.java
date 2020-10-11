@@ -4,14 +4,21 @@ import java.util.regex.Pattern;
 
 public final class EnglishUtils {
 
-    private static Pattern PLURAL_PATTERN = Pattern.compile(".*[^ai]s$");
-    private static Pattern SPACES = Pattern.compile("  +");
-    private static Pattern END_PUNCT = Pattern.compile("(^[^a-zA-Z0-9]+)|([^a-zA-Z0-9]+$)");
+    private static final Pattern SPACES = Pattern.compile("  +");
+    private static final Pattern END_PUNCT = Pattern.compile("(^[^a-zA-Z0-9]+)|([^a-zA-Z0-9]+$)");
 
     public static String unpluralize(String word) {
         if (word == null) return word;
-        // hardly comprehensive, but it does "eggs", "carnitas", and "ounces"
-        if (PLURAL_PATTERN.matcher(word).matches()) {
+        if (word.endsWith("ies")) {
+            return word.substring(0, word.length() - 3) + 'y';
+        }
+        if (word.endsWith("oes")) {
+            return word.substring(0, word.length() - 2);
+        }
+        if (word.endsWith("as")) {
+            return word;
+        }
+        if (word.endsWith("s")) {
             return word.substring(0, word.length() - 1);
         }
         return word;
