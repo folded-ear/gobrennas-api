@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.amazonaws.services.s3.AmazonS3;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,14 +9,15 @@ import java.io.IOException;
 
 public class S3StorageService implements StorageService {
 
-    private final String S3_URL = "https://s3-us-west-2.amazonaws.com";
+    private static final String S3_URL = "https://s3-us-west-2.amazonaws.com";
+
     private final AmazonS3 client;
 
-    @Value("${app.bucket-name}")
     String bucketName;
 
-    public S3StorageService(AmazonS3 s3client) {
+    public S3StorageService(AmazonS3 s3client, String bucketName) {
         this.client = s3client;
+        this.bucketName = bucketName;
     }
 
     @Override

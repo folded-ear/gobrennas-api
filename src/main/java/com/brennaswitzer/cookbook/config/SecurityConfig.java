@@ -9,7 +9,6 @@ import com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationR
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,9 +54,6 @@ import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilte
 )
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${app.public-url}")
-    String publicUrl;
-
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
@@ -72,6 +68,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+
+    @Autowired
+    private AppProperties appProperties;
 
     @Bean
     public HeaderTokenAuthenticationFilter headerTokenAuthenticationFilter() {
@@ -127,7 +126,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                 .logout()
                     .logoutUrl("/oauth2/logout")
-                    .logoutSuccessUrl(publicUrl)
+                    .logoutSuccessUrl(appProperties.getPublicUrl())
                     .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
                     .permitAll()
                     .and()
