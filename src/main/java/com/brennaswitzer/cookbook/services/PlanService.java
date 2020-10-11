@@ -11,9 +11,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Service
@@ -28,6 +26,9 @@ public class PlanService {
 
     @Autowired
     protected SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private ItemService itemService;
 
     protected Task getTaskById(Long id) {
         return getTaskById(id, AccessLevel.VIEW);
@@ -72,9 +73,7 @@ public class PlanService {
             PlanMessage m = new PlanMessage();
             m.setType("tree-mutation");
             m.setInfo(new MutatePlanTree(ids, parentId, afterId));
-            messagingTemplate.convertAndSend(
-                    "/topic/plan/" + parent.getTaskList().getId(),
-                    m);
+            sendMessage(parent, m);
         }
     }
 
@@ -101,18 +100,56 @@ public class PlanService {
         plan.addSubtask(rTask);
         sendToPlan(r, rTask);
         if (isMessagingCapable()) {
-            taskRepo.flush(); // so that IDs will be available to send out
-            PlanMessage m = new PlanMessage();
-            m.setId(planId);
-            m.setType("create");
-            List<Task> tree = new LinkedList<>();
-            tree.add(plan);
-            treeHelper(rTask, tree);
-            m.setInfo(TaskInfo.fromTasks(tree));
-            messagingTemplate.convertAndSend(
-                    "/topic/plan/" + planId,
-                    m);
+            taskRepo.flush(); // so that IDs will be available
+            sendMessage(plan, buildCreationMessage(rTask));
         }
     }
+
+    private PlanMessage buildCreationMessage(Task task) {
+        Task parent = task.getParent();
+        PlanMessage m = new PlanMessage();
+        m.setId(parent.getId());
+        m.setType("create");
+        List<Task> tree = new LinkedList<>();
+        tree.add(parent);
+        treeHelper(task, tree);
+        m.setInfo(TaskInfo.fromTasks(tree));
+        return m;
+    }
+
+    private void sendMessage(Task task, Object message) {
+        messagingTemplate.convertAndSend(
+                "/topic/plan/" + task.getTaskList().getId(),
+                message);
+    }
+
+    public void createItem(Object id, Long parentId, Long afterId, String name) {
+        Task parent = getTaskById(parentId, AccessLevel.CHANGE);
+        Task after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
+        Task task = taskRepo.save(new Task(name).of(parent, after));
+        itemService.autoRecognize(task);
+        if (isMessagingCapable()) {
+            taskRepo.flush(); // so that IDs will be available
+            PlanMessage m = buildCreationMessage(task);
+            Map<Long, Object> newIds = new HashMap<>();
+            newIds.put(task.getId(), id);
+            m.setNewIds(newIds);
+            sendMessage(parent, m);
+        }
+    }
+
+    public void renameItem(Long id, String name) {
+        Task task = getTaskById(id, AccessLevel.CHANGE);
+        task.setName(name);
+        itemService.updateAutoRecognition(task);
+        if (isMessagingCapable()) {
+            PlanMessage m = new PlanMessage();
+            m.setId(task.getId());
+            m.setType("update");
+            m.setInfo(TaskInfo.fromTask(task));
+            sendMessage(task, m);
+        }
+    }
+
 }
 

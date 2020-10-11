@@ -64,20 +64,6 @@ public class TaskController {
                 .getOrderedSubtasksView());
     }
 
-    @PostMapping("/{id}/subtasks")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public TaskInfo createSubtask(
-            @PathVariable("id") Long parentId,
-            @RequestParam(name = "after", required = false) Long afterId,
-            @RequestBody TaskName info
-    ) {
-        return TaskInfo.fromTask(afterId == null
-                ? taskService.createSubtask(parentId, info.getName())
-                : taskService.createSubtaskAfter(parentId, info.getName(), afterId)
-        );
-    }
-
     @PutMapping("/{id}/name")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
