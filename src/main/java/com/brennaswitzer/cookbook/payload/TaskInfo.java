@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 @SuppressWarnings("WeakerAccess")
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TaskInfo {
 
     public static TaskInfo fromTask(Task task) {
@@ -65,7 +64,6 @@ public class TaskInfo {
 
     private Long id;
 
-    @JsonInclude
     private String name;
 
     private TaskStatus status;
@@ -74,6 +72,7 @@ public class TaskInfo {
 
     private AclInfo acl;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private long[] subtaskIds;
 
     private Double quantity;
