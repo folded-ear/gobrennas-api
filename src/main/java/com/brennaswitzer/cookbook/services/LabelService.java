@@ -43,7 +43,8 @@ public class LabelService {
     }
 
     public Label ensureLabel(String label) {
-        Optional<Label> l = labelRepository.findOneByNameIgnoreCase(label);
-        return l.orElseGet(() -> labelRepository.save(new Label(label)));
+        String name = label.replaceAll("/+", "-");
+        Optional<Label> l = labelRepository.findOneByNameIgnoreCase(name);
+        return l.orElseGet(() -> labelRepository.save(new Label(name)));
     }
 }

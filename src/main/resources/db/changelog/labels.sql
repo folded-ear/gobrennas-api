@@ -15,3 +15,6 @@ create table ingredient_labels (
     constraint fk_label_id foreign key (label_id) references label,
     constraint fk_ingredient_id foreign key (ingredient_id) references ingredient
 )
+
+--changeset barneyb:replace-slashes-with-dashes
+update label set name = replace(name, '/', '-');
