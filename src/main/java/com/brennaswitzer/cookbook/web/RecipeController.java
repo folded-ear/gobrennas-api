@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +22,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -120,6 +123,18 @@ public class RecipeController {
 
     // begin kludge (3 of 3)
     @Autowired private EntityManager em;
+    @GetMapping("/bulk-ingredients/{ids}")
+    @SneakyThrows
+    public Collection<IngredientInfo> getIngredientsInBulk(
+            @PathVariable("ids") Collection<Long> ids
+    ) {
+        List<IngredientInfo> infos = new ArrayList<>(ids.size());
+        for (Long id : ids) {
+            infos.add(getIngredientById(id));
+        }
+        return infos;
+    }
+
     @SuppressWarnings("JavaReflectionMemberAccess")
     @GetMapping("/or-ingredient/{id}")
     public IngredientInfo getIngredientById(@PathVariable("id") Long id) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
