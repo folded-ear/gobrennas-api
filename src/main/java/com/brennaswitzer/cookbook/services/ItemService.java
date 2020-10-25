@@ -147,7 +147,7 @@ public class ItemService {
         return item;
     }
 
-    public void updateAutoRecognition(MutableItem<Ingredient> it) {
+    public void updateAutoRecognition(MutableItem it) {
         if (it == null) return;
         it.setIngredient(null);
         it.setQuantity(null);
@@ -155,7 +155,7 @@ public class ItemService {
         autoRecognize(it);
     }
 
-    public void autoRecognize(MutableItem<Ingredient> it) {
+    public void autoRecognize(MutableItem it) {
         if (it == null) return;
         String raw = it.getRaw();
         if (raw == null || raw.trim().isEmpty()) return;

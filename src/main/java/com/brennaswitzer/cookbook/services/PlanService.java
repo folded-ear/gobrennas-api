@@ -86,7 +86,7 @@ public class PlanService {
                 sendToPlan(ir, rTask));
     }
 
-    private void sendToPlan(IngredientRef<?> ir, Task rTask) {
+    private void sendToPlan(IngredientRef ir, Task rTask) {
         Task t = new Task(ir.getRaw(), ir.getQuantity(), ir.getIngredient(), ir.getPreparation());
         rTask.addSubtask(t);
         if (ir.getIngredient() instanceof AggregateIngredient) {

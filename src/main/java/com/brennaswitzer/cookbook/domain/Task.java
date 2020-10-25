@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("task")
-public class Task extends BaseEntity implements MutableItem<Ingredient> {
+public class Task extends BaseEntity implements MutableItem {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;

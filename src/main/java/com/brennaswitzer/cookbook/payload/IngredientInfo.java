@@ -62,8 +62,8 @@ public class IngredientInfo {
             return this.ingredientId != null;
         }
 
-        public IngredientRef<Ingredient> asIngredientRef(EntityManager em) {
-            IngredientRef<Ingredient> ref = new IngredientRef<>();
+        public IngredientRef asIngredientRef(EntityManager em) {
+            IngredientRef ref = new IngredientRef();
             ref.setRaw(getRaw());
             if (hasQuantity()) {
                 UnitOfMeasure uom = hasUomId()
@@ -84,7 +84,7 @@ public class IngredientInfo {
             return ref;
         }
 
-        public static Ref from(IngredientRef<? extends Ingredient> ref) {
+        public static Ref from(IngredientRef ref) {
             Ref info = new Ref();
             info.setRaw(ref.getRaw());
             if (ref.hasQuantity()) {

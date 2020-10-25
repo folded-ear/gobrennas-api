@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
-public interface MutableItem<I extends Ingredient> extends Item {
+public interface MutableItem extends Item {
 
     // I have omitted setRaw(String) from the interface, as I believe changes to
     // the raw string are an implementation detail. But moving from the raw
@@ -11,6 +11,6 @@ public interface MutableItem<I extends Ingredient> extends Item {
 
     void setPreparation(String prep);
 
-    void setIngredient(I ing);
+    void setIngredient(Ingredient ing);
 
 }
