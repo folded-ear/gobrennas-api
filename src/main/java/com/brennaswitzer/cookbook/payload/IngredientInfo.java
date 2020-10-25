@@ -2,6 +2,8 @@ package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;
@@ -15,29 +17,19 @@ public class IngredientInfo {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public static class Ref {
 
+        @Getter @Setter
         private String raw;
+        @Getter @Setter
         private Double quantity;
         private String units;
+        @Getter @Setter
         private Long uomId;
+        @Getter @Setter
         private String ingredient;
+        @Getter @Setter
         private Long ingredientId;
+        @Getter @Setter
         private String preparation;
-
-        public String getRaw() {
-            return raw;
-        }
-
-        public void setRaw(String raw) {
-            this.raw = raw;
-        }
-
-        public Double getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(Double quantity) {
-            this.quantity = quantity;
-        }
 
         public boolean hasQuantity() {
             return quantity != null;
@@ -58,51 +50,19 @@ public class IngredientInfo {
             return units != null && !"".equals(units) && !units.trim().isEmpty();
         }
 
-        public Long getUomId() {
-            return uomId;
-        }
-
-        public void setUomId(Long uomId) {
-            this.uomId = uomId;
-        }
-
         public boolean hasUomId() {
             return uomId != null;
-        }
-
-        public String getIngredient() {
-            return ingredient;
-        }
-
-        public void setIngredient(String ingredient) {
-            this.ingredient = ingredient;
         }
 
         public boolean hasIngredient() {
             return this.ingredient != null;
         }
 
-        public Long getIngredientId() {
-            return ingredientId;
-        }
-
-        public void setIngredientId(Long ingredientId) {
-            this.ingredientId = ingredientId;
-        }
-
         public boolean hasIngredientId() {
             return this.ingredientId != null;
         }
 
-        public String getPreparation() {
-            return preparation;
-        }
-
-        public void setPreparation(String preparation) {
-            this.preparation = preparation;
-        }
-
-        public IngredientRef asIngredientRef(EntityManager em) {
+        public IngredientRef<Ingredient> asIngredientRef(EntityManager em) {
             IngredientRef<Ingredient> ref = new IngredientRef<>();
             ref.setRaw(getRaw());
             if (hasQuantity()) {
@@ -124,7 +84,7 @@ public class IngredientInfo {
             return ref;
         }
 
-        public static Ref from(IngredientRef ref) {
+        public static Ref from(IngredientRef<? extends Ingredient> ref) {
             Ref info = new Ref();
             info.setRaw(ref.getRaw());
             if (ref.hasQuantity()) {
@@ -145,76 +105,34 @@ public class IngredientInfo {
 
     }
 
+    @Getter @Setter
     private Long id;
+    @Getter @Setter
     private String type;
+    @Getter @Setter
     private String name;
+    @Getter @Setter
     private Integer storeOrder;
+    @Getter @Setter
     private String externalUrl;
+    @Getter @Setter
     private String directions;
+    @Getter @Setter
     private List<Ref> ingredients;
+    @Setter
     private List<String> labels;
+    @Getter @Setter
     private Long ownerId;
+    @Getter @Setter
     private Integer yield;
+    @Getter @Setter
     private Integer calories;
+    @Getter @Setter
     private Integer totalTime;
+    @Getter @Setter
     private String photo;
-    private boolean cookThis;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getStoreOrder() {
-        return storeOrder;
-    }
-
-    public void setStoreOrder(Integer storeOrder) {
-        this.storeOrder = storeOrder;
-    }
-
-    public String getExternalUrl() {
-        return externalUrl;
-    }
-
-    public void setExternalUrl(String externalUrl) {
-        this.externalUrl = externalUrl;
-    }
-
-    public String getDirections() {
-        return directions;
-    }
-
-    public void setDirections(String directions) {
-        this.directions = directions;
-    }
-
-    public List<Ref> getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(List<Ref> ingredients) {
-        this.ingredients = ingredients;
-    }
+    @Getter @Setter
+    private Boolean cookThis;
 
     public List<String> getLabels() {
         if (labels == null) {
@@ -224,56 +142,8 @@ public class IngredientInfo {
         return labels;
     }
 
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
-    }
-
-    public Long getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public Integer getYield() {
-        return yield;
-    }
-
-    public void setYield(Integer yield) {
-        this.yield = yield;
-    }
-
-    public Integer getCalories() {
-        return calories;
-    }
-
-    public void setCalories(Integer calories) {
-        this.calories = calories;
-    }
-
-    public Integer getTotalTime() {
-        return totalTime;
-    }
-
-    public void setTotalTime(Integer totalTime) {
-        this.totalTime = totalTime;
-    }
-
     public boolean isCookThis() {
         return cookThis;
-    }
-
-    public void setCookThis(boolean cookThis) {
-        this.cookThis = cookThis;
-    }
-
-    public String getPhoto() {
-        return photo;
-    }
-
-    public void setPhoto(String photo) {
-        this.photo = photo;
     }
 
     public Recipe asRecipe(EntityManager em) {

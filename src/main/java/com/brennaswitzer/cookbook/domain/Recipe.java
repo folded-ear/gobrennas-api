@@ -57,7 +57,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @ElementCollection
     @OrderBy("_idx, raw")
-    private List<IngredientRef> ingredients;
+    private List<IngredientRef<? extends Ingredient>> ingredients;
 
     @JsonFormat(pattern = "yyyy-mm-dd")
     @Getter
@@ -76,11 +76,11 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         setName(name);
     }
 
-    public List<IngredientRef> getIngredients() {
+    public List<IngredientRef<? extends Ingredient>> getIngredients() {
         return this.ingredients;
     }
 
-    public void setIngredients(List<IngredientRef> ingredients) {
+    public void setIngredients(List<IngredientRef<? extends Ingredient>> ingredients) {
         this.ingredients = ingredients;
     }
 
@@ -114,7 +114,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     private void ensureRefOrder() {
         if (ingredients == null) return;
         int order = 0;
-        for (IngredientRef ref : ingredients)
+        for (IngredientRef<? extends Ingredient> ref : ingredients)
             ref.set_idx(order++);
     }
 
@@ -123,7 +123,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     public Collection<IngredientRef<PantryItem>> assemblePantryItemRefs() {
         LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
-        for (IngredientRef ref : ingredients) {
+        for (IngredientRef<? extends Ingredient> ref : ingredients) {
             if (! ref.hasIngredient()) continue;
             Ingredient ingredient = ref.getIngredient();
             if (ingredient instanceof PantryItem) {
@@ -140,10 +140,10 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Override
     @JsonIgnore
-    public Collection<IngredientRef> assembleRawIngredientRefs() {
-        LinkedList<IngredientRef> refs = new LinkedList<>();
+    public Collection<IngredientRef<? extends Ingredient>> assembleRawIngredientRefs() {
+        LinkedList<IngredientRef<? extends Ingredient>> refs = new LinkedList<>();
         if (ingredients == null) return refs;
-        for (IngredientRef ref : ingredients) {
+        for (IngredientRef<? extends Ingredient> ref : ingredients) {
             if (ref.hasIngredient()) {
                 Ingredient ingredient = ref.getIngredient();
                 if (ingredient instanceof AggregateIngredient) {

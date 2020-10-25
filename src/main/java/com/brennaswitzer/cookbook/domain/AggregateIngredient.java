@@ -8,7 +8,7 @@ public interface AggregateIngredient {
 
     String getName();
 
-    Collection<IngredientRef> getIngredients();
+    Collection<IngredientRef<? extends Ingredient>> getIngredients();
 
     default void addIngredient(Ingredient ingredient) {
         addIngredient(Quantity.ONE, ingredient, null);
@@ -34,6 +34,6 @@ public interface AggregateIngredient {
      * I return all the "raw" IngredientRefs for this Ingredient, including
      * those referenced recursively through nested `AggregateIngredient`s.
      */
-    Collection<IngredientRef> assembleRawIngredientRefs();
+    Collection<IngredientRef<? extends Ingredient>> assembleRawIngredientRefs();
 
 }
