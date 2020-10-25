@@ -6,8 +6,9 @@ import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @SuppressWarnings("WeakerAccess")
 public class TaskInfo {
@@ -47,19 +48,15 @@ public class TaskInfo {
     }
 
     public static List<TaskInfo> fromTasks(Iterable<Task> tasks) {
-        List<TaskInfo> result = new LinkedList<>();
-        tasks.forEach(t ->
-                result.add(fromTask(t))
-        );
-        return result;
+        return StreamSupport.stream(tasks.spliterator(), false)
+                .map(TaskInfo::fromTask)
+                .collect(Collectors.toList());
     }
 
     public static List<TaskInfo> fromLists(Iterable<TaskList> lists) {
-        List<TaskInfo> result = new LinkedList<>();
-        lists.forEach(l ->
-                result.add(fromList(l))
-        );
-        return result;
+        return StreamSupport.stream(lists.spliterator(), false)
+                .map(TaskInfo::fromList)
+                .collect(Collectors.toList());
     }
 
     private Long id;
@@ -70,6 +67,7 @@ public class TaskInfo {
 
     private Long parentId;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private AclInfo acl;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
