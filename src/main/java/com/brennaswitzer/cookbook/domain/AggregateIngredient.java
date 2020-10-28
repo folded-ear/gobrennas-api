@@ -28,7 +28,7 @@ public interface AggregateIngredient {
      * I return the PantryItem IngredientRefs for this Ingredient, including
      * those referenced recursively through nested `AggregateIngredient`s.
      */
-    Collection<IngredientRef<PantryItem>> assemblePantryItemRefs();
+    Collection<IngredientRef> assemblePantryItemRefs();
 
     /**
      * I return all the "raw" IngredientRefs for this Ingredient, including

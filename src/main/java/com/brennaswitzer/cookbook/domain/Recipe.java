@@ -87,7 +87,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @Override
     public void addIngredient(Quantity quantity, Ingredient ingredient, String preparation) {
         ensureIngredients();
-        ingredients.add(new IngredientRef<>(quantity, ingredient, preparation));
+        ingredients.add(new IngredientRef(quantity, ingredient, preparation));
     }
 
     private void ensureIngredients() {
@@ -96,7 +96,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     public void addRawIngredient(String raw) {
         ensureIngredients();
-        ingredients.add(new IngredientRef<>(raw));
+        ingredients.add(new IngredientRef(raw));
     }
 
     @PrePersist
@@ -120,15 +120,14 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Override
     @JsonIgnore
-    public Collection<IngredientRef<PantryItem>> assemblePantryItemRefs() {
-        LinkedList<IngredientRef<PantryItem>> refs = new LinkedList<>();
+    public Collection<IngredientRef> assemblePantryItemRefs() {
+        LinkedList<IngredientRef> refs = new LinkedList<>();
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
             if (! ref.hasIngredient()) continue;
             Ingredient ingredient = ref.getIngredient();
             if (ingredient instanceof PantryItem) {
-                //noinspection unchecked
-                refs.add((IngredientRef<PantryItem>) ref);
+                refs.add( ref);
             } else if (ingredient instanceof AggregateIngredient) {
                 refs.addAll(((AggregateIngredient) ingredient).assemblePantryItemRefs());
             } else {

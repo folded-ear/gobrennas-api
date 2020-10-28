@@ -8,7 +8,7 @@ import java.util.Comparator;
 
 @Embeddable
 @SuppressWarnings("JpaDataSourceORMInspection") // it's @Embeddable, and IntelliJ's too dumb
-public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
+public class IngredientRef implements MutableItem {
 
     public static Comparator<IngredientRef> BY_INGREDIENT_NAME = (a, b) -> {
         String an = a.hasIngredient() ? a.getIngredient().getName() : a.getRaw();
@@ -35,15 +35,15 @@ public class IngredientRef<I extends Ingredient> implements MutableItem<I> {
     @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
     @Getter
     @Setter
-    private I ingredient;
+    private Ingredient ingredient;
 
     public IngredientRef() {}
 
-    public IngredientRef(I ingredient) {
+    public IngredientRef(Ingredient ingredient) {
         this(null, ingredient, null);
     }
 
-    public IngredientRef(Quantity quantity, I ingredient, String preparation) {
+    public IngredientRef(Quantity quantity, Ingredient ingredient, String preparation) {
         setQuantity(quantity);
         setIngredient(ingredient);
         setPreparation(preparation);
