@@ -143,7 +143,7 @@ public class IngredientInfo {
     }
 
     public boolean isCookThis() {
-        return cookThis;
+        return cookThis != null && cookThis;
     }
 
     public Recipe asRecipe(EntityManager em) {
