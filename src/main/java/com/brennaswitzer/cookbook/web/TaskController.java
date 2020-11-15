@@ -75,6 +75,14 @@ public class TaskController {
                 .renameTask(id, info.getName()));
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTask(
+            @PathVariable("id") Long id
+    ) {
+        taskService.deleteTask(id);
+    }
+
     @GetMapping("/{id}/acl")
     @ResponseStatus(HttpStatus.OK)
     public AclInfo getListAcl(
