@@ -2,11 +2,12 @@ package com.brennaswitzer.cookbook.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @DiscriminatorValue("plan")
@@ -17,6 +18,10 @@ public class TaskList extends Task implements AccessControlled {
     @Getter
     @Setter
     private Acl acl = new Acl();
+
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
+    private Set<PlanBucket> buckets;
 
     public TaskList() {}
 
@@ -37,6 +42,17 @@ public class TaskList extends Task implements AccessControlled {
     @Override
     public TaskList getTaskList() {
         return this;
+    }
+
+    public Set<PlanBucket> getBuckets() {
+        if (buckets == null) {
+            buckets = new HashSet<>();
+        }
+        return buckets;
+    }
+
+    public boolean hasBuckets() {
+        return buckets != null && !buckets.isEmpty();
     }
 
 }

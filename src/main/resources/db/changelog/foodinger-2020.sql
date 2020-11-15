@@ -24,3 +24,21 @@ alter table task
             WHEN 'plan'::text THEN parent_id IS NULL
             ELSE parent_id IS NOT NULL
         END);
+
+--changeset barneyb:plan-buckets
+create table plan_bucket (
+    id bigserial not null,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    _eqkey bigint not null default date_part('epoch'::text, clock_timestamp()),
+    plan_id bigint not null,
+    name varchar,
+    date date,
+    constraint pk_plan_bucket primary key (id),
+    constraint uk_plan_bucket__eqkey unique (_eqkey),
+    constraint fk_plan_bucket_plan_id foreign key (plan_id) references task (id) on delete cascade
+);
+
+alter table task
+    add bucket_id bigint null,
+    add constraint fk_task_bucket_id foreign key (bucket_id) references plan_bucket (id) on delete set null;

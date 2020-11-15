@@ -72,6 +72,11 @@ public class Task extends BaseEntity implements MutableItem {
     @BatchSize(size = 100)
     private Set<Task> subtasks;
 
+    @Getter
+    @Setter
+    @ManyToOne
+    private PlanBucket bucket;
+
     public Task() {
     }
 
