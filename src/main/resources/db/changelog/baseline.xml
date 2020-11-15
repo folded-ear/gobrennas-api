@@ -23,6 +23,8 @@
 
     5.  Add <preConditions> elements as appropriate.
 
+    5.  Manually recreate any CHECK CONSTRAINTs, as Liquibase doesn't do those.
+
     To sanity check
 
     1.  Run your new baseline against a blank database.
@@ -294,4 +296,36 @@
         <addForeignKeyConstraint baseColumnNames="target_id" baseTableName="unit_of_measure_conversions" constraintName="fk_oum_conversions_oum_id" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="unit_of_measure" validate="true"/>
         <addForeignKeyConstraint baseColumnNames="unit_of_measure_id" baseTableName="unit_of_measure_conversions" constraintName="fk_oum_conversions_target_id" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="unit_of_measure" validate="true"/>
     </changeSet>
+
+    <changeSet author="barneyb" id="1605459081592-check-constraints">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*)
+                from pg_constraint
+                where conname = 'chk_ingredient_owner_id'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            alter table ingredient
+            add constraint chk_ingredient_owner_id CHECK (
+                CASE dtype
+                    WHEN 'Recipe'::text THEN owner_id IS NOT NULL
+                    ELSE owner_id IS NULL
+                END);
+        </sql>
+        <sql>
+            alter table task
+            add constraint "chk_task_owner_id" CHECK (
+                CASE _type
+                    WHEN 'list'::text THEN owner_id IS NOT NULL
+                    ELSE owner_id IS NULL
+                END),
+            add constraint "chk_task_parent_id" CHECK (
+                CASE _type
+                    WHEN 'list'::text THEN parent_id IS NULL
+                    ELSE parent_id IS NOT NULL
+                END);
+       </sql>
+    </changeSet>
+
 </databaseChangeLog>
