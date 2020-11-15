@@ -62,7 +62,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-messaging</artifactId>
-            <version>5.1.5.RELEASE</version> <!-- this should stay in sync w/ what `spring-boot-starter-security` depends on -->
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -85,7 +84,6 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>${org.liquibase.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -100,7 +98,6 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.23</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -118,6 +115,14 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
+                <configuration>
+                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
