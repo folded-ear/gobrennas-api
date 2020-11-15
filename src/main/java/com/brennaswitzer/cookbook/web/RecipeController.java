@@ -115,6 +115,16 @@ public class RecipeController {
         return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.OK);
     }
 
+    @PutMapping(value="/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
+    @ResponseBody
+    public IngredientInfo setRecipePhoto(@PathVariable("id") Long id, @RequestParam MultipartFile photo) throws IOException {
+        //noinspection OptionalGetWithoutIsPresent
+        Recipe recipe = recipeService.findRecipeById(id).get();
+        setPhoto(photo, recipe);
+        return getRecipeInfo(recipeService.updateRecipe(recipe));
+    }
+
     @GetMapping("/{id}")
     public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Recipe recipe = getRecipe(id);
