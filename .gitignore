@@ -6,6 +6,7 @@ HELP.md
 /src/main/java/com/brennaswitzer/cookbook/antlr/*.*
 /src/main/resources/application-default.yml
 /src/main/resources/application-dev.yml
+/src/main/resources/liquibase.properties
 
 ### STS ###
 .apt_generated
