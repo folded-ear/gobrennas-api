@@ -5,6 +5,8 @@ import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +46,11 @@ public class TaskInfo {
     public static TaskInfo fromList(TaskList list) {
         TaskInfo info = fromTask(list);
         info.acl = AclInfo.fromAcl(list.getAcl());
+        if (list.hasBuckets()) {
+            info.buckets = list.getBuckets().stream()
+                    .map(PlanBucketInfo::from)
+                    .collect(Collectors.toList());
+        }
         return info;
     }
 
@@ -59,116 +66,59 @@ public class TaskInfo {
                 .collect(Collectors.toList());
     }
 
+    @Getter
+    @Setter
     private Long id;
 
+    @Getter
+    @Setter
     private String name;
 
+    @Getter
+    @Setter
     private TaskStatus status;
 
+    @Getter
+    @Setter
     private Long parentId;
 
+    @Getter
+    @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private AclInfo acl;
 
+    @Getter
+    @Setter
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<PlanBucketInfo> buckets;
+
+    @Getter
+    @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private long[] subtaskIds;
 
+    @Getter
+    @Setter
     private Double quantity;
+
+    @Getter
+    @Setter
     private String units;
+
+    @Getter
+    @Setter
     private Long uomId;
+
+    @Getter
+    @Setter
     private Long ingredientId;
+
+    @Getter
+    @Setter
     private String preparation;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
-    }
-
-    public long[] getSubtaskIds() {
-        return subtaskIds;
-    }
-
-    public void setSubtaskIds(long[] subtaskIds) {
-        this.subtaskIds = subtaskIds;
-    }
 
     public boolean hasSubtasks() {
         return subtaskIds != null && subtaskIds.length > 0;
-    }
-
-    public AclInfo getAcl() {
-        return acl;
-    }
-
-    public void setAcl(AclInfo acl) {
-        this.acl = acl;
-    }
-
-    public Double getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Double quantity) {
-        this.quantity = quantity;
-    }
-
-    public Long getUomId() {
-        return uomId;
-    }
-
-    public void setUomId(Long uomId) {
-        this.uomId = uomId;
-    }
-
-    public String getUnits() {
-        return units;
-    }
-
-    public void setUnits(String units) {
-        this.units = units;
-    }
-
-    public Long getIngredientId() {
-        return ingredientId;
-    }
-
-    public void setIngredientId(Long ingredientId) {
-        this.ingredientId = ingredientId;
-    }
-
-    public String getPreparation() {
-        return preparation;
-    }
-
-    public void setPreparation(String preparation) {
-        this.preparation = preparation;
     }
 
 }
