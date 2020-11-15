@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
-@DiscriminatorValue("task")
+@DiscriminatorValue("item")
 public class Task extends BaseEntity implements MutableItem {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {

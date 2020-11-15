@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@DiscriminatorValue("list")
+@DiscriminatorValue("plan")
 public class TaskList extends Task implements AccessControlled {
 
     @Embedded
