@@ -44,10 +44,14 @@ public class TaskInfo {
     }
 
     public static TaskInfo fromList(TaskList list) {
-        TaskInfo info = fromTask(list);
-        info.acl = AclInfo.fromAcl(list.getAcl());
-        if (list.hasBuckets()) {
-            info.buckets = list.getBuckets().stream()
+        return fromPlan(list);
+    }
+
+    public static TaskInfo fromPlan(TaskList plan) {
+        TaskInfo info = fromTask(plan);
+        info.acl = AclInfo.fromAcl(plan.getAcl());
+        if (plan.hasBuckets()) {
+            info.buckets = plan.getBuckets().stream()
                     .map(PlanBucketInfo::from)
                     .collect(Collectors.toList());
         }
@@ -61,7 +65,11 @@ public class TaskInfo {
     }
 
     public static List<TaskInfo> fromLists(Iterable<TaskList> lists) {
-        return StreamSupport.stream(lists.spliterator(), false)
+        return fromPlans(lists);
+    }
+
+    public static List<TaskInfo> fromPlans(Iterable<TaskList> plans) {
+        return StreamSupport.stream(plans.spliterator(), false)
                 .map(TaskInfo::fromList)
                 .collect(Collectors.toList());
     }

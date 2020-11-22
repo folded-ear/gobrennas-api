@@ -59,4 +59,19 @@ public class PlanController {
         planService.deleteItem(action.getId());
     }
 
+    @MessageMapping("/{id}/buckets/create")
+    public void createBucket(@DestinationVariable("id") long planId, @Payload CreatePlanBucket action) {
+        planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @MessageMapping("/{id}/buckets/update")
+    public void updateBucket(@DestinationVariable("id") long planId, @Payload UpdatePlanBucket action) {
+        planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @MessageMapping("/{id}/buckets/delete")
+    public void updateBucket(@DestinationVariable("id") long planId, @Payload DeletePlanBucket action) {
+        planService.deleteBucket(planId, action.getId());
+    }
+
 }
