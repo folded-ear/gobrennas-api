@@ -284,4 +284,8 @@ public class Task extends BaseEntity implements MutableItem {
         return ingredient != null;
     }
 
+    public boolean hasBucket() {
+        return bucket != null;
+    }
+
 }

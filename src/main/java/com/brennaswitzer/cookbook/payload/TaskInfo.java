@@ -40,6 +40,9 @@ public class TaskInfo {
             }
             info.preparation = task.getPreparation();
         }
+        if (task.hasBucket()) {
+            info.bucketId = task.getBucket().getId();
+        }
         return info;
     }
 
@@ -120,6 +123,10 @@ public class TaskInfo {
     @Getter
     @Setter
     private Long ingredientId;
+
+    @Getter
+    @Setter
+    private Long bucketId;
 
     @Getter
     @Setter
