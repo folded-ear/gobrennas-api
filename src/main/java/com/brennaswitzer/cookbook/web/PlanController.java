@@ -49,6 +49,11 @@ public class PlanController {
         planService.renameItem(action.getId(), action.getName());
     }
 
+    @MessageMapping("/{id}/assign-bucket")
+    public void assignItemBucket(@Payload AssignPlanTreeItemBucket action) {
+        planService.assignItemBucket(action.getId(), action.getBucketId());
+    }
+
     @MessageMapping("/{id}/status")
     public void setStatus(@Payload SetPlanTreeItemStatus action) {
         planService.setItemStatus(action.getId(), action.getStatus());

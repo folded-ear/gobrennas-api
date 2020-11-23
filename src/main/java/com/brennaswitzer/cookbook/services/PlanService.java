@@ -211,6 +211,16 @@ public class PlanService {
         }
     }
 
+    public void assignItemBucket(Long id, Long bucketId) {
+        Task task = getTaskById(id, AccessLevel.CHANGE);
+        task.setBucket(bucketId == null
+                ? null
+                : bucketRepo.getOne(bucketId));
+        if (isMessagingCapable()) {
+            sendMessage(task, buildUpdateMessage(task));
+        }
+    }
+
     private PlanMessage buildUpdateMessage(Task task) {
         PlanMessage m = new PlanMessage();
         m.setId(task.getId());
