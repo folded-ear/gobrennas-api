@@ -49,6 +49,11 @@ public class PlanController {
         planService.renameItem(action.getId(), action.getName());
     }
 
+    @MessageMapping("/{id}/assign-bucket")
+    public void assignItemBucket(@Payload AssignPlanTreeItemBucket action) {
+        planService.assignItemBucket(action.getId(), action.getBucketId());
+    }
+
     @MessageMapping("/{id}/status")
     public void setStatus(@Payload SetPlanTreeItemStatus action) {
         planService.setItemStatus(action.getId(), action.getStatus());
@@ -57,6 +62,21 @@ public class PlanController {
     @MessageMapping("/{id}/delete")
     public void deleteItem(@Payload DeletePlanTreeItem action) {
         planService.deleteItem(action.getId());
+    }
+
+    @MessageMapping("/{id}/buckets/create")
+    public void createBucket(@DestinationVariable("id") long planId, @Payload CreatePlanBucket action) {
+        planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @MessageMapping("/{id}/buckets/update")
+    public void updateBucket(@DestinationVariable("id") long planId, @Payload UpdatePlanBucket action) {
+        planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @MessageMapping("/{id}/buckets/delete")
+    public void updateBucket(@DestinationVariable("id") long planId, @Payload DeletePlanBucket action) {
+        planService.deleteBucket(planId, action.getId());
     }
 
 }

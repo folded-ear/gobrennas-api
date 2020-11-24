@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
-@DiscriminatorValue("task")
+@DiscriminatorValue("item")
 public class Task extends BaseEntity implements MutableItem {
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
@@ -71,6 +71,11 @@ public class Task extends BaseEntity implements MutableItem {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @BatchSize(size = 100)
     private Set<Task> subtasks;
+
+    @Getter
+    @Setter
+    @ManyToOne
+    private PlanBucket bucket;
 
     public Task() {
     }
@@ -277,6 +282,10 @@ public class Task extends BaseEntity implements MutableItem {
 
     public boolean hasIngredient() {
         return ingredient != null;
+    }
+
+    public boolean hasBucket() {
+        return bucket != null;
     }
 
 }

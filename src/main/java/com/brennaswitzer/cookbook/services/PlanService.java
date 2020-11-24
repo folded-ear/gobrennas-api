@@ -3,7 +3,10 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.*;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
+import com.brennaswitzer.cookbook.payload.PlanBucketInfo;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
+import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
+import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +14,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Service
@@ -20,6 +26,12 @@ public class PlanService {
 
     @Autowired
     protected TaskRepository taskRepo;
+
+    @Autowired
+    protected TaskListRepository planRepo;
+
+    @Autowired
+    protected PlanBucketRepository bucketRepo;
 
     @Autowired
     protected UserPrincipalAccess principalAccess;
@@ -41,6 +53,15 @@ public class PlanService {
                 requiredAccess
         );
         return task;
+    }
+
+    protected TaskList getPlanById(Long id, AccessLevel requiredAccess) {
+        TaskList plan = planRepo.getOne(id);
+        plan.ensurePermitted(
+                principalAccess.getUser(),
+                requiredAccess
+        );
+        return plan;
     }
 
     public List<Task> getTreeById(Long id) {
@@ -131,10 +152,53 @@ public class PlanService {
         if (isMessagingCapable()) {
             taskRepo.flush(); // so that IDs will be available
             PlanMessage m = buildCreationMessage(task);
-            Map<Long, Object> newIds = new HashMap<>();
-            newIds.put(task.getId(), id);
-            m.setNewIds(newIds);
+            m.addNewId(task.getId(), id);
             sendMessage(parent, m);
+        }
+    }
+
+    public void createBucket(Long planId, Object bucketId, String name, LocalDate date) {
+        TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        PlanBucket bucket = new PlanBucket();
+        bucket.setName(name);
+        bucket.setDate(date);
+        bucket.setPlan(plan);
+        bucket = bucketRepo.save(bucket);
+        if (isMessagingCapable()) {
+            bucketRepo.flush();
+            PlanMessage m = new PlanMessage();
+            m.setId(bucket.getId());
+            m.setType("create-bucket");
+            m.setInfo(PlanBucketInfo.from(bucket));
+            m.addNewId(bucket.getId(), bucketId);
+            sendMessage(plan, m);
+        }
+    }
+
+    public void updateBucket(Long planId, Long id, String name, LocalDate date) {
+        TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        PlanBucket bucket = bucketRepo.getOne(id);
+        bucket.setName(name);
+        bucket.setDate(date);
+        if (isMessagingCapable()) {
+            PlanMessage m = new PlanMessage();
+            m.setId(bucket.getId());
+            m.setType("update-bucket");
+            m.setInfo(PlanBucketInfo.from(bucket));
+            sendMessage(plan, m);
+        }
+    }
+
+    public void deleteBucket(Long planId, Long id) {
+        TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        PlanBucket bucket = bucketRepo.getOne(id);
+        plan.getBuckets().remove(bucket);
+        bucketRepo.delete(bucket);
+        if (isMessagingCapable()) {
+            PlanMessage m = new PlanMessage();
+            m.setId(bucket.getId());
+            m.setType("delete-bucket");
+            sendMessage(plan, m);
         }
     }
 
@@ -143,12 +207,26 @@ public class PlanService {
         task.setName(name);
         itemService.updateAutoRecognition(task);
         if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(task.getId());
-            m.setType("update");
-            m.setInfo(TaskInfo.fromTask(task));
-            sendMessage(task, m);
+            sendMessage(task, buildUpdateMessage(task));
         }
+    }
+
+    public void assignItemBucket(Long id, Long bucketId) {
+        Task task = getTaskById(id, AccessLevel.CHANGE);
+        task.setBucket(bucketId == null
+                ? null
+                : bucketRepo.getOne(bucketId));
+        if (isMessagingCapable()) {
+            sendMessage(task, buildUpdateMessage(task));
+        }
+    }
+
+    private PlanMessage buildUpdateMessage(Task task) {
+        PlanMessage m = new PlanMessage();
+        m.setId(task.getId());
+        m.setType("update");
+        m.setInfo(TaskInfo.fromTask(task));
+        return m;
     }
 
     public void setItemStatus(Long id, TaskStatus status) {
@@ -159,11 +237,7 @@ public class PlanService {
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setStatus(status);
         if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(task.getId());
-            m.setType("update");
-            m.setInfo(TaskInfo.fromTask(task));
-            sendMessage(task, m);
+            sendMessage(task, buildUpdateMessage(task));
         }
     }
 

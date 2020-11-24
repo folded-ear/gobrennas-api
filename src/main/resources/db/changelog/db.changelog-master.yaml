@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/baseline.xml
+  - include:
+      file: db/changelog/foodinger-2020.sql
