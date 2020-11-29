@@ -39,6 +39,11 @@ public class PlanController {
         planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
     }
 
+    @MessageMapping("/{id}/reorder-items")
+    public void reorderSubitems(@Payload ReorderSubitems action) {
+        planService.resetSubitems(action.getId(), action.getSubitemIds());
+    }
+
     @MessageMapping("/{id}/create")
     public void createItem(@Payload CreatePlanTreeItem action) {
         planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
@@ -75,7 +80,7 @@ public class PlanController {
     }
 
     @MessageMapping("/{id}/buckets/delete")
-    public void updateBucket(@DestinationVariable("id") long planId, @Payload DeletePlanBucket action) {
+    public void deleteBucket(@DestinationVariable("id") long planId, @Payload DeletePlanBucket action) {
         planService.deleteBucket(planId, action.getId());
     }
 

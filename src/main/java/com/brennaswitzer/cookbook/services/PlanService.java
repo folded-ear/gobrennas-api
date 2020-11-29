@@ -98,6 +98,19 @@ public class PlanService {
         }
     }
 
+    public void resetSubitems(Long id, List<Long> subitemIds) {
+        Task t = getTaskById(id, AccessLevel.CHANGE);
+        Task prev = null;
+        for (Long sid : subitemIds) {
+            Task curr = getTaskById(sid);
+            t.addSubtaskAfter(curr, prev);
+            prev = curr;
+        }
+        if (isMessagingCapable()) {
+            sendMessage(t, buildUpdateMessage(t));
+        }
+    }
+
     private boolean isMessagingCapable() {
         return messagingTemplate != null;
     }
