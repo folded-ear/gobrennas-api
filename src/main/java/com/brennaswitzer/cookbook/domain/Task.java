@@ -104,7 +104,7 @@ public class Task extends BaseEntity implements MutableItem {
         AtomicInteger seq = new AtomicInteger();
         boolean pending = true;
         for (Task t : getOrderedSubtasksView()) {
-            if (t == child) continue;
+            if (t.equals(child)) continue;
             int min = seq.getAndIncrement();
             if (pending && min >= position) {
                 pending = false;
