@@ -52,6 +52,7 @@ public class RecipeController {
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
             @RequestParam(name= "filter", defaultValue = "") String filter
     ) {
+        filter = filter.trim();
         boolean hasFilter = filter.length() > 0;
         List<Recipe> recipes;
         if ("everyone".equals(scope)) {
