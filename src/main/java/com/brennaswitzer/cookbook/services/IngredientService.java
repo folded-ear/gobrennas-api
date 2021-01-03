@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +38,16 @@ public class IngredientService {
         return pantryItemRepository.save(new PantryItem(EnglishUtils.unpluralize(name)));
     }
 
+    public Iterable<Ingredient> findAllIngredientsByNameContaining(String name) {
+        String unpluralized = EnglishUtils.unpluralize(name);
+        List<PantryItem> pantryItems = pantryItemRepository.findAllByNameIgnoreCaseContainingOrderById(unpluralized);
+        List<Ingredient> result = new ArrayList<>(pantryItems);
+        User user = principalAccess.getUser();
+        List<Recipe> recipes = recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingOrderById(user, unpluralized);
+        result.addAll(recipes);
+        return result;
+    }
+
     public Optional<? extends Ingredient> findIngredientByName(String name) {
         String unpluralized = EnglishUtils.unpluralize(name);
         // see if there's a pantry item...
@@ -44,11 +56,12 @@ public class IngredientService {
             return pantryItem.stream().findFirst();
         }
         // see if there's a recipe...
-        List<Recipe> recipe = recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(principalAccess.getUser(), name);
-        if (!recipe.isEmpty()) {
+        User user = principalAccess.getUser();
+        List<Recipe> recipe = recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(user, name);
+        if (!recipe.isEmpty() || name.equals(unpluralized)) {
             return recipe.stream().findFirst();
         }
-        return recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(principalAccess.getUser(), unpluralized)
+        return recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(user, unpluralized)
                 .stream()
                 .findFirst();
     }

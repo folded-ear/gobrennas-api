@@ -31,26 +31,26 @@ public class IngredientRepositoryTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager);
 
-        Iterator<Ingredient> itr = repo.findByNameContains("f")
+        Iterator<Ingredient> itr = repo.findByNameContainsIgnoreCaseOrderByNameIgnoreCaseAscIdAsc("f")
                 .iterator();
         assertEquals("flour", itr.next().getName());
         assertEquals("fresh tomatoes", itr.next().getName());
         assertEquals("Fried Chicken", itr.next().getName());
         assertFalse(itr.hasNext());
 
-        itr = repo.findByNameContains("fr")
+        itr = repo.findByNameContainsIgnoreCaseOrderByNameIgnoreCaseAscIdAsc("fr")
                 .iterator();
         assertEquals("fresh tomatoes", itr.next().getName());
         assertEquals("Fried Chicken", itr.next().getName());
         assertFalse(itr.hasNext());
 
-        itr = repo.findByNameContains("ea")
+        itr = repo.findByNameContainsIgnoreCaseOrderByNameIgnoreCaseAscIdAsc("ea")
                 .iterator();
         assertEquals("italian seasoning", itr.next().getName());
         assertEquals("yeast", itr.next().getName());
         assertFalse(itr.hasNext());
 
-        itr = repo.findByNameContains("cru")
+        itr = repo.findByNameContainsIgnoreCaseOrderByNameIgnoreCaseAscIdAsc("cru")
                 .iterator();
         assertEquals("Pizza Crust", itr.next().getName());
         assertFalse(itr.hasNext());

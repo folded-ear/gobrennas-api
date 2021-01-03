@@ -76,11 +76,11 @@ public class RecipeService {
     }
 
     public Iterable<Recipe> findRecipeByName(String filter) {
-        return recipeRepository.findAllByTermIgnoreCase(filter);
+        return recipeRepository.findAllByTermContainingIgnoreCase(filter);
     }
 
     public Iterable<Recipe> findRecipeByNameAndOwner(String filter) {
-        return recipeRepository.findAllByOwnerAndTermIgnoreCase(principalAccess.getUser(),filter);
+        return recipeRepository.findAllByOwnerAndTermContainingIgnoreCase(principalAccess.getUser(),filter);
     }
 
     public void deleteRecipeById(Long id) {

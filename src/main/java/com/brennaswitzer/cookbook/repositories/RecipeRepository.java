@@ -25,7 +25,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "where recipe.owner = :owner and ((LOWER(recipe.name) LIKE %:term%)\n" +
             "or (LOWER(label.name) LIKE %:term%))\n" +
             "order by recipe.name")
-    Iterable<Recipe> findAllByOwnerAndTermIgnoreCase(
+    Iterable<Recipe> findAllByOwnerAndTermContainingIgnoreCase(
             @Param("owner") User owner,
             @Param("term") String filter
     );
@@ -37,11 +37,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "where LOWER(recipe.name) LIKE %:term%\n" +
             "or LOWER(label.name) LIKE %:term%\n" +
             "order by recipe.name")
-    Iterable<Recipe> findAllByTermIgnoreCase(
+    Iterable<Recipe> findAllByTermContainingIgnoreCase(
             @Param("term") String filter
     );
 
     List<Recipe> findByOwnerAndNameIgnoreCaseOrderById(User owner, String name);
+
+    List<Recipe> findAllByOwnerAndNameIgnoreCaseContainingOrderById(User owner, String name);
 
     @Override
     Optional<Recipe> findById(Long aLong);

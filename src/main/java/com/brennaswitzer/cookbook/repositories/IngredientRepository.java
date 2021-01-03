@@ -6,11 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
 
+    // The @Query is used to get case-insensitive ordering, which Spring Data
+    // doesn't support via method name modifiers (only predicates).
     // todo: my dear god. index this.
     @Query("from Ingredient\n" +
             "where lower(name) like %:lcSubstr%\n" +
             "order by lower(name)\n" +
             "    , id")
-    Iterable<Ingredient> findByNameContains(String lcSubstr);
+    Iterable<Ingredient> findByNameContainsIgnoreCaseOrderByNameIgnoreCaseAscIdAsc(String lcSubstr);
 
 }

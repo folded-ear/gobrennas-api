@@ -130,7 +130,7 @@ public class ItemService {
                     .trim()
                     .toLowerCase();
             if (!search.isEmpty()) {
-                Iterable<Ingredient> matches = ingredientRepository.findByNameContains(search);
+                Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
                 StreamSupport.stream(matches.spliterator(), false)
                         .limit(10)
                         .forEach(i -> item.withSuggestion(new RecognizedItem.Suggestion(

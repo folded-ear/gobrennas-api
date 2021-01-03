@@ -9,4 +9,6 @@ public interface PantryItemRepository extends CrudRepository<PantryItem, Long> {
 
     List<PantryItem> findByNameIgnoreCaseOrderById(String name);
 
+    List<PantryItem> findAllByNameIgnoreCaseContainingOrderById(String name);
+
 }
