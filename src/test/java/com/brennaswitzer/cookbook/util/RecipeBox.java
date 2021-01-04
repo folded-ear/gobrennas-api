@@ -1,9 +1,6 @@
 package com.brennaswitzer.cookbook.util;
 
-import com.brennaswitzer.cookbook.domain.PantryItem;
-import com.brennaswitzer.cookbook.domain.Quantity;
-import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
+import com.brennaswitzer.cookbook.domain.*;
 
 import javax.persistence.EntityManager;
 
@@ -55,14 +52,15 @@ public class RecipeBox {
         pizza.addIngredient(Quantity.ONE, pizzaCrust);
     }
 
-    public void persist(EntityManager entityManager) {
-        persist(entityManager, friedChicken);
-        persist(entityManager, pizza);
-        persist(entityManager, pizzaCrust);
-        persist(entityManager, pizzaSauce);
+    public void persist(EntityManager entityManager, User owner) {
+        persist(entityManager, owner, friedChicken);
+        persist(entityManager, owner, pizza);
+        persist(entityManager, owner, pizzaCrust);
+        persist(entityManager, owner, pizzaSauce);
     }
 
-    private void persist(EntityManager entityManager, Recipe recipe) {
+    private void persist(EntityManager entityManager, User owner, Recipe recipe) {
+        recipe.setOwner(owner);
         entityManager.persist(recipe);
         recipe.assemblePantryItemRefs().forEach(ref ->
                 entityManager.persist(ref.getIngredient()));

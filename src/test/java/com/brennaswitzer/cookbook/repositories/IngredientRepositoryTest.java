@@ -2,6 +2,8 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.util.RecipeBox;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Transactional
+@WithAliceBobEve
 public class IngredientRepositoryTest {
 
     @Autowired
@@ -26,10 +29,13 @@ public class IngredientRepositoryTest {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    UserPrincipalAccess principalAccess;
+
     @Test
     public void nameContainsPrefixMatching() {
         RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
+        box.persist(entityManager, principalAccess.getUser());
 
         Iterator<Ingredient> itr = repo.findByNameContainsIgnoreCaseOrderByNameIgnoreCaseAscIdAsc("f")
                 .iterator();

@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.util.RecipeBox;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +29,13 @@ public class ItemServiceTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    UserPrincipalAccess principalAccess;
+
     @Test
     public void recognizeItem() {
         RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
+        box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "3 & 1/2 cup whole wheat flour";
         RecognizedItem el = service.recognizeItem(RAW);
@@ -48,7 +52,7 @@ public class ItemServiceTest {
     @Test
     public void recognizeAndSuggestSimple() {
         RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
+        box.persist(entityManager, principalAccess.getUser());
 
         // with no cursor; we're at the end
         RecognizedItem el = service.recognizeItem("1 gram f");
@@ -73,7 +77,7 @@ public class ItemServiceTest {
     @Test
     public void recognizeAndSuggestQuoted() {
         RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
+        box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
         RecognizedItem el = service.recognizeItem("1 gram \"cru, dehydrated", 11);
         Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
@@ -84,7 +88,7 @@ public class ItemServiceTest {
     @Test
     public void recognizeAndSuggestMidWord() {
         RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
+        box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
         RecognizedItem el = service.recognizeItem("1 gram \"crumbs", 11);
         Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
@@ -95,7 +99,7 @@ public class ItemServiceTest {
     @Test
     public void recognizeAndSuggestMultiWord() {
         RecipeBox box = new RecipeBox();
-        box.persist(entityManager);
+        box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
         RecognizedItem el = service.recognizeItem("1 gram \"pizza cru, dehydrated", 17);
         Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
