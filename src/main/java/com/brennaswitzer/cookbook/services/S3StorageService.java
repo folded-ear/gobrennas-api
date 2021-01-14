@@ -1,10 +1,10 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 
 public class S3StorageService implements StorageService {
@@ -46,17 +46,14 @@ public class S3StorageService implements StorageService {
     }
 
     private void put(MultipartFile file, String objectKey) throws IOException {
-        File temp = File.createTempFile("recipe_", "img");
-        file.transferTo(temp);
-        try {
-            client.putObject(
-                    bucketName,
-                    objectKey,
-                    temp
-            );
-        } finally {
-            //noinspection ResultOfMethodCallIgnored
-            temp.delete();
-        }
+        ObjectMetadata md = new ObjectMetadata();
+        md.setContentType(file.getContentType());
+        md.setCacheControl("public");
+        client.putObject(
+                bucketName,
+                objectKey,
+                file.getInputStream(),
+                md
+        );
     }
 }
