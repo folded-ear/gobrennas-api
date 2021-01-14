@@ -35,8 +35,10 @@ spring:
               - email
               - profile
 app:
-  aws-access-key: ${AWS_ACCESS_KEY}
-  aws-secret-key: ${AWS_SECRET_KEY}
+  aws:
+    region: us-west-2
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
   # where 'index.html' lives from the UA's perspective
   public-url: http://localhost:3001/
   auth:
