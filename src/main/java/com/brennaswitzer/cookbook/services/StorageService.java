@@ -23,6 +23,17 @@ public interface StorageService {
      */
     String store(MultipartFile file, String filename) throws IOException;
 
-    String load(String filename);
+    /**
+     * I return a fully-qualified URL for the passed file reference.
+     * @param ref A reference to a stored file.
+     * @return The url of the stored file.
+     */
+    String load(String ref);
+
+    /**
+     * I remove the passed file reference from the store.
+     * @param ref A reference to a stored file to remove.
+     */
+    void remove(String ref) throws IOException;
 
 }

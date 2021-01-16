@@ -47,6 +47,9 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @Getter
     @Setter
     private String photo; //maybe use embeddable to grow more information about reference?
+    public boolean hasPhoto() {
+        return photo != null;
+    }
 
     /**
      * Time is stored in milliseconds

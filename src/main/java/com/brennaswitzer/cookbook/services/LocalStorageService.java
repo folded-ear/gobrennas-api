@@ -20,4 +20,10 @@ public class LocalStorageService implements StorageService {
         Assert.notNull(filename, "Filename is required");
         return "images/pork_chops.jpg";
     }
+
+    @Override
+    public void remove(String filename) {
+        Assert.notNull(filename, "Filename is required");
+    }
+
 }

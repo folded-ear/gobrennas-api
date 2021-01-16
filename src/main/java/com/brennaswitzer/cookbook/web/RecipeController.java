@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
@@ -183,6 +184,7 @@ public class RecipeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
+        removePhoto(getRecipe(id));
         recipeService.deleteRecipeById(id);
         return new ResponseEntity<>("Recipe was deleted", HttpStatus.OK);
     }
@@ -241,11 +243,26 @@ public class RecipeController {
         return objectMapper.readValue(recipeData, IngredientInfo.class);
     }
 
+    private static final Pattern FILENAME_SANITIZER = Pattern.compile("[^a-zA-Z0-9.\\-]+");
     private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
-        String name = photo.getOriginalFilename() != null ? photo.getOriginalFilename().replaceAll("[^a-zA-Z0-9.\\-]", "_") : "photo";
+        removePhoto(recipe);
+        String name = photo.getOriginalFilename() != null
+                ? FILENAME_SANITIZER.matcher(photo.getOriginalFilename()).replaceAll("_")
+                : "photo";
         String filename = "recipe/" + recipe.getId() + "/" + name;
         String photoRef = storageService.store(photo, filename);
         recipe.setPhoto(photoRef);
+    }
+
+    private void removePhoto(Recipe recipe) {
+        if (recipe.hasPhoto()) {
+            try {
+                storageService.remove(recipe.getPhoto());
+            } catch (IOException ioe) {
+                throw new RuntimeException("Failed to remove photo", ioe);
+            }
+            recipe.setPhoto(null);
+        }
     }
 
 }

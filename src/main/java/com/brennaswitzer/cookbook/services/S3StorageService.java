@@ -44,7 +44,8 @@ public class S3StorageService implements StorageService {
     private void put(MultipartFile file, String objectKey) throws IOException {
         ObjectMetadata md = new ObjectMetadata();
         md.setContentType(file.getContentType());
-        md.setCacheControl("public");
+        // by fiat, S3-stored assets will never change w/in a single day. :)
+        md.setCacheControl("public, max-age=86400, immutable");
         client.putObject(
                 bucketName,
                 objectKey,
@@ -52,4 +53,11 @@ public class S3StorageService implements StorageService {
                 md
         );
     }
+
+    @Override
+    public void remove(String objectKey) {
+        Assert.notNull(objectKey, "objectKey is required");
+        client.deleteObject(bucketName, objectKey);
+    }
+
 }
