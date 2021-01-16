@@ -28,14 +28,6 @@ public class S3StorageService implements StorageService {
     public void init() {}
 
     @Override
-    public String store(MultipartFile file) throws IOException {
-        Assert.notNull(file, "File is required.");
-        String objectKey = file.getOriginalFilename();
-        put(file, objectKey);
-        return objectKey;
-    }
-
-    @Override
     public String store(MultipartFile file, String filename) throws IOException {
         Assert.notNull(file, "File is required.");
         Assert.notNull(filename, "Filename is required.");
