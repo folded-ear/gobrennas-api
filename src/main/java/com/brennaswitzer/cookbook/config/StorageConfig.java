@@ -18,7 +18,7 @@ public class StorageConfig {
     @Profile({"production", "development"})
     @Bean
     public StorageService s3Storage(AmazonS3 s3client) {
-        return new S3StorageService(s3client, awsProps.getBucketName());
+        return new S3StorageService(s3client, awsProps.getRegion(), awsProps.getBucketName());
     }
 
     @Profile("test")
