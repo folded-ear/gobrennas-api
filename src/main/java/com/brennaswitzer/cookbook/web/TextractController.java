@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.TextractJob;
-import com.brennaswitzer.cookbook.payload.FileInfo;
 import com.brennaswitzer.cookbook.payload.TextractJobInfo;
 import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.services.TextractService;
@@ -33,25 +32,14 @@ public class TextractController {
     public List<TextractJobInfo> subscribeToQueue() {
         return service.getQueue()
                 .stream()
-                .map(j -> {
-                    TextractJobInfo ji = new TextractJobInfo();
-                    ji.setPhoto(FileInfo.fromS3File(j.getPhoto(), storageService));
-                    ji.setReady(j.isReady());
-                    return ji;
-                })
+                .map(j -> TextractJobInfo.fromJob(j, storageService))
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public TextractJobInfo getJob(@PathVariable("id") long id) {
         TextractJob job = service.getJob(id);
-        TextractJobInfo info = new TextractJobInfo();
-        info.setPhoto(FileInfo.fromS3File(job.getPhoto(), storageService));
-        info.setReady(job.isReady());
-        if (job.isReady()) {
-            info.setLines(job.getLines());
-        }
-        return info;
+        return TextractJobInfo.fromJobWithLines(job, storageService);
     }
 
 }
