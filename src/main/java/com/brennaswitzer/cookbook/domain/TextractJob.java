@@ -1,9 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
@@ -15,7 +13,9 @@ public class TextractJob extends BaseEntity {
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @Embeddable
-    static class Line {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Line {
 
         String text;
 
@@ -32,7 +32,9 @@ public class TextractJob extends BaseEntity {
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @Embeddable
-    static class Box {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Box {
         double left;
         double top;
         double width;
@@ -41,7 +43,7 @@ public class TextractJob extends BaseEntity {
 
     @Getter
     @Setter
-    @ManyToOne
+    @ManyToOne(optional = false)
     private User owner;
 
     @Getter
