@@ -6,7 +6,7 @@ import com.brennaswitzer.cookbook.payload.TextractJobInfo;
 import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.services.TextractService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/textract")
-@MessageMapping("/textract")
 @PreAuthorize("hasRole('USER')")
 public class TextractController {
 
@@ -29,7 +28,8 @@ public class TextractController {
     @Autowired
     private StorageService storageService;
 
-    @SubscribeMapping
+    @SubscribeMapping("/queue/textract")
+    @SendToUser(destinations = "/queue/textract", broadcast = false)
     public List<TextractJobInfo> subscribeToQueue() {
         return service.getQueue()
                 .stream()
