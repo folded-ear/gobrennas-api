@@ -46,6 +46,7 @@ public class S3StorageService implements StorageService {
         md.setContentType(file.getContentType());
         // by fiat, S3-stored assets will never change w/in a single day. :)
         md.setCacheControl("public, max-age=86400, immutable");
+        md.setContentLength(file.getSize());
         client.putObject(
                 bucketName,
                 objectKey,

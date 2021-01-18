@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
@@ -244,15 +243,17 @@ public class RecipeController {
         return objectMapper.readValue(recipeData, IngredientInfo.class);
     }
 
-    private static final Pattern FILENAME_SANITIZER = Pattern.compile("[^a-zA-Z0-9.\\-]+");
     private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
         removePhoto(recipe);
-        String name = photo.getOriginalFilename() != null
-                ? FILENAME_SANITIZER.matcher(photo.getOriginalFilename()).replaceAll("_")
-                : "photo";
-        String filename = "recipe/" + recipe.getId() + "/" + name;
+        String name = photo.getOriginalFilename();
+        if (name == null) {
+            name = "photo";
+        } else {
+            name = S3File.sanitizeFilename(name);
+        }
+        String objectKey = "recipe/" + recipe.getId() + "/" + name;
         recipe.setPhoto(new S3File(
-                storageService.store(photo, filename),
+                storageService.store(photo, objectKey),
                 photo.getContentType(),
                 photo.getSize()
         ));
