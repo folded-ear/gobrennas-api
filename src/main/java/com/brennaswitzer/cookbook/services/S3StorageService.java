@@ -9,27 +9,23 @@ import java.io.IOException;
 
 public class S3StorageService implements StorageService {
 
-    private static final String S3_URL = "https://s3-us-west-2.amazonaws.com";
-
     private final AmazonS3 client;
 
-    String bucketName;
+    private final String region;
 
-    public S3StorageService(AmazonS3 s3client, String bucketName) {
+    private final String bucketName;
+
+    public S3StorageService(AmazonS3 s3client, String region, String bucketName) {
+        Assert.notNull(s3client, "client is required");
+        Assert.notNull(region, "region is required");
+        Assert.notNull(bucketName, "bucketName is required");
         this.client = s3client;
+        this.region = region;
         this.bucketName = bucketName;
     }
 
     @Override
     public void init() {}
-
-    @Override
-    public String store(MultipartFile file) throws IOException {
-        Assert.notNull(file, "File is required.");
-        String objectKey = file.getOriginalFilename();
-        put(file, objectKey);
-        return objectKey;
-    }
 
     @Override
     public String store(MultipartFile file, String filename) throws IOException {
@@ -41,14 +37,16 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String load(String objectKey) {
-        Assert.notNull(objectKey, "Filename is required");
-        return  S3_URL + "/" + bucketName + "/" + objectKey;
+        Assert.notNull(objectKey, "objectKey is required");
+        return "https://s3-" + region + ".amazonaws.com" + "/" + bucketName + "/" + objectKey;
     }
 
     private void put(MultipartFile file, String objectKey) throws IOException {
         ObjectMetadata md = new ObjectMetadata();
         md.setContentType(file.getContentType());
-        md.setCacheControl("public");
+        // by fiat, S3-stored assets will never change w/in a single day. :)
+        md.setCacheControl("public, max-age=86400, immutable");
+        md.setContentLength(file.getSize());
         client.putObject(
                 bucketName,
                 objectKey,
@@ -56,4 +54,11 @@ public class S3StorageService implements StorageService {
                 md
         );
     }
+
+    @Override
+    public void remove(String objectKey) {
+        Assert.notNull(objectKey, "objectKey is required");
+        client.deleteObject(bucketName, objectKey);
+    }
+
 }

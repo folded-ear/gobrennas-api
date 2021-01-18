@@ -12,13 +12,11 @@ import java.util.List;
 @Setter
 public class AppProperties {
 
-    private String awsAccessKey;
-    private String awsSecretKey;
-    private String bucketName;
     private String publicUrl;
 
     private final Auth auth = new Auth();
     private final OAuth2 oauth2 = new OAuth2();
+    private final AWSProperties aws = new AWSProperties();
 
     @Getter
     @Setter

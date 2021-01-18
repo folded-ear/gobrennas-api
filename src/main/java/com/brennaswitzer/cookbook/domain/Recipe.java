@@ -46,7 +46,16 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Getter
     @Setter
-    private String photo; //maybe use embeddable to grow more information about reference?
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name="objectKey", column=@Column(name="photo")),
+            @AttributeOverride(name="contentType", column=@Column(name="photo_type")),
+            @AttributeOverride(name="size", column=@Column(name="photo_size"))
+    })
+    private S3File photo;
+    public boolean hasPhoto() {
+        return photo != null;
+    }
 
     /**
      * Time is stored in milliseconds

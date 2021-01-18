@@ -29,7 +29,7 @@ public abstract class AbstractTokenAuthenticationFilter extends OncePerRequestFi
     @Override
     protected final void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            logger.warn("consult {} for a token", this);
+            logger.info("consult {} for a token", this);
             try {
                 String jwt = getJwtFromRequest(request);
 

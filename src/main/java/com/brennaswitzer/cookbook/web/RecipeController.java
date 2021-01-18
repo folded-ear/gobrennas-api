@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
 import com.brennaswitzer.cookbook.services.ItemService;
@@ -183,6 +184,7 @@ public class RecipeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
+        removePhoto(getRecipe(id));
         recipeService.deleteRecipeById(id);
         return new ResponseEntity<>("Recipe was deleted", HttpStatus.OK);
     }
@@ -231,8 +233,8 @@ public class RecipeController {
 
     private IngredientInfo getRecipeInfo(Recipe r) {
         IngredientInfo info = IngredientInfo.from(r);
-        if(r.getPhoto() != null) {
-            info.setPhoto(storageService.load(r.getPhoto()));
+        if(r.hasPhoto()) {
+            info.setPhoto(storageService.load(r.getPhoto().getObjectKey()));
         }
         return info;
     }
@@ -242,10 +244,30 @@ public class RecipeController {
     }
 
     private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
-        String name = photo.getOriginalFilename() != null ? photo.getOriginalFilename().replaceAll("[^a-zA-Z0-9.\\-]", "_") : "photo";
-        String filename = "recipe/" + recipe.getId() + "/" + name;
-        String photoRef = storageService.store(photo, filename);
-        recipe.setPhoto(photoRef);
+        removePhoto(recipe);
+        String name = photo.getOriginalFilename();
+        if (name == null) {
+            name = "photo";
+        } else {
+            name = S3File.sanitizeFilename(name);
+        }
+        String objectKey = "recipe/" + recipe.getId() + "/" + name;
+        recipe.setPhoto(new S3File(
+                storageService.store(photo, objectKey),
+                photo.getContentType(),
+                photo.getSize()
+        ));
+    }
+
+    private void removePhoto(Recipe recipe) {
+        if (recipe.hasPhoto()) {
+            try {
+                storageService.remove(recipe.getPhoto().getObjectKey());
+            } catch (IOException ioe) {
+                throw new RuntimeException("Failed to remove photo", ioe);
+            }
+            recipe.setPhoto(null);
+        }
     }
 
 }

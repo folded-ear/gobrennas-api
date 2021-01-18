@@ -18,6 +18,7 @@ spring:
   liquibase:
     enabled: false
 app:
-  aws-access-key: oh-my-its-so-glergy
-  aws-secret-key: glerg-fest
-  bucket-name: s3-bucketname
+  aws:
+    access-key: oh-my-its-so-glergy
+    secret-key: glerg-fest
+    bucket-name: s3-bucketname
