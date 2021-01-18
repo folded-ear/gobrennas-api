@@ -33,7 +33,7 @@ public class TextractService {
     private StorageService storageService;
 
     @Autowired
-    private AWSTextractService awsService;
+    private TextractProvider textractProvider;
 
     @Autowired
     SimpMessagingTemplate messagingTemplate;
@@ -74,7 +74,7 @@ public class TextractService {
         Long jobId = job.getId();
         new Thread(() -> {
             try {
-                awsService.processJob(jobId);
+                textractProvider.processJob(jobId);
                 broadcastQueueChange(userId);
             } catch (Exception e) {
                 e.printStackTrace();

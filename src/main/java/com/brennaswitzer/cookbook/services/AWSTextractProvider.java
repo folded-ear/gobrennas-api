@@ -5,35 +5,34 @@ import com.amazonaws.services.textract.model.BoundingBox;
 import com.amazonaws.services.textract.model.DetectDocumentTextRequest;
 import com.amazonaws.services.textract.model.Document;
 import com.amazonaws.services.textract.model.S3Object;
-import com.brennaswitzer.cookbook.config.AWSProperties;
 import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service
 @Transactional
-public class AWSTextractService {
+public class AWSTextractProvider implements TextractProvider {
 
-    @Autowired
     private AmazonTextract textractClient;
 
-    @Autowired
     private TextractJobRepository jobRepository;
 
-    @Autowired
-    private AWSProperties awsProps;
+    private final String bucketName;
+
+    public AWSTextractProvider(AmazonTextract textractClient, TextractJobRepository jobRepository, String bucketName) {
+        this.textractClient = textractClient;
+        this.jobRepository = jobRepository;
+        this.bucketName = bucketName;
+    }
 
     public void processJob(long jobId) {
         TextractJob job = jobRepository.getOne(jobId);
         DetectDocumentTextRequest request = new DetectDocumentTextRequest()
                 .withDocument(new Document()
                         .withS3Object(new S3Object()
-                                .withBucket(awsProps.getBucketName())
+                                .withBucket(bucketName)
                                 .withName(job.getPhoto().getObjectKey())));
         Set<TextractJob.Line> lines = textractClient.detectDocumentText(request)
                 .getBlocks()
