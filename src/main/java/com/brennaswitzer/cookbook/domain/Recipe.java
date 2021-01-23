@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
@@ -8,7 +7,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -68,16 +66,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @OrderBy("_idx, raw")
     private List<IngredientRef> ingredients;
 
-    @JsonFormat(pattern = "yyyy-mm-dd")
-    @Getter
-    @Setter
-    private Date created_at;
-
-    @JsonFormat(pattern = "yyyy-mm-dd")
-    @Getter
-    @Setter
-    private Date updated_at;
-
     public Recipe() {
     }
 
@@ -109,14 +97,13 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     }
 
     @PrePersist
-    protected void onCreate() {
-        this.created_at = new Date();
+    protected void onPrePersist() {
+        super.onPrePersist();
         ensureRefOrder();
     }
 
     @PreUpdate
-    protected void onUpdate() {
-        this.updated_at = new Date();
+    protected void onPreUpdate() {
         ensureRefOrder();
     }
 

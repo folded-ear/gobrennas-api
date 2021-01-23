@@ -34,3 +34,77 @@ create table textract_job_lines (
 );
 
 create index textract_job_lines_job on textract_job_lines (textract_job_id);
+
+--changeset barneyb:default-textract-job-eqkey
+alter table textract_job
+    alter _eqkey set default date_part('epoch'::text, clock_timestamp());
+
+--changeset barneyb:ingredient-uses-base-entity
+alter table ingredient
+    add _eqkey bigint not null default date_part('epoch'::text, clock_timestamp());
+
+-- noinspection SqlWithoutWhere
+update ingredient set
+    _eqkey = id;
+
+alter table ingredient
+    add constraint uk_ingredient__eqkey unique (_eqkey);
+
+--changeset barneyb:populate-missing-created-and-updated-at
+-- Assign ingredients that don't have a create date one based the surrounding
+-- dates, assuming ids represent insertion order. It's close enough. Tag the
+-- dates with an extra microsecond in case it's useful to go find them later.
+with triples as (
+    select i.id
+         , (
+             select r.id
+             from ingredient r
+             where r.id < i.id
+               and r.created_at is not null
+             order by r.created_at desc
+             limit 1
+         ) as prev_id
+         , (
+             select r.id
+             from ingredient r
+             where r.id > i.id
+               and r.created_at is not null
+             order by r.created_at
+             limit 1
+         ) as next_id
+    from ingredient i
+    where i.created_at is null
+    order by 1
+),
+pairs as (
+    ( -- just before the next dated ingredient
+        select i.id
+             , r.created_at
+                   - make_interval(secs => cast(r.id - i.id as double precision) / 1000) as dt
+        from triples i
+            join ingredient r on i.next_id = r.id
+        where next_id is not null
+    ) union ( -- just after the prior dated ingredient
+        select i.id
+             , r.created_at
+                   + make_interval(secs => cast(r.id - i.id as double precision) / 1000) as dt
+        from triples i
+            join ingredient r on i.prev_id = r.id
+        where next_id is null
+            and prev_id is not null
+    ) union ( -- nothing has a date. :|
+        select id, clock_timestamp() as dt
+        from triples
+        where next_id is null
+            and prev_id is null
+    )
+)
+update ingredient set
+    created_at = p.dt + make_interval(secs => 0.000001)
+from pairs p
+where p.id = ingredient.id;
+
+-- Default missing update dates to the ingredient's create date.
+update ingredient set
+    updated_at = created_at
+where updated_at is null;

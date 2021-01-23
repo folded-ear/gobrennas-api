@@ -35,7 +35,7 @@ public abstract class BaseEntity implements Identified {
     private Instant updatedAt;
 
     @PrePersist
-    protected void onPersist() {
+    protected void onPrePersist() {
         Instant now = Instant.now();
         setCreatedAt(now);
     }
