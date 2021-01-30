@@ -42,7 +42,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @Setter
     private Integer calories;
 
-    @Getter
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "file.objectKey", column = @Column(name = "photo")),
@@ -52,21 +51,26 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
             @AttributeOverride(name = "focusLeft", column = @Column(name = "photo_focus_left"))
     })
     private Photo photo;
+    public Photo getPhoto() {
+        return getPhoto(false);
+    }
+    public Photo getPhoto(boolean create) {
+        if (create && this.photo == null) {
+            this.photo = new Photo();
+        }
+        return this.photo;
+    }
     public void setPhoto(Photo photo) {
         this.photo = photo;
     }
     public void setPhoto(S3File file) {
-        if (this.photo == null) {
-            this.photo = new Photo(file);
-        } else {
-            this.photo.setFile(file);
-        }
+        getPhoto(true).setFile(file);
     }
     public void clearPhoto() {
         photo = null;
     }
     public boolean hasPhoto() {
-        return photo != null ;
+        return photo != null && photo.hasFile();
     }
 
     /**

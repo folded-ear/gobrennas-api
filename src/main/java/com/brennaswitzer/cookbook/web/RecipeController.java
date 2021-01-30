@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
@@ -234,7 +235,11 @@ public class RecipeController {
     private IngredientInfo getRecipeInfo(Recipe r) {
         IngredientInfo info = IngredientInfo.from(r);
         if(r.hasPhoto()) {
-            info.setPhoto(storageService.load(r.getPhoto().getObjectKey()));
+            Photo photo = r.getPhoto();
+            info.setPhoto(storageService.load(photo.getObjectKey()));
+            if (photo.hasFocus()) {
+                info.setPhotoFocus(photo.getFocusArray());
+            }
         }
         return info;
     }

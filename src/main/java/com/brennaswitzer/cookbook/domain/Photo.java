@@ -19,8 +19,26 @@ public class Photo {
         return file != null;
     }
 
-    Float focusTop;
     Float focusLeft;
+    Float focusTop;
+    public boolean hasFocus() {
+        return focusLeft != null && focusTop != null;
+    }
+
+    public float[] getFocusArray() {
+        return hasFocus()
+            ? new float[] { focusLeft, focusTop }
+            : null;
+    }
+
+    public void setFocusArray(float[] focus) {
+        if (focus == null) return;
+        if (focus.length != 2) {
+            throw new IllegalArgumentException("Focus arrays must have two components");
+        }
+        focusLeft = focus[0];
+        focusTop = focus[1];
+    }
 
     public Photo(S3File file) {
         this.file = file;
