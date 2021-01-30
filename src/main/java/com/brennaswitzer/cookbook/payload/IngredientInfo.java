@@ -132,6 +132,8 @@ public class IngredientInfo {
     @Getter @Setter
     private String photo;
     @Getter @Setter
+    private float[] photoFocus;
+    @Getter @Setter
     private Boolean cookThis;
 
     public List<String> getLabels() {
@@ -161,6 +163,9 @@ public class IngredientInfo {
                     .stream()
                     .map(ref -> ref.asIngredientRef(em))
                     .collect(Collectors.toList()));
+        }
+        if (photoFocus != null && photoFocus.length == 2) {
+            r.getPhoto(true).setFocusArray(photoFocus);
         }
         return r;
     }

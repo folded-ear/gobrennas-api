@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
@@ -51,7 +52,7 @@ public class RecipeController {
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
-            @RequestParam(name= "filter", defaultValue = "") String filter
+            @RequestParam(name = "filter", defaultValue = "") String filter
     ) {
         filter = filter.trim();
         boolean hasFilter = filter.length() > 0;
@@ -234,7 +235,11 @@ public class RecipeController {
     private IngredientInfo getRecipeInfo(Recipe r) {
         IngredientInfo info = IngredientInfo.from(r);
         if(r.hasPhoto()) {
-            info.setPhoto(storageService.load(r.getPhoto().getObjectKey()));
+            Photo photo = r.getPhoto();
+            info.setPhoto(storageService.load(photo.getObjectKey()));
+            if (photo.hasFocus()) {
+                info.setPhotoFocus(photo.getFocusArray());
+            }
         }
         return info;
     }
@@ -266,7 +271,7 @@ public class RecipeController {
             } catch (IOException ioe) {
                 throw new RuntimeException("Failed to remove photo", ioe);
             }
-            recipe.setPhoto(null);
+            recipe.clearPhoto();
         }
     }
 

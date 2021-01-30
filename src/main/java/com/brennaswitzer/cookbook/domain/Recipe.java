@@ -42,17 +42,35 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @Setter
     private Integer calories;
 
-    @Getter
-    @Setter
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name="objectKey", column=@Column(name="photo")),
-            @AttributeOverride(name="contentType", column=@Column(name="photo_type")),
-            @AttributeOverride(name="size", column=@Column(name="photo_size"))
+            @AttributeOverride(name = "file.objectKey", column = @Column(name = "photo")),
+            @AttributeOverride(name = "file.contentType", column = @Column(name = "photo_type")),
+            @AttributeOverride(name = "file.size", column = @Column(name = "photo_size")),
+            @AttributeOverride(name = "focusTop", column = @Column(name = "photo_focus_top")),
+            @AttributeOverride(name = "focusLeft", column = @Column(name = "photo_focus_left"))
     })
-    private S3File photo;
+    private Photo photo;
+    public Photo getPhoto() {
+        return getPhoto(false);
+    }
+    public Photo getPhoto(boolean create) {
+        if (create && this.photo == null) {
+            this.photo = new Photo();
+        }
+        return this.photo;
+    }
+    public void setPhoto(Photo photo) {
+        this.photo = photo;
+    }
+    public void setPhoto(S3File file) {
+        getPhoto(true).setFile(file);
+    }
+    public void clearPhoto() {
+        photo = null;
+    }
     public boolean hasPhoto() {
-        return photo != null;
+        return photo != null && photo.hasFile();
     }
 
     /**
