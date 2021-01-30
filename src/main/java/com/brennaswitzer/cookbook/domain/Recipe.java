@@ -67,7 +67,9 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         getPhoto(true).setFile(file);
     }
     public void clearPhoto() {
-        photo = null;
+        if (hasPhoto()) {
+            photo.clearFile();
+        }
     }
     public boolean hasPhoto() {
         return photo != null && photo.hasFile();
