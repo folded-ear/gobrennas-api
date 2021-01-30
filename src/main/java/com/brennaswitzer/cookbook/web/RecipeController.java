@@ -51,7 +51,7 @@ public class RecipeController {
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
-            @RequestParam(name= "filter", defaultValue = "") String filter
+            @RequestParam(name = "filter", defaultValue = "") String filter
     ) {
         filter = filter.trim();
         boolean hasFilter = filter.length() > 0;
@@ -266,7 +266,7 @@ public class RecipeController {
             } catch (IOException ioe) {
                 throw new RuntimeException("Failed to remove photo", ioe);
             }
-            recipe.setPhoto(null);
+            recipe.clearPhoto();
         }
     }
 

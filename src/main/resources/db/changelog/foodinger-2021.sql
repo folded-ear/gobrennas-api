@@ -108,3 +108,8 @@ where p.id = ingredient.id;
 update ingredient set
     updated_at = created_at
 where updated_at is null;
+
+--changeset barneyb:recipe-photo-focus
+alter table ingredient
+    add photo_focus_top real,
+    add photo_focus_left real;
