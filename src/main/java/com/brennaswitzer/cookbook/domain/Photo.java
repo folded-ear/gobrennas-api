@@ -15,6 +15,9 @@ public class Photo {
 
     @Embedded
     private S3File file;
+    public void clearFile() {
+        file = null;
+    }
     public boolean hasFile() {
         return file != null;
     }
