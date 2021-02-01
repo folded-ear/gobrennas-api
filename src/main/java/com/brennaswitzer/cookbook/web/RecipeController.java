@@ -232,7 +232,7 @@ public class RecipeController {
         return recipe.get();
     }
 
-    private IngredientInfo getRecipeInfo(Recipe r) {
+    IngredientInfo getRecipeInfo(Recipe r) {
         IngredientInfo info = IngredientInfo.from(r);
         if(r.hasPhoto()) {
             Photo photo = r.getPhoto();

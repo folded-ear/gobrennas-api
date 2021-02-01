@@ -12,6 +12,15 @@ public interface Labeled {
         return getLabels().contains(label);
     }
 
+    default int getLabelCount() {
+        Set<Label> labels = getLabels();
+        return labels == null ? 0 : labels.size();
+    }
+
+    default boolean hasLabels() {
+        return getLabelCount() > 0;
+    }
+
     default void addLabels(Collection<Label> labels) {
         for (Label l : labels) {
             addLabel(l);
@@ -22,5 +31,6 @@ public interface Labeled {
         for (Label l : getLabels()) {
             removeLabel(l);
         }
-    };
+    }
+
 }
