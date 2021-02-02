@@ -50,11 +50,9 @@ public class ShareRecipeController {
         slug = slug.trim().replace(' ', '-');
 
         Map<String, Object> result = new HashMap<>();
-        result.put("secret", secret);
         result.put("slug", slug);
-        // I know there's a smarter way to do this; linking w/in apps isn't a
-        // new problem. But I've never actually built a Spring app that does it.
-        result.put("url", "share/recipe/" + slug + "/" + secret + "/" + id + ".json");
+        result.put("secret", secret);
+        result.put("id", id);
         return result;
     }
 
