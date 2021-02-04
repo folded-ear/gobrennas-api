@@ -6,10 +6,10 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.UserInfo;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
+import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AuthorizationServiceException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("share/recipe")
+@RequestMapping("/shared")
 public class ShareRecipeController {
 
     @Autowired
@@ -33,33 +33,10 @@ public class ShareRecipeController {
     @Autowired
     private RecipeController recipeController; // todo: oof
 
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping(value = "/for/{id}")
-    @ResponseBody
-    public Object getRecipeShareLink(
-            @PathVariable("id") Long id
-    ) {
-        Recipe r = repo.getOne(id);
-        String secret = getSecretForId(id);
-        String slug = r.getName()
-                .toLowerCase()
-                .replaceAll("[^a-z0-9]+", " ")
-                .trim();
-        if (slug.length() > 35) {
-            slug = slug.substring(0, 30);
-        }
-        slug = slug.trim().replace(' ', '-');
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("slug", slug);
-        result.put("secret", secret);
-        result.put("id", id);
-        return result;
-    }
-
-    @GetMapping("/{slug}/{secret}/{id}.json")
+    @GetMapping("/recipe/{slug}/{secret}/{id}.json")
     @ResponseBody
     public Object getSharedRecipe(
+            @SuppressWarnings("unused") @PathVariable("slug") String slug,
             @PathVariable("id") Long id,
             @PathVariable("secret") String secret
     ) {
@@ -79,9 +56,11 @@ public class ShareRecipeController {
         return result;
     }
 
-    private String getSecretForId(Long id) {
-        return HmacUtils.hmacSha1Hex(
-                appProperties.getAuth().getTokenSecret().getBytes(),
+    protected String getSecretForId(Long id) {
+        return new HmacUtils(
+                HmacAlgorithms.HMAC_SHA_1,
+                appProperties.getAuth().getTokenSecret().getBytes()
+        ).hmacHex(
                 id.toString().getBytes()
         );
     }

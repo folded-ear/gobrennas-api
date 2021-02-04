@@ -24,10 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -48,6 +45,9 @@ public class RecipeController {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ShareRecipeController shareRecipeController; // todo: oof
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
@@ -134,6 +134,29 @@ public class RecipeController {
         return getRecipeInfo(recipe);
     }
 
+    @GetMapping("/share/{id}")
+    public Object getShareRecipeById(
+            @PathVariable("id") Long id
+    ) {
+        //noinspection OptionalGetWithoutIsPresent
+        Recipe r = recipeService.findRecipeById(id).get();
+        String secret = shareRecipeController.getSecretForId(id);
+        String slug = r.getName()
+                .toLowerCase()
+                .replaceAll("[^a-z0-9]+", " ")
+                .trim();
+        if (slug.length() > 35) {
+            slug = slug.substring(0, 30);
+        }
+        slug = slug.trim().replace(' ', '-');
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("slug", slug);
+        result.put("secret", secret);
+        result.put("id", id);
+        return result;
+    }
+
     // begin kludge (3 of 3)
     @Autowired private EntityManager em;
     @GetMapping("/bulk-ingredients/{ids}")
@@ -148,7 +171,6 @@ public class RecipeController {
         return infos;
     }
 
-    @SuppressWarnings("JavaReflectionMemberAccess")
     @GetMapping("/or-ingredient/{id}")
     public IngredientInfo getIngredientById(@PathVariable("id") Long id) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Ingredient i = em.find(Ingredient.class, id);

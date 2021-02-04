@@ -67,9 +67,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Autowired
-    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
-
-    @Autowired
     private AppProperties appProperties;
 
     @Bean
@@ -134,6 +131,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/",
                         "/error",
                         "/favicon.ico",
+                        "/shared/**/*",
                         "/**/*.png",
                         "/**/*.gif",
                         "/**/*.svg",
