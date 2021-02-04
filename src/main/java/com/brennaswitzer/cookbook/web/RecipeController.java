@@ -47,7 +47,7 @@ public class RecipeController {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private ShareRecipeController shareRecipeController; // todo: oof
+    private SharedRecipeController sharedRecipeController; // todo: oof
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
@@ -135,12 +135,12 @@ public class RecipeController {
     }
 
     @GetMapping("/share/{id}")
-    public Object getShareRecipeById(
+    public Object getShareInfoById(
             @PathVariable("id") Long id
     ) {
         //noinspection OptionalGetWithoutIsPresent
         Recipe r = recipeService.findRecipeById(id).get();
-        String secret = shareRecipeController.getSecretForId(id);
+        String secret = sharedRecipeController.getSecretForId(id);
         String slug = r.getName()
                 .toLowerCase()
                 .replaceAll("[^a-z0-9]+", " ")

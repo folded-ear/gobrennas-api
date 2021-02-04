@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/shared")
-public class ShareRecipeController {
+@RequestMapping("/shared/recipe")
+public class SharedRecipeController {
 
     @Autowired
     private AppProperties appProperties;
@@ -33,7 +33,7 @@ public class ShareRecipeController {
     @Autowired
     private RecipeController recipeController; // todo: oof
 
-    @GetMapping("/recipe/{slug}/{secret}/{id}.json")
+    @GetMapping("/{slug}/{secret}/{id}.json")
     @ResponseBody
     public Object getSharedRecipe(
             @SuppressWarnings("unused") @PathVariable("slug") String slug,

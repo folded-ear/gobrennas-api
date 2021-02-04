@@ -52,7 +52,7 @@ server {
         proxy_set_header   Connection      "Upgrade";
     }
 
-    location ~ ^/(api|oauth2)(/|$) {
+    location ~ ^/(api|oauth2|shared)(/|$) { # KEEP IN SYNC WITH mung_sw.js
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
         proxy_set_header   Host            $host;
