@@ -178,10 +178,6 @@ public class IngredientInfo {
         info.setYield(r.getYield());
         info.setTotalTime(r.getTotalTime());
         info.setCalories(r.getCalories());
-        info.setLabels(r.getLabels()
-                .stream()
-                .map(Label::getName)
-                .collect(Collectors.toList()));
         if (r.getOwner() != null) {
             info.setOwnerId(r.getOwner().getId());
         }
@@ -189,9 +185,7 @@ public class IngredientInfo {
     }
 
     public static IngredientInfo from(AggregateIngredient it) {
-        IngredientInfo info = new IngredientInfo();
-        info.setId(it.getId());
-        info.setName(it.getName());
+        IngredientInfo info = from((Ingredient) it);
         if (it.getIngredients() != null) {
             info.setIngredients(it.getIngredients()
                     .stream()
@@ -201,11 +195,22 @@ public class IngredientInfo {
         return info;
     }
 
-    public static IngredientInfo from(PantryItem it) {
+    public static IngredientInfo from(Ingredient it) {
         IngredientInfo info = new IngredientInfo();
-        info.setType("PantryItem");
         info.setId(it.getId());
         info.setName(it.getName());
+        if (it.hasLabels()) {
+            info.setLabels(it.getLabels()
+                    .stream()
+                    .map(Label::getName)
+                    .collect(Collectors.toList()));
+        }
+        return info;
+    }
+
+    public static IngredientInfo from(PantryItem it) {
+        IngredientInfo info = from((Ingredient) it);
+        info.setType("PantryItem");
         info.setStoreOrder(it.getStoreOrder());
         return info;
     }

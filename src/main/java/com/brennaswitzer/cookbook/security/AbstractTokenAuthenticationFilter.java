@@ -29,7 +29,7 @@ public abstract class AbstractTokenAuthenticationFilter extends OncePerRequestFi
     @Override
     protected final void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            logger.info("consult {} for a token", this);
+            logger.debug("consult {} for a token", this);
             try {
                 String jwt = getJwtFromRequest(request);
 
@@ -45,6 +45,8 @@ public abstract class AbstractTokenAuthenticationFilter extends OncePerRequestFi
             } catch (Exception ex) {
                 logger.error("Could not set user authentication in security context", ex);
             }
+        } else {
+            logger.debug("already have an authentication");
         }
 
         filterChain.doFilter(request, response);
