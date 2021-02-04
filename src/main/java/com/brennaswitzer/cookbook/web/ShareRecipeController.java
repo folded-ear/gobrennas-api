@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("share/recipe")
@@ -74,11 +75,7 @@ public class ShareRecipeController {
                 .filter(IngredientRef::hasIngredient)
                 .map(IngredientRef::getIngredient)
                 .map(IngredientInfo::from)
-                .collect(
-                        HashMap::new,
-                        (m, i) -> m.put(i.getId(), i),
-                        HashMap::putAll
-                ));
+                .collect(Collectors.toList()));
         return result;
     }
 
