@@ -1,10 +1,14 @@
 package com.brennaswitzer.cookbook.payload;
 
-import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 public class TaskName {
 
-    @NotBlank
+    @NonNull
+    @Getter
+    @Setter
     private String name;
 
     public TaskName() {
@@ -12,14 +16,6 @@ public class TaskName {
 
     public TaskName(String name) {
         setName(name);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
 }

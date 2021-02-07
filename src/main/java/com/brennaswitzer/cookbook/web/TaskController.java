@@ -3,10 +3,7 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.AclInfo;
-import com.brennaswitzer.cookbook.payload.GrantInfo;
-import com.brennaswitzer.cookbook.payload.TaskInfo;
-import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.payload.*;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +35,14 @@ public class TaskController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public TaskInfo createTaskList(
-            @RequestBody TaskName info
-    ) {
-        return TaskInfo.fromList(
-                taskService.createTaskList(info.getName())
-        );
+    public TaskInfo createTaskList(@RequestBody TaskCreate info) {
+        TaskList taskList;
+        if (info.hasFromId()) {
+            taskList = taskService.duplicateTaskList(info.getName(), info.getFromId());
+        } else {
+            taskList = taskService.createTaskList(info.getName());
+        }
+        return TaskInfo.fromList(taskList);
     }
 
     @GetMapping("/{id}")

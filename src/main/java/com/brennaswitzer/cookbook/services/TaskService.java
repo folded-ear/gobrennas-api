@@ -87,6 +87,28 @@ public class TaskService {
         return createTaskList(name, user.getId());
     }
 
+    public TaskList duplicateTaskList(String name, Long fromId) {
+        TaskList list = createTaskList(name);
+        TaskList src = listRepo.getOne(fromId);
+        duplicateChildren(src, list);
+        return list;
+    }
+
+    private void duplicateChildren(Task src, Task dest) {
+        if (!src.hasSubtasks()) return;
+        for (Task s : src.getOrderedSubtasksView()) {
+            Task d = new Task(
+                    s.getName(),
+                    s.getQuantity(),
+                    s.getIngredient(),
+                    s.getPreparation()
+            );
+            d.setStatus(s.getStatus()); // unclear if this is good?
+            dest.addSubtask(d);
+            duplicateChildren(s, d);
+        }
+    }
+
     public TaskList createTaskList(String name) {
         return createTaskList(name, principalAccess.getId());
     }
