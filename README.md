@@ -33,7 +33,7 @@ against. Note that currently your Postgres *MUST* be running on `5432` (the
 standard Postgres port). If you're using a decent OS, you'll have `docker`
 available, which is a great choice:
 
-    docker run --name pg -p 5432:5432 -d postgres:9.6
+    docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:9.6
 
 If you already have existing PG infrastructure, create a new database (unless
 your `postgres` database remains pristine and you want to use it).
