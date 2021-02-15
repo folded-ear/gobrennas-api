@@ -4,13 +4,10 @@ import com.brennaswitzer.cookbook.services.RecipeService;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 public class RecipeAction {
 
     public enum Type {
         SEND_TO_PLAN, // new parent for recipe w/ ingredients nested
-        DISSECT_RAW_INGREDIENT,
         RECOGNIZE_ITEM,
     }
 
@@ -18,10 +15,7 @@ public class RecipeAction {
     private Type type;
 
     @Getter @Setter
-    private Long listId;
-
-    @Getter @Setter
-    private List<Long> additionalRecipeIds;
+    private Long planId;
 
     @Getter @Setter
     private RawIngredientDissection dissection;
@@ -32,38 +26,36 @@ public class RecipeAction {
     @Getter @Setter
     private Integer cursorPosition;
 
-    public Long getPlanId() {
-        return listId;
+    @Deprecated
+    public Long getListId() {
+        return planId;
     }
 
-    public void setPlanId(Long planId) {
-        this.listId = planId;
+    @Deprecated
+    public void setListId(Long listId) {
+        this.planId = listId;
     }
 
     public Object execute(RecipeService service) {
+        //noinspection SwitchStatementWithTooFewBranches
         switch (getType()) {
-            case DISSECT_RAW_INGREDIENT:
-                service.recordDissection(dissection);
-                break;
             case RECOGNIZE_ITEM:
                 //noinspection deprecation
                 return service.recognizeItem(raw, cursorPosition == null ? raw.length() : cursorPosition);
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());
         }
-        return true;
     }
 
     public Object execute(Long recipeId, RecipeService service) {
         //noinspection SwitchStatementWithTooFewBranches
         switch (getType()) {
             case SEND_TO_PLAN:
-                service.sendToPlan(recipeId, getPlanId());
-                break;
+                service.sendToPlan(recipeId, planId);
+                return true;
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());
         }
-        return true;
     }
 
 }
