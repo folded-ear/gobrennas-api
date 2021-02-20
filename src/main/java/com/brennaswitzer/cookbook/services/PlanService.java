@@ -115,27 +115,27 @@ public class PlanService {
         return messagingTemplate != null;
     }
 
-    private void sendToPlan(AggregateIngredient r, Task rTask) {
+    private void sendToPlan(AggregateIngredient r, Task aggTask) {
         r.getIngredients().forEach(ir ->
-                sendToPlan(ir, rTask));
+                sendToPlan(ir, aggTask));
     }
 
-    private void sendToPlan(IngredientRef ir, Task rTask) {
+    private void sendToPlan(IngredientRef ir, Task aggTask) {
         Task t = new Task(ir.getRaw(), ir.getQuantity(), ir.getIngredient(), ir.getPreparation());
-        rTask.addSubtask(t);
+        aggTask.addAggregateComponent(t);
         if (ir.getIngredient() instanceof AggregateIngredient) {
             sendToPlan((AggregateIngredient) ir.getIngredient(), t);
         }
     }
 
     public void addRecipe(Long planId, Recipe r) {
-        Task rTask = new Task(r.getName(), r);
+        Task recipeTask = new Task(r.getName(), r);
         Task plan = getTaskById(planId, AccessLevel.CHANGE);
-        plan.addSubtask(rTask);
-        sendToPlan(r, rTask);
+        plan.addSubtask(recipeTask);
+        sendToPlan(r, recipeTask);
         if (isMessagingCapable()) {
             taskRepo.flush(); // so that IDs will be available
-            sendMessage(plan, buildCreationMessage(rTask));
+            sendMessage(plan, buildCreationMessage(recipeTask));
         }
     }
 
