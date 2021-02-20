@@ -18,6 +18,12 @@ import static javax.persistence.CascadeType.*;
 @DiscriminatorValue("item")
 public class Task extends BaseEntity implements MutableItem {
 
+    public static final Comparator<Task> BY_ID = (a, b) -> {
+        if (a == null) return b == null ? 0 : 1;
+        if (b == null) return -1;
+        return a.getId().compareTo(b.getId());
+    };
+
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
@@ -137,8 +143,16 @@ public class Task extends BaseEntity implements MutableItem {
         return getParent() != null;
     }
 
+    public boolean isComponent() {
+        return getAggregate() != null;
+    }
+
     public boolean hasSubtasks() {
         return getSubtaskCount() != 0;
+    }
+
+    public boolean hasComponents() {
+        return getComponentCount() != 0;
     }
 
     public boolean isDescendant(Task t) {
@@ -148,7 +162,7 @@ public class Task extends BaseEntity implements MutableItem {
         return false;
     }
 
-    public boolean isComponent(Task t) {
+    public boolean isDescendantComponent(Task t) {
         for (; t != null; t = t.getAggregate()) {
             if (t == this) return true;
         }
@@ -188,7 +202,7 @@ public class Task extends BaseEntity implements MutableItem {
         if (agg == null ? getAggregate() == null : agg.equals(getAggregate())) {
             return;
         }
-        if (isComponent(agg)) {
+        if (isDescendantComponent(agg)) {
             throw new IllegalArgumentException("You can't make a task a component of one of its own components");
         }
         if (getAggregate() != null && getAggregate().components != null) {
@@ -286,8 +300,26 @@ public class Task extends BaseEntity implements MutableItem {
         return list;
     }
 
+    public List<Task> getOrderedComponentsView() {
+        return getComponentView(BY_ID);
+    }
+
+    public List<Task> getComponentView(Comparator<Task> comparator) {
+        if (components == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        List<Task> list = new ArrayList<>(components);
+        list.sort(comparator);
+        return list;
+    }
+
     public int getSubtaskCount() {
         return subtasks == null ? 0 : subtasks.size();
+    }
+
+    public int getComponentCount() {
+        return components == null ? 0 : components.size();
     }
 
     @Override

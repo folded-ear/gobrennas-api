@@ -65,7 +65,12 @@ public class PlanService {
     }
 
     public List<Task> getTreeById(Long id) {
-        return treeHelper(getTaskById(id, AccessLevel.VIEW));
+        List<Task> tasks = treeHelper(getTaskById(id, AccessLevel.VIEW));
+        for (Task t : tasks) {
+            // to load the collection before the session closes
+            t.getOrderedComponentsView();
+        }
+        return tasks;
     }
 
     private List<Task> treeHelper(Task task) {
