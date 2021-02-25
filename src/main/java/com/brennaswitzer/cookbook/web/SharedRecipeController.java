@@ -1,6 +1,8 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.config.AppProperties;
+import com.brennaswitzer.cookbook.domain.AggregateIngredient;
+import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
@@ -16,9 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Controller
 @RequestMapping("/shared/recipe")
@@ -47,12 +47,24 @@ public class SharedRecipeController {
         Recipe r = repo.getOne(id);
         result.put("recipe", recipeController.getRecipeInfo(r));
         result.put("owner", UserInfo.fromUser(r.getOwner()));
-        result.put("ingredients", r.getIngredients()
-                .stream()
-                .filter(IngredientRef::hasIngredient)
-                .map(IngredientRef::getIngredient)
-                .map(IngredientInfo::from)
-                .collect(Collectors.toList()));
+        Queue<IngredientRef> queue = new LinkedList<>(r.getIngredients());
+        List<IngredientInfo> ings = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            IngredientRef ir = queue.remove();
+            if (!ir.hasIngredient()) continue;
+            Ingredient i = ir.getIngredient();
+            if (i instanceof Recipe) {
+                ings.add(IngredientInfo.from((Recipe) i));
+            } else if (i instanceof AggregateIngredient) {
+                ings.add(IngredientInfo.from((AggregateIngredient) i));
+            } else {
+                ings.add(IngredientInfo.from(i));
+            }
+            if (i instanceof AggregateIngredient) {
+                queue.addAll(((AggregateIngredient) i).getIngredients());
+            }
+        }
+        result.put("ingredients", ings);
         return result;
     }
 
