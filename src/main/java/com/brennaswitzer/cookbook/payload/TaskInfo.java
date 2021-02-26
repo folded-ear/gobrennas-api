@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
+
 @SuppressWarnings("WeakerAccess")
 public class TaskInfo {
 
@@ -24,11 +26,13 @@ public class TaskInfo {
             info.parentId = task.getParent().getId();
         }
         if (task.hasSubtasks()) {
-            info.subtaskIds = new long[task.getSubtaskCount()];
-            int i = 0;
-            for (Task t : task.getOrderedSubtasksView()) {
-                info.subtaskIds[i++] = t.getId();
-            }
+            info.subtaskIds = toIdList(task.getOrderedSubtasksView());
+        }
+        if (task.isComponent()) {
+            info.aggregateId = task.getAggregate().getId();
+        }
+        if (task.hasComponents()) {
+            info.componentIds = toIdList(task.getOrderedComponentsView());
         }
         if (task.hasIngredient()) {
             info.ingredientId = task.getIngredient().getId();
@@ -95,6 +99,10 @@ public class TaskInfo {
 
     @Getter
     @Setter
+    private Long aggregateId;
+
+    @Getter
+    @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private AclInfo acl;
 
@@ -107,6 +115,11 @@ public class TaskInfo {
     @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private long[] subtaskIds;
+
+    @Getter
+    @Setter
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private long[] componentIds;
 
     @Getter
     @Setter

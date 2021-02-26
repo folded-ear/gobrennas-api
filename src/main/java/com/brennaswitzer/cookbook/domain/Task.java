@@ -9,12 +9,20 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static javax.persistence.CascadeType.*;
+
 @SuppressWarnings("WeakerAccess")
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("item")
 public class Task extends BaseEntity implements MutableItem {
+
+    public static final Comparator<Task> BY_ID = (a, b) -> {
+        if (a == null) return b == null ? 0 : 1;
+        if (b == null) return -1;
+        return a.getId().compareTo(b.getId());
+    };
 
     public static final Comparator<Task> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -63,14 +71,22 @@ public class Task extends BaseEntity implements MutableItem {
     @Getter
     private Task parent;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @OneToMany(mappedBy = "parent", cascade = ALL)
+    @BatchSize(size = 100)
+    private Set<Task> subtasks;
+
+    @ManyToOne
+    @Getter
+    private Task aggregate;
+
+    @OneToMany(mappedBy = "aggregate", cascade = {PERSIST, MERGE, REFRESH, DETACH})
+    @BatchSize(size = 100)
+    private Set<Task> components;
+
+    @ManyToOne(cascade = MERGE)
     @Getter
     @Setter
     private Ingredient ingredient;
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    @BatchSize(size = 100)
-    private Set<Task> subtasks;
 
     @Getter
     @Setter
@@ -127,12 +143,27 @@ public class Task extends BaseEntity implements MutableItem {
         return getParent() != null;
     }
 
+    public boolean isComponent() {
+        return getAggregate() != null;
+    }
+
     public boolean hasSubtasks() {
         return getSubtaskCount() != 0;
     }
 
+    public boolean hasComponents() {
+        return getComponentCount() != 0;
+    }
+
     public boolean isDescendant(Task t) {
         for (; t != null; t = t.getParent()) {
+            if (t == this) return true;
+        }
+        return false;
+    }
+
+    public boolean isDescendantComponent(Task t) {
+        for (; t != null; t = t.getAggregate()) {
             if (t == this) return true;
         }
         return false;
@@ -144,12 +175,12 @@ public class Task extends BaseEntity implements MutableItem {
             return;
         }
         if (isDescendant(parent)) {
-            throw new IllegalArgumentException("You can't make a task a descendant of one of its descendants");
+            throw new IllegalArgumentException("You can't make a task a descendant of one of its own descendants");
         }
         // tear down the old one
         if (getParent() != null && getParent().subtasks != null) {
             if (! getParent().subtasks.remove(this)) {
-                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of it's parent #" + getParent().getId() + "?!");
+                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of its parent #" + getParent().getId() + "?!");
             }
         }
         // wire up the new one
@@ -165,6 +196,26 @@ public class Task extends BaseEntity implements MutableItem {
             }
         }
         this.parent = parent;
+    }
+
+    public void setAggregate(Task agg) {
+        if (agg == null ? getAggregate() == null : agg.equals(getAggregate())) {
+            return;
+        }
+        if (isDescendantComponent(agg)) {
+            throw new IllegalArgumentException("You can't make a task a component of one of its own components");
+        }
+        if (getAggregate() != null && getAggregate().components != null) {
+            if (!getAggregate().components.remove(this)) {
+                throw new IllegalStateException("Task #" + getId() + " wasn't a component of its aggregate #" + getAggregate().getId() + "?!");
+            }
+        }
+        if (agg != null) {
+            if (agg.components == null) {
+                agg.components = new HashSet<>();
+            }
+        }
+        this.aggregate = agg;
     }
 
     public boolean hasParent() {
@@ -184,6 +235,15 @@ public class Task extends BaseEntity implements MutableItem {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
         task.setParent(this);
+    }
+
+    /**
+     * Add a new Task as both a child and component of this task.
+     * @param t the task to add as a component
+     */
+    public void addAggregateComponent(Task t) {
+        addSubtask(t);
+        t.setAggregate(this);
     }
 
     public void addSubtaskAfter(Task task, Task after) {
@@ -240,8 +300,26 @@ public class Task extends BaseEntity implements MutableItem {
         return list;
     }
 
+    public List<Task> getOrderedComponentsView() {
+        return getComponentView(BY_ID);
+    }
+
+    public List<Task> getComponentView(Comparator<Task> comparator) {
+        if (components == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        }
+        List<Task> list = new ArrayList<>(components);
+        list.sort(comparator);
+        return list;
+    }
+
     public int getSubtaskCount() {
         return subtasks == null ? 0 : subtasks.size();
+    }
+
+    public int getComponentCount() {
+        return components == null ? 0 : components.size();
     }
 
     @Override

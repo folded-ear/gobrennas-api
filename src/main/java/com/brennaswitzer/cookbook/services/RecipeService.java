@@ -1,20 +1,13 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
-import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
-import com.brennaswitzer.cookbook.util.EnglishUtils;
-import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,12 +23,6 @@ public class RecipeService {
 
     @Autowired
     private PlanService planService;
-
-    @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
-    private JdbcTemplate jdbcTmpl;
 
     @Autowired
     private UserPrincipalAccess principalAccess;
@@ -91,36 +78,6 @@ public class RecipeService {
     public void sendToPlan(Long recipeId, Long planId) {
         planService.addRecipe(planId,
                 recipeRepository.findById(recipeId).get());
-    }
-
-    public void recordDissection(RawIngredientDissection dissection) {
-        // fail fast on unparseable quantity
-        String qText = dissection.getQuantityText();
-        Double quantity = NumberUtils.parseNumber(qText);
-        if (qText != null && quantity == null) {
-            throw new RuntimeException("Quantity '" + quantity + "' cannot be parsed.");
-        }
-
-        // lets go!
-        Ingredient ingredient = ingredientService.ensureIngredientByName(
-                EnglishUtils.canonicalize(dissection.getNameText()));
-        UnitOfMeasure uom = UnitOfMeasure.ensure(entityManager,
-                EnglishUtils.canonicalize(dissection.getUnitsText()));
-        // update raw refs w/ dissected parts
-        // this is a kludge to bulk update all equivalent refs. :)
-        entityManager.flush();
-        jdbcTmpl.update("update recipe_ingredients\n" +
-                        "set quantity = ?,\n" +
-                        "    units_id = ?,\n" +
-                        "    ingredient_id = ?,\n" +
-                        "    preparation = ?\n" +
-                        "where raw = ?",
-                quantity,
-                uom == null ? null : uom.getId(),
-                ingredient.getId(),
-                dissection.getPrep(),
-                dissection.getRaw());
-
     }
 
     /**

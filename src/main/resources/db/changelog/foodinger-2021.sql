@@ -113,3 +113,9 @@ where updated_at is null;
 alter table ingredient
     add photo_focus_top real,
     add photo_focus_left real;
+
+--changeset barneyb:task-aggregation
+alter table task
+    add aggregate_id bigint;
+alter table task
+    add constraint fk_task_aggregate_id foreign key (aggregate_id) references task (id) on delete set null;
