@@ -45,10 +45,9 @@ public class SharedRecipeController {
         }
         Map<String, Object> result = new HashMap<>();
         Recipe r = repo.getOne(id);
-        result.put("recipe", recipeController.getRecipeInfo(r));
-        result.put("owner", UserInfo.fromUser(r.getOwner()));
         Queue<IngredientRef> queue = new LinkedList<>(r.getIngredients());
         List<IngredientInfo> ings = new ArrayList<>();
+        ings.add(recipeController.getRecipeInfo(r));
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
@@ -65,6 +64,7 @@ public class SharedRecipeController {
             }
         }
         result.put("ingredients", ings);
+        result.put("owner", UserInfo.fromUser(r.getOwner()));
         return result;
     }
 
