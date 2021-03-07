@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +65,21 @@ public class IngredientService {
         return recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(user, unpluralized)
                 .stream()
                 .findFirst();
+    }
+
+    /**
+     * I find a list of all pantry items and recipes that are the union of any
+     * records that fuzzy match the name
+     *
+     * @param names List<String>
+     * @return Iterable<Ingredient>
+     */
+    public Iterable<Ingredient> findAllIngredientsByNamesContaining(List<String> names) {
+        List<Ingredient> results = new ArrayList<>();
+        for (String name : names) {
+            results.addAll((Collection<? extends Ingredient>) findAllIngredientsByNameContaining(name));
+        }
+        return results;
     }
 
 }

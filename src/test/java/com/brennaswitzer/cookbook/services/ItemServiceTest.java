@@ -50,6 +50,24 @@ public class ItemServiceTest {
     }
 
     @Test
+    public void recognizeItemMultipleWords() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "2 cup chicken thighs";
+        RecognizedItem el = service.recognizeItem(RAW);
+        assertEquals(RAW, el.getRaw());
+
+        System.out.println(el);
+
+        Iterator<RecognizedItem.Range> ri = el.getRanges().iterator();
+        assertEquals(new RecognizedItem.Range(0, 1, RecognizedItem.Type.AMOUNT), ri.next());
+        assertEquals(new RecognizedItem.Range(2, 5, RecognizedItem.Type.UNIT), ri.next());
+        assertEquals(new RecognizedItem.Range(6, 20, RecognizedItem.Type.ITEM), ri.next());
+        assertFalse(ri.hasNext());
+    }
+
+    @Test
     public void recognizeAndSuggestSimple() {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());

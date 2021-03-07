@@ -32,7 +32,7 @@ public class RecognizedItem {
         NEW_ITEM,
     }
 
-    public static class Range {
+    public static class Range implements Comparable<Range> {
 
         public static Comparator<Range> BY_POSITION = Comparator.comparingInt(a -> a.start);
 
@@ -99,6 +99,13 @@ public class RecognizedItem {
             );
         }
 
+        public Range merge(Range other) {
+            return new Range(
+                    getStart(),
+                    other.getEnd()
+            );
+        }
+
         @SuppressWarnings("RedundantIfStatement")
         public boolean overlaps(Range r) {
             // this wraps r
@@ -140,6 +147,12 @@ public class RecognizedItem {
             setValue(value);
             return this;
         }
+
+        public int compareTo(Range o) {
+            assert o != null;
+            return Integer.compare(getEnd() - getStart(), o.getEnd() - o.getStart());
+        }
+
     }
 
     public static class Suggestion {

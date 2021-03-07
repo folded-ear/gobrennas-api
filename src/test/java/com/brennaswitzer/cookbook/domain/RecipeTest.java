@@ -25,7 +25,7 @@ public class RecipeTest {
         assertEquals(2, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
         IngredientRef ref = itr.next();
-        assertEquals("chicken", ref.getIngredient().getName());
+        assertEquals("chicken thighs", ref.getIngredient().getName());
         assertEquals("deboned", ref.getPreparation());
         ref = itr.next();
         assertEquals("egg", ref.getIngredient().getName());
