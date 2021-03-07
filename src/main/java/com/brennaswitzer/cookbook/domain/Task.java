@@ -49,6 +49,10 @@ public class Task extends BaseEntity implements MutableItem {
     @Setter
     private String name;
 
+    @Getter
+    @Setter
+    private String notes;
+
     @Column(name = "status_id")
     @Getter
     @Setter
@@ -364,6 +368,10 @@ public class Task extends BaseEntity implements MutableItem {
 
     public boolean hasBucket() {
         return bucket != null;
+    }
+
+    public boolean hasNotes() {
+        return notes != null && !notes.isEmpty();
     }
 
 }

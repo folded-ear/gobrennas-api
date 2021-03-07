@@ -119,3 +119,7 @@ alter table task
     add aggregate_id bigint;
 alter table task
     add constraint fk_task_aggregate_id foreign key (aggregate_id) references task (id) on delete set null;
+
+--changeset barneyb:task-notes
+alter table task
+    add notes varchar;

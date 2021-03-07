@@ -21,6 +21,9 @@ public class TaskInfo {
         TaskInfo info = new TaskInfo();
         info.id = task.getId();
         info.name = task.getName();
+        if (task.hasNotes()) {
+            info.notes = task.getNotes();
+        }
         info.status = task.getStatus();
         if (task.isSubtask()) {
             info.parentId = task.getParent().getId();
@@ -88,6 +91,10 @@ public class TaskInfo {
     @Getter
     @Setter
     private String name;
+
+    @Getter
+    @Setter
+    private String notes;
 
     @Getter
     @Setter
