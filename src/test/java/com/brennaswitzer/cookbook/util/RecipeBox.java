@@ -6,13 +6,18 @@ import javax.persistence.EntityManager;
 
 public class RecipeBox {
 
-    public final UnitOfMeasure tsp,
+    public final UnitOfMeasure
+            tsp,
             cup,
             tbsp,
             lbs;
 
     public final PantryItem
             salt;
+
+    public final Label
+            dinner,
+            makeAhead;
 
     public final Recipe
             friedChicken,
@@ -30,35 +35,45 @@ public class RecipeBox {
 
         salt = new PantryItem("salt");
 
+        dinner = new Label("dinner");
+        makeAhead = new Label("make ahead");
+
         friedChicken = new Recipe("Fried Chicken");
         friedChicken.addIngredient(Quantity.count(2), new PantryItem("egg"), "shelled");
         friedChicken.addIngredient(new PantryItem("chicken"), "deboned");
         friedChicken.addIngredient(new PantryItem("chicken thigh"), "cut");
+        friedChicken.addLabel(dinner);
 
         pizzaSauce = new Recipe("Pizza Sauce");
         pizzaSauce.addIngredient(lbs.quantity(1), new PantryItem("fresh tomatoes"), "seeded and crushed");
         pizzaSauce.addIngredient(new UnitOfMeasure("(6 oz) can").quantity(1), new PantryItem("tomato paste"));
         pizzaSauce.addIngredient(new PantryItem("italian seasoning"));
         pizzaSauce.addIngredient(tsp.quantity(1), salt);
+        pizzaSauce.addLabel(makeAhead);
 
         pizzaCrust = new Recipe("Pizza Crust");
+        pizzaCrust.setDirections("knead it a lot!");
         pizzaCrust.addIngredient(cup.quantity(2), new PantryItem("flour"));
         pizzaCrust.addIngredient(cup.quantity(1), new PantryItem("water"));
         pizzaCrust.addIngredient(new UnitOfMeasure("packet").quantity(1), new PantryItem("yeast"));
         pizzaCrust.addIngredient(tbsp.quantity(1), new PantryItem("sugar"));
         pizzaCrust.addIngredient(tbsp.quantity(1), new PantryItem("oil"));
-        pizzaSauce.addIngredient(tsp.quantity(0.5), salt);
+        pizzaCrust.addIngredient(tsp.quantity(0.5), salt);
+        pizzaCrust.addLabel(makeAhead);
 
         pizza = new Recipe("Pizza");
         pizza.addRawIngredient("pepperoni");
         pizza.addIngredient(new UnitOfMeasure("oz").quantity(8), pizzaSauce);
         pizza.addIngredient(Quantity.ONE, pizzaCrust);
+        pizza.addLabel(dinner);
 
         spanishAppleCake = new Recipe("Spanish Apple Cake");
         spanishAppleCake.addIngredient(cup.quantity(2), new PantryItem("apple"));
     }
 
     public void persist(EntityManager entityManager, User owner) {
+        entityManager.persist(dinner);
+        entityManager.persist(makeAhead);
         persist(entityManager, owner, friedChicken);
         persist(entityManager, owner, pizza);
         persist(entityManager, owner, pizzaCrust);
