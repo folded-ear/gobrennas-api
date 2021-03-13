@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
@@ -8,8 +7,7 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.UserInfo;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
-import org.apache.commons.codec.digest.HmacAlgorithms;
-import org.apache.commons.codec.digest.HmacUtils;
+import com.brennaswitzer.cookbook.util.ShareHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
@@ -25,7 +23,7 @@ import java.util.*;
 public class SharedRecipeController {
 
     @Autowired
-    private AppProperties appProperties;
+    private ShareHelper helper;
 
     @Autowired
     private RecipeRepository repo;
@@ -40,7 +38,7 @@ public class SharedRecipeController {
             @PathVariable("id") Long id,
             @PathVariable("secret") String secret
     ) {
-        if (!getSecretForId(id).equals(secret)) {
+        if (!helper.getSecretForId(id).equals(secret)) {
             throw new AuthorizationServiceException("Bad secret");
         }
         Map<String, Object> result = new HashMap<>();
@@ -68,12 +66,4 @@ public class SharedRecipeController {
         return result;
     }
 
-    protected String getSecretForId(Long id) {
-        return new HmacUtils(
-                HmacAlgorithms.HMAC_SHA_1,
-                appProperties.getAuth().getTokenSecret().getBytes()
-        ).hmacHex(
-                id.toString().getBytes()
-        );
-    }
 }

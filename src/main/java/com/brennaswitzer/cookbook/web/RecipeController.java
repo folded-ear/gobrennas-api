@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class RecipeController {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private SharedRecipeController sharedRecipeController; // todo: oof
+    private ShareHelper shareHelper;
 
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
@@ -62,7 +63,7 @@ public class RecipeController {
                 ? IngredientInfo.fromRecipes(recipeService.findRecipeByName(filter.toLowerCase()))
                 : recipeService.findEveryonesRecipes();
         } else {
-             recipes =  hasFilter
+             recipes = hasFilter
                 ? IngredientInfo.fromRecipes(recipeService.findRecipeByNameAndOwner(filter.toLowerCase()))
                 : IngredientInfo.fromRecipes(recipeService.findMyRecipes());
         }
@@ -140,7 +141,7 @@ public class RecipeController {
     ) {
         //noinspection OptionalGetWithoutIsPresent
         Recipe r = recipeService.findRecipeById(id).get();
-        String secret = sharedRecipeController.getSecretForId(id);
+        String secret = shareHelper.getSecretForId(id);
         String slug = r.getName()
                 .toLowerCase()
                 .replaceAll("[^a-z0-9]+", " ")
