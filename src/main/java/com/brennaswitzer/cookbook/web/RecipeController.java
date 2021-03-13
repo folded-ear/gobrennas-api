@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.util.InfoHelper;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -50,6 +51,9 @@ public class RecipeController {
     @Autowired
     private ShareHelper shareHelper;
 
+    @Autowired
+    private InfoHelper infoHelper;
+
     @GetMapping("/")
     public Iterable<IngredientInfo> getRecipes(
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
@@ -70,7 +74,7 @@ public class RecipeController {
 
         return recipes
                 .stream()
-                .map(this::getRecipeInfo)
+                .map(infoHelper::getRecipeInfo)
                 .collect(Collectors.toList());
     }
 
@@ -95,7 +99,7 @@ public class RecipeController {
 
         labelService.updateLabels(recipe1, info.getLabels());
 
-        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
+        return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.CREATED);
     }
 
     @SuppressWarnings("MVCPathVariableInspection")
@@ -116,7 +120,7 @@ public class RecipeController {
         Recipe recipe1 = recipeService.updateRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
 
-        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.OK);
+        return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.OK);
     }
 
     @PutMapping(value="/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -126,13 +130,13 @@ public class RecipeController {
         //noinspection OptionalGetWithoutIsPresent
         Recipe recipe = recipeService.findRecipeById(id).get();
         setPhoto(photo, recipe);
-        return getRecipeInfo(recipeService.updateRecipe(recipe));
+        return infoHelper.getRecipeInfo(recipeService.updateRecipe(recipe));
     }
 
     @GetMapping("/{id}")
     public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Recipe recipe = getRecipe(id);
-        return getRecipeInfo(recipe);
+        return infoHelper.getRecipeInfo(recipe);
     }
 
     @GetMapping("/share/{id}")
@@ -195,7 +199,7 @@ public class RecipeController {
         IngredientInfo info;
 
         if (i instanceof Recipe) {
-            info = getRecipeInfo((Recipe) i);
+            info = infoHelper.getRecipeInfo((Recipe) i);
         } else {
             info = (IngredientInfo) IngredientInfo.class
                     .getMethod("from", i.getClass())
@@ -253,18 +257,6 @@ public class RecipeController {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
         recipe.orElseThrow(NoResultException::new);
         return recipe.get();
-    }
-
-    IngredientInfo getRecipeInfo(Recipe r) {
-        IngredientInfo info = IngredientInfo.from(r);
-        if(r.hasPhoto()) {
-            Photo photo = r.getPhoto();
-            info.setPhoto(storageService.load(photo.getObjectKey()));
-            if (photo.hasFocus()) {
-                info.setPhotoFocus(photo.getFocusArray());
-            }
-        }
-        return info;
     }
 
     private IngredientInfo mapToInfo(String recipeData) throws IOException {
