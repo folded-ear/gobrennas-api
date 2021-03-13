@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
+import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
@@ -55,29 +56,37 @@ public class RecipeController {
     private InfoHelper infoHelper;
 
     @GetMapping("/")
-    public Iterable<IngredientInfo> getRecipes(
+    public Page<IngredientInfo> getRecipes(
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
-            @RequestParam(name = "filter", defaultValue = "") String filter
+            @RequestParam(name = "filter", defaultValue = "") String filter,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
     ) {
         filter = filter.trim();
         boolean hasFilter = filter.length() > 0;
         Iterable<Recipe> recipes;
         if ("everyone".equals(scope)) {
-             recipes = hasFilter
-                ? recipeService.findRecipeByName(filter.toLowerCase())
-                : recipeService.findEveryonesRecipes();
+            recipes = hasFilter
+                    ? recipeService.findRecipeByName(filter.toLowerCase())
+                    : recipeService.findEveryonesRecipes();
         } else {
-             recipes = hasFilter
-                ? recipeService.findRecipeByNameAndOwner(filter.toLowerCase())
-                : recipeService.findMyRecipes();
+            recipes = hasFilter
+                    ? recipeService.findRecipeByNameAndOwner(filter.toLowerCase())
+                    : recipeService.findMyRecipes();
         }
 
-        return StreamSupport.stream(recipes.spliterator(), false)
-                .map(infoHelper::getRecipeInfo)
-                .collect(Collectors.toList());
+        return new Page<>(
+                page,
+                pageSize,
+                true,
+                true,
+                StreamSupport.stream(recipes.spliterator(), false)
+                        .map(infoHelper::getRecipeInfo)
+                        .collect(Collectors.toList())
+        );
     }
 
-    @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> createNewRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
 
@@ -102,7 +111,7 @@ public class RecipeController {
     }
 
     @SuppressWarnings("MVCPathVariableInspection")
-    @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> updateRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
 
@@ -122,7 +131,7 @@ public class RecipeController {
         return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.OK);
     }
 
-    @PutMapping(value="/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     @ResponseBody
     public IngredientInfo setRecipePhoto(@PathVariable("id") Long id, @RequestParam MultipartFile photo) throws IOException {
