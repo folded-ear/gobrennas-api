@@ -38,7 +38,7 @@ public class SharedRecipeController {
             @PathVariable("id") Long id,
             @PathVariable("secret") String secret
     ) {
-        if (!helper.getSecretForId(id).equals(secret)) {
+        if (!helper.isSecretValid(Recipe.class, id, secret)) {
             throw new AuthorizationServiceException("Bad secret");
         }
         Map<String, Object> result = new HashMap<>();

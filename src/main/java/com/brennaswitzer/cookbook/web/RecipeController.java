@@ -141,7 +141,7 @@ public class RecipeController {
     ) {
         //noinspection OptionalGetWithoutIsPresent
         Recipe r = recipeService.findRecipeById(id).get();
-        String secret = shareHelper.getSecretForId(id);
+        String secret = shareHelper.getSecret(r);
         String slug = r.getName()
                 .toLowerCase()
                 .replaceAll("[^a-z0-9]+", " ")
