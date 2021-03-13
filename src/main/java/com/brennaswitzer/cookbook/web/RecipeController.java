@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
-import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -61,19 +61,18 @@ public class RecipeController {
     ) {
         filter = filter.trim();
         boolean hasFilter = filter.length() > 0;
-        List<Recipe> recipes;
+        Iterable<Recipe> recipes;
         if ("everyone".equals(scope)) {
              recipes = hasFilter
-                ? IngredientInfo.fromRecipes(recipeService.findRecipeByName(filter.toLowerCase()))
+                ? recipeService.findRecipeByName(filter.toLowerCase())
                 : recipeService.findEveryonesRecipes();
         } else {
              recipes = hasFilter
-                ? IngredientInfo.fromRecipes(recipeService.findRecipeByNameAndOwner(filter.toLowerCase()))
-                : IngredientInfo.fromRecipes(recipeService.findMyRecipes());
+                ? recipeService.findRecipeByNameAndOwner(filter.toLowerCase())
+                : recipeService.findMyRecipes();
         }
 
-        return recipes
-                .stream()
+        return StreamSupport.stream(recipes.spliterator(), false)
                 .map(infoHelper::getRecipeInfo)
                 .collect(Collectors.toList());
     }

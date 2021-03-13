@@ -52,12 +52,6 @@ public class RecipeService {
         return recipeRepository.findByOwner(principalAccess.getUser());
     }
 
-    /** use {@link #findMyRecipes} instead */
-    @Deprecated
-    public List<Recipe> findAllRecipes() {
-        return findMyRecipes();
-    }
-
     public List<Recipe> findEveryonesRecipes() {
         return recipeRepository.findAll();
     }
