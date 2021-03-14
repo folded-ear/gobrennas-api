@@ -15,6 +15,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -26,12 +28,15 @@ import static org.junit.Assert.assertEquals;
 public class RecipeSearchRepositoryImplTest {
 
     @Autowired
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Autowired
-    UserPrincipalAccess principalAccess;
+    private UserPrincipalAccess principalAccess;
 
-    RecipeSearchRepositoryImpl repo;
+    @Autowired
+    private UserRepository userRepository;
+
+    private RecipeSearchRepositoryImpl repo;
 
     @Before
     public void _createRepo() {
@@ -106,6 +111,48 @@ public class RecipeSearchRepositoryImplTest {
         l.stream().map(Recipe::getName).forEach(System.out::println);
         assertEquals("Pizza Crust", l.get(0).getName());
         assertEquals(1, l.size());
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @Test
+    public void byOwner() {
+        User alice = principalAccess.getUser();
+        User bob = userRepository.findByEmail("bob@example.com").get();
+        User eve = userRepository.findByEmail("eve@example.com").get();
+        List<Recipe> l = repo.searchRecipes("pizza", PageRequest.of(0, 10))
+                .getContent();
+        assertEquals(3, l.size()); // sanity
+        l.get(1).setOwner(bob);
+        l.get(2).setOwner(eve);
+
+        l = repo.searchRecipesByOwner(
+                Collections.singletonList(alice),
+                "pizza",
+                PageRequest.of(0, 10)
+        ).getContent();
+
+        assertEquals(1, l.size());
+        assertEquals("Pizza", l.get(0).getName());
+
+        l = repo.searchRecipesByOwner(
+                Arrays.asList(alice, eve),
+                "pizza",
+                PageRequest.of(0, 10)
+        ).getContent();
+
+        assertEquals(2, l.size());
+        assertEquals("Pizza", l.get(0).getName());
+        assertEquals("Pizza Sauce", l.get(1).getName());
+
+        l = repo.searchRecipesByOwner(
+                Arrays.asList(bob, eve),
+                "",
+                PageRequest.of(0, 10)
+        ).getContent();
+
+        assertEquals(2, l.size());
+        assertEquals("Pizza Crust", l.get(0).getName());
+        assertEquals("Pizza Sauce", l.get(1).getName());
     }
 
 }

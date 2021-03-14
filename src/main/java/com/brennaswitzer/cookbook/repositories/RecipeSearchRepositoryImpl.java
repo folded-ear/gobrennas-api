@@ -9,9 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
@@ -40,11 +38,24 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
             String filter,
             Pageable pageable
     ) {
+        return searchRecipesByOwner(null, filter, pageable);
+    }
+
+    @Override
+    public Slice<Recipe> searchRecipesByOwner(
+            Collection<User> owners,
+            String filter,
+            Pageable pageable
+    ) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Recipe> query = cb.createQuery(Recipe.class);
         Root<Recipe> recipeRoot = query.from(Recipe.class);
         query.select(recipeRoot);
         Expression<String> lowerName = cb.lower(recipeRoot.get(Recipe_.name));
+        Collection<Predicate> predicates = new ArrayList<>();
+        if (owners != null) {
+            predicates.add(recipeRoot.get(Recipe_.owner).in(owners));
+        }
 
         if (filter == null || filter.trim().isEmpty()) {
             query.orderBy(cb.asc(lowerName));
@@ -69,7 +80,7 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
             );
 
             Predicate nameMatch = likeAny(cb, lowerName, terms);
-            query.where(cb.or(
+            predicates.add(cb.or(
                     nameMatch,
                     likeAny(cb, cb.lower(recipeRoot.get(Recipe_.directions)), terms),
                     cb.exists(labelSubquery)
@@ -80,6 +91,10 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
                             .otherwise(1)),
                     cb.asc(lowerName)
             );
+        }
+
+        if (!predicates.isEmpty()) {
+            query.where(cb.and(predicates.toArray(new Predicate[0])));
         }
 
         return executeAndSlice(query, pageable);
