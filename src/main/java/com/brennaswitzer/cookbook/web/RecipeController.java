@@ -15,6 +15,8 @@ import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +29,6 @@ import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -62,28 +62,8 @@ public class RecipeController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
     ) {
-        filter = filter.trim();
-        boolean hasFilter = filter.length() > 0;
-        Iterable<Recipe> recipes;
-        if ("everyone".equals(scope)) {
-            recipes = hasFilter
-                    ? recipeService.findRecipeByName(filter.toLowerCase())
-                    : recipeService.findEveryonesRecipes();
-        } else {
-            recipes = hasFilter
-                    ? recipeService.findRecipeByNameAndOwner(filter.toLowerCase())
-                    : recipeService.findMyRecipes();
-        }
-
-        return new Page<>(
-                page,
-                pageSize,
-                true,
-                true,
-                StreamSupport.stream(recipes.spliterator(), false)
-                        .map(infoHelper::getRecipeInfo)
-                        .collect(Collectors.toList())
-        );
+        Slice<Recipe> rs = recipeService.searchRecipes(scope, filter, PageRequest.of(page, pageSize));
+        return Page.from(rs.map(infoHelper::getRecipeInfo));
     }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
