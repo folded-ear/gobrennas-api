@@ -9,7 +9,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
@@ -34,7 +37,7 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
      */
     @Override
     public Slice<Recipe> searchRecipes(
-            String term,
+            String filter,
             Pageable pageable
     ) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -43,10 +46,15 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         query.select(recipeRoot);
         Expression<String> lowerName = cb.lower(recipeRoot.get(Recipe_.name));
 
-        if (term == null || term.trim().isEmpty()) {
+        if (filter == null || filter.trim().isEmpty()) {
             query.orderBy(cb.asc(lowerName));
         } else {
-            Expression<String> pattern = cb.literal('%' + term + '%');
+            Set<String> terms = Arrays.stream(filter.split("\\s"))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .filter(it -> !it.isEmpty())
+                    .map(it -> '%' + it + '%')
+                    .collect(Collectors.toSet());
 
             Subquery<Integer> labelSubquery = query.subquery(Integer.class);
             labelSubquery.select(cb.literal(1));
@@ -54,14 +62,16 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
                     .correlate(recipeRoot)
                     .join(Recipe_.labels)
                     .join(LabelRef_.label);
+            Expression<String> lName = cb.lower(labelJoin.get(Label_.name));
             labelSubquery.where(
-                    cb.like(cb.lower(labelJoin.get(Label_.name)), pattern)
+                    cb.not(cb.like(lName, "--%")),
+                    likeAny(cb, lName, terms)
             );
 
-            Predicate nameMatch = cb.like(lowerName, pattern);
+            Predicate nameMatch = likeAny(cb, lowerName, terms);
             query.where(cb.or(
                     nameMatch,
-                    cb.like(cb.lower(recipeRoot.get(Recipe_.directions)), pattern),
+                    likeAny(cb, cb.lower(recipeRoot.get(Recipe_.directions)), terms),
                     cb.exists(labelSubquery)
             ));
             query.orderBy(
@@ -72,18 +82,27 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
             );
         }
 
-        return sliceQuery(query, pageable);
+        return executeAndSlice(query, pageable);
+    }
+
+    private Predicate likeAny(CriteriaBuilder cb, Expression<String> expr, Set<String> terms) {
+        if (terms.isEmpty()) throw new IllegalArgumentException("likeAny of the empty set?!");
+        return terms.stream()
+                .map(term -> cb.like(expr, term))
+                .reduce(cb::or)
+                .get();
     }
 
     /**
      * I provide the magic that Spring Data JPA does for a Slice return type on
-     * a repository method, to convert an unbounded CriteriaQuery into a slice.
+     * a repository method, to execute an unbounded CriteriaQuery into a slice
+     * of its result.
      * @param query The query to take a slice of results
      * @param pageable Where the slice should be taken
      * @param <T> The result type of the query
      * @return The requested slice of the passed query.
      */
-    private <T> Slice<T> sliceQuery(CriteriaQuery<T> query, Pageable pageable) {
+    private <T> Slice<T> executeAndSlice(CriteriaQuery<T> query, Pageable pageable) {
         // copied from SlicedExecution in JpaQueryExecution
         TypedQuery<T> createQuery = entityManager.createQuery(query);
 
