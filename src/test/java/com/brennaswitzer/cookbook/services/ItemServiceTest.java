@@ -61,10 +61,21 @@ public class ItemServiceTest {
         Stream<RecognizedItem.Range> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
         RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        String text = RAW.substring(ing.getStart(), ing.getEnd());
-
         assertEquals(new RecognizedItem.Range(6, 23, RecognizedItem.Type.ITEM), ing);
+    }
 
+    @Test
+    public void recognizeItemPunctuation() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "1 cup flour,";
+        RecognizedItem el = service.recognizeItem(RAW);
+
+        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        //noinspection OptionalGetWithoutIsPresent
+        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
+        assertEquals(new RecognizedItem.Range(6, 11, RecognizedItem.Type.ITEM), ing);
     }
 
     @Test
@@ -143,4 +154,17 @@ public class ItemServiceTest {
                 new RecognizedItem.Range(7, 17, RecognizedItem.Type.ITEM)), itr.next());
     }
 
+    @Test
+    public void buildMultiwordPhrases() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "spanish apple cake";
+        RecognizedItem el = service.recognizeItem(RAW);
+        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        //noinspection OptionalGetWithoutIsPresent
+        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
+        assertEquals(new RecognizedItem.Range(0, 18, RecognizedItem.Type.ITEM), ing);
+
+    }
 }

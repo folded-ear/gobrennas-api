@@ -32,7 +32,7 @@ public class RecognizedItem {
         NEW_ITEM,
     }
 
-    public static class Range implements Comparable<Range> {
+    public static class Range {
 
         public static Comparator<Range> BY_POSITION = Comparator.comparingInt(a -> a.start);
 
@@ -146,11 +146,6 @@ public class RecognizedItem {
         public Range withValue(Object value) {
             setValue(value);
             return this;
-        }
-
-        public int compareTo(Range o) {
-            assert o != null;
-            return Integer.compare(getEnd() - getStart(), o.getEnd() - o.getStart());
         }
 
     }

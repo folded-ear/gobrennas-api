@@ -18,7 +18,8 @@ public class RecipeBox {
             friedChicken,
             pizza,
             pizzaCrust,
-            pizzaSauce;
+            pizzaSauce,
+            spanishAppleCake;
 
     public RecipeBox() {
         tsp = new UnitOfMeasure("tsp");
@@ -53,7 +54,8 @@ public class RecipeBox {
         pizza.addIngredient(new UnitOfMeasure("oz").quantity(8), pizzaSauce);
         pizza.addIngredient(Quantity.ONE, pizzaCrust);
 
-
+        spanishAppleCake = new Recipe("Spanish Apple Cake");
+        spanishAppleCake.addIngredient(cup.quantity(2), new PantryItem("apple"));
     }
 
     public void persist(EntityManager entityManager, User owner) {
@@ -61,6 +63,7 @@ public class RecipeBox {
         persist(entityManager, owner, pizza);
         persist(entityManager, owner, pizzaCrust);
         persist(entityManager, owner, pizzaSauce);
+        persist(entityManager, owner, spanishAppleCake);
     }
 
     private void persist(EntityManager entityManager, User owner, Recipe recipe) {
