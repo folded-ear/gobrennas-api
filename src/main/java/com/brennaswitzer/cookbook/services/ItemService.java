@@ -93,7 +93,7 @@ public class ItemService {
                 // This line means that when we have a match, we get no more suggestions, which is not the behavior we want
                 // idxNameStart = matched.get().getStart();
                 item.withRange(matched.get());
-            };
+            }
         }
         if (secAmount != null && secUnit == null && !raw.contains("_")) {
             // there's an amount, but no explicit unit, so see if there's an implicit one
@@ -224,7 +224,7 @@ public class ItemService {
     }
 
     private Boolean textMatch(String name, String other) {
-        return EnglishUtils.unpluralize(name).equals(EnglishUtils.unpluralize(other));
+        return EnglishUtils.unpluralize(name.toLowerCase()).equals(EnglishUtils.unpluralize(other.toLowerCase()));
     }
 
 }

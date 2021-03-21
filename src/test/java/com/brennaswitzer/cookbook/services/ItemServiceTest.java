@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -47,6 +48,23 @@ public class ItemServiceTest {
         assertEquals(new RecognizedItem.Range(8, 11, RecognizedItem.Type.UNIT), ri.next());
         assertEquals(new RecognizedItem.Range(24, 29, RecognizedItem.Type.ITEM), ri.next());
         assertFalse(ri.hasNext());
+    }
+
+    @Test
+    public void recognizeItemMultipleNoCase() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "1 cup Italian seasoning";
+        RecognizedItem el = service.recognizeItem(RAW);
+
+        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        //noinspection OptionalGetWithoutIsPresent
+        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
+        String text = RAW.substring(ing.getStart(), ing.getEnd());
+
+        assertEquals(new RecognizedItem.Range(6, 23, RecognizedItem.Type.ITEM), ing);
+
     }
 
     @Test
