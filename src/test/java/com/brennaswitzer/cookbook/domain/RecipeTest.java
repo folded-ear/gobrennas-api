@@ -22,11 +22,12 @@ public class RecipeTest {
         RecipeBox box = new RecipeBox();
         List<IngredientRef> pss = new ArrayList<>(box.friedChicken.assemblePantryItemRefs());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
-        assertEquals(2, pss.size());
+        assertEquals(3, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
         IngredientRef ref = itr.next();
-        assertEquals("chicken thighs", ref.getIngredient().getName());
+        assertEquals("chicken", ref.getIngredient().getName());
         assertEquals("deboned", ref.getPreparation());
+        itr.next(); // skip over the chicken thighs
         ref = itr.next();
         assertEquals("egg", ref.getIngredient().getName());
         assertEquals(Quantity.count(2), ref.getQuantity());
@@ -39,7 +40,7 @@ public class RecipeTest {
         RecipeBox box = new RecipeBox();
         List<IngredientRef> pss = new ArrayList<>(box.pizza.assemblePantryItemRefs());
         pss.sort(IngredientRef.BY_INGREDIENT_NAME);
-        assertEquals(9, pss.size());
+        assertEquals(10, pss.size());
         Iterator<IngredientRef> itr = pss.iterator();
 
         IngredientRef ref;
@@ -51,6 +52,7 @@ public class RecipeTest {
             assertEquals("seeded and crushed", ref.getPreparation());
         assertEquals("italian seasoning", itr.next().getIngredient().getName());
         // pepperoni's a raw ingredient
+        assertEquals("oil", itr.next().getIngredient().getName());
         assertEquals("salt", itr.next().getIngredient().getName());
         assertEquals("salt", itr.next().getIngredient().getName());
         assertEquals("sugar", itr.next().getIngredient().getName());
