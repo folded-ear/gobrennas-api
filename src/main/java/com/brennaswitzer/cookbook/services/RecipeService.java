@@ -5,9 +5,12 @@ import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,12 +55,6 @@ public class RecipeService {
         return recipeRepository.findByOwner(principalAccess.getUser());
     }
 
-    /** use {@link #findMyRecipes} instead */
-    @Deprecated
-    public List<Recipe> findAllRecipes() {
-        return findMyRecipes();
-    }
-
     public List<Recipe> findEveryonesRecipes() {
         return recipeRepository.findAll();
     }
@@ -90,4 +87,16 @@ public class RecipeService {
     public RecognizedItem recognizeItem(String raw, int cursor) {
         return itemService.recognizeItem(raw, cursor);
     }
+
+    public Slice<Recipe> searchRecipes(String scope, String filter, Pageable pageable) {
+        if ("everyone".equals(scope)) {
+            return recipeRepository.searchRecipes(filter, pageable);
+        } else {
+            return recipeRepository.searchRecipesByOwner(
+                    Collections.singletonList(principalAccess.getUser()),
+                    filter,
+                    pageable);
+        }
+    }
+
 }

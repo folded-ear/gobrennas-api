@@ -123,3 +123,18 @@ alter table task
 --changeset barneyb:task-notes
 alter table task
     add notes varchar;
+
+--changeset barneyb:default-ingredient-timestamps
+update ingredient set
+    created_at = now()
+where created_at is null;
+
+update ingredient set
+    updated_at = now()
+where updated_at is null;
+
+alter table ingredient
+    alter created_at set default now(),
+    alter created_at set not null,
+    alter updated_at set default now(),
+    alter updated_at set not null;

@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -215,9 +214,4 @@ public class IngredientInfo {
         return info;
     }
 
-    public static List<Recipe> fromRecipes(Iterable<Recipe> iterable) {
-        List<Recipe> recipes = new LinkedList<>();
-        iterable.forEach(recipes::add);
-        return recipes;
-    }
 }

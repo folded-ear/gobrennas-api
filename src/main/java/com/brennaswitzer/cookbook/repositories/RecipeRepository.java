@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface RecipeRepository extends JpaRepository<Recipe, Long> {
+public interface RecipeRepository extends JpaRepository<Recipe, Long>, RecipeSearchRepository {
 
     @Override
     List<Recipe> findAll();
@@ -22,8 +22,11 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "from Recipe recipe\n" +
             "   left join recipe.labels rl\n" +
             "   left join rl.label label\n" +
-            "where recipe.owner = :owner and ((LOWER(recipe.name) LIKE %:term%)\n" +
-            "or (LOWER(label.name) LIKE %:term%))\n" +
+            "where recipe.owner = :owner\n" +
+            "    and (lower(recipe.name) LIKE %:term%\n" +
+            "        or lower(recipe.directions) LIKE %:term%\n" +
+            "        or lower(label.name) LIKE %:term%\n" +
+            "    )\n" +
             "order by recipe.name")
     Iterable<Recipe> findAllByOwnerAndTermContainingIgnoreCase(
             @Param("owner") User owner,
@@ -34,8 +37,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "from Recipe recipe\n" +
             "   left join recipe.labels rl\n" +
             "   left join rl.label label\n" +
-            "where LOWER(recipe.name) LIKE %:term%\n" +
-            "or LOWER(label.name) LIKE %:term%\n" +
+            "where lower(recipe.name) LIKE %:term%\n" +
+            "    or lower(recipe.directions) LIKE %:term%\n" +
+            "    or lower(label.name) LIKE %:term%\n" +
             "order by recipe.name")
     Iterable<Recipe> findAllByTermContainingIgnoreCase(
             @Param("term") String filter

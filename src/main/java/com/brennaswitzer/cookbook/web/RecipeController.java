@@ -1,18 +1,22 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
-import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
+import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.payload.RecipeAction;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.util.InfoHelper;
+import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +29,6 @@ import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -47,33 +50,23 @@ public class RecipeController {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private SharedRecipeController sharedRecipeController; // todo: oof
+    private ShareHelper shareHelper;
+
+    @Autowired
+    private InfoHelper infoHelper;
 
     @GetMapping("/")
-    public Iterable<IngredientInfo> getRecipes(
+    public Page<IngredientInfo> getRecipes(
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
-            @RequestParam(name = "filter", defaultValue = "") String filter
+            @RequestParam(name = "filter", defaultValue = "") String filter,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
     ) {
-        filter = filter.trim();
-        boolean hasFilter = filter.length() > 0;
-        List<Recipe> recipes;
-        if ("everyone".equals(scope)) {
-             recipes = hasFilter
-                ? IngredientInfo.fromRecipes(recipeService.findRecipeByName(filter.toLowerCase()))
-                : recipeService.findEveryonesRecipes();
-        } else {
-             recipes =  hasFilter
-                ? IngredientInfo.fromRecipes(recipeService.findRecipeByNameAndOwner(filter.toLowerCase()))
-                : IngredientInfo.fromRecipes(recipeService.findMyRecipes());
-        }
-
-        return recipes
-                .stream()
-                .map(this::getRecipeInfo)
-                .collect(Collectors.toList());
+        Slice<Recipe> rs = recipeService.searchRecipes(scope, filter, PageRequest.of(page, pageSize));
+        return Page.from(rs.map(infoHelper::getRecipeInfo));
     }
 
-    @PostMapping(value="", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> createNewRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
 
@@ -94,11 +87,11 @@ public class RecipeController {
 
         labelService.updateLabels(recipe1, info.getLabels());
 
-        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.CREATED);
+        return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.CREATED);
     }
 
     @SuppressWarnings("MVCPathVariableInspection")
-    @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> updateRecipe(@RequestParam("info") String r, @RequestParam(required = false) MultipartFile photo) throws IOException {
 
@@ -115,23 +108,23 @@ public class RecipeController {
         Recipe recipe1 = recipeService.updateRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
 
-        return new ResponseEntity<>(getRecipeInfo(recipe1), HttpStatus.OK);
+        return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.OK);
     }
 
-    @PutMapping(value="/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     @ResponseBody
     public IngredientInfo setRecipePhoto(@PathVariable("id") Long id, @RequestParam MultipartFile photo) throws IOException {
         //noinspection OptionalGetWithoutIsPresent
         Recipe recipe = recipeService.findRecipeById(id).get();
         setPhoto(photo, recipe);
-        return getRecipeInfo(recipeService.updateRecipe(recipe));
+        return infoHelper.getRecipeInfo(recipeService.updateRecipe(recipe));
     }
 
     @GetMapping("/{id}")
     public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Recipe recipe = getRecipe(id);
-        return getRecipeInfo(recipe);
+        return infoHelper.getRecipeInfo(recipe);
     }
 
     @GetMapping("/share/{id}")
@@ -140,7 +133,7 @@ public class RecipeController {
     ) {
         //noinspection OptionalGetWithoutIsPresent
         Recipe r = recipeService.findRecipeById(id).get();
-        String secret = sharedRecipeController.getSecretForId(id);
+        String secret = shareHelper.getSecret(r);
         String slug = r.getName()
                 .toLowerCase()
                 .replaceAll("[^a-z0-9]+", " ")
@@ -194,7 +187,7 @@ public class RecipeController {
         IngredientInfo info;
 
         if (i instanceof Recipe) {
-            info = getRecipeInfo((Recipe) i);
+            info = infoHelper.getRecipeInfo((Recipe) i);
         } else {
             info = (IngredientInfo) IngredientInfo.class
                     .getMethod("from", i.getClass())
@@ -252,18 +245,6 @@ public class RecipeController {
         Optional<Recipe> recipe = recipeService.findRecipeById(id);
         recipe.orElseThrow(NoResultException::new);
         return recipe.get();
-    }
-
-    IngredientInfo getRecipeInfo(Recipe r) {
-        IngredientInfo info = IngredientInfo.from(r);
-        if(r.hasPhoto()) {
-            Photo photo = r.getPhoto();
-            info.setPhoto(storageService.load(photo.getObjectKey()));
-            if (photo.hasFocus()) {
-                info.setPhotoFocus(photo.getFocusArray());
-            }
-        }
-        return info;
     }
 
     private IngredientInfo mapToInfo(String recipeData) throws IOException {

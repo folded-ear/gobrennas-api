@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
-public enum  AuthProvider {
+public enum AuthProvider {
     local,
     facebook,
     google,
