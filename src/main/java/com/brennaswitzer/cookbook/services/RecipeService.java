@@ -84,7 +84,7 @@ public class RecipeService {
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public RecognizedItem recognizeItem(String raw, int cursor) {
+    public RecognizedItem recognizeItem(String raw, int cursor) { // todo: go away
         return itemService.recognizeItem(raw, cursor);
     }
 

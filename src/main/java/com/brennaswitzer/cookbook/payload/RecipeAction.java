@@ -8,7 +8,7 @@ public class RecipeAction {
 
     public enum Type {
         SEND_TO_PLAN, // new parent for recipe w/ ingredients nested
-        RECOGNIZE_ITEM,
+        RECOGNIZE_ITEM, // todo: remove
     }
 
     @Getter @Setter
@@ -36,11 +36,10 @@ public class RecipeAction {
         this.planId = listId;
     }
 
-    public Object execute(RecipeService service) {
+    public Object execute(RecipeService service) {// todo: go away?
         //noinspection SwitchStatementWithTooFewBranches
         switch (getType()) {
-            case RECOGNIZE_ITEM:
-                //noinspection deprecation
+            case RECOGNIZE_ITEM: // todo: go away
                 return service.recognizeItem(raw, cursorPosition == null ? raw.length() : cursorPosition);
             default:
                 throw new UnsupportedOperationException("Can't process " + getType());

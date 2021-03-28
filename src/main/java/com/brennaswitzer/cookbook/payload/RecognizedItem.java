@@ -1,18 +1,25 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.util.EnglishUtils;
+import lombok.*;
 
 import java.util.*;
 
+@NoArgsConstructor
+@EqualsAndHashCode
 public class RecognizedItem {
 
+    @Getter
+    @Setter
     private String raw;
-    private int cursor;
-    private Set<Range> ranges;
-    private Set<Suggestion> suggestions;
 
-    public RecognizedItem() {
-    }
+    @Getter
+    @Setter
+    private int cursor;
+
+    private Set<Range> ranges;
+
+    private Set<Suggestion> suggestions;
 
     public RecognizedItem(String raw) {
         this(raw, raw.length());
@@ -32,6 +39,11 @@ public class RecognizedItem {
         NEW_ITEM,
     }
 
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @EqualsAndHashCode
     public static class Range {
 
         public static Comparator<Range> BY_POSITION = Comparator.comparingInt(a -> a.start);
@@ -39,10 +51,8 @@ public class RecognizedItem {
         private int start;
         private int end;
         private Type type;
+        @EqualsAndHashCode.Exclude
         private Object value;
-
-        public Range() {
-        }
 
         public Range(int start, int end) {
             this(start, end, Type.UNKNOWN);
@@ -52,43 +62,6 @@ public class RecognizedItem {
             this.start = start;
             this.end = end;
             this.type = type;
-        }
-
-        public Range(int start, int end, Type type, Object value) {
-            this(start, end, type);
-            this.value = value;
-        }
-
-        public int getStart() {
-            return start;
-        }
-
-        public void setStart(int start) {
-            this.start = start;
-        }
-
-        public int getEnd() {
-            return end;
-        }
-
-        public void setEnd(int end) {
-            this.end = end;
-        }
-
-        public Type getType() {
-            return type;
-        }
-
-        public void setType(Type type) {
-            this.type = type;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
-        public void setValue(Object value) {
-            this.value = value;
         }
 
         public Range of(Type type) {
@@ -120,29 +93,6 @@ public class RecognizedItem {
             return false;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Range)) return false;
-            Range range = (Range) o;
-            return start == range.start &&
-                    end == range.end &&
-                    type == range.type;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(start, end, type);
-        }
-
-        @Override
-        public String toString() {
-            return "Range{" + "start=" + start +
-                    ", end=" + end +
-                    ", type=" + type +
-                    '}';
-        }
-
         public Range withValue(Object value) {
             setValue(value);
             return this;
@@ -150,6 +100,11 @@ public class RecognizedItem {
 
     }
 
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @EqualsAndHashCode
     public static class Suggestion {
 
         public static Comparator<Suggestion> BY_POSITION = Comparator.comparingInt(a -> a.target.start);
@@ -158,66 +113,6 @@ public class RecognizedItem {
         private String name;
         private Range target;
 
-        public Suggestion() {
-        }
-
-        public Suggestion(String name, Range target) {
-            this.name = name;
-            this.target = target;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public Range getTarget() {
-            return target;
-        }
-
-        public void setTarget(Range target) {
-            this.target = target;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Suggestion)) return false;
-            Suggestion that = (Suggestion) o;
-            return name.equals(that.name) &&
-                    target.equals(that.target);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, target);
-        }
-
-        @Override
-        public String toString() {
-            return "Completion{" + "name='" + name + '\'' +
-                    ", target=" + target +
-                    '}';
-        }
-    }
-
-    public String getRaw() {
-        return raw;
-    }
-
-    public void setRaw(String raw) {
-        this.raw = raw;
-    }
-
-    public int getCursor() {
-        return cursor;
-    }
-
-    public void setCursor(int cursor) {
-        this.cursor = cursor;
     }
 
     public Set<Range> getRanges() {
@@ -250,31 +145,6 @@ public class RecognizedItem {
     public RecognizedItem withSuggestion(Suggestion c) {
         getSuggestions().add(c);
         return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RecognizedItem)) return false;
-        RecognizedItem that = (RecognizedItem) o;
-        return raw.equals(that.raw) &&
-                cursor == that.cursor &&
-                Objects.equals(ranges, that.ranges) &&
-                Objects.equals(suggestions, that.suggestions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(raw, cursor, ranges, suggestions);
-    }
-
-    @Override
-    public String toString() {
-        return "RecognizedItem{" + "raw='" + raw + '\'' +
-                ", cursor=" + cursor +
-                ", ranges=" + ranges +
-                ", suggestions=" + suggestions +
-                '}';
     }
 
     /**
