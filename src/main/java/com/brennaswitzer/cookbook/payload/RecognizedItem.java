@@ -7,6 +7,7 @@ import java.util.*;
 
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class RecognizedItem {
 
     @Getter
@@ -44,6 +45,7 @@ public class RecognizedItem {
     @Getter
     @Setter
     @EqualsAndHashCode
+    @ToString
     public static class Range {
 
         public static Comparator<Range> BY_POSITION = Comparator.comparingInt(a -> a.start);
@@ -105,6 +107,7 @@ public class RecognizedItem {
     @Getter
     @Setter
     @EqualsAndHashCode
+    @ToString
     public static class Suggestion {
 
         public static Comparator<Suggestion> BY_POSITION = Comparator.comparingInt(a -> a.target.start);
@@ -152,6 +155,14 @@ public class RecognizedItem {
      * been recognized yet.
      */
     public Iterable<Range> unrecognizedWords() {
+        return unrecognizedWords(raw);
+    }
+
+    public Iterable<Range> unrecognizedWordsThrough(int endIndex) {
+        return unrecognizedWords(raw.substring(0, endIndex));
+    }
+
+    private Iterable<Range> unrecognizedWords(String raw) {
         List<Range> result = new LinkedList<>();
         String[] words = raw.split(" ");
         int pos = 0;

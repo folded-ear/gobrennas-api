@@ -155,6 +155,17 @@ public class ItemServiceTest {
     }
 
     @Test
+    public void recognizeAndSuggestMultiWordUnquoted() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+        // cursor after the 'pizza cru'
+        RecognizedItem el = service.recognizeItem("1 gram pizza cru, dehydrated", 16);
+        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
+                new RecognizedItem.Range(7, 16, RecognizedItem.Type.ITEM)), itr.next());
+    }
+
+    @Test
     public void buildMultiwordPhrases() {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
@@ -167,4 +178,5 @@ public class ItemServiceTest {
         assertEquals(new RecognizedItem.Range(0, 18, RecognizedItem.Type.ITEM), ing);
 
     }
+
 }

@@ -6,6 +6,15 @@ public class RawUtils {
 
     private static final char SPACE = ' ';
 
+    public static int lengthOfLongestSharedSuffix(CharSequence a, CharSequence b) {
+        int ai = a.length() - 1, bi = b.length() - 1;
+        while (ai >= 0 && bi >= 0 && a.charAt(ai) == b.charAt(bi)) {
+            ai--;
+            bi--;
+        }
+        return a.length() - ai - 1;
+    }
+
     public static RawIngredientDissection dissect(String raw) {
         if (raw == null) return null;
         if (raw.trim().isEmpty()) return null;
@@ -28,7 +37,7 @@ public class RawUtils {
         s = findSection(raw, pos, '"');
         if (s != null) {
             d.setName(s);
-            pos = s.getEnd();
+//            pos = s.getEnd();
         }
         return d;
     }

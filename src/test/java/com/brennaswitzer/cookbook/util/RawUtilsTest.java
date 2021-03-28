@@ -12,6 +12,16 @@ import static org.junit.Assert.assertEquals;
 public class RawUtilsTest {
 
     @Test
+    public void longestSuffix() {
+        assertEquals(0, RawUtils.lengthOfLongestSharedSuffix("", ""));
+        assertEquals(0, RawUtils.lengthOfLongestSharedSuffix("abc", "xyz"));
+        assertEquals(1, RawUtils.lengthOfLongestSharedSuffix("a", "a"));
+        assertEquals(3, RawUtils.lengthOfLongestSharedSuffix("abc", "abc"));
+        assertEquals(3, RawUtils.lengthOfLongestSharedSuffix("abc", "zzzzabc"));
+        assertEquals(3, RawUtils.lengthOfLongestSharedSuffix("zzzzabc", "abc"));
+    }
+
+    @Test
     public void fromTestFile() throws IOException {
         BufferedReader r = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/raw/dissections.txt")));
         r.readLine(); // the header

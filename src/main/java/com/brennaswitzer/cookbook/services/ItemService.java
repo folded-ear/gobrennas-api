@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.payload.RecognizedItem.Range;
+import com.brennaswitzer.cookbook.payload.RecognizedItem.Suggestion;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
@@ -128,18 +129,35 @@ public class ItemService {
                     .trim()
                     .toLowerCase();
             if (!search.isEmpty()) {
+                String singularSearch = EnglishUtils.unpluralize(search);
                 Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
+                String lcRawPrefix = raw.toLowerCase()
+                        .substring(0, item.getCursor() - search.length());
                 StreamSupport.stream(matches.spliterator(), false)
                         .limit(10)
-                        .forEach(i -> item.withSuggestion(new RecognizedItem.Suggestion(
-                                i.getName(),
-                                new RecognizedItem.Range(
-                                        replaceStart,
-                                        item.getCursor(),
-                                        RecognizedItem.Type.ITEM,
-                                        i.getId()
-                                )
-                        )));
+                        .forEach(i -> {
+                            // this should probably check all locations the
+                            // search matches, not just the first...
+                            String lcName = i.getName().toLowerCase();
+                            int idx = lcName.indexOf(singularSearch);
+                            int len = RawUtils.lengthOfLongestSharedSuffix(
+                                    lcName.subSequence(0, idx),
+                                    lcRawPrefix
+                            );
+                            // no leading spaces in the replaced range
+                            while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
+                                len--;
+                            }
+                            item.withSuggestion(new Suggestion(
+                                    i.getName(),
+                                    new RecognizedItem.Range(
+                                            replaceStart - len,
+                                            item.getCursor(),
+                                            RecognizedItem.Type.ITEM,
+                                            i.getId()
+                                    )
+                            ));
+                        });
             }
         }
         return item;
