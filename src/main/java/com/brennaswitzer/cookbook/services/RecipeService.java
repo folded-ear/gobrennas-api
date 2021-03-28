@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,17 +74,6 @@ public class RecipeService {
     public void sendToPlan(Long recipeId, Long planId) {
         planService.addRecipe(planId,
                 recipeRepository.findById(recipeId).get());
-    }
-
-    /**
-     * I am hand off to {@link ItemService#recognizeItem(String, int)} with no
-     * additional processing and exist purely to ease wiring at the controller
-     * level. I should not be used in new code.
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    public RecognizedItem recognizeItem(String raw, int cursor) { // todo: go away
-        return itemService.recognizeItem(raw, cursor);
     }
 
     public Slice<Recipe> searchRecipes(String scope, String filter, Pageable pageable) {

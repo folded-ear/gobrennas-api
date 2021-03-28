@@ -5,7 +5,6 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.Page;
-import com.brennaswitzer.cookbook.payload.RecipeAction;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
@@ -224,21 +223,14 @@ public class RecipeController {
         labelService.removeLabel(recipe, label);
     }
 
-    @PostMapping("/_actions")
-    @ResponseBody
-    public Object performGlobalAction(
-            @RequestBody RecipeAction action
-    ) {
-        return action.execute(recipeService);
-    }
-
-    @PostMapping("/{id}/_actions")
+    @PostMapping("/{id}/_send_to_plan/{planId}")
     @ResponseBody
     public Object performRecipeAction(
             @PathVariable("id") Long id,
-            @RequestBody RecipeAction action
+            @PathVariable("planId") Long planId
     ) {
-        return action.execute(id, recipeService);
+        recipeService.sendToPlan(id, planId);
+        return true;
     }
 
     private Recipe getRecipe(Long id) {
