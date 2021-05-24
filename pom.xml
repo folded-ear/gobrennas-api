@@ -154,19 +154,6 @@
                             <listener>false</listener>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>antlr-javascript</id>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${basedir}/src/main/antlr4</sourceDirectory>
-                            <outputDirectory>${basedir}/client/src</outputDirectory>
-                            <treatWarningsAsErrors>true</treatWarningsAsErrors>
-                            <listener>false</listener>
-                            <arguments>-Dlanguage=JavaScript</arguments>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
