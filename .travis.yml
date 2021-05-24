@@ -9,7 +9,6 @@ before_install:
   - nvm install
   - cd client
   - npm ci
-  - npm run lint
   - npm run build
   - mv build ../public_html
   - cd ..
