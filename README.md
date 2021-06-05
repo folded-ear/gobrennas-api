@@ -1,6 +1,6 @@
 # Foodinger!
 
-[![Build Status](https://travis-ci.org/switzerb/CookBook.svg?branch=master)](https://travis-ci.org/switzerb/CookBook)
+[![CI/CD](https://github.com/folded-ear/foodinger/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/folded-ear/foodinger/actions/workflows/ci-cd.yaml)
 
 I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
 
