@@ -43,7 +43,7 @@ public class TaskListRepositoryTest {
     }
 
     @Test
-    public void createUpdateTimestamps() {
+    public void createUpdateTimestamps() throws InterruptedException {
         assertFalse(repo.findByOwner(alice).iterator().hasNext());
 
         TaskList groceries = new TaskList(alice, "Groceries");
@@ -59,6 +59,7 @@ public class TaskListRepositoryTest {
         assertEquals(old, groceries.getUpdatedAt());
 
         groceries.setName("Grocery List");
+        Thread.sleep(123);
         repo.flush();
 
         assertNotEquals(old, groceries.getUpdatedAt());
