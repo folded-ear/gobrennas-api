@@ -223,7 +223,9 @@ public class PlanService {
     public void renameItem(Long id, String name) {
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setName(name);
-        itemService.updateAutoRecognition(task);
+        if (!task.hasIngredient() || !(task.getIngredient() instanceof Recipe)) {
+            itemService.updateAutoRecognition(task);
+        }
         if (isMessagingCapable()) {
             sendMessage(task, buildUpdateMessage(task));
         }
