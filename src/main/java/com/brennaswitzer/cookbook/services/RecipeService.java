@@ -67,7 +67,9 @@ public class RecipeService {
     }
 
     public void deleteRecipeById(Long id) {
-        recipeRepository.deleteById(id);
+        Recipe r = recipeRepository.getOne(id);
+        planService.severLibraryLinks(r);
+        recipeRepository.delete(r);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")

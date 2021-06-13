@@ -278,5 +278,15 @@ public class PlanService {
         taskRepo.delete(t);
     }
 
+    public void severLibraryLinks(Recipe r) {
+        taskRepo.findByIngredient(r).forEach(t -> {
+            if (!t.hasNotes()) t.setNotes(r.getDirections());
+            t.setIngredient(null);
+            if (isMessagingCapable()) {
+                sendMessage(t.getTaskList(), buildUpdateMessage(t));
+            }
+        });
+    }
+
 }
 
