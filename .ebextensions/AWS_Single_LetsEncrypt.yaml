@@ -30,6 +30,6 @@ container_commands:
     # sanity check that we can renew while restarting nginx
     command: "/usr/bin/certbot renew --post-hook \"service nginx start\""
   60_setupcron:
-    command: "echo '34 15 * * * root /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"' > /etc/cron.d/certbot"
+    command: "echo '34 15 * * * root /usr/bin/certbot renew --post-hook \"service nginx start\"' > /etc/cron.d/certbot"
   70_permissions:
     command: "chmod 644 /etc/cron.d/certbot"
