@@ -168,7 +168,7 @@ public class PlanService {
         Task task = taskRepo.save(new Task(name).of(parent, after));
         itemService.autoRecognize(task);
         if (isMessagingCapable()) {
-            taskRepo.flush(); // so that IDs will be available
+            if (task.getId() == null) taskRepo.flush();
             PlanMessage m = buildCreationMessage(task);
             m.addNewId(task.getId(), id);
             sendMessage(parent, m);
@@ -183,7 +183,7 @@ public class PlanService {
         bucket.setPlan(plan);
         bucket = bucketRepo.save(bucket);
         if (isMessagingCapable()) {
-            bucketRepo.flush();
+            if (bucket.getId() != null) bucketRepo.flush();
             PlanMessage m = new PlanMessage();
             m.setId(bucket.getId());
             m.setType("create-bucket");
