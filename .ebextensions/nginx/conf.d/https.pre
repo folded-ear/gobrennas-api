@@ -35,11 +35,6 @@ server {
         expires 7d;
     }
 
-    # let the newrelic agent cache for a week
-    location /newrelic.js {
-        expires 7d;
-    }
-
     # these go off  to the boot app
     location ~ ^/api/_ws(/|$) {
         proxy_pass http://localhost:5000;

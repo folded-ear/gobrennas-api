@@ -45,9 +45,7 @@ jobs:
         # files have a .yaml extension for easier editing, but EB needs .config
         run: |
           for f in .ebextensions/*.yaml; do mv $f $f.config; done
-          sed -i 's/NR_LICENSE_KEY/'${NR_LICENSE_KEY}'/' newrelic/newrelic.yml
           zip target/eb_bundle.zip -r public_html
-          zip target/eb_bundle.zip -r newrelic
           zip target/eb_bundle.zip -r .ebextensions
           zip target/eb_bundle.zip -j target/cookbook-*.jar
           zip target/eb_bundle.zip Procfile

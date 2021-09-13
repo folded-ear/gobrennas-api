@@ -1,1 +1,1 @@
-web: java -jar -javaagent:/var/app/current/newrelic/newrelic.jar cookbook-0.0.1-SNAPSHOT.jar
+web: java -jar cookbook-0.0.1-SNAPSHOT.jar

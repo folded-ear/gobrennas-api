@@ -1,6 +1,5 @@
 HELP.md
 /target/
-/newrelic/logs
 !.mvn/wrapper/maven-wrapper.jar
 /src/main/java/*.tokens
 /src/main/java/com/brennaswitzer/cookbook/antlr/*.*
