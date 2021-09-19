@@ -1,10 +1,9 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
+public interface IngredientRepository extends BaseEntityRepository<Ingredient> {
 
     // The @Query is used to get case-insensitive ordering, which Spring Data
     // doesn't support via method name modifiers (only predicates).

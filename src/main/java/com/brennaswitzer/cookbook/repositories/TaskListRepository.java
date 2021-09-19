@@ -2,10 +2,9 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface TaskListRepository extends JpaRepository<TaskList, Long> {
+public interface TaskListRepository extends BaseEntityRepository<TaskList> {
 
     @Query("from TaskList where acl.owner = ?1")
     Iterable<TaskList> findByOwner(User owner);
