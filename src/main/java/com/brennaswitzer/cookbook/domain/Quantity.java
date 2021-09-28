@@ -9,11 +9,16 @@ import java.util.*;
 
 @Embeddable
 @Access(AccessType.FIELD)   // It is unclear why this is needed. The only JPA
-                            // annotation at field or prop level is on a field.
-                            // Clearly still something to learn here. :)
+// annotation at field or prop level is on a field.
+// Clearly still something to learn here. :)
 public class Quantity {
 
+    // stupid IntelliJ / JPA Buddy
+    @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final Quantity ZERO = count(0);
+
+    // stupid IntelliJ / JPA Buddy
+    @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final Quantity ONE = count(1);
 
     public static Quantity count(double count) {
@@ -69,10 +74,16 @@ public class Quantity {
     }
 
     public Quantity plus(Quantity that) {
+        if (0d == that.quantity) return this;
+        if (0d == this.quantity) return that;
         if (Objects.equals(units, that.units)) {
             return new Quantity(quantity + that.quantity, units);
         }
         return plus(that.convertTo(units));
+    }
+
+    public Quantity minus(Quantity that) {
+        return plus(new Quantity(-that.quantity, that.units));
     }
 
     public Quantity times(Double factor) {

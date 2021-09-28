@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 public class QuantityTest {
 
@@ -74,4 +75,35 @@ public class QuantityTest {
     public void noConversion() {
         new Quantity(1, yard).convertTo(gram);
     }
+
+    @Test
+    public void plus() {
+        assertEquals(
+                new Quantity(1, yard),
+                new Quantity(0.5, yard)
+                        .plus(new Quantity(0.5, yard))
+        );
+    }
+
+    @Test
+    public void shortCircuitPlus() {
+        assertSame(
+                Quantity.ONE,
+                Quantity.ONE.plus(Quantity.ZERO)
+        );
+        assertSame(
+                Quantity.ONE,
+                Quantity.ZERO.plus(Quantity.ONE)
+        );
+    }
+
+    @Test
+    public void minus() {
+        assertEquals(
+                new Quantity(0.5, yard),
+                new Quantity(1, yard)
+                        .minus(new Quantity(0.5, yard))
+        );
+    }
+
 }
