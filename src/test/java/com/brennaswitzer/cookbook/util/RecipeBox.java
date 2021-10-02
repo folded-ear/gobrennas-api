@@ -31,6 +31,7 @@ public class RecipeBox {
         cup = new UnitOfMeasure("c")
                 .withAlias("cup");
         tbsp = new UnitOfMeasure("Tbsp");
+        cup.addConversion(tbsp, 16);
         lbs = new UnitOfMeasure("lbs");
 
         salt = new PantryItem("salt");

@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.domain;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 import javax.persistence.*;
 import java.util.*;
@@ -13,6 +14,58 @@ import java.util.*;
 // Clearly still something to learn here. :)
 public class Quantity {
 
+    private static void addToUnitMap(Map<UnitOfMeasure, Quantity> byUnit, Quantity q) {
+        if (byUnit.containsKey(q.units)) {
+            byUnit.put(q.units, byUnit.get(q.units).plus(q));
+            return;
+        }
+        Quantity converted = null;
+        for (val u : byUnit.keySet()) {
+            try {
+                converted = q.convertTo(u);
+                break;
+            } catch (NoConversionException ignored) {
+            }
+        }
+        if (converted == null) {
+            byUnit.put(q.units, q);
+        } else {
+            byUnit.put(converted.units, byUnit.get(converted.units).plus(converted));
+        }
+    }
+
+    private static void addAllToUnitMap(Map<UnitOfMeasure, Quantity> byUnit, Collection<Quantity> more) {
+        for (val q : more) {
+            addToUnitMap(byUnit, q);
+        }
+    }
+
+    private static void addAllToUnitMap(Map<UnitOfMeasure, Quantity> byUnit, Map<UnitOfMeasure, Quantity> more) {
+        addAllToUnitMap(byUnit, more.values());
+    }
+
+    public static Set<Quantity> plus(Set<Quantity> a, Set<Quantity> b) {
+        if (b.isEmpty()) return a;
+        if (a.isEmpty()) return b;
+        val byUnit = a.stream().collect(
+                HashMap::new,
+                Quantity::addToUnitMap,
+                Quantity::addAllToUnitMap
+        );
+        addAllToUnitMap(byUnit, b);
+        return new HashSet<>(byUnit.values());
+    }
+
+    public static Set<Quantity> minus(Set<Quantity> a, Set<Quantity> b) {
+        if (b.isEmpty()) return a;
+        Set<Quantity> inverse = new HashSet<>();
+        for (Quantity q : b) {
+            inverse.add(new Quantity(-q.quantity, q.units));
+        }
+        if (a.isEmpty()) return inverse;
+        return plus(a, inverse);
+    }
+
     // stupid IntelliJ / JPA Buddy
     @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final Quantity ZERO = count(0);
@@ -21,7 +74,7 @@ public class Quantity {
     @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final Quantity ONE = count(1);
 
-    public static Quantity count(double count) {
+    public static Quantity count(Number count) {
         return new Quantity(count, null);
     }
 
@@ -39,8 +92,8 @@ public class Quantity {
     public Quantity() {
     }
 
-    public Quantity(double quantity, UnitOfMeasure units) {
-        this.quantity = quantity;
+    public Quantity(Number quantity, UnitOfMeasure units) {
+        this.quantity = quantity.doubleValue();
         this.units = units;
     }
 
