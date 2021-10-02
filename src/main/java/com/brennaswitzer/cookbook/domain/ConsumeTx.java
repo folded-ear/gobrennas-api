@@ -2,7 +2,6 @@ package com.brennaswitzer.cookbook.domain;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import java.util.Set;
 
 /**
  * You used some!
@@ -16,12 +15,13 @@ public class ConsumeTx extends InventoryTx {
 
     public ConsumeTx(
             InventoryItem item,
-            Set<Quantity> quantity
+            CompoundQuantity quantity
     ) {
         super(item, quantity);
     }
 
-    public Set<Quantity> computeNewQuantity(Set<Quantity> curr) {
-        return Quantity.minus(curr, getQuantity());
+    public CompoundQuantity computeNewQuantity(CompoundQuantity curr) {
+        return curr.minus(getQuantity());
     }
+
 }

@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class InventoryItem extends BaseEntity {
@@ -41,9 +42,9 @@ public class InventoryItem extends BaseEntity {
     /**
      * This is a cache over @{link {@link #transactions}.
      */
-    @ElementCollection
+    @Embedded
     @Getter
-    private Set<Quantity> quantity = new HashSet<>();
+    private CompoundQuantity quantity = CompoundQuantity.ZERO;
 
     /**
      * This is a cache over @{link {@link #transactions}.
@@ -52,10 +53,10 @@ public class InventoryItem extends BaseEntity {
     private int txCount = 0;
 
     public void acquire(Quantity quantity) {
-        acquire(Collections.singleton(quantity));
+        acquire(new CompoundQuantity(quantity));
     }
 
-    public void acquire(Set<Quantity> quantity) {
+    public void acquire(CompoundQuantity quantity) {
         addTransaction(
                 new AcquireTx(
                         this,
@@ -65,10 +66,10 @@ public class InventoryItem extends BaseEntity {
     }
 
     public void consume(Quantity quantity) {
-        consume(Collections.singleton(quantity));
+        consume(new CompoundQuantity(quantity));
     }
 
-    public void consume(Set<Quantity> quantity) {
+    public void consume(CompoundQuantity quantity) {
         addTransaction(
                 new ConsumeTx(
                         this,
@@ -78,10 +79,10 @@ public class InventoryItem extends BaseEntity {
     }
 
     public void discard(Quantity quantity) {
-        discard(Collections.singleton(quantity));
+        discard(new CompoundQuantity(quantity));
     }
 
-    public void discard(Set<Quantity> quantity) {
+    public void discard(CompoundQuantity quantity) {
         addTransaction(
                 new DiscardTx(
                         this,
@@ -91,10 +92,10 @@ public class InventoryItem extends BaseEntity {
     }
 
     public void reset(Quantity quantity) {
-        reset(Collections.singleton(quantity));
+        reset(new CompoundQuantity(quantity));
     }
 
-    public void reset(Set<Quantity> quantity) {
+    public void reset(CompoundQuantity quantity) {
         addTransaction(
                 new ResetTx(
                         this,
@@ -106,8 +107,8 @@ public class InventoryItem extends BaseEntity {
     private void addTransaction(InventoryTx tx) {
         transactions.add(tx);
         tx.commit();
-        quantity = tx.getNewQuantity();
-        txCount += 1;
+        quantity = tx.getNewQuantity().clone();
+        txCount = transactions.size();
     }
 
     @Override

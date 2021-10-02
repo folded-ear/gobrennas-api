@@ -17,9 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -70,7 +67,7 @@ public class InventoryDatabaseTest {
         // used 4 Tbsp (half cup)
         salt.consume(new Quantity(4, box.tbsp));
 
-        val expected = Collections.singleton(new Quantity(2.75, box.cup));
+        val expected = new CompoundQuantity(new Quantity(2.75, box.cup));
         checkSalt(salt, expected);
 
         entityManager.flush();
@@ -86,10 +83,11 @@ public class InventoryDatabaseTest {
         );
     }
 
-    private void checkSalt(InventoryItem salt, Set<Quantity> expected) {
+    private void checkSalt(InventoryItem salt, CompoundQuantity expected) {
         assertEquals(19, salt.getTxCount());
+        assertEquals(expected, salt.getQuantity());
         assertEquals(19, salt.getTransactions().size());
-        Set<Quantity> total = new HashSet<>();
+        CompoundQuantity total = CompoundQuantity.ZERO;
         for (val tx : txRepo.findByItem(
                 salt,
                 Sort.by(
@@ -99,8 +97,7 @@ public class InventoryDatabaseTest {
             System.out.println(tx);
             total = tx.computeNewQuantity(total);
         }
-        assertEquals(total, salt.getQuantity());
-        assertEquals(expected, salt.getQuantity());
+        assertEquals(expected, total);
     }
 
 }

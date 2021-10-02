@@ -2,10 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import lombok.Getter;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import java.util.Set;
+import javax.persistence.*;
 
 /**
  * You lost track and need a reset!
@@ -19,10 +16,10 @@ public class ResetTx extends InventoryTx {
 
     public ResetTx(
             InventoryItem item,
-            Set<Quantity> quantity
+            CompoundQuantity quantity
     ) {
         super(item, quantity);
-        this.priorQuantity = item.getQuantity();
+        this.priorQuantity = item.getQuantity().clone();
     }
 
     /**
@@ -30,16 +27,21 @@ public class ResetTx extends InventoryTx {
      * impossible to know the prior state without consulting other parts of the
      * history. This allows for that answer to be obtained directly.
      */
-    @ElementCollection
+    @Embedded
+    @AssociationOverride(name = "components",
+            joinTable = @JoinTable(name = "inventory_tx_prior_quantity"
+                    , joinColumns = {@JoinColumn(name = "inventory_tx_id")}
+            )
+    )
     @Getter
-    private Set<Quantity> priorQuantity;
+    private CompoundQuantity priorQuantity;
 
-    Set<Quantity> getCorrection() {
-        return Quantity.minus(getNewQuantity(), priorQuantity);
+    CompoundQuantity getCorrection() {
+        return getNewQuantity().minus(priorQuantity);
     }
 
-    public Set<Quantity> computeNewQuantity(Set<Quantity> curr) {
-        return getQuantity();
+    public CompoundQuantity computeNewQuantity(CompoundQuantity curr) {
+        return getQuantity().clone();
     }
 
     @Override

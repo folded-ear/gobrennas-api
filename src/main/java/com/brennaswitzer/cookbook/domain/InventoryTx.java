@@ -3,8 +3,6 @@ package com.brennaswitzer.cookbook.domain;
 import lombok.Getter;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity // @MappedSuperclass can't support a polymorphic @Repository
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -17,33 +15,37 @@ public abstract class InventoryTx extends BaseEntity {
     /**
      * The quantity after the transaction.
      */
-    @ElementCollection
+    @Embedded
+    @AssociationOverride(name = "components",
+            joinTable = @JoinTable(name = "inventory_tx_quantity"))
     @Getter
-    private Set<Quantity> quantity = new HashSet<>();
+    private CompoundQuantity quantity;
 
     public InventoryTx() {
     }
 
     public InventoryTx(
             InventoryItem item,
-            Set<Quantity> quantity
+            CompoundQuantity quantity
     ) {
         this.item = item;
-        this.quantity = quantity;
+        this.quantity = quantity.clone();
     }
 
     /**
      * The quantity after the transaction.
      */
-    @ElementCollection
+    @Embedded
+    @AssociationOverride(name = "components",
+            joinTable = @JoinTable(name = "inventory_tx_new_quantity"))
     @Getter
-    private Set<Quantity> newQuantity;
+    private CompoundQuantity newQuantity;
 
     final void commit() {
         newQuantity = computeNewQuantity(item.getQuantity());
     }
 
-    abstract Set<Quantity> computeNewQuantity(Set<Quantity> curr);
+    abstract CompoundQuantity computeNewQuantity(CompoundQuantity curr);
 
     @Override
     public String toString() {
