@@ -62,7 +62,11 @@ public class Quantity {
         while (!queue.isEmpty()) {
             Quantity q = queue.remove();
             if (!visited.add(q.units)) continue;
-            if (q.units.equals(uom)) return q;
+            if (q.units.equals(uom)) {
+                // write it down for later
+                units.addConversion(q.units, q.quantity / quantity);
+                return q;
+            }
             for (Map.Entry<UnitOfMeasure, Double> e : q.units.getConversions().entrySet()) {
                 if (visited.contains(e.getKey())) continue;
                 queue.add(new Quantity(
