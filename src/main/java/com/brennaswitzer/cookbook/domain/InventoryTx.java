@@ -15,9 +15,10 @@ public abstract class InventoryTx extends BaseEntity {
     /**
      * The quantity after the transaction.
      */
-    @Embedded
-    @AssociationOverride(name = "components",
-            joinTable = @JoinTable(name = "inventory_tx_quantity"))
+    @OneToOne(
+            orphanRemoval = true,
+            cascade = {CascadeType.ALL}
+    )
     @Getter
     private CompoundQuantity quantity;
 
@@ -35,9 +36,10 @@ public abstract class InventoryTx extends BaseEntity {
     /**
      * The quantity after the transaction.
      */
-    @Embedded
-    @AssociationOverride(name = "components",
-            joinTable = @JoinTable(name = "inventory_tx_new_quantity"))
+    @OneToOne(
+            orphanRemoval = true,
+            cascade = {CascadeType.ALL}
+    )
     @Getter
     private CompoundQuantity newQuantity;
 

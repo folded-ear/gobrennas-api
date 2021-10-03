@@ -1,24 +1,26 @@
 package com.brennaswitzer.cookbook.domain;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.val;
 import lombok.var;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
+import javax.persistence.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Embeddable
+@Entity
 public class CompoundQuantity implements Cloneable {
 
-    // stupid IntelliJ / JPA Buddy
-    @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final CompoundQuantity ZERO = new CompoundQuantity();
 
-    // stupid IntelliJ / JPA Buddy
-    @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final CompoundQuantity ONE = new CompoundQuantity(Quantity.ONE);
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
+    @Setter
+    private Long id;
 
     @ElementCollection
     @Getter
@@ -129,4 +131,5 @@ public class CompoundQuantity implements Cloneable {
                 .map(Quantity::toString)
                 .collect(Collectors.joining(", ")) + ")";
     }
+
 }

@@ -2,7 +2,10 @@ package com.brennaswitzer.cookbook.domain;
 
 import lombok.Getter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
 
 /**
  * You lost track and need a reset!
@@ -27,11 +30,9 @@ public class ResetTx extends InventoryTx {
      * impossible to know the prior state without consulting other parts of the
      * history. This allows for that answer to be obtained directly.
      */
-    @Embedded
-    @AssociationOverride(name = "components",
-            joinTable = @JoinTable(name = "inventory_tx_prior_quantity"
-                    , joinColumns = {@JoinColumn(name = "inventory_tx_id")}
-            )
+    @OneToOne(
+            orphanRemoval = true,
+            cascade = {CascadeType.ALL}
     )
     @Getter
     private CompoundQuantity priorQuantity;

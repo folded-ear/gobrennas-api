@@ -42,7 +42,10 @@ public class InventoryItem extends BaseEntity {
     /**
      * This is a cache over @{link {@link #transactions}.
      */
-    @Embedded
+    @OneToOne(
+            orphanRemoval = true,
+            cascade = {CascadeType.ALL}
+    )
     @Getter
     private CompoundQuantity quantity = CompoundQuantity.ZERO;
 
