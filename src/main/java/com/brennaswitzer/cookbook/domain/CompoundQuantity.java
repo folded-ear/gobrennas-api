@@ -74,6 +74,10 @@ public class CompoundQuantity implements Cloneable {
         addAllToUnitMap(byUnit, more.values());
     }
 
+    public CompoundQuantity plus(Quantity other) {
+        return plus(new CompoundQuantity(other));
+    }
+
     public CompoundQuantity plus(CompoundQuantity other) {
         if (other.isEmpty()) return clone();
         if (isEmpty()) return other.clone();
@@ -84,6 +88,10 @@ public class CompoundQuantity implements Cloneable {
         );
         addAllToUnitMap(byUnit, other.components);
         return new CompoundQuantity(byUnit.values());
+    }
+
+    public CompoundQuantity minus(Quantity other) {
+        return minus(new CompoundQuantity(other));
     }
 
     public CompoundQuantity minus(CompoundQuantity other) {

@@ -32,11 +32,16 @@ public class User extends BaseEntity {
     @Setter
     private String providerId;
 
-    public User() {}
+    public User() {
+    }
 
     public User(String name, String username, String email, String password) {
         this.name = name;
         this.email = email;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + "(" + email + ")";
+    }
 }
