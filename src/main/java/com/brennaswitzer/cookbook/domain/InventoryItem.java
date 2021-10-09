@@ -30,6 +30,7 @@ public class InventoryItem extends BaseEntity {
         this.pantryItem = pantryItem;
     }
 
+    @SuppressWarnings("FieldMayBeFinal")
     @OneToMany(
             orphanRemoval = true,
             mappedBy = "item",
@@ -44,7 +45,8 @@ public class InventoryItem extends BaseEntity {
      */
     @OneToOne(
             orphanRemoval = true,
-            cascade = {CascadeType.ALL}
+            cascade = {CascadeType.ALL},
+            optional = false
     )
     @Getter
     private CompoundQuantity quantity = CompoundQuantity.ZERO;
@@ -55,63 +57,53 @@ public class InventoryItem extends BaseEntity {
     @Getter
     private int txCount = 0;
 
-    public void acquire(Quantity quantity) {
-        acquire(new CompoundQuantity(quantity));
+    public AcquireTx acquire(Quantity quantity) {
+        return acquire(new CompoundQuantity(quantity));
     }
 
-    public void acquire(CompoundQuantity quantity) {
-        addTransaction(
-                new AcquireTx(
-                        this,
-                        quantity
-                )
-        );
+    public AcquireTx acquire(CompoundQuantity quantity) {
+        return addTransaction(new AcquireTx(quantity));
     }
 
-    public void consume(Quantity quantity) {
-        consume(new CompoundQuantity(quantity));
+    public ConsumeTx consume(Quantity quantity) {
+        return consume(new CompoundQuantity(quantity));
     }
 
-    public void consume(CompoundQuantity quantity) {
-        addTransaction(
-                new ConsumeTx(
-                        this,
-                        quantity
-                )
-        );
+    public ConsumeTx consume(CompoundQuantity quantity) {
+        return addTransaction(new ConsumeTx(quantity));
     }
 
-    public void discard(Quantity quantity) {
-        discard(new CompoundQuantity(quantity));
+    public DiscardTx discard(Quantity quantity) {
+        return discard(new CompoundQuantity(quantity));
     }
 
-    public void discard(CompoundQuantity quantity) {
-        addTransaction(
-                new DiscardTx(
-                        this,
-                        quantity
-                )
-        );
+    public DiscardTx discard(CompoundQuantity quantity) {
+        return addTransaction(new DiscardTx(quantity));
     }
 
-    public void reset(Quantity quantity) {
-        reset(new CompoundQuantity(quantity));
+    public AdjustTx adjust(Quantity quantity) {
+        return reset(new CompoundQuantity(quantity));
     }
 
-    public void reset(CompoundQuantity quantity) {
-        addTransaction(
-                new ResetTx(
-                        this,
-                        quantity
-                )
-        );
+    public AdjustTx adjust(CompoundQuantity quantity) {
+        return addTransaction(new AdjustTx(quantity));
     }
 
-    private void addTransaction(InventoryTx tx) {
+    public AdjustTx reset(Quantity quantity) {
+        return reset(new CompoundQuantity(quantity));
+    }
+
+    public AdjustTx reset(CompoundQuantity quantity) {
+        CompoundQuantity adjustment = quantity.minus(this.getQuantity());
+        return addTransaction(new AdjustTx(adjustment));
+    }
+
+    private <T extends InventoryTx> T addTransaction(T tx) {
+        tx.commit(this);
         transactions.add(tx);
-        tx.commit();
         quantity = tx.getNewQuantity().clone();
         txCount = transactions.size();
+        return tx;
     }
 
     @Override

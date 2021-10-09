@@ -96,15 +96,13 @@ public class CompoundQuantity implements Cloneable {
 
     public CompoundQuantity minus(CompoundQuantity other) {
         if (other.isEmpty()) return clone();
-        return plus(other.getInverse());
+        return plus(other.negate());
     }
 
-    public CompoundQuantity getInverse() {
-        Collection<Quantity> inverse = new HashSet<>();
-        for (Quantity q : components) {
-            inverse.add(new Quantity(-q.getQuantity(), q.getUnits()));
-        }
-        return new CompoundQuantity(inverse);
+    public CompoundQuantity negate() {
+        return new CompoundQuantity(components.stream()
+                .map(q -> new Quantity(-q.getQuantity(), q.getUnits()))
+                .collect(Collectors.toList()));
     }
 
     @Override

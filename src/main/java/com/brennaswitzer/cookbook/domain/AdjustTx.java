@@ -6,18 +6,18 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("2")
+@DiscriminatorValue("4")
 @NoArgsConstructor
-public class ConsumeTx extends InventoryTx {
+public class AdjustTx extends InventoryTx {
 
-    public ConsumeTx(
+    public AdjustTx(
             CompoundQuantity quantity
     ) {
         super(quantity);
     }
 
     public CompoundQuantity computeNewQuantity(CompoundQuantity curr) {
-        return curr.minus(getQuantity());
+        return curr.plus(getQuantity());
     }
 
 }
