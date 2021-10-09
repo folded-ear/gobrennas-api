@@ -207,11 +207,4 @@ public class IngredientInfo {
         return info;
     }
 
-    public static IngredientInfo from(PantryItem it) {
-        IngredientInfo info = from((Ingredient) it);
-        info.setType("PantryItem");
-        info.setStoreOrder(it.getStoreOrder());
-        return info;
-    }
-
 }

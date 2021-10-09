@@ -1,8 +1,10 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
+import com.brennaswitzer.cookbook.mapper.PantryItemMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.services.ItemService;
@@ -53,6 +55,9 @@ public class RecipeController {
 
     @Autowired
     private InfoHelper infoHelper;
+
+    @Autowired
+    private PantryItemMapper pantryItemMapper;
 
     @GetMapping("/")
     public Page<IngredientInfo> getRecipes(
@@ -187,6 +192,8 @@ public class RecipeController {
 
         if (i instanceof Recipe) {
             info = infoHelper.getRecipeInfo((Recipe) i);
+        } else if (i instanceof PantryItem) {
+            info = pantryItemMapper.pantryItemToInfo((PantryItem) i);
         } else {
             info = (IngredientInfo) IngredientInfo.class
                     .getMethod("from", i.getClass())

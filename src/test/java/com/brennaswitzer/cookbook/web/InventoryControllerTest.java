@@ -59,6 +59,7 @@ public class InventoryControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+        System.out.println(body);
         val type = objectMapper.getTypeFactory().constructParametricType(Page.class, InventoryItemInfo.class);
         val obj = objectMapper.readValue(body, type);
         val d = 1;

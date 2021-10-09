@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
+import com.brennaswitzer.cookbook.mapper.InventoryItemMapper;
 import com.brennaswitzer.cookbook.payload.InventoryItemInfo;
 import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.services.InventoryService;
@@ -19,6 +20,9 @@ public class InventoryController {
     @Autowired
     private InventoryService service;
 
+    @Autowired
+    private InventoryItemMapper itemMapper;
+
     @RequestMapping(method = RequestMethod.GET)
     Page<InventoryItemInfo> listInventory(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -35,7 +39,7 @@ public class InventoryController {
                                 : Sort.Direction.ASC,
                         sort)
         ));
-        return Page.from(inv.map(InventoryItemInfo::fromItem));
+        return Page.from(inv.map(itemMapper::itemToInfo));
     }
 
 }
