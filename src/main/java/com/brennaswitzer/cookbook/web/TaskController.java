@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.*;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +26,9 @@ public class TaskController {
     @Autowired
     private UserRepository userRepo;
 
+    @Autowired
+    private UserPrincipalAccess principalAccess;
+
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public List<TaskInfo> getTaskLists(
@@ -42,6 +46,7 @@ public class TaskController {
         } else {
             taskList = taskService.createTaskList(info.getName());
         }
+        taskList.setOwner(principalAccess.getUser());
         return TaskInfo.fromList(taskList);
     }
 
