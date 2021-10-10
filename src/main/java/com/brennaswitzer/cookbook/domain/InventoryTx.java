@@ -2,17 +2,24 @@ package com.brennaswitzer.cookbook.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 
-@Entity // @MappedSuperclass can't support a polymorphic @Repository
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(discriminatorType = DiscriminatorType.INTEGER)
+@Entity
+@Table(name = "inventory_tx")
 @NoArgsConstructor
-public abstract class InventoryTx extends BaseEntity {
+@ToString(includeFieldNames = false)
+public class InventoryTx extends BaseEntity {
 
     @ManyToOne
+    @Getter
+    @ToString.Exclude
     private InventoryItem item;
+
+    @Column(name = "dtype")
+    @Getter
+    private TxType type;
 
     /**
      * The transaction quantity.
@@ -26,8 +33,10 @@ public abstract class InventoryTx extends BaseEntity {
     private CompoundQuantity quantity;
 
     public InventoryTx(
+            TxType type,
             CompoundQuantity quantity
     ) {
+        this.type = type;
         this.quantity = quantity.clone();
     }
 
@@ -44,18 +53,11 @@ public abstract class InventoryTx extends BaseEntity {
 
     final void commit(InventoryItem item) {
         this.item = item;
-        newQuantity = computeNewQuantity(item.getQuantity());
+        newQuantity = item.getQuantity().plus(getQuantity());
     }
-
-    abstract CompoundQuantity computeNewQuantity(CompoundQuantity curr);
 
     public CompoundQuantity getPriorQuantity() {
-        return computeNewQuantity(getNewQuantity().negate()).negate();
-    }
-
-    @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + "(newQuantity=" + newQuantity + ", quantity=" + quantity + ")";
+        return getNewQuantity().minus(getQuantity());
     }
 
 }

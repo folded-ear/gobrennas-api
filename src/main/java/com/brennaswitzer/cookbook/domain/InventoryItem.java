@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "inventory_item")
 public class InventoryItem extends BaseEntity {
 
     @ManyToOne(
@@ -41,7 +42,7 @@ public class InventoryItem extends BaseEntity {
     private List<InventoryTx> transactions = new ArrayList<>();
 
     /**
-     * This is a cache over @{link {@link #transactions}.
+     * This is a cache over {@link #transactions}.
      */
     @OneToOne(
             orphanRemoval = true,
@@ -52,50 +53,52 @@ public class InventoryItem extends BaseEntity {
     private CompoundQuantity quantity = CompoundQuantity.ZERO;
 
     /**
-     * This is a cache over @{link {@link #transactions}.
+     * This is a cache over {@link #transactions}.
      */
     @Getter
     private int txCount = 0;
 
-    public AcquireTx acquire(Quantity quantity) {
+    public InventoryTx acquire(Quantity quantity) {
         return acquire(new CompoundQuantity(quantity));
     }
 
-    public AcquireTx acquire(CompoundQuantity quantity) {
-        return addTransaction(new AcquireTx(quantity));
+    public InventoryTx acquire(CompoundQuantity quantity) {
+        return addTransaction(new InventoryTx(TxType.ACQUIRE, quantity));
     }
 
-    public ConsumeTx consume(Quantity quantity) {
+    public InventoryTx consume(Quantity quantity) {
         return consume(new CompoundQuantity(quantity));
     }
 
-    public ConsumeTx consume(CompoundQuantity quantity) {
-        return addTransaction(new ConsumeTx(quantity));
+    public InventoryTx consume(CompoundQuantity quantity) {
+        quantity = quantity.negate();
+        return addTransaction(new InventoryTx(TxType.CONSUME, quantity));
     }
 
-    public DiscardTx discard(Quantity quantity) {
+    public InventoryTx discard(Quantity quantity) {
         return discard(new CompoundQuantity(quantity));
     }
 
-    public DiscardTx discard(CompoundQuantity quantity) {
-        return addTransaction(new DiscardTx(quantity));
+    public InventoryTx discard(CompoundQuantity quantity) {
+        quantity = quantity.negate();
+        return addTransaction(new InventoryTx(TxType.DISCARD, quantity));
     }
 
-    public AdjustTx adjust(Quantity quantity) {
+    public InventoryTx adjust(Quantity quantity) {
         return reset(new CompoundQuantity(quantity));
     }
 
-    public AdjustTx adjust(CompoundQuantity quantity) {
-        return addTransaction(new AdjustTx(quantity));
+    public InventoryTx adjust(CompoundQuantity quantity) {
+        return addTransaction(new InventoryTx(TxType.ADJUST, quantity));
     }
 
-    public AdjustTx reset(Quantity quantity) {
+    public InventoryTx reset(Quantity quantity) {
         return reset(new CompoundQuantity(quantity));
     }
 
-    public AdjustTx reset(CompoundQuantity quantity) {
-        CompoundQuantity adjustment = quantity.minus(this.getQuantity());
-        return addTransaction(new AdjustTx(adjustment));
+    public InventoryTx reset(CompoundQuantity quantity) {
+        quantity = quantity.minus(this.getQuantity());
+        return addTransaction(new InventoryTx(TxType.RESET, quantity));
     }
 
     private <T extends InventoryTx> T addTransaction(T tx) {

@@ -75,6 +75,7 @@ public class InventoryDatabaseTest {
         assertEquals(1, itemRepo.count());
         assertEquals(19, txRepo.count());
 
+        //noinspection OptionalGetWithoutIsPresent
         checkSalt(itemRepo.findById(salt.getId()).get(), expected);
 
         jdbcTmpl.query(
@@ -95,7 +96,7 @@ public class InventoryDatabaseTest {
                         Sort.Order.asc(InventoryTx_.ID)
                 ))) {
             System.out.println(tx);
-            total = tx.computeNewQuantity(total);
+            total = total.plus(tx.getQuantity());
         }
         assertEquals(expected, total);
     }
