@@ -15,8 +15,10 @@ public class NumberUtilsTest {
         assertEquals(1, parseNumber("1.0"), 0.001);
         assertEquals(0.1, parseNumber("0.1"), 0.001);
         assertEquals(0.01, parseNumber("0.01"), 0.001);
-        assertEquals(0.01, parseNumber("0.01"), 0.001);
         assertEquals(1.23, parseNumber("1.23"), 0.001);
+        assertEquals(-1, parseNumber("-1"), 0.001);
+        assertEquals(-1.23, parseNumber("-1.23"), 0.001);
+        assertEquals(-0.01, parseNumber("-0.01"), 0.001);
     }
 
     @Test
@@ -26,6 +28,7 @@ public class NumberUtilsTest {
         assertEquals(0.5, parseNumber("1 /2"), 0.001);
         assertEquals(0.5, parseNumber("1 / 2"), 0.001);
         assertEquals(1.5, parseNumber("3 / 2"), 0.001);
+        assertEquals(-1.5, parseNumber("-3 / 2"), 0.001);
 
         assertEquals(0.333, parseNumber("1/3"), 0.001);
         assertEquals(0.667, parseNumber("2/3"), 0.001);
@@ -45,6 +48,8 @@ public class NumberUtilsTest {
         assertEquals(3.5, parseNumber("3&½"), 0.001);
         assertEquals(3.5, parseNumber("3 & ½"), 0.001);
         assertEquals(3.5, parseNumber("3 and ½"), 0.001);
+        assertEquals(-3.5, parseNumber("-3 & 1/2"), 0.001);
+        assertEquals(-3.5, parseNumber("-3 and ½"), 0.001);
     }
 
     @Test
@@ -63,6 +68,7 @@ public class NumberUtilsTest {
         assertNull(parseNumber("glergypants"));
         assertNull(parseNumber("1-3"));
         assertNull(parseNumber("1.2.3"));
+        //noinspection ConstantConditions
         assertEquals(1.2, parseNumber("1.2.3", true), 0.001);
     }
 
@@ -80,6 +86,15 @@ public class NumberUtilsTest {
         assertEquals(5.0 / 3.0, nwr.getNumber(), 0.001);
         assertEquals(2, nwr.getStart());
         assertEquals(11, nwr.getEnd());
+    }
+
+    @Test
+    public void parseNegativeWithCoords() {
+        NumberUtils.NumberWithRange nwr = parseNumberWithRange(" - two and a half tsp water");
+        System.out.println(nwr);
+        assertEquals(-2.5, nwr.getNumber(), 0.001);
+        assertEquals(1, nwr.getStart());
+        assertEquals(17, nwr.getEnd());
     }
 
 }

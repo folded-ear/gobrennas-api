@@ -1,7 +1,7 @@
 grammar Number;
 
 start
-    :   a=atom
+    :   d=DASH? a=atom
         (AND b=atom)*
     ;
 
@@ -93,6 +93,7 @@ vulgarFraction returns [double val]
 name returns [double val]
     :   n=NAME {
         switch ($n.text.toLowerCase()) {
+            case "a half" :
             case "one half" :
                 $val = 0.5;
                 break;
@@ -189,7 +190,8 @@ DECIMAL
     ;
 
 NAME
-    :   'one half'
+    :   'a half'
+    |   'one half'
     |   'half'
     |   'one'
     |   'two'
