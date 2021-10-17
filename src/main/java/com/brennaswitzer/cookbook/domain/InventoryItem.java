@@ -58,6 +58,26 @@ public class InventoryItem extends BaseEntity {
     @Getter
     private int txCount = 0;
 
+    public InventoryTx transaction(TxType type, Quantity quantity) {
+        return transaction(type, new CompoundQuantity(quantity));
+    }
+
+    public InventoryTx transaction(TxType type, CompoundQuantity quantity) {
+        switch (type) {
+            case ACQUIRE:
+                return acquire(quantity);
+            case CONSUME:
+                return consume(quantity);
+            case DISCARD:
+                return discard(quantity);
+            case ADJUST:
+                return adjust(quantity);
+            case RESET:
+                return reset(quantity);
+        }
+        throw new IllegalArgumentException(String.format("Unknown %s transaction type", type));
+    }
+
     public InventoryTx acquire(Quantity quantity) {
         return acquire(new CompoundQuantity(quantity));
     }

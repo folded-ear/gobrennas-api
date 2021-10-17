@@ -1,18 +1,17 @@
 package com.brennaswitzer.cookbook.web;
 
+import com.brennaswitzer.cookbook.domain.InventoryTx;
 import com.brennaswitzer.cookbook.mapper.InventoryItemMapper;
 import com.brennaswitzer.cookbook.mapper.SliceMapper;
 import com.brennaswitzer.cookbook.payload.InventoryItemInfo;
+import com.brennaswitzer.cookbook.payload.InventoryTxInfo;
 import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.services.InventoryService;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/inventory")
@@ -28,7 +27,7 @@ public class InventoryController {
     private SliceMapper sliceMapper;
 
     @RequestMapping(method = RequestMethod.GET)
-    Page<InventoryItemInfo> listInventory(
+    public Page<InventoryItemInfo> listInventory(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "pageSize", defaultValue = "25") int pageSize,
             @RequestParam(name = "sort", defaultValue = "ingredient.name") String sort,
@@ -44,6 +43,14 @@ public class InventoryController {
                         sort)
         ));
         return sliceMapper.sliceToPage(inv, itemMapper::itemToInfo);
+    }
+
+    @RequestMapping(value = "/tx", method = RequestMethod.POST)
+    public InventoryItemInfo newUnscopedTransaction(
+            @RequestBody InventoryTxInfo info
+    ) {
+        InventoryTx tx = service.createTransaction(info);
+        return itemMapper.itemToInfo(tx.getItem());
     }
 
 }
