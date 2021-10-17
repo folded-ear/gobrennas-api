@@ -69,6 +69,16 @@ public class Quantity {
     }
 
     public Quantity convertTo(UnitOfMeasure uom) {
+        if (units == null) {
+            if (uom == null) {
+                return this;
+            } else {
+                throw new NoConversionException(units, uom);
+            }
+        }
+        if (uom == null) {
+            throw new NoConversionException(units, uom);
+        }
         // this isn't really needed, but it'll save some allocation
         if (units.hasConversion(uom)) {
             return new Quantity(

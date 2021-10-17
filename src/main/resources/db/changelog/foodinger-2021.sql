@@ -191,3 +191,16 @@ alter table inventory_tx
 --changeset barneyb:inventory-uses-ingredients-not-just-pantry-items
 alter table inventory_item
     rename column pantry_item_id to ingredient_id;
+
+--changeset barneyb:allow-count-quantities-in-inventory
+alter table compound_quantity_components
+    drop constraint pk_compound_quantity_components,
+    alter column units_id drop not null;
+
+--changeset barneyb:index-inventory-structures
+create index idx_compound_quantity_components_compound_quantity
+    on compound_quantity_components (compound_quantity_id);
+create index idx_inventory_item_user_ingredient
+    on inventory_item (user_id, ingredient_id);
+create index idx_inventory_tx_item
+    on inventory_tx (item_id);
