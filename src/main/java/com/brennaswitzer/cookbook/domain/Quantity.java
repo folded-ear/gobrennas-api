@@ -24,10 +24,10 @@ public class Quantity {
                     val c = UnitOfMeasure.BY_NAME.compare(a.units, b.units);
                     if (c != 0) return c;
                 } else {
-                    return -1;
+                    return 1;
                 }
             } else if (b.hasUnits()) {
-                return 1;
+                return -1;
             }
             return (int) (a.quantity - b.quantity);
         }
