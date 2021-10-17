@@ -88,7 +88,7 @@ public class InventoryDatabaseTest {
         assertEquals(19, salt.getTxCount());
         assertEquals(expected, salt.getQuantity());
         assertEquals(19, salt.getTransactions().size());
-        CompoundQuantity total = CompoundQuantity.ZERO;
+        CompoundQuantity total = CompoundQuantity.zero();
         for (val tx : txRepo.findByItem(
                 salt,
                 Sort.by(
@@ -99,6 +99,28 @@ public class InventoryDatabaseTest {
             total = total.plus(tx.getQuantity());
         }
         assertEquals(expected, total);
+    }
+
+    @Test
+    public void multiUnitReset() {
+        val box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+        val grams = UnitOfMeasure.ensure(entityManager, "grams");
+
+        val salt = itemRepo.save(
+                new InventoryItem(
+                        principalAccess.getUser(),
+                        box.salt
+                )
+        );
+
+        salt.acquire(new Quantity(1, box.cup));
+        salt.acquire(new Quantity(2, box.lbs));
+        salt.acquire(new Quantity(3, box.tbsp));
+        salt.acquire(new Quantity(4, box.tsp));
+        salt.reset(new Quantity(5, grams));
+        System.out.println(salt);
+        assertEquals(new CompoundQuantity(new Quantity(5, grams)), salt.getQuantity());
     }
 
 }

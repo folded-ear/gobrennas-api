@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.domain;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 import javax.persistence.*;
 import java.util.*;
@@ -12,6 +13,25 @@ import java.util.*;
 // annotation at field or prop level is on a field.
 // Clearly still something to learn here. :)
 public class Quantity {
+
+    public static class ByUnitAndQuantityComparator implements Comparator<Quantity> {
+        @Override
+        public int compare(Quantity a, Quantity b) {
+            if (a == null) return b == null ? 0 : 1;
+            if (b == null) return -1;
+            if (a.hasUnits()) {
+                if (b.hasUnits()) {
+                    val c = UnitOfMeasure.BY_NAME.compare(a.units, b.units);
+                    if (c != 0) return c;
+                } else {
+                    return -1;
+                }
+            } else if (b.hasUnits()) {
+                return 1;
+            }
+            return (int) (a.quantity - b.quantity);
+        }
+    }
 
     // stupid IntelliJ / JPA Buddy
     @SuppressWarnings("EmbeddedNotMarkedInspection")

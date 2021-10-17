@@ -11,11 +11,31 @@ public class CompoundQuantityTest {
 
     @Test
     public void plus() {
-        val one = CompoundQuantity.ONE.plus(CompoundQuantity.ZERO);
-        val another = CompoundQuantity.ZERO.plus(CompoundQuantity.ONE);
+        val one = CompoundQuantity.one().plus(CompoundQuantity.zero());
+        val another = CompoundQuantity.zero().plus(CompoundQuantity.one());
         assertEquals(one, another);
         assertNotSame(one, another);
         assertNotSame(one.getComponents(), another.getComponents());
+    }
+
+    @Test
+    public void addingUnits() {
+        UnitOfMeasure oz = new UnitOfMeasure("oz");
+        UnitOfMeasure tbsp = new UnitOfMeasure("Tbsp");
+        val item = new InventoryItem();
+
+        val start = new CompoundQuantity(new Quantity(1, oz));
+        assertEquals(start, new CompoundQuantity(
+                new Quantity(1, oz)
+        ));
+        val next = start.plus(new Quantity(2, tbsp));
+        assertEquals(start, new CompoundQuantity(
+                new Quantity(1, oz)
+        ));
+        assertEquals(next, new CompoundQuantity(
+                new Quantity(1, oz),
+                new Quantity(2, tbsp)
+        ));
     }
 
     @Test

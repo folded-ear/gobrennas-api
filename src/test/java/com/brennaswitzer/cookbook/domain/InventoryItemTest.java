@@ -115,4 +115,42 @@ public class InventoryItemTest {
         assertEquals(2, item.getTxCount());
     }
 
+    @Test
+    public void resetPizza() {
+        UnitOfMeasure oz = new UnitOfMeasure("oz");
+        UnitOfMeasure tbsp = new UnitOfMeasure("Tbsp");
+        UnitOfMeasure tsp = new UnitOfMeasure("tsp");
+        UnitOfMeasure lbs = new UnitOfMeasure("lbs");
+        val item = new InventoryItem();
+
+        item.acquire(new Quantity(1, oz));
+        assertEquals(item.getQuantity(), new CompoundQuantity(
+                new Quantity(1, oz)
+        ));
+        item.acquire(new Quantity(2, tbsp));
+        assertEquals(item.getQuantity(), new CompoundQuantity(
+                new Quantity(1, oz),
+                new Quantity(2, tbsp)
+        ));
+        item.acquire(new Quantity(42, tsp));
+        assertEquals(item.getQuantity(), new CompoundQuantity(
+                new Quantity(1, oz),
+                new Quantity(2, tbsp),
+                new Quantity(42, tsp)
+        ));
+        item.acquire(new Quantity(3, tsp));
+        item.reset(new Quantity(2.5, lbs));
+        assertEquals(item.getQuantity(), new CompoundQuantity(
+                new Quantity(2.5, lbs)
+        ));
+
+        System.out.println("===============================================================");
+        for (val tx : item.getTransactions()) {
+            System.out.println(tx);
+        }
+        System.out.println("===============================================================");
+        System.out.println(item.getQuantity());
+        System.out.println("===============================================================");
+    }
+
 }

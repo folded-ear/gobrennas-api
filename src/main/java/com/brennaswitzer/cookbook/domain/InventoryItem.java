@@ -50,7 +50,7 @@ public class InventoryItem extends BaseEntity {
             optional = false
     )
     @Getter
-    private CompoundQuantity quantity = CompoundQuantity.ZERO;
+    private CompoundQuantity quantity = CompoundQuantity.zero();
 
     /**
      * This is a cache over {@link #transactions}.

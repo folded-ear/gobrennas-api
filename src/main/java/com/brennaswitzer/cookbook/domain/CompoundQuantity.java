@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 import lombok.var;
+import org.hibernate.annotations.SortComparator;
 
 import javax.persistence.*;
 import java.util.*;
@@ -12,9 +13,13 @@ import java.util.stream.Collectors;
 @Entity
 public class CompoundQuantity implements Cloneable {
 
-    public static final CompoundQuantity ZERO = new CompoundQuantity();
+    public static CompoundQuantity zero() {
+        return new CompoundQuantity();
+    }
 
-    public static final CompoundQuantity ONE = new CompoundQuantity(Quantity.ONE);
+    public static CompoundQuantity one() {
+        return new CompoundQuantity(Quantity.ONE);
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,19 +28,28 @@ public class CompoundQuantity implements Cloneable {
     private Long id;
 
     @ElementCollection
+    @SortComparator(Quantity.ByUnitAndQuantityComparator.class)
     @Getter
-    private Collection<Quantity> components;
+    private List<Quantity> components;
 
     public CompoundQuantity() {
         components = Collections.emptyList();
     }
 
     public CompoundQuantity(Quantity component) {
-        this(Collections.singleton(component));
+        this(Collections.singletonList(component));
+    }
+
+    public CompoundQuantity(Quantity... components) {
+        this(Arrays.asList(components));
     }
 
     public CompoundQuantity(Collection<Quantity> components) {
-        this.components = new ArrayList<>(components);
+        this.components = components
+                .stream()
+                .filter(q -> q.getQuantity() != 0)
+                .sorted(new Quantity.ByUnitAndQuantityComparator())
+                .collect(Collectors.toList());
     }
 
     public boolean isEmpty() {
