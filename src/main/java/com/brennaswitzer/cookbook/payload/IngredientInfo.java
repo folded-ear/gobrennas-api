@@ -120,13 +120,17 @@ public class IngredientInfo {
     private List<Ref> ingredients;
     @Setter
     private List<String> labels;
-    @Getter @Setter
+    @Getter
+    @Setter
     private Long ownerId;
-    @Getter @Setter
+    @Getter
+    @Setter
     private Integer yield;
-    @Getter @Setter
+    @Getter
+    @Setter
     private Integer calories;
-    @Getter @Setter
+    @Getter
+    @Setter
     private Integer totalTime;
     @Getter @Setter
     private String photo;
@@ -167,44 +171,6 @@ public class IngredientInfo {
             r.getPhoto(true).setFocusArray(photoFocus);
         }
         return r;
-    }
-
-    public static IngredientInfo from(Recipe r) {
-        IngredientInfo info = from((AggregateIngredient) r);
-        info.setType("Recipe");
-        info.setExternalUrl(r.getExternalUrl());
-        info.setDirections(r.getDirections());
-        info.setYield(r.getYield());
-        info.setTotalTime(r.getTotalTime());
-        info.setCalories(r.getCalories());
-        if (r.getOwner() != null) {
-            info.setOwnerId(r.getOwner().getId());
-        }
-        return info;
-    }
-
-    public static IngredientInfo from(AggregateIngredient it) {
-        IngredientInfo info = from((Ingredient) it);
-        if (it.getIngredients() != null) {
-            info.setIngredients(it.getIngredients()
-                    .stream()
-                    .map(Ref::from)
-                    .collect(Collectors.toList()));
-        }
-        return info;
-    }
-
-    public static IngredientInfo from(Ingredient it) {
-        IngredientInfo info = new IngredientInfo();
-        info.setId(it.getId());
-        info.setName(it.getName());
-        if (it.hasLabels()) {
-            info.setLabels(it.getLabels()
-                    .stream()
-                    .map(Label::getName)
-                    .collect(Collectors.toList()));
-        }
-        return info;
     }
 
 }

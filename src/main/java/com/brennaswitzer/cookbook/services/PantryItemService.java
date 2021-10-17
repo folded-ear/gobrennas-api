@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.PantryItem;
-import com.brennaswitzer.cookbook.mapper.PantryItemMapper;
+import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.message.IngredientMessage;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class PantryItemService {
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    private PantryItemMapper itemMapper;
+    private IngredientMapper ingredientMapper;
 
     public PantryItem saveOrUpdatePantryItem(PantryItem item) {
         return pantryItemRepository.save(item);
@@ -61,7 +61,7 @@ public class PantryItemService {
         IngredientMessage m = new IngredientMessage();
         m.setType("update");
         m.setId(it.getId());
-        m.setInfo(itemMapper.pantryItemToInfo(it));
+        m.setInfo(ingredientMapper.pantryItemToInfo(it));
         messagingTemplate.convertAndSend("/topic/pantry-items", m);
     }
 

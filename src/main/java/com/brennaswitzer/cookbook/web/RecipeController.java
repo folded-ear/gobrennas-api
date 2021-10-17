@@ -4,14 +4,13 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
-import com.brennaswitzer.cookbook.mapper.PantryItemMapper;
+import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.StorageService;
-import com.brennaswitzer.cookbook.util.InfoHelper;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -54,10 +53,7 @@ public class RecipeController {
     private ShareHelper shareHelper;
 
     @Autowired
-    private InfoHelper infoHelper;
-
-    @Autowired
-    private PantryItemMapper pantryItemMapper;
+    private IngredientMapper ingredientMapper;
 
     @GetMapping("/")
     public Page<IngredientInfo> getRecipes(
@@ -67,7 +63,7 @@ public class RecipeController {
             @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
     ) {
         Slice<Recipe> rs = recipeService.searchRecipes(scope, filter, PageRequest.of(page, pageSize));
-        return Page.from(rs.map(infoHelper::getRecipeInfo));
+        return Page.from(rs.map(ingredientMapper::recipeToInfo));
     }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -91,7 +87,7 @@ public class RecipeController {
 
         labelService.updateLabels(recipe1, info.getLabels());
 
-        return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.CREATED);
+        return new ResponseEntity<>(ingredientMapper.recipeToInfo(recipe1), HttpStatus.CREATED);
     }
 
     @SuppressWarnings("MVCPathVariableInspection")
@@ -112,7 +108,7 @@ public class RecipeController {
         Recipe recipe1 = recipeService.updateRecipe(recipe);
         labelService.updateLabels(recipe1, info.getLabels());
 
-        return new ResponseEntity<>(infoHelper.getRecipeInfo(recipe1), HttpStatus.OK);
+        return new ResponseEntity<>(ingredientMapper.recipeToInfo(recipe1), HttpStatus.OK);
     }
 
     @PutMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -122,13 +118,13 @@ public class RecipeController {
         //noinspection OptionalGetWithoutIsPresent
         Recipe recipe = recipeService.findRecipeById(id).get();
         setPhoto(photo, recipe);
-        return infoHelper.getRecipeInfo(recipeService.updateRecipe(recipe));
+        return ingredientMapper.recipeToInfo(recipeService.updateRecipe(recipe));
     }
 
     @GetMapping("/{id}")
     public IngredientInfo getRecipeById(@PathVariable("id") Long id) {
         Recipe recipe = getRecipe(id);
-        return infoHelper.getRecipeInfo(recipe);
+        return ingredientMapper.recipeToInfo(recipe);
     }
 
     @GetMapping("/share/{id}")
@@ -191,13 +187,11 @@ public class RecipeController {
         IngredientInfo info;
 
         if (i instanceof Recipe) {
-            info = infoHelper.getRecipeInfo((Recipe) i);
+            info = ingredientMapper.recipeToInfo((Recipe) i);
         } else if (i instanceof PantryItem) {
-            info = pantryItemMapper.pantryItemToInfo((PantryItem) i);
+            info = ingredientMapper.pantryItemToInfo((PantryItem) i);
         } else {
-            info = (IngredientInfo) IngredientInfo.class
-                    .getMethod("from", i.getClass())
-                    .invoke(null, i);
+            info = ingredientMapper.ingredientToInfo(i);
         }
 
         return info;

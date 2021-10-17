@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = {
-        PantryItemMapper.class,
+        IngredientMapper.class,
         QuantityMapper.class,
         LabelMapper.class,
 })
