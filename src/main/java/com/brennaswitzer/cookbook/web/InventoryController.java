@@ -31,7 +31,7 @@ public class InventoryController {
     Page<InventoryItemInfo> listInventory(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "pageSize", defaultValue = "25") int pageSize,
-            @RequestParam(name = "sort", defaultValue = "pantryItem.name") String sort,
+            @RequestParam(name = "sort", defaultValue = "ingredient.name") String sort,
             @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir
     ) {
         val inv = service.listInventory(PageRequest.of(

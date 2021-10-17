@@ -10,7 +10,7 @@ import java.util.Collection;
 public class InventoryItemInfo {
 
     Long id;
-    IngredientInfo pantryItem;
+    IngredientInfo ingredient;
     Collection<QuantityInfo> quantity;
     int txCount;
 

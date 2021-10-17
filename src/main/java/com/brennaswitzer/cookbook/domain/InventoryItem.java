@@ -21,14 +21,14 @@ public class InventoryItem extends BaseEntity {
     @ManyToOne
     @Getter
     @Setter
-    private PantryItem pantryItem;
+    private Ingredient ingredient;
 
     public InventoryItem() {
     }
 
-    public InventoryItem(User user, PantryItem pantryItem) {
+    public InventoryItem(User user, Ingredient ingredient) {
         this.user = user;
-        this.pantryItem = pantryItem;
+        this.ingredient = ingredient;
     }
 
     @SuppressWarnings("FieldMayBeFinal")
@@ -111,7 +111,7 @@ public class InventoryItem extends BaseEntity {
 
     @Override
     public String toString() {
-        return "InventoryItem(pantryItem=" + pantryItem + ", available=" + quantity + ")";
+        return "InventoryItem(ingredient=" + ingredient + ", available=" + quantity + ")";
     }
 
 }

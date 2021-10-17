@@ -187,3 +187,7 @@ alter table inventory_tx
     add constraint fk_inventory_tx_item_id foreign key (item_id) references inventory_item on delete cascade,
     add constraint fk_inventory_tx_quantity_id foreign key (quantity_id) references compound_quantity,
     add constraint fk_inventory_tx_new_quantity_id foreign key (new_quantity_id) references compound_quantity;
+
+--changeset barneyb:inventory-uses-ingredients-not-just-pantry-items
+alter table inventory_item
+    rename column pantry_item_id to ingredient_id;
