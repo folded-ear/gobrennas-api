@@ -8,6 +8,7 @@ import org.mapstruct.factory.Mappers;
 @Mapper(uses = {
         PantryItemMapper.class,
         QuantityMapper.class,
+        LabelMapper.class,
 })
 public interface InventoryItemMapper {
 
