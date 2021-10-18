@@ -30,10 +30,10 @@ public class CompoundQuantity implements Cloneable {
     @ElementCollection
     @SortComparator(Quantity.ByUnitAndQuantityComparator.class)
     @Getter
-    private List<Quantity> components;
+    private SortedSet<Quantity> components;
 
     public CompoundQuantity() {
-        components = Collections.emptyList();
+        components = Collections.emptySortedSet();
     }
 
     public CompoundQuantity(Quantity component) {
@@ -49,7 +49,11 @@ public class CompoundQuantity implements Cloneable {
                 .stream()
                 .filter(q -> q.getQuantity() != 0)
                 .sorted(new Quantity.ByUnitAndQuantityComparator())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(CompoundQuantity::constructComponentsSet));
+    }
+
+    private static SortedSet<Quantity> constructComponentsSet() {
+        return new TreeSet<>(new Quantity.ByUnitAndQuantityComparator());
     }
 
     public boolean isEmpty() {
@@ -123,7 +127,8 @@ public class CompoundQuantity implements Cloneable {
     public CompoundQuantity clone() {
         try {
             CompoundQuantity clone = (CompoundQuantity) super.clone();
-            clone.components = new ArrayList<>(components);
+            clone.components = constructComponentsSet();
+            clone.components.addAll(components);
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
