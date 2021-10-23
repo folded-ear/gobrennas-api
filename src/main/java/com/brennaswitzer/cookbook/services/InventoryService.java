@@ -4,10 +4,10 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.InventoryItem;
 import com.brennaswitzer.cookbook.domain.InventoryTx;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.IngredientRefInfo;
 import com.brennaswitzer.cookbook.payload.InventoryTxInfo;
 import com.brennaswitzer.cookbook.repositories.IngredientRepository;
 import com.brennaswitzer.cookbook.repositories.InventoryItemRepository;
+import com.brennaswitzer.cookbook.repositories.InventoryTxRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,9 @@ public class InventoryService {
 
     @Autowired
     private InventoryItemRepository itemRepository;
+
+    @Autowired
+    private InventoryTxRepository txRepository;
 
     @Autowired
     private IngredientRepository ingredientRepository;
@@ -55,7 +58,16 @@ public class InventoryService {
         return item.transaction(info.getType(), info.extractQuantity(entityManager));
     }
 
-    private Ingredient getIngredientForInfo(IngredientRefInfo info) {
+    public Slice<InventoryTx> listTransactions(Long itemId, Pageable page) {
+        val user = principalAccess.getUser();
+        val item = itemRepository.getOne(itemId);
+        if (!user.equals(item.getUser())) {
+            throw new IllegalArgumentException("Unknown itemId " + itemId);
+        }
+        return txRepository.findByItem(item, page);
+    }
+
+    private Ingredient getIngredientForInfo(InventoryTxInfo info) {
         if (info.hasIngredientId()) {
             val oIng = ingredientRepository.findById(info.getIngredientId());
             if (oIng.isPresent()) return oIng.get();

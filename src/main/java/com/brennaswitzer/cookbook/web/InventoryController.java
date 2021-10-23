@@ -53,4 +53,24 @@ public class InventoryController {
         return itemMapper.itemToInfo(tx.getItem());
     }
 
+    @RequestMapping(value = "/item/{itemId}/tx", method = RequestMethod.GET)
+    public Page<InventoryTxInfo> listTransactions(
+            @PathVariable(name = "itemId") Long itemId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "25") int pageSize,
+            @RequestParam(name = "sort", defaultValue = "createdAt") String sort,
+            @RequestParam(name = "sortDir", defaultValue = "desc") String sortDir
+    ) {
+        val inv = service.listTransactions(itemId, PageRequest.of(
+                page,
+                pageSize,
+                Sort.by(
+                        "desc".equalsIgnoreCase(sortDir)
+                                ? Sort.Direction.DESC
+                                : Sort.Direction.ASC,
+                        sort)
+        ));
+        return sliceMapper.sliceToPage(inv, itemMapper::txToInfo);
+    }
+
 }
