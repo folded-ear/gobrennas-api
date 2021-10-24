@@ -16,7 +16,7 @@ import java.util.function.BiFunction;
 
 public final class NumberUtils {
 
-    protected static final Log logger = LogFactory.getLog(NumberUtils.class);
+    private static final Log logger = LogFactory.getLog(NumberUtils.class);
 
     public static class NumberWithRange {
         private final double number;
@@ -51,6 +51,19 @@ public final class NumberUtils {
     }
 
     private static class NumVis extends NumberBaseVisitor<NumberWithRange> {
+
+        @Override
+        public NumberWithRange visitStart(NumberParser.StartContext ctx) {
+            NumberWithRange nwr = super.visitStart(ctx);
+            if (ctx.d == null) {
+                return nwr;
+            }
+            return aggregateResult(
+                    val(-1, ctx),
+                    nwr,
+                    (a, b) -> a * b
+            );
+        }
 
         @Override
         public NumberWithRange visitFraction(NumberParser.FractionContext ctx) {

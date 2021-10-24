@@ -129,8 +129,8 @@ update ingredient set
     created_at = now()
 where created_at is null;
 
-update ingredient set
-    updated_at = now()
+update ingredient
+set updated_at = now()
 where updated_at is null;
 
 alter table ingredient
@@ -138,3 +138,69 @@ alter table ingredient
     alter created_at set not null,
     alter updated_at set default now(),
     alter updated_at set not null;
+
+--changeset barneyb:user-inventory
+create table compound_quantity
+(
+    id bigserial not null,
+    constraint pk_compound_quantity primary key (id)
+);
+create table compound_quantity_components
+(
+    compound_quantity_id bigint not null,
+    quantity             double precision,
+    units_id             bigint,
+    constraint pk_compound_quantity_components primary key (compound_quantity_id, units_id)
+);
+create table inventory_item
+(
+    id             bigserial not null,
+    _eqkey         bigint    not null,
+    created_at     timestamp not null,
+    updated_at     timestamp not null,
+    tx_count       integer   not null,
+    pantry_item_id bigint    not null,
+    quantity_id    bigint    not null,
+    user_id        bigint    not null,
+    constraint pk_inventory_item primary key (id)
+);
+create table inventory_tx
+(
+    id              bigserial not null,
+    dtype           integer   not null,
+    _eqkey          bigint    not null,
+    created_at      timestamp not null,
+    updated_at      timestamp not null,
+    item_id         bigint,
+    quantity_id     bigint    not null,
+    new_quantity_id bigint    not null,
+    constraint pk_inventory_tx primary key (id)
+);
+alter table compound_quantity_components
+    add constraint fk_compound_quantity_components_compound_quantity_id foreign key (compound_quantity_id) references compound_quantity on delete cascade,
+    add constraint fk_compound_quantity_components_units_id foreign key (units_id) references unit_of_measure;
+alter table inventory_item
+    add constraint fk_inventory_item_user_id foreign key (user_id) references users on delete cascade,
+    add constraint fk_inventory_item_pantry_item_id foreign key (pantry_item_id) references ingredient,
+    add constraint fk_inventory_item_quantity_id foreign key (quantity_id) references compound_quantity;
+alter table inventory_tx
+    add constraint fk_inventory_tx_item_id foreign key (item_id) references inventory_item on delete cascade,
+    add constraint fk_inventory_tx_quantity_id foreign key (quantity_id) references compound_quantity,
+    add constraint fk_inventory_tx_new_quantity_id foreign key (new_quantity_id) references compound_quantity;
+
+--changeset barneyb:inventory-uses-ingredients-not-just-pantry-items
+alter table inventory_item
+    rename column pantry_item_id to ingredient_id;
+
+--changeset barneyb:allow-count-quantities-in-inventory
+alter table compound_quantity_components
+    drop constraint pk_compound_quantity_components,
+    alter column units_id drop not null;
+
+--changeset barneyb:index-inventory-structures
+create index idx_compound_quantity_components_compound_quantity
+    on compound_quantity_components (compound_quantity_id);
+create index idx_inventory_item_user_ingredient
+    on inventory_item (user_id, ingredient_id);
+create index idx_inventory_tx_item
+    on inventory_tx (item_id);

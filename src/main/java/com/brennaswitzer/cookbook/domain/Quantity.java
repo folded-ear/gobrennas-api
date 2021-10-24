@@ -3,20 +3,45 @@ package com.brennaswitzer.cookbook.domain;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 import javax.persistence.*;
 import java.util.*;
 
 @Embeddable
 @Access(AccessType.FIELD)   // It is unclear why this is needed. The only JPA
-                            // annotation at field or prop level is on a field.
-                            // Clearly still something to learn here. :)
+// annotation at field or prop level is on a field.
+// Clearly still something to learn here. :)
 public class Quantity {
 
+    public static class ByUnitAndQuantityComparator implements Comparator<Quantity> {
+        @Override
+        public int compare(Quantity a, Quantity b) {
+            if (a == null) return b == null ? 0 : 1;
+            if (b == null) return -1;
+            if (a.hasUnits()) {
+                if (b.hasUnits()) {
+                    val c = UnitOfMeasure.BY_NAME.compare(a.units, b.units);
+                    if (c != 0) return c;
+                } else {
+                    return 1;
+                }
+            } else if (b.hasUnits()) {
+                return -1;
+            }
+            return (int) (a.quantity - b.quantity);
+        }
+    }
+
+    // stupid IntelliJ / JPA Buddy
+    @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final Quantity ZERO = count(0);
+
+    // stupid IntelliJ / JPA Buddy
+    @SuppressWarnings("EmbeddedNotMarkedInspection")
     public static final Quantity ONE = count(1);
 
-    public static Quantity count(double count) {
+    public static Quantity count(Number count) {
         return new Quantity(count, null);
     }
 
@@ -34,8 +59,8 @@ public class Quantity {
     public Quantity() {
     }
 
-    public Quantity(double quantity, UnitOfMeasure units) {
-        this.quantity = quantity;
+    public Quantity(Number quantity, UnitOfMeasure units) {
+        this.quantity = quantity.doubleValue();
         this.units = units;
     }
 
@@ -44,6 +69,16 @@ public class Quantity {
     }
 
     public Quantity convertTo(UnitOfMeasure uom) {
+        if (units == null) {
+            if (uom == null) {
+                return this;
+            } else {
+                throw new NoConversionException(units, uom);
+            }
+        }
+        if (uom == null) {
+            throw new NoConversionException(units, uom);
+        }
         // this isn't really needed, but it'll save some allocation
         if (units.hasConversion(uom)) {
             return new Quantity(
@@ -57,7 +92,11 @@ public class Quantity {
         while (!queue.isEmpty()) {
             Quantity q = queue.remove();
             if (!visited.add(q.units)) continue;
-            if (q.units.equals(uom)) return q;
+            if (q.units.equals(uom)) {
+                // write it down for later
+                units.addConversion(q.units, q.quantity / quantity);
+                return q;
+            }
             for (Map.Entry<UnitOfMeasure, Double> e : q.units.getConversions().entrySet()) {
                 if (visited.contains(e.getKey())) continue;
                 queue.add(new Quantity(
@@ -69,10 +108,16 @@ public class Quantity {
     }
 
     public Quantity plus(Quantity that) {
+        if (0d == that.quantity) return this;
+        if (0d == this.quantity) return that;
         if (Objects.equals(units, that.units)) {
             return new Quantity(quantity + that.quantity, units);
         }
         return plus(that.convertTo(units));
+    }
+
+    public Quantity minus(Quantity that) {
+        return plus(new Quantity(-that.quantity, that.units));
     }
 
     public Quantity times(Double factor) {

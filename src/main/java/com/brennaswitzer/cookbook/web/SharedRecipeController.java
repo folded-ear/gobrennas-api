@@ -1,13 +1,10 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.domain.AggregateIngredient;
-import com.brennaswitzer.cookbook.domain.Ingredient;
-import com.brennaswitzer.cookbook.domain.IngredientRef;
-import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.UserInfo;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
-import com.brennaswitzer.cookbook.util.InfoHelper;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AuthorizationServiceException;
@@ -30,7 +27,7 @@ public class SharedRecipeController {
     private RecipeRepository repo;
 
     @Autowired
-    private InfoHelper infoHelper;
+    private IngredientMapper ingredientMapper;
 
     @GetMapping("/{slug}/{secret}/{id}.json")
     @ResponseBody
@@ -46,17 +43,17 @@ public class SharedRecipeController {
         Recipe r = repo.getOne(id);
         Queue<IngredientRef> queue = new LinkedList<>(r.getIngredients());
         List<IngredientInfo> ings = new ArrayList<>();
-        ings.add(infoHelper.getRecipeInfo(r));
+        ings.add(ingredientMapper.recipeToInfo(r));
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
             Ingredient i = ir.getIngredient();
             if (i instanceof Recipe) {
-                ings.add(IngredientInfo.from((Recipe) i));
-            } else if (i instanceof AggregateIngredient) {
-                ings.add(IngredientInfo.from((AggregateIngredient) i));
+                ings.add(ingredientMapper.recipeToInfo((Recipe) i));
+            } else if (i instanceof PantryItem) {
+                ings.add(ingredientMapper.pantryItemToInfo((PantryItem) i));
             } else {
-                ings.add(IngredientInfo.from(i));
+                ings.add(ingredientMapper.ingredientToInfo(i));
             }
             if (i instanceof AggregateIngredient) {
                 queue.addAll(((AggregateIngredient) i).getIngredients());

@@ -3,10 +3,11 @@ package com.brennaswitzer.cookbook.domain.measure;
 import com.brennaswitzer.cookbook.domain.NoConversionException;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
+import lombok.val;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class QuantityTest {
 
@@ -74,4 +75,52 @@ public class QuantityTest {
     public void noConversion() {
         new Quantity(1, yard).convertTo(gram);
     }
+
+    @Test
+    public void plus() {
+        assertEquals(
+                new Quantity(1, yard),
+                new Quantity(0.5, yard)
+                        .plus(new Quantity(0.5, yard))
+        );
+    }
+
+    @Test
+    public void shortCircuitPlus() {
+        assertSame(
+                Quantity.ONE,
+                Quantity.ONE.plus(Quantity.ZERO)
+        );
+        assertSame(
+                Quantity.ONE,
+                Quantity.ZERO.plus(Quantity.ONE)
+        );
+    }
+
+    @Test
+    public void minus() {
+        assertEquals(
+                new Quantity(0.5, yard),
+                new Quantity(1, yard)
+                        .minus(new Quantity(0.5, yard))
+        );
+    }
+
+    @Test
+    public void unitAndQuantityComparator() {
+        val tsp = new UnitOfMeasure("tsp");
+        val gal = new UnitOfMeasure("gal");
+        val comp = new Quantity.ByUnitAndQuantityComparator();
+        // null unit before non-null
+        assertTrue(comp.compare(Quantity.count(1), new Quantity(5, gal)) < 0);
+        assertTrue(comp.compare(Quantity.count(5), new Quantity(1, gal)) < 0);
+        // alpha by unit
+        assertTrue(comp.compare(new Quantity(1, gal), new Quantity(5, tsp)) < 0);
+        assertTrue(comp.compare(new Quantity(5, gal), new Quantity(1, tsp)) < 0);
+        // break null unit ties w/ quantity
+        assertTrue(comp.compare(new Quantity(1, tsp), new Quantity(5, tsp)) < 0);
+        // break non-null unit ties w/ quantity
+        assertTrue(comp.compare(Quantity.count(1), Quantity.count(5)) < 0);
+    }
+
 }
