@@ -29,12 +29,12 @@ However, you _did_ just run the full regression suite (as would `./mvnw test`)!
 
 ## Run (For Development)
 
-You'll need a recent-ish Postgres (let's say 9.6 or newer) database to run
+You'll need a recent-ish Postgres (let's say 10 or newer) database to run
 against. Note that your Postgres *MUST* be running on `5432` (the standard
 Postgres port). If you're using a decent OS - or Docker Desktop; 🙄 - you'll
 have `docker` available, which is a great choice:
 
-    docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:9.6
+    docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:10
 
 If you already have existing PG infrastructure, create a new database (unless
 your `postgres` database remains pristine, and you want to use it).
