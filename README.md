@@ -9,7 +9,9 @@ I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
 ## Build and Test
 
 You'll need a recent-ish Maven and Node/NPM pair to build. Specific versions may
-be stipulated at some point, but let's just say at least Maven 3 and Node 16.
+be stipulated at some point, but let's just say at least Maven 3 and Node 14.
+Shush about "old Node"; Maven 3 is the same age as _Node itself_, so Node 14 is
+pretty damn new. Take your ADHD pills and let's keep going.
 
 The easiest way is to install `nvm` (see https://github.com/nvm-sh/nvm ) and use
 the included `mvnw` script:
