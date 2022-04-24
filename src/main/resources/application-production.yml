@@ -37,4 +37,5 @@ app:
 
 logging:
   level:
-    root: debug
+    org.springframework: debug
+    com.brennaswitzer: debug
