@@ -8,15 +8,15 @@ I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
 
 ## Build and Test
 
-You'll need a recent-ish Maven and Node/NPM pair to build. Specific versions may
-be stipulated at some point, but let's just say at least Maven 3 and Node 14.
-Shush about "old Node"; Maven 3 is the same age as _Node itself_, so Node 14 is
-pretty damn new. Take your ADHD pills and let's keep going.
+You'll need Java 8, Maven 3, and Node 14 to build. More specific versions may be
+stipulated at some point. And shush about "old Node"; Maven 3 is the same age as
+_Node itself_, so Node 14 is pretty damn new. Take your ADHD pills and let's
+keep going.
 
 The easiest way is to install `nvm` (see https://github.com/nvm-sh/nvm ) and use
 the included `mvnw` script:
 
-    nvm use # run `nvm install` if it says you need to
+    nvm install
     cd client
     npm install
     npm run build
@@ -43,7 +43,7 @@ To run the app, you'll need two terminals, one for the server:
     RDS_HOSTNAME=localhost \
     RDS_DB_NAME=postgres \
     RDS_USERNAME=postgres \
-    RDS_PASSWORD=postgres \
+    RDS_PASSWORD=passwd \
     ./mvnw spring-boot:run
 
 and one for the client:
