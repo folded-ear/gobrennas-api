@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 public class StorageConfig {
 
-    @Profile({"production", "development"})
+    @Profile({"production", "default"})
     @Bean
     public StorageService s3Storage(AWSProperties awsProps, AmazonS3 s3client) {
         return new S3StorageService(s3client, awsProps.getRegion(), awsProps.getBucketName());
