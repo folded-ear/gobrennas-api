@@ -1,8 +1,9 @@
 package com.brennaswitzer.cookbook.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.brennaswitzer.cookbook.util.SlugUtils.toSlug;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SlugUtilsTest {
 
@@ -16,9 +17,10 @@ public class SlugUtilsTest {
         assert "team-usa".equals(toSlug("TeamUSA"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void refuseNull() {
-        toSlug(null);
+        assertThrows(IllegalArgumentException.class, () ->
+                toSlug(null));
     }
 
 }

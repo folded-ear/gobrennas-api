@@ -1,9 +1,9 @@
 package com.brennaswitzer.cookbook.domain;
 
 import lombok.val;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InventoryItemTest {
     private final CompoundQuantity neg25 = new CompoundQuantity(Quantity.count(-25));

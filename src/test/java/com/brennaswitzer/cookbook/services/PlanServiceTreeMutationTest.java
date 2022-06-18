@@ -4,9 +4,8 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Task;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
@@ -15,13 +14,16 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class PlanServiceTreeMutationTest {
 
     private TaskRepository repo;
 
     private PlanService service;
 
-    @Before
+    @BeforeEach
     public void _setUpRepo() {
         final Map<Long, Task> database = new HashMap<>();
         final AtomicLong idSeq = new AtomicLong();
@@ -52,9 +54,10 @@ public class PlanServiceTreeMutationTest {
     }
 
     private void checkKids(Task parent, Task... kids) {
-        Assert.assertEquals("Children of " + parent + " are wrong:",
+        assertEquals(
                 Arrays.asList(kids),
-                parent.getOrderedSubtasksView());
+                parent.getOrderedSubtasksView(),
+                "Children of " + parent + " are wrong:");
     }
 
     @Test
@@ -298,14 +301,15 @@ public class PlanServiceTreeMutationTest {
         checkKids(d2, b1, b2);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void refuseToCreateCycles() {
         Task l = new TaskList("the list"),
                 a = new Task("a").of(l),
                 a1 = new Task("a1").of(a);
         repo.save(l);
 
-        mutate(a1, null, a);
+        assertThrows(IllegalArgumentException.class, () ->
+                mutate(a1, null, a));
     }
 
 }

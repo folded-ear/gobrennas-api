@@ -4,16 +4,16 @@ import com.brennaswitzer.cookbook.domain.NoConversionException;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import lombok.val;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class QuantityTest {
 
     private UnitOfMeasure inch, foot, yard, gram;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         inch = new UnitOfMeasure("inch", "in", "inches");
         foot = new UnitOfMeasure("foot", "ft", "feet");
@@ -71,9 +71,11 @@ public class QuantityTest {
         );
     }
 
-    @Test(expected = NoConversionException.class)
+    @Test
     public void noConversion() {
-        new Quantity(1, yard).convertTo(gram);
+        Quantity q = new Quantity(1, yard);
+        assertThrows(NoConversionException.class, () ->
+                q.convertTo(gram));
     }
 
     @Test

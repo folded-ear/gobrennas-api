@@ -1,13 +1,13 @@
 package com.brennaswitzer.cookbook.util;
 
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RawUtilsTest {
 
