@@ -8,17 +8,20 @@ spring:
     allow-circular-references: true
   datasource:
     driverClassName: org.postgresql.Driver
-    platform: postgres
-    url: jdbc:postgresql://${RDS_HOSTNAME}:5432/${RDS_DB_NAME}
+    url: jdbc:postgresql://${RDS_HOSTNAME}:${RDS_PORT:5432}/${RDS_DB_NAME}
     username: ${RDS_USERNAME}
     password: ${RDS_PASSWORD}
+  sql:
+    init:
+      platform: postgres
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     generate-ddl: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob:
             non_contextual_creation: true
@@ -29,23 +32,27 @@ spring:
       client:
         registration:
           google:
-            # these keys come from the spring-social demo app. not ideal, but works!
-            clientId: 5014057553-8gm9um6vnli3cle5rgigcdjpdrid14m9.apps.googleusercontent.com
-            clientSecret: tWZKVLxaD_ARWsriiiUFYoIk
-            redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
+            # the Foodinger Dev credential, locked to localhost
+            clientId: 460345342407-j9tabdu6epe7m3nth1v5403ffs91vmm6.apps.googleusercontent.com
+            clientSecret: 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
+            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
               - profile
 app:
+  # where 'index.html' lives from the UA's perspective
+  public-url: http://localhost:3001/
   aws:
     region: us-west-2
     access-key: ${AWS_ACCESS_KEY}
     secret-key: ${AWS_SECRET_KEY}
-  # where 'index.html' lives from the UA's perspective
-  public-url: http://localhost:3001/
   auth:
     tokenSecret: ${TOKEN_SECRET}
     tokenExpirationMsec: 864000000
   oauth2:
+    # After successfully authenticating with the OAuth2 Provider,
+    # we'll be generating an auth token for the user and sending the token to the
+    # redirectUri mentioned by the client in the /oauth2/authorize request.
+    # We're not using cookies because they won't work well in mobile clients.
     authorizedRedirectUris:
-      - http://localhost:3001/post-oauth2/redirect
+      - ${app.public-url}post-oauth2/redirect

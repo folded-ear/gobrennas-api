@@ -30,8 +30,7 @@ However, you _did_ just run the full regression suite (as would `./mvnw test`)!
 ## Run (For Development)
 
 You'll need a recent-ish Postgres (let's say 10 or newer) database to run
-against. Note that your Postgres *MUST* be running on `5432` (the standard
-Postgres port). If you're using a decent OS - or Docker Desktop; 🙄 - you'll
+against. If you're using a decent OS - or Docker Desktop; 🙄 - you'll
 have `docker` available, which is a great choice:
 
     docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:10
@@ -54,6 +53,10 @@ and one for the client:
 
 The latter should have opened http://localhost:3001/ in your default browser,
 but if not, hit that link manually. BAM.
+
+You probably want to create a `src/main/resources/application-default.yml` with
+setting (look to the other `application*.yml` in that directory for inspiration)
+instead of using environment variables. But either works.
 
 ## Run (For Production)
 
