@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.domain;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AclTest {
 
@@ -48,22 +48,24 @@ public class AclTest {
         assertNull(acl.getGrant(alice));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void cantAddOwnerGrants() {
         Acl acl = new Acl();
         User alice = new User();
         acl.setOwner(alice);
 
-        acl.setGrant(alice, AccessLevel.VIEW);
+        assertThrows(UnsupportedOperationException.class, () ->
+                acl.setGrant(alice, AccessLevel.VIEW));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void cantRemoveOwnerGrants() {
         Acl acl = new Acl();
         User alice = new User();
         acl.setOwner(alice);
 
-        acl.deleteGrant(alice);
+        assertThrows(UnsupportedOperationException.class, () ->
+                acl.deleteGrant(alice));
     }
 
     @Test

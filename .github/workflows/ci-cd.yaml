@@ -27,7 +27,7 @@ jobs:
           npm run build
           mv build ../public_html
           npm test
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v2
         with:
           java-version: '8'

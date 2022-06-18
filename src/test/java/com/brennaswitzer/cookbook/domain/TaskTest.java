@@ -1,16 +1,18 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.RecipeBox;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TaskTest {
 
     private void assertBefore(Task first, Task second) {
-        assertTrue(first.getName() + " (" + first.getPosition() + ") is before " + second.getName() + " (" + second.getPosition() + ")",
-                first.getPosition() < second.getPosition());
+        assertTrue(
+                first.getPosition() < second.getPosition(),
+                first.getName() + " (" + first.getPosition() + ") is before " + second.getName() + " (" + second.getPosition() + ")"
+        );
     }
 
     @Test

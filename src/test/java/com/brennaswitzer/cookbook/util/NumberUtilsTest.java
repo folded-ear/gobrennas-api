@@ -1,11 +1,11 @@
 package com.brennaswitzer.cookbook.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.brennaswitzer.cookbook.util.NumberUtils.parseNumber;
 import static com.brennaswitzer.cookbook.util.NumberUtils.parseNumberWithRange;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class NumberUtilsTest {
 

@@ -15,7 +15,7 @@ public class TextractConfig {
     @Autowired
     private TextractJobRepository jobRepository;
 
-    @Profile({"production", "development"})
+    @Profile({"production", "default"})
     @Bean
     public TextractProvider awsProvider(AWSProperties awsProps, AmazonTextract textractClient) {
         return new AWSTextractProvider(textractClient, jobRepository, awsProps.getBucketName());
