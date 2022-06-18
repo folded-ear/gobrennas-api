@@ -4,6 +4,8 @@ server:
       enabled: false
 
 spring:
+  main:
+    allow-circular-references: true
   datasource:
     driverClassName: org.postgresql.Driver
     platform: postgres
