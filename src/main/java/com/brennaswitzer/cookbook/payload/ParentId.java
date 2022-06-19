@@ -1,7 +1,12 @@
 package com.brennaswitzer.cookbook.payload;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.validation.constraints.NotNull;
 
+@Setter
+@Getter
 public class ParentId {
 
     @NotNull
@@ -12,14 +17,6 @@ public class ParentId {
 
     public ParentId(@NotNull Long parentId) {
         setParentId(parentId);
-    }
-
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
     }
 
 }

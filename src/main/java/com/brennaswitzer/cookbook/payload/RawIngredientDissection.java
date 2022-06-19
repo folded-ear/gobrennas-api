@@ -1,9 +1,14 @@
 package com.brennaswitzer.cookbook.payload;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Function;
 
+@Setter
+@Getter
 public class RawIngredientDissection {
 
     // this is "duplicated" as processRecognizedItem
@@ -29,11 +34,11 @@ public class RawIngredientDissection {
 
         Function<Optional<RecognizedItem.Range>, Section> sectionFromRange = or ->
                 or.map(r -> new Section(
-                        stripMarkers.apply(
-                            it.getRaw().substring(r.getStart(), r.getEnd())),
-                        r.getStart(),
-                        r.getEnd())
-                )
+                                stripMarkers.apply(
+                                        it.getRaw().substring(r.getStart(), r.getEnd())),
+                                r.getStart(),
+                                r.getEnd())
+                        )
                         .orElse(null);
 
         List<Optional<RecognizedItem.Range>> ranges = new ArrayList<>(3);
@@ -75,24 +80,8 @@ public class RawIngredientDissection {
         this.raw = raw;
     }
 
-    public String getRaw() {
-        return raw;
-    }
-
-    public void setRaw(String raw) {
-        this.raw = raw;
-    }
-
     public boolean hasQuantity() {
         return quantity != null;
-    }
-
-    public Section getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Section quantity) {
-        this.quantity = quantity;
     }
 
     public String getQuantityText() {
@@ -104,14 +93,6 @@ public class RawIngredientDissection {
         return units != null;
     }
 
-    public Section getUnits() {
-        return units;
-    }
-
-    public void setUnits(Section units) {
-        this.units = units;
-    }
-
     public String getUnitsText() {
         if (this.units == null) return null;
         return this.units.text;
@@ -121,21 +102,9 @@ public class RawIngredientDissection {
         return name != null;
     }
 
-    public Section getName() {
-        return name;
-    }
-
-    public void setName(Section name) {
-        this.name = name;
-    }
-
     public String getNameText() {
         if (this.name == null) return null;
         return this.name.text;
-    }
-
-    public String getPrep() {
-        return prep;
     }
 
     public void setPrep(String prep) {

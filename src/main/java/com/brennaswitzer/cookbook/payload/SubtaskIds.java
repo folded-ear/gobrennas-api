@@ -1,9 +1,14 @@
 package com.brennaswitzer.cookbook.payload;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+@Setter
+@Getter
 @SuppressWarnings("WeakerAccess")
 public class SubtaskIds {
 
@@ -33,14 +38,6 @@ public class SubtaskIds {
             arr[i++] = id;
         }
         setSubtaskIds(arr);
-    }
-
-    public long[] getSubtaskIds() {
-        return subtaskIds;
-    }
-
-    public void setSubtaskIds(long[] subtaskIds) {
-        this.subtaskIds = subtaskIds;
     }
 
 }

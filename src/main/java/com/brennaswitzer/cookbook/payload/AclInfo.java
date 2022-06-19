@@ -4,10 +4,14 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Setter
+@Getter
 @SuppressWarnings("WeakerAccess")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AclInfo {
@@ -29,19 +33,4 @@ public class AclInfo {
 
     private Map<Long, AccessLevel> grants;
 
-    public Long getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public Map<Long, AccessLevel> getGrants() {
-        return grants;
-    }
-
-    public void setGrants(Map<Long, AccessLevel> grants) {
-        this.grants = grants;
-    }
 }
