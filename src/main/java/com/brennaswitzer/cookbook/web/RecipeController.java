@@ -159,7 +159,10 @@ public class RecipeController {
     ) {
         List<IngredientInfo> infos = new ArrayList<>(ids.size());
         for (Long id : ids) {
-            infos.add(getIngredientById(id));
+            IngredientInfo info = getIngredientById(id);
+            if (info != null) {
+                infos.add(info);
+            }
         }
         return infos;
     }

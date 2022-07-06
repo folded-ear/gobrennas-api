@@ -12,7 +12,7 @@ import java.time.Instant;
 public abstract class BaseEntity implements Identified {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_seq")
     @Getter
     @Setter
     private Long id;

@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/foodinger-2020.sql
   - include:
       file: db/changelog/foodinger-2021.sql
+  - include:
+      file: db/changelog/foodinger-2022.sql

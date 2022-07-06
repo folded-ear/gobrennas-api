@@ -11,7 +11,7 @@ import java.util.Objects;
 public class Label {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_seq")
     @Getter
     @Setter
     private Long id;
