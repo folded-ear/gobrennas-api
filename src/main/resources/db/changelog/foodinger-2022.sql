@@ -173,3 +173,6 @@ select id, count(*)
          ) t
 group by t.id
 having count(*) > 1;
+
+--changeset bboisvert:use-default-allocation-size-for-id_seq
+alter sequence id_seq increment 50;

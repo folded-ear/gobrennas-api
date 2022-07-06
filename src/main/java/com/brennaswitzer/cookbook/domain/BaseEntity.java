@@ -9,6 +9,10 @@ import javax.validation.constraints.NotNull;
 import java.time.Instant;
 
 @MappedSuperclass
+@SequenceGenerator( // can go anywhere - it's persistence context-wide
+        name = "id_seq",
+        sequenceName = "id_seq"
+)
 public abstract class BaseEntity implements Identified {
 
     @Id

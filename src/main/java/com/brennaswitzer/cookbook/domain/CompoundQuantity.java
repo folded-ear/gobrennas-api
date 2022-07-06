@@ -11,12 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
-@SequenceGenerator( // can go anywhere - it's persistence context-wide
-        name = "id_seq",
-        sequenceName = "id_seq",
-        allocationSize = 20
-)
-public class CompoundQuantity implements Cloneable {
+public class CompoundQuantity implements Cloneable, Identified {
 
     public static CompoundQuantity zero() {
         return new CompoundQuantity();
