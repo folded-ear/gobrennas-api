@@ -46,14 +46,14 @@ public class TextractJobRepositoryTest {
 
         TextractJob job = new TextractJob();
         job.setOwner(alice);
-        job.setCreatedAt(Instant.now().minusSeconds(43200));
         S3File p = new S3File("yesterday", "blerg", 7L);
         job.setPhoto(p);
         entityManager.persist(job);
+        entityManager.flush();
+        job.setCreatedAt(Instant.now().minusSeconds(43200));
 
         job = new TextractJob();
         job.setOwner(alice);
-        job.setCreatedAt(Instant.now());
         p = new S3File("today", "mlerg", 4L);
         job.setPhoto(p);
         job.setReady(true);
