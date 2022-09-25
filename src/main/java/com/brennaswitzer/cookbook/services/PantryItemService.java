@@ -9,6 +9,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
@@ -31,6 +33,10 @@ public class PantryItemService {
 
     public Iterable<PantryItem> findAllPantryItems() {
         return pantryItemRepository.findAll();
+    }
+
+    public List<PantryItem> findAllByUpdatedAtIsAfter(Instant cutoff) {
+        return pantryItemRepository.findAllByUpdatedAtIsAfter(cutoff);
     }
 
     public void orderForStore(Long id, Long targetId, boolean after) {
