@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,6 +102,11 @@ public class TextractService {
                         .map(j -> TextractJobInfo.fromJob(j, storageService))
                         .collect(Collectors.toList())
         );
+    }
+
+    public List<TextractJob> getAllJobs() {
+        User user = principalAccess.getUser();
+        return jobRepository.findAllByOwnerOrderByCreatedAtDesc(user);
     }
 
     public void deleteJob(long id) {

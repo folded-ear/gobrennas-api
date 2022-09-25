@@ -12,6 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("api/textract")
 @PreAuthorize("hasRole('USER')")
@@ -26,6 +29,13 @@ public class TextractController {
     @SubscribeMapping("/queue/textract")
     public void subscribeToQueue() {
         service.broadcastQueueChange();
+    }
+
+    @GetMapping
+    public List<TextractJobInfo> getJobs() {
+        return service.getAllJobs().stream()
+                .map(j -> TextractJobInfo.fromJob(j, storageService))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
