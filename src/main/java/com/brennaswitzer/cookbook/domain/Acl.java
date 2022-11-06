@@ -39,6 +39,14 @@ public class Acl {
         return grants.keySet();
     }
 
+    public Map<User, AccessLevel> getGrants() {
+        if(grants == null) {
+            //noinspection unchecked
+            return Collections.EMPTY_MAP;
+        }
+        return grants;
+    }
+
     public AccessLevel getGrant(User user) {
         if (user == null) throw new IllegalArgumentException("The null user can't have an access grant.");
         if (user.equals(owner)) return AccessLevel.ADMINISTER;

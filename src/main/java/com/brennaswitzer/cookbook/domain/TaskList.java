@@ -55,4 +55,8 @@ public class TaskList extends Task implements AccessControlled {
         return buckets != null && !buckets.isEmpty();
     }
 
+    public User getOwner() {
+        return getAcl().getOwner();
+    }
+
 }
