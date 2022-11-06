@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Iterator;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,11 +81,16 @@ public class ItemServiceTest {
 
     @Test
     public void recognizeItemMultipleWords() {
+        recognizeChickenThighs(raw ->
+                service.recognizeItem(raw));
+    }
+
+    private RecognizedItem recognizeChickenThighs(Function<String, RecognizedItem> doRecognition) {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "2 cup chicken thighs";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = doRecognition.apply(RAW);
         assertEquals(RAW, el.getRaw());
 
         System.out.println(el);
@@ -94,6 +100,19 @@ public class ItemServiceTest {
         assertEquals(new RecognizedItem.Range(2, 5, RecognizedItem.Type.UNIT), ri.next());
         assertEquals(new RecognizedItem.Range(6, 20, RecognizedItem.Type.ITEM), ri.next());
         assertFalse(ri.hasNext());
+        return el;
+    }
+
+    @Test
+    public void recognizeItemMultipleWordsWithCursorBeforeSpace() {
+        recognizeChickenThighs(raw ->
+                service.recognizeItem(raw, 13));
+    }
+
+    @Test
+    public void recognizeItemMultipleWordsWithCursorAfterSpace() {
+        recognizeChickenThighs(raw ->
+                service.recognizeItem(raw, 14));
     }
 
     @Test
