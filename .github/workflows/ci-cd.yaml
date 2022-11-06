@@ -10,10 +10,10 @@ jobs:
           echo "TIMESTAMP=$(date "+%Y%m%d-%H%M%S")" >> $GITHUB_ENV
       - name: Clone repo
         uses: actions/checkout@v2
-      - name: Set up Node 10
+      - name: Set up Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: '10.x'
+          node-version: '14.x'
       - name: Cache Node.js modules
         uses: actions/cache@v2
         with:
