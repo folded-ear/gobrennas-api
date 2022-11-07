@@ -114,8 +114,10 @@ public class ItemService {
             int start = raw.lastIndexOf('"', item.getCursor());
             boolean hasQuote = true;
             boolean hasSpace = false;
-            if (start < 0) { // look backwards for a space
-                start = raw.lastIndexOf(' ', item.getCursor());
+            if (start < 0) { // look backwards for a non-trailing space
+                int end = item.getCursor() - 1;
+                while (Character.isWhitespace(raw.charAt(end))) end--;
+                start = raw.lastIndexOf(' ', end);
                 hasQuote = false;
                 hasSpace = true;
             }
