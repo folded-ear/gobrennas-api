@@ -176,3 +176,42 @@ having count(*) > 1;
 
 --changeset bboisvert:use-default-allocation-size-for-id_seq
 alter sequence id_seq increment 50;
+
+--changeset bboisvert:use-shared-seq-for-column-defaults
+-- I updated the JPA mappings back in July, but forgot to update the defaults
+-- on the tables themselves. Do that, and DROP all the now-unneeded sequences.
+alter table ingredient
+    alter id set default nextval('id_seq');
+alter table label
+    alter id set default nextval('id_seq');
+alter table task
+    alter id set default nextval('id_seq');
+alter table unit_of_measure
+    alter id set default nextval('id_seq');
+alter table users
+    alter id set default nextval('id_seq');
+alter table plan_bucket
+    alter id set default nextval('id_seq');
+alter table textract_job
+    alter id set default nextval('id_seq');
+alter table compound_quantity
+    alter id set default nextval('id_seq');
+alter table inventory_item
+    alter id set default nextval('id_seq');
+alter table inventory_tx
+    alter id set default nextval('id_seq');
+
+drop sequence ingredient_id_seq;
+drop sequence label_id_seq;
+drop sequence task_id_seq;
+drop sequence unit_of_measure_id_seq;
+drop sequence users_id_seq;
+drop sequence plan_bucket_id_seq;
+drop sequence textract_job_id_seq;
+drop sequence compound_quantity_id_seq;
+drop sequence inventory_item_id_seq;
+drop sequence inventory_tx_id_seq;
+
+drop sequence if exists ingredient_id_seq1;
+drop sequence if exists task_id_seq1;
+drop sequence if exists users_id_seq1;
