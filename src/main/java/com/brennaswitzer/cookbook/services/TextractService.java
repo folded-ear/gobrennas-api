@@ -36,8 +36,8 @@ public class TextractService {
     @Autowired
     private TextractProvider textractProvider;
 
-    @Autowired
-    SimpMessagingTemplate messagingTemplate;
+//    @Autowired
+SimpMessagingTemplate messagingTemplate; // todo: cull
 
     public TextractJob getJob(long id) {
         return jobRepository.getOne(id);
@@ -85,15 +85,16 @@ public class TextractService {
         return job;
     }
 
-    public void broadcastQueueChange() {
+    public void broadcastQueueChange() { // todo: cull
         broadcastQueueChange(principalAccess.getUser());
     }
 
-    private void broadcastQueueChange(Long userId) {
+    private void broadcastQueueChange(Long userId) { // todo: cull
         broadcastQueueChange(userRepository.getById(userId));
     }
 
-    private void broadcastQueueChange(User user) {
+    private void broadcastQueueChange(User user) { // todo: cull
+        if (messagingTemplate == null) return;
         messagingTemplate.convertAndSendToUser(
                 user.getEmail(),
                 "/queue/textract",

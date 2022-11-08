@@ -7,7 +7,6 @@ import com.brennaswitzer.cookbook.services.TextractService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +25,7 @@ public class TextractController {
     @Autowired
     private StorageService storageService;
 
-    @SubscribeMapping("/queue/textract")
+    //@SubscribeMapping("/queue/textract") // todo: cull
     public void subscribeToQueue() {
         service.broadcastQueueChange();
     }

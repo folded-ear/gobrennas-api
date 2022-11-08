@@ -36,8 +36,8 @@ public class PlanService {
     @Autowired
     protected UserPrincipalAccess principalAccess;
 
-    @Autowired
-    protected SimpMessagingTemplate messagingTemplate;
+//    @Autowired
+    protected SimpMessagingTemplate messagingTemplate; // todo: cull
 
     @Autowired
     private ItemService itemService;
@@ -116,7 +116,7 @@ public class PlanService {
         }
     }
 
-    private boolean isMessagingCapable() {
+    private boolean isMessagingCapable() { // todo: cull
         return messagingTemplate != null;
     }
 
@@ -156,7 +156,8 @@ public class PlanService {
         return m;
     }
 
-    private void sendMessage(Task task, Object message) {
+    private void sendMessage(Task task, Object message) { // todo: cull
+        if (!isMessagingCapable()) return;
         messagingTemplate.convertAndSend(
                 "/topic/plan/" + task.getTaskList().getId(),
                 message);

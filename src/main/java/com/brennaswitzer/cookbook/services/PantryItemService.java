@@ -21,8 +21,8 @@ public class PantryItemService {
     @Autowired
     private PantryItemRepository pantryItemRepository;
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+//    @Autowired
+private SimpMessagingTemplate messagingTemplate; // todo: cull
 
     @Autowired
     private IngredientMapper ingredientMapper;
@@ -68,7 +68,13 @@ public class PantryItemService {
         m.setType("update");
         m.setId(it.getId());
         m.setInfo(ingredientMapper.pantryItemToInfo(it));
-        messagingTemplate.convertAndSend("/topic/pantry-items", m);
+        if (isMessagingCapable()) {
+            messagingTemplate.convertAndSend("/topic/pantry-items", m);
+        }
+    }
+
+    private boolean isMessagingCapable() { // todo: cull
+        return messagingTemplate != null;
     }
 
 }
