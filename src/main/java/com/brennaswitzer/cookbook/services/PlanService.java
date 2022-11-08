@@ -14,10 +14,13 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Service
@@ -85,6 +88,16 @@ public class PlanService {
             task.getOrderedSubtasksView()
                     .forEach(t -> treeHelper(t, collector));
         }
+    }
+
+    public List<Task> getTreeDeltasById(Long id, Instant cutoff) {
+        val plan = getPlanById(id, AccessLevel.VIEW);
+        return Stream.concat(
+                        getTreeById(plan).stream(),
+                        plan.getTrashBinTasks().stream()
+                )
+                .filter(t -> t.getUpdatedAt().isAfter(cutoff))
+                .collect(Collectors.toList());
     }
 
     public void mutateTree(List<Long> ids, Long parentId, Long afterId) {

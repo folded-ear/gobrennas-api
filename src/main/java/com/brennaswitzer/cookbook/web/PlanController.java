@@ -7,14 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
+@RequestMapping("api/plan")
 @MessageMapping("/plan") // todo: cull
 @PreAuthorize("hasRole('USER')")
 public class PlanController {
@@ -22,16 +23,21 @@ public class PlanController {
     @Autowired
     private PlanService planService;
 
-    @SubscribeMapping("/{id}") // todo: cull
-    public List<TaskInfo> subscribeToList(@DestinationVariable("id") Long id) {
-        // Packaging up the entire tree into a single message is sorta less than
-        // ideal. Sending only the top-level items w/ a follow-up message
-        // containing the rest would give better perceived performance, as the
-        // visible tasks would show up w/out having to wait for processing all
-        // the nested subtasks, which are likely _much_ more numerous.
-        //
-        // I think?
-        return TaskInfo.fromTasks(planService.getTreeById(id));
+    @GetMapping("/{id}/descendants")
+    public List<TaskInfo> getDescendants(
+            @PathVariable("id") Long id
+    ) {
+        return TaskInfo.fromTasks(planService
+                .getTreeById(id));
+    }
+
+    @GetMapping("/{id}/all-since")
+    public List<TaskInfo> getUpdatedSince(
+            @PathVariable("id") Long id,
+            @RequestParam Long cutoff
+    ) {
+        return TaskInfo.fromTasks(planService
+                .getTreeDeltasById(id, Instant.ofEpochMilli(cutoff)));
     }
 
     @MessageMapping("/{id}/mutate-tree") // todo: cull
