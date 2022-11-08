@@ -10,17 +10,12 @@ jobs:
           echo "TIMESTAMP=$(date "+%Y%m%d-%H%M%S")" >> $GITHUB_ENV
       - name: Clone repo
         uses: actions/checkout@v3
-      - name: Set up Node 14
+      - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: 14
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
       - name: Build client
         working-directory: ./client
         run: |
