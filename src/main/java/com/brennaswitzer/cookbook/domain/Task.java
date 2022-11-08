@@ -2,12 +2,16 @@ package com.brennaswitzer.cookbook.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static javax.persistence.CascadeType.*;
 
@@ -78,6 +82,9 @@ public class Task extends BaseEntity implements MutableItem {
     @OneToMany(mappedBy = "parent", cascade = ALL)
     @BatchSize(size = 100)
     private Set<Task> subtasks;
+
+    @ManyToOne
+    private TaskList trashBin;
 
     @ManyToOne
     @Getter
@@ -174,18 +181,20 @@ public class Task extends BaseEntity implements MutableItem {
     }
 
     public void setParent(Task parent) {
+        Task currentParent = (Task) Hibernate.unproxy(getParent());
         // see if it's a no-op
-        if (parent == null ? getParent() == null : parent.equals(getParent())) {
+        if (Objects.equals(parent, currentParent)) {
             return;
         }
         if (isDescendant(parent)) {
             throw new IllegalArgumentException("You can't make a task a descendant of one of its own descendants");
         }
         // tear down the old one
-        if (getParent() != null && getParent().subtasks != null) {
-            if (! getParent().subtasks.remove(this)) {
-                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of its parent #" + getParent().getId() + "?!");
+        if (currentParent != null && currentParent.subtasks != null) {
+            if (!currentParent.subtasks.remove(this)) {
+                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of its parent #" + currentParent.getId() + "?!");
             }
+            currentParent.markDirty();
         }
         // wire up the new one
         if (parent != null) {
@@ -198,8 +207,34 @@ public class Task extends BaseEntity implements MutableItem {
                         .map(Task::getPosition)
                         .reduce(0, Integer::max));
             }
+            parent.markDirty();
         }
         this.parent = parent;
+    }
+
+    public void moveToTrash() {
+        this.trashBin = getTaskList();
+        this.trashBin.getTrashBinTasks().add(this);
+        this.status = TaskStatus.DELETED;
+        getParent().markDirty();
+    }
+
+    public boolean isInTrashBin() {
+        return this.trashBin != null;
+    }
+
+    public void restoreFromTrash() {
+        if (!isInTrashBin()) {
+            throw new IllegalArgumentException("This task is not in the trash");
+        }
+        if (getParent().isInTrashBin()) {
+            // can't put it back where it was, so top-level it is!
+            setParent(this.trashBin);
+        }
+        this.trashBin.getTrashBinTasks().remove(this);
+        this.trashBin = null;
+        getParent().markDirty();
+        this.status = TaskStatus.NEEDED;
     }
 
     public void setAggregate(Task agg) {
@@ -283,11 +318,19 @@ public class Task extends BaseEntity implements MutableItem {
     }
 
     public Collection<Task> getSubtaskView() {
+        // I have no idea why HashSet::new doesn't work here, while
+        // ArrayList::new is just fine
+        return Collections.unmodifiableSet(getSubtaskView(() ->
+                new HashSet<>()));
+    }
+
+    private <T extends Collection<Task>> T getSubtaskView(Supplier<T> collectionSupplier) {
         if (subtasks == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_SET;
+            return collectionSupplier.get();
         }
-        return Collections.unmodifiableSet(subtasks);
+        return subtasks.stream()
+                .filter(t -> !t.isInTrashBin()) // Predicate.not is Java 11 :(
+                .collect(Collectors.toCollection(collectionSupplier));
     }
 
     public List<Task> getOrderedSubtasksView() {
@@ -295,11 +338,7 @@ public class Task extends BaseEntity implements MutableItem {
     }
 
     public List<Task> getSubtaskView(Comparator<Task> comparator) {
-        if (subtasks == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_LIST;
-        }
-        List<Task> list = new ArrayList<>(subtasks);
+        val list = getSubtaskView(ArrayList::new);
         list.sort(comparator);
         return list;
     }

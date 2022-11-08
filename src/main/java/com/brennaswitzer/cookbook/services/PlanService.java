@@ -47,7 +47,7 @@ public class PlanService {
     }
 
     protected Task getTaskById(Long id, AccessLevel requiredAccess) {
-        Task task = taskRepo.getOne(id);
+        Task task = taskRepo.getReferenceById(id);
         task.getTaskList().ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
@@ -55,8 +55,8 @@ public class PlanService {
         return task;
     }
 
-    protected TaskList getPlanById(Long id, AccessLevel requiredAccess) {
-        TaskList plan = planRepo.getOne(id);
+    protected TaskList getPlanById(Long id, @SuppressWarnings("SameParameterValue") AccessLevel requiredAccess) {
+        TaskList plan = planRepo.getReferenceById(id);
         plan.ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
@@ -196,7 +196,7 @@ public class PlanService {
 
     public void updateBucket(Long planId, Long id, String name, LocalDate date) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = bucketRepo.getOne(id);
+        PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
         if (isMessagingCapable()) {
@@ -210,7 +210,7 @@ public class PlanService {
 
     public void deleteBucket(Long planId, Long id) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = bucketRepo.getOne(id);
+        PlanBucket bucket = bucketRepo.getReferenceById(id);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);
         if (isMessagingCapable()) {
@@ -236,7 +236,7 @@ public class PlanService {
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setBucket(bucketId == null
                 ? null
-                : bucketRepo.getOne(bucketId));
+                : bucketRepo.getReferenceById(bucketId));
         if (isMessagingCapable()) {
             sendMessage(task, buildUpdateMessage(task));
         }
@@ -263,22 +263,15 @@ public class PlanService {
     }
 
     public void deleteItem(Long id) {
-        Task task = getTaskById(id, AccessLevel.CHANGE);
-        Task plan = task.getTaskList();
-        deleteItem(task);
+        val task = getTaskById(id, AccessLevel.CHANGE);
+        val plan = task.getTaskList();
+        task.moveToTrash();
         if (isMessagingCapable()) {
             PlanMessage m = new PlanMessage();
             m.setId(id);
             m.setType("delete");
             sendMessage(plan, m);
         }
-    }
-
-    private void deleteItem(Task t) {
-        if (t.hasParent()) {
-            t.getParent().removeSubtask(t);
-        }
-        taskRepo.delete(t);
     }
 
     public void severLibraryLinks(Recipe r) {

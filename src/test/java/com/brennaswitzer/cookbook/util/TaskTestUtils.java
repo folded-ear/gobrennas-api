@@ -1,8 +1,11 @@
 package com.brennaswitzer.cookbook.util;
 
 import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
+import lombok.val;
+import org.hibernate.Hibernate;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class TaskTestUtils {
@@ -14,7 +17,7 @@ public final class TaskTestUtils {
         if (tasks instanceof List) {
             list = (List<T>) tasks;
         } else {
-            list = new LinkedList<>();
+            list = new ArrayList<>();
             for (T t : tasks) {
                 list.add(t);
             }
@@ -44,6 +47,19 @@ public final class TaskTestUtils {
         sb.append('\n');
         for (Task s : t.getSubtaskView(Task.BY_ORDER)) {
             renderTree(sb, s, depth + 1);
+        }
+        if (Hibernate.unproxy(t) instanceof TaskList) {
+            val l = (TaskList) Hibernate.unproxy(t);
+            if (l.hasTrash()) {
+                for (int i = 0; i < depth; i++) {
+                    sb.append("  ");
+                }
+                sb.append("[trash]");
+                sb.append('\n');
+                for (Task s : l.getTrashBinTasks()) {
+                    renderTree(sb, s, depth + 1);
+                }
+            }
         }
     }
 
