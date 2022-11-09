@@ -50,9 +50,25 @@ public class PlanController {
         planService.resetSubitems(action.getId(), action.getSubitemIds());
     }
 
+    @PostMapping("/{id}")
+    public PlanMessage createItem(
+            @PathVariable("id") Long id,
+            @RequestBody CreatePlanTreeItem action
+    ) {
+        return planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
+    }
+
     @MessageMapping("/{id}/create") // todo: cull
     public void createItem(@Payload CreatePlanTreeItem action) {
         planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
+    }
+
+    @PutMapping("/{id}/rename")
+    public PlanMessage renameItem(
+            @PathVariable("id") Long id,
+            @RequestBody RenamePlanTreeItem action
+    ) {
+        return planService.renameItem(action.getId(), action.getName());
     }
 
     @MessageMapping("/{id}/rename") // todo: cull
@@ -65,9 +81,24 @@ public class PlanController {
         planService.assignItemBucket(action.getId(), action.getBucketId());
     }
 
+    @PutMapping("/{id}/status")
+    public PlanMessage setStatus(
+            @PathVariable("id") Long id,
+            @RequestBody SetPlanTreeItemStatus action
+    ) {
+        return planService.setItemStatus(action.getId(), action.getStatus());
+    }
+
     @MessageMapping("/{id}/status") // todo: cull
     public void setStatus(@Payload SetPlanTreeItemStatus action) {
         planService.setItemStatus(action.getId(), action.getStatus());
+    }
+
+    @DeleteMapping("/{planId}/{id}")
+    public void deleteItem(
+            @PathVariable("planId") Long planId,
+            @PathVariable("id") Long id) {
+        planService.deleteItem(id);
     }
 
     @MessageMapping("/{id}/delete") // todo: cull
