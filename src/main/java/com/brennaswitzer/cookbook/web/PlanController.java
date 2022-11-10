@@ -91,6 +91,13 @@ public class PlanController {
         planService.renameItem(action.getId(), action.getName());
     }
 
+    @PostMapping("/{id}/assign-bucket")
+    public PlanMessage assignItemBucket(
+            @PathVariable("id") Long id,
+            @RequestBody AssignPlanTreeItemBucket action) {
+        return planService.assignItemBucket(action.getId(), action.getBucketId());
+    }
+
     @MessageMapping("/{id}/assign-bucket") // todo: cull
     public void assignItemBucket(@Payload AssignPlanTreeItemBucket action) {
         planService.assignItemBucket(action.getId(), action.getBucketId());

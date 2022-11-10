@@ -254,14 +254,16 @@ public class PlanService {
         return m;
     }
 
-    public void assignItemBucket(Long id, Long bucketId) {
+    public PlanMessage assignItemBucket(Long id, Long bucketId) {
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setBucket(bucketId == null
                 ? null
                 : bucketRepo.getReferenceById(bucketId));
+        val m = buildUpdateMessage(task);
         if (isMessagingCapable()) {
-            sendMessage(task, buildUpdateMessage(task));
+            sendMessage(task, m);
         }
+        return m;
     }
 
     private PlanMessage buildUpdateMessage(Task task) {
