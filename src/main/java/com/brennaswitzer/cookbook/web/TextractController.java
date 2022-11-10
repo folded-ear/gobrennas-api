@@ -25,11 +25,6 @@ public class TextractController {
     @Autowired
     private StorageService storageService;
 
-    //@SubscribeMapping("/queue/textract") // todo: cull
-    public void subscribeToQueue() {
-        service.broadcastQueueChange();
-    }
-
     @GetMapping
     public List<TextractJobInfo> getJobs() {
         return service.getAllJobs().stream()

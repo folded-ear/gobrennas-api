@@ -3,19 +3,15 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.TextractJobInfo;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
-import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -28,19 +24,13 @@ public class TextractService {
     private TextractJobRepository jobRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private StorageService storageService;
 
     @Autowired
     private TextractProvider textractProvider;
 
-//    @Autowired
-SimpMessagingTemplate messagingTemplate; // todo: cull
-
     public TextractJob getJob(long id) {
-        return jobRepository.getOne(id);
+        return jobRepository.getReferenceById(id);
     }
 
     public TextractJob createJob(MultipartFile photo) {
@@ -69,40 +59,16 @@ SimpMessagingTemplate messagingTemplate; // todo: cull
         ));
         job = jobRepository.save(job);
 
-        broadcastQueueChange(user);
-
-        Long userId = user.getId();
         Long jobId = job.getId();
         new Thread(() -> {
             try {
                 textractProvider.processJob(jobId);
-                broadcastQueueChange(userId);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
 
         return job;
-    }
-
-    public void broadcastQueueChange() { // todo: cull
-        broadcastQueueChange(principalAccess.getUser());
-    }
-
-    private void broadcastQueueChange(Long userId) { // todo: cull
-        broadcastQueueChange(userRepository.getById(userId));
-    }
-
-    private void broadcastQueueChange(User user) { // todo: cull
-        if (messagingTemplate == null) return;
-        messagingTemplate.convertAndSendToUser(
-                user.getEmail(),
-                "/queue/textract",
-                jobRepository.findAllByOwnerOrderByCreatedAtDesc(user)
-                        .stream()
-                        .map(j -> TextractJobInfo.fromJob(j, storageService))
-                        .collect(Collectors.toList())
-        );
     }
 
     public List<TextractJob> getAllJobs() {
@@ -118,7 +84,6 @@ SimpMessagingTemplate messagingTemplate; // todo: cull
                 throw new RuntimeException("Failed to remove photo", ioe);
             }
             jobRepository.delete(j);
-            broadcastQueueChange();
             return j;
         });
     }
