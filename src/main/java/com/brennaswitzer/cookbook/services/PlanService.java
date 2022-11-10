@@ -11,7 +11,6 @@ import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,9 +38,6 @@ public class PlanService {
 
     @Autowired
     protected UserPrincipalAccess principalAccess;
-
-//    @Autowired
-    protected SimpMessagingTemplate messagingTemplate; // todo: cull
 
     @Autowired
     private ItemService itemService;
@@ -116,9 +112,6 @@ public class PlanService {
         val m = new PlanMessage();
         m.setType("tree-mutation");
         m.setInfo(new MutatePlanTree(ids, parentId, afterId));
-        if (isMessagingCapable()) {
-            sendMessage(parent, m);
-        }
         return m;
     }
 
@@ -130,15 +123,7 @@ public class PlanService {
             t.addSubtaskAfter(curr, prev);
             prev = curr;
         }
-        val m = buildUpdateMessage(t);
-        if (isMessagingCapable()) {
-            sendMessage(t, m);
-        }
-        return m;
-    }
-
-    private boolean isMessagingCapable() { // todo: cull
-        return messagingTemplate != null;
+        return buildUpdateMessage(t);
     }
 
     private void sendToPlan(AggregateIngredient r, Task aggTask) {
@@ -159,10 +144,6 @@ public class PlanService {
         Task plan = getTaskById(planId, AccessLevel.CHANGE);
         plan.addSubtask(recipeTask);
         sendToPlan(r, recipeTask);
-        if (isMessagingCapable()) {
-            taskRepo.flush(); // so that IDs will be available
-            sendMessage(plan, buildCreationMessage(recipeTask));
-        }
     }
 
     private PlanMessage buildCreationMessage(Task task) {
@@ -175,13 +156,6 @@ public class PlanService {
         return m;
     }
 
-    private void sendMessage(Task task, Object message) { // todo: cull
-        if (!isMessagingCapable()) return;
-        messagingTemplate.convertAndSend(
-                "/topic/plan/" + task.getTaskList().getId(),
-                message);
-    }
-
     public PlanMessage createItem(Object id, Long parentId, Long afterId, String name) {
         Task parent = getTaskById(parentId, AccessLevel.CHANGE);
         Task after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
@@ -190,9 +164,6 @@ public class PlanService {
         if (task.getId() == null) taskRepo.flush();
         PlanMessage m = buildCreationMessage(task);
         m.addNewId(task.getId(), id);
-        if (isMessagingCapable()) {
-            sendMessage(parent, m);
-        }
         return m;
     }
 
@@ -209,9 +180,6 @@ public class PlanService {
         m.setType("create-bucket");
         m.setInfo(PlanBucketInfo.from(bucket));
         m.addNewId(bucket.getId(), bucketId);
-        if (isMessagingCapable()) {
-            sendMessage(plan, m);
-        }
         return m;
     }
 
@@ -224,9 +192,6 @@ public class PlanService {
         m.setId(bucket.getId());
         m.setType("update-bucket");
         m.setInfo(PlanBucketInfo.from(bucket));
-        if (isMessagingCapable()) {
-            sendMessage(plan, m);
-        }
         return m;
     }
 
@@ -238,9 +203,6 @@ public class PlanService {
         PlanMessage m = new PlanMessage();
         m.setId(bucket.getId());
         m.setType("delete-bucket");
-        if (isMessagingCapable()) {
-            sendMessage(plan, m);
-        }
         return m;
     }
 
@@ -250,11 +212,7 @@ public class PlanService {
         if (!task.hasIngredient() || !(task.getIngredient() instanceof Recipe)) {
             itemService.updateAutoRecognition(task);
         }
-        val m = buildUpdateMessage(task);
-        if (isMessagingCapable()) {
-            sendMessage(task, m);
-        }
-        return m;
+        return buildUpdateMessage(task);
     }
 
     public PlanMessage assignItemBucket(Long id, Long bucketId) {
@@ -262,11 +220,7 @@ public class PlanService {
         task.setBucket(bucketId == null
                 ? null
                 : bucketRepo.getReferenceById(bucketId));
-        val m = buildUpdateMessage(task);
-        if (isMessagingCapable()) {
-            sendMessage(task, m);
-        }
-        return m;
+        return buildUpdateMessage(task);
     }
 
     private PlanMessage buildUpdateMessage(Task task) {
@@ -283,11 +237,7 @@ public class PlanService {
         }
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setStatus(status);
-        val m = buildUpdateMessage(task);
-        if (isMessagingCapable()) {
-            sendMessage(task, m);
-        }
-        return m;
+        return buildUpdateMessage(task);
     }
 
     public PlanMessage deleteItem(Long id) {
@@ -297,9 +247,6 @@ public class PlanService {
         val m = new PlanMessage();
         m.setId(id);
         m.setType("delete");
-        if (isMessagingCapable()) {
-            sendMessage(plan, m);
-        }
         return m;
     }
 
@@ -307,9 +254,6 @@ public class PlanService {
         taskRepo.findByIngredient(r).forEach(t -> {
             if (!t.hasNotes()) t.setNotes(r.getDirections());
             t.setIngredient(null);
-            if (isMessagingCapable()) {
-                sendMessage(t.getTaskList(), buildUpdateMessage(t));
-            }
         });
     }
 
