@@ -129,13 +129,31 @@ public class PlanController {
     }
 
     @MessageMapping("/{id}/buckets/create") // todo: cull
-    public void createBucket(@DestinationVariable("id") long planId, @Payload CreatePlanBucket action) {
-        planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+    @PostMapping("/{id}/buckets")
+    public PlanMessage createBucket(
+            @PathVariable("id") @DestinationVariable("id") long planId, // todo: cull message annotation
+            @RequestBody @Payload CreatePlanBucket action) { // todo: cull message annotation
+        return planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @PutMapping("/{planId}/buckets/{id}")
+    public PlanMessage updateBucket(
+            @PathVariable("planId") long planId,
+            @PathVariable("id") long id,
+            @RequestBody UpdatePlanBucket action) {
+        return planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
     }
 
     @MessageMapping("/{id}/buckets/update") // todo: cull
     public void updateBucket(@DestinationVariable("id") long planId, @Payload UpdatePlanBucket action) {
         planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @DeleteMapping("/{planId}/buckets/{id}")
+    public PlanMessage deleteBucket(
+            @PathVariable("planId") long planId,
+            @PathVariable("id") long id) {
+        return planService.deleteBucket(planId, id);
     }
 
     @MessageMapping("/{id}/buckets/delete") // todo: cull

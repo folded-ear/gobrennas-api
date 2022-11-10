@@ -196,49 +196,52 @@ public class PlanService {
         return m;
     }
 
-    public void createBucket(Long planId, Object bucketId, String name, LocalDate date) {
+    public PlanMessage createBucket(Long planId, Object bucketId, String name, LocalDate date) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = new PlanBucket();
         bucket.setName(name);
         bucket.setDate(date);
         bucket.setPlan(plan);
         bucket = bucketRepo.save(bucket);
+        if (bucket.getId() != null) bucketRepo.flush();
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("create-bucket");
+        m.setInfo(PlanBucketInfo.from(bucket));
+        m.addNewId(bucket.getId(), bucketId);
         if (isMessagingCapable()) {
-            if (bucket.getId() != null) bucketRepo.flush();
-            PlanMessage m = new PlanMessage();
-            m.setId(bucket.getId());
-            m.setType("create-bucket");
-            m.setInfo(PlanBucketInfo.from(bucket));
-            m.addNewId(bucket.getId(), bucketId);
             sendMessage(plan, m);
         }
+        return m;
     }
 
-    public void updateBucket(Long planId, Long id, String name, LocalDate date) {
+    public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("update-bucket");
+        m.setInfo(PlanBucketInfo.from(bucket));
         if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(bucket.getId());
-            m.setType("update-bucket");
-            m.setInfo(PlanBucketInfo.from(bucket));
             sendMessage(plan, m);
         }
+        return m;
     }
 
-    public void deleteBucket(Long planId, Long id) {
+    public PlanMessage deleteBucket(Long planId, Long id) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("delete-bucket");
         if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(bucket.getId());
-            m.setType("delete-bucket");
             sendMessage(plan, m);
         }
+        return m;
     }
 
     public PlanMessage renameItem(Long id, String name) {
