@@ -105,7 +105,7 @@ public class PlanService {
                 .collect(Collectors.toList());
     }
 
-    public void mutateTree(List<Long> ids, Long parentId, Long afterId) {
+    public PlanMessage mutateTree(List<Long> ids, Long parentId, Long afterId) {
         Task parent = getTaskById(parentId, AccessLevel.CHANGE);
         Task after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
@@ -113,12 +113,13 @@ public class PlanService {
             parent.addSubtaskAfter(t, after);
             after = t;
         }
+        val m = new PlanMessage();
+        m.setType("tree-mutation");
+        m.setInfo(new MutatePlanTree(ids, parentId, afterId));
         if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setType("tree-mutation");
-            m.setInfo(new MutatePlanTree(ids, parentId, afterId));
             sendMessage(parent, m);
         }
+        return m;
     }
 
     public void resetSubitems(Long id, List<Long> subitemIds) {

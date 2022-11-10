@@ -40,6 +40,14 @@ public class PlanController {
                 .getTreeDeltasById(id, Instant.ofEpochMilli(cutoff)));
     }
 
+    @PostMapping("/{id}/mutate-tree")
+    public PlanMessage mutateTree(
+            @PathVariable("id") Long id,
+            @RequestBody MutatePlanTree action
+    ) {
+        return planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
+    }
+
     @MessageMapping("/{id}/mutate-tree") // todo: cull
     public void mutateTree(@Payload MutatePlanTree action) {
         planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
