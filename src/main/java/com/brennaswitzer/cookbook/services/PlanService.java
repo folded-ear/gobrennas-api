@@ -122,7 +122,7 @@ public class PlanService {
         return m;
     }
 
-    public void resetSubitems(Long id, List<Long> subitemIds) {
+    public PlanMessage resetSubitems(Long id, List<Long> subitemIds) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         Task prev = null;
         for (Long sid : subitemIds) {
@@ -130,9 +130,11 @@ public class PlanService {
             t.addSubtaskAfter(curr, prev);
             prev = curr;
         }
+        val m = buildUpdateMessage(t);
         if (isMessagingCapable()) {
-            sendMessage(t, buildUpdateMessage(t));
+            sendMessage(t, m);
         }
+        return m;
     }
 
     private boolean isMessagingCapable() { // todo: cull

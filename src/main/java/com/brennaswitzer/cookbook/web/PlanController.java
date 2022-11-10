@@ -53,6 +53,13 @@ public class PlanController {
         planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
     }
 
+    @PostMapping("/{id}/reorder-subitems")
+    public PlanMessage reorderSubitems(
+            @PathVariable("id") Long id,
+            @RequestBody ReorderSubitems action) {
+        return planService.resetSubitems(action.getId(), action.getSubitemIds());
+    }
+
     @MessageMapping("/{id}/reorder-items") // todo: cull
     public void reorderSubitems(@Payload ReorderSubitems action) {
         planService.resetSubitems(action.getId(), action.getSubitemIds());
