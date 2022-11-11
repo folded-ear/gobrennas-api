@@ -9,15 +9,18 @@ import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Service
@@ -37,9 +40,6 @@ public class PlanService {
     protected UserPrincipalAccess principalAccess;
 
     @Autowired
-    protected SimpMessagingTemplate messagingTemplate;
-
-    @Autowired
     private ItemService itemService;
 
     protected Task getTaskById(Long id) {
@@ -47,7 +47,7 @@ public class PlanService {
     }
 
     protected Task getTaskById(Long id, AccessLevel requiredAccess) {
-        Task task = taskRepo.getOne(id);
+        Task task = taskRepo.getReferenceById(id);
         task.getTaskList().ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
@@ -55,8 +55,8 @@ public class PlanService {
         return task;
     }
 
-    protected TaskList getPlanById(Long id, AccessLevel requiredAccess) {
-        TaskList plan = planRepo.getOne(id);
+    protected TaskList getPlanById(Long id, @SuppressWarnings("SameParameterValue") AccessLevel requiredAccess) {
+        TaskList plan = planRepo.getReferenceById(id);
         plan.ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
@@ -65,7 +65,11 @@ public class PlanService {
     }
 
     public List<Task> getTreeById(Long id) {
-        List<Task> tasks = treeHelper(getTaskById(id, AccessLevel.VIEW));
+        return getTreeById(getTaskById(id, AccessLevel.VIEW));
+    }
+
+    public List<Task> getTreeById(Task task) {
+        List<Task> tasks = treeHelper(task);
         for (Task t : tasks) {
             // to load the collection before the session closes
             t.getOrderedComponentsView();
@@ -87,7 +91,17 @@ public class PlanService {
         }
     }
 
-    public void mutateTree(List<Long> ids, Long parentId, Long afterId) {
+    public List<Task> getTreeDeltasById(Long id, Instant cutoff) {
+        val plan = getPlanById(id, AccessLevel.VIEW);
+        return Stream.concat(
+                        getTreeById(plan).stream(),
+                        plan.getTrashBinTasks().stream()
+                )
+                .filter(t -> t.getUpdatedAt().isAfter(cutoff))
+                .collect(Collectors.toList());
+    }
+
+    public PlanMessage mutateTree(List<Long> ids, Long parentId, Long afterId) {
         Task parent = getTaskById(parentId, AccessLevel.CHANGE);
         Task after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
@@ -95,15 +109,13 @@ public class PlanService {
             parent.addSubtaskAfter(t, after);
             after = t;
         }
-        if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setType("tree-mutation");
-            m.setInfo(new MutatePlanTree(ids, parentId, afterId));
-            sendMessage(parent, m);
-        }
+        val m = new PlanMessage();
+        m.setType("tree-mutation");
+        m.setInfo(new MutatePlanTree(ids, parentId, afterId));
+        return m;
     }
 
-    public void resetSubitems(Long id, List<Long> subitemIds) {
+    public PlanMessage resetSubitems(Long id, List<Long> subitemIds) {
         Task t = getTaskById(id, AccessLevel.CHANGE);
         Task prev = null;
         for (Long sid : subitemIds) {
@@ -111,13 +123,7 @@ public class PlanService {
             t.addSubtaskAfter(curr, prev);
             prev = curr;
         }
-        if (isMessagingCapable()) {
-            sendMessage(t, buildUpdateMessage(t));
-        }
-    }
-
-    private boolean isMessagingCapable() {
-        return messagingTemplate != null;
+        return buildUpdateMessage(t);
     }
 
     private void sendToPlan(AggregateIngredient r, Task aggTask) {
@@ -138,10 +144,6 @@ public class PlanService {
         Task plan = getTaskById(planId, AccessLevel.CHANGE);
         plan.addSubtask(recipeTask);
         sendToPlan(r, recipeTask);
-        if (isMessagingCapable()) {
-            taskRepo.flush(); // so that IDs will be available
-            sendMessage(plan, buildCreationMessage(recipeTask));
-        }
     }
 
     private PlanMessage buildCreationMessage(Task task) {
@@ -149,96 +151,76 @@ public class PlanService {
         PlanMessage m = new PlanMessage();
         m.setId(parent.getId());
         m.setType("create");
-        List<Task> tree = new LinkedList<>();
-        tree.add(parent);
-        treeHelper(task, tree);
+        List<Task> tree = getTreeById(parent);
         m.setInfo(TaskInfo.fromTasks(tree));
         return m;
     }
 
-    private void sendMessage(Task task, Object message) {
-        messagingTemplate.convertAndSend(
-                "/topic/plan/" + task.getTaskList().getId(),
-                message);
-    }
-
-    public void createItem(Object id, Long parentId, Long afterId, String name) {
+    public PlanMessage createItem(Object id, Long parentId, Long afterId, String name) {
         Task parent = getTaskById(parentId, AccessLevel.CHANGE);
         Task after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
         Task task = taskRepo.save(new Task(name).of(parent, after));
         itemService.autoRecognize(task);
-        if (isMessagingCapable()) {
-            if (task.getId() == null) taskRepo.flush();
-            PlanMessage m = buildCreationMessage(task);
-            m.addNewId(task.getId(), id);
-            sendMessage(parent, m);
-        }
+        if (task.getId() == null) taskRepo.flush();
+        PlanMessage m = buildCreationMessage(task);
+        m.addNewId(task.getId(), id);
+        return m;
     }
 
-    public void createBucket(Long planId, Object bucketId, String name, LocalDate date) {
+    public PlanMessage createBucket(Long planId, Object bucketId, String name, LocalDate date) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = new PlanBucket();
         bucket.setName(name);
         bucket.setDate(date);
         bucket.setPlan(plan);
         bucket = bucketRepo.save(bucket);
-        if (isMessagingCapable()) {
-            if (bucket.getId() != null) bucketRepo.flush();
-            PlanMessage m = new PlanMessage();
-            m.setId(bucket.getId());
-            m.setType("create-bucket");
-            m.setInfo(PlanBucketInfo.from(bucket));
-            m.addNewId(bucket.getId(), bucketId);
-            sendMessage(plan, m);
-        }
+        if (bucket.getId() != null) bucketRepo.flush();
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("create-bucket");
+        m.setInfo(PlanBucketInfo.from(bucket));
+        m.addNewId(bucket.getId(), bucketId);
+        return m;
     }
 
-    public void updateBucket(Long planId, Long id, String name, LocalDate date) {
+    public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = bucketRepo.getOne(id);
+        PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
-        if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(bucket.getId());
-            m.setType("update-bucket");
-            m.setInfo(PlanBucketInfo.from(bucket));
-            sendMessage(plan, m);
-        }
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("update-bucket");
+        m.setInfo(PlanBucketInfo.from(bucket));
+        return m;
     }
 
-    public void deleteBucket(Long planId, Long id) {
+    public PlanMessage deleteBucket(Long planId, Long id) {
         TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = bucketRepo.getOne(id);
+        PlanBucket bucket = bucketRepo.getReferenceById(id);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);
-        if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(bucket.getId());
-            m.setType("delete-bucket");
-            sendMessage(plan, m);
-        }
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("delete-bucket");
+        return m;
     }
 
-    public void renameItem(Long id, String name) {
+    public PlanMessage renameItem(Long id, String name) {
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setName(name);
         if (!task.hasIngredient() || !(task.getIngredient() instanceof Recipe)) {
             itemService.updateAutoRecognition(task);
         }
-        if (isMessagingCapable()) {
-            sendMessage(task, buildUpdateMessage(task));
-        }
+        return buildUpdateMessage(task);
     }
 
-    public void assignItemBucket(Long id, Long bucketId) {
+    public PlanMessage assignItemBucket(Long id, Long bucketId) {
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setBucket(bucketId == null
                 ? null
-                : bucketRepo.getOne(bucketId));
-        if (isMessagingCapable()) {
-            sendMessage(task, buildUpdateMessage(task));
-        }
+                : bucketRepo.getReferenceById(bucketId));
+        return buildUpdateMessage(task);
     }
 
     private PlanMessage buildUpdateMessage(Task task) {
@@ -249,44 +231,29 @@ public class PlanService {
         return m;
     }
 
-    public void setItemStatus(Long id, TaskStatus status) {
+    public PlanMessage setItemStatus(Long id, TaskStatus status) {
         if (TaskStatus.COMPLETED.equals(status) || TaskStatus.DELETED.equals(status)) {
-            deleteItem(id);
-            return;
+            return deleteItem(id);
         }
         Task task = getTaskById(id, AccessLevel.CHANGE);
         task.setStatus(status);
-        if (isMessagingCapable()) {
-            sendMessage(task, buildUpdateMessage(task));
-        }
+        return buildUpdateMessage(task);
     }
 
-    public void deleteItem(Long id) {
-        Task task = getTaskById(id, AccessLevel.CHANGE);
-        Task plan = task.getTaskList();
-        deleteItem(task);
-        if (isMessagingCapable()) {
-            PlanMessage m = new PlanMessage();
-            m.setId(id);
-            m.setType("delete");
-            sendMessage(plan, m);
-        }
-    }
-
-    private void deleteItem(Task t) {
-        if (t.hasParent()) {
-            t.getParent().removeSubtask(t);
-        }
-        taskRepo.delete(t);
+    public PlanMessage deleteItem(Long id) {
+        val task = getTaskById(id, AccessLevel.CHANGE);
+        val plan = task.getTaskList();
+        task.moveToTrash();
+        val m = new PlanMessage();
+        m.setId(id);
+        m.setType("delete");
+        return m;
     }
 
     public void severLibraryLinks(Recipe r) {
         taskRepo.findByIngredient(r).forEach(t -> {
             if (!t.hasNotes()) t.setNotes(r.getDirections());
             t.setIngredient(null);
-            if (isMessagingCapable()) {
-                sendMessage(t.getTaskList(), buildUpdateMessage(t));
-            }
         });
     }
 

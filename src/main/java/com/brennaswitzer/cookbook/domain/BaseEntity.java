@@ -45,6 +45,16 @@ public abstract class BaseEntity implements Identified {
     }
 
     /**
+     * I force Hibernate to consider this entity dirty. If you want to use me,
+     * you're probably incorrect, so think twice. I am useful for explicitly
+     * flagging something dirty when one of its collections changes, which was
+     * needed to switch the planner to poll-based 'changed since x' updates.
+     */
+    protected void markDirty() {
+        updatedAt = Instant.now();
+    }
+
+    /**
      * I indicate object equality, which in this case means an assignable type
      * and the same {@link #get_eqkey()}. Using the {@code _eqkey} (which is
      * database-persisted) instead of the object's memory location allows for

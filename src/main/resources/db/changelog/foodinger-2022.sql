@@ -215,3 +215,33 @@ drop sequence inventory_tx_id_seq;
 drop sequence if exists ingredient_id_seq1;
 drop sequence if exists task_id_seq1;
 drop sequence if exists users_id_seq1;
+
+--changeset bboisvert:planner-trash-bin
+alter table task
+    add column trash_bin_id bigint;
+alter table task
+    add constraint fk_task_trash_bin foreign key (trash_bin_id)
+        references task (id)
+        on delete cascade;
+
+with recursive raw as (
+                      select _type
+                           , id plan_id
+                           , id
+                      from task
+                      where _type = 'plan'
+                      union
+                      select task._type
+                           , raw.plan_id
+                           , task.id
+                      from task
+                               join raw on task.parent_id = raw.id
+                      )
+update task
+set trash_bin_id = raw.plan_id
+  , updated_at   = now()
+from raw
+where raw.id = task.id
+  and task._type != 'plan'
+  and task.status_id in (-1/*deleted*/, 100/*completed*/)
+returning task.id, task.status_id, task.trash_bin_id;

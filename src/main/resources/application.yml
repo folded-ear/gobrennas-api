@@ -6,6 +6,7 @@ server:
 spring:
   main:
     allow-circular-references: true
+    banner-mode: off
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://${RDS_HOSTNAME}:${RDS_PORT:5432}/${RDS_DB_NAME}

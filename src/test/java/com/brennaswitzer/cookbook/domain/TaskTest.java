@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.RecipeBox;
+import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
@@ -137,6 +138,7 @@ public class TaskTest {
     @Test
     public void BY_NAME() {
         Task a = new Task("a");
+        //noinspection EqualsWithItself
         assertEquals(0, Task.BY_NAME.compare(a, a));
         assertTrue(Task.BY_NAME.compare(a, null) < 0);
         assertTrue(Task.BY_NAME.compare(null, a) > 0);
@@ -153,6 +155,7 @@ public class TaskTest {
     @Test
     public void BY_NAME_IGNORE_CASE() {
         Task a = new Task("a");
+        //noinspection EqualsWithItself
         assertEquals(0, Task.BY_NAME_IGNORE_CASE.compare(a, a));
         assertTrue(Task.BY_NAME_IGNORE_CASE.compare(a, null) < 0);
         assertTrue(Task.BY_NAME_IGNORE_CASE.compare(null, a) > 0);
@@ -168,6 +171,7 @@ public class TaskTest {
     @Test
     public void BY_ORDER() {
         Task a = new Task("", 1);
+        //noinspection EqualsWithItself
         assertEquals(0, Task.BY_ORDER.compare(a, a));
         assertTrue(Task.BY_ORDER.compare(a, null) < 0);
         assertTrue(Task.BY_ORDER.compare(null, a) > 0);
@@ -229,6 +233,31 @@ public class TaskTest {
         RecipeBox box = new RecipeBox();
         Task saltTask = new Task("salt", box.salt);
         System.out.println(saltTask);
+    }
+
+    @Test
+    public void trashBin() {
+        val plan = new TaskList("The Plan");
+        val a = new Task("a");
+        plan.addSubtask(a);
+        val b = new Task("b");
+        a.addSubtask(b);
+        val c = new Task("c");
+        b.addSubtask(c);
+
+        System.out.println(renderTree("initial", plan));
+
+        b.moveToTrash();
+        System.out.println(renderTree("trash b", plan));
+
+        a.moveToTrash();
+        System.out.println(renderTree("trash a", plan));
+
+        b.restoreFromTrash();
+        System.out.println(renderTree("restore b", plan));
+
+        a.restoreFromTrash();
+        System.out.println(renderTree("restore a", plan));
     }
 
 }

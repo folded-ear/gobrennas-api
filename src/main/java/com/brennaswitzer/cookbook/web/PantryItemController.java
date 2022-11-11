@@ -8,8 +8,6 @@ import com.brennaswitzer.cookbook.services.PantryItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +18,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/pantryitem")
-@MessageMapping("/pantry-item")
 public class PantryItemController {
 
     @Autowired
@@ -49,8 +46,7 @@ public class PantryItemController {
     }
 
     @PostMapping("/order-for-store")
-    @MessageMapping("/order-for-store")
-    public void orderForStore(@RequestBody @Payload OrderForStore action) {
+    public void orderForStore(@RequestBody OrderForStore action) {
         Long id = action.getId();
         Long targetId = action.getTargetId();
         if (id == null || targetId == null || id.equals(targetId)) {

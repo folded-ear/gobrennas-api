@@ -4,84 +4,111 @@ import com.brennaswitzer.cookbook.message.*;
 import com.brennaswitzer.cookbook.payload.TaskInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
-@MessageMapping("/plan")
+@RequestMapping("api/plan")
 @PreAuthorize("hasRole('USER')")
 public class PlanController {
 
     @Autowired
     private PlanService planService;
 
-    @SubscribeMapping("/{id}")
-    public List<TaskInfo> subscribeToList(@DestinationVariable("id") Long id) {
-        // Packaging up the entire tree into a single message is sorta less than
-        // ideal. Sending only the top-level items w/ a follow-up message
-        // containing the rest would give better perceived performance, as the
-        // visible tasks would show up w/out having to wait for processing all
-        // the nested subtasks, which are likely _much_ more numerous.
-        //
-        // I think?
-        return TaskInfo.fromTasks(planService.getTreeById(id));
+    @GetMapping("/{id}/descendants")
+    public List<TaskInfo> getDescendants(
+            @PathVariable("id") Long id
+    ) {
+        return TaskInfo.fromTasks(planService
+                .getTreeById(id));
     }
 
-    @MessageMapping("/{id}/mutate-tree")
-    public void mutateTree(@Payload MutatePlanTree action) {
-        planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
+    @GetMapping("/{id}/all-since")
+    public List<TaskInfo> getUpdatedSince(
+            @PathVariable("id") Long id,
+            @RequestParam Long cutoff
+    ) {
+        return TaskInfo.fromTasks(planService
+                .getTreeDeltasById(id, Instant.ofEpochMilli(cutoff)));
     }
 
-    @MessageMapping("/{id}/reorder-items")
-    public void reorderSubitems(@Payload ReorderSubitems action) {
-        planService.resetSubitems(action.getId(), action.getSubitemIds());
+    @PostMapping("/{id}/mutate-tree")
+    public PlanMessage mutateTree(
+            @PathVariable("id") Long id,
+            @RequestBody MutatePlanTree action
+    ) {
+        return planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
     }
 
-    @MessageMapping("/{id}/create")
-    public void createItem(@Payload CreatePlanTreeItem action) {
-        planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
+    @PostMapping("/{id}/reorder-subitems")
+    public PlanMessage reorderSubitems(
+            @PathVariable("id") Long id,
+            @RequestBody ReorderSubitems action) {
+        return planService.resetSubitems(action.getId(), action.getSubitemIds());
     }
 
-    @MessageMapping("/{id}/rename")
-    public void renameItem(@Payload RenamePlanTreeItem action) {
-        planService.renameItem(action.getId(), action.getName());
+    @PostMapping("/{id}")
+    public PlanMessage createItem(
+            @PathVariable("id") Long id,
+            @RequestBody CreatePlanTreeItem action
+    ) {
+        return planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
     }
 
-    @MessageMapping("/{id}/assign-bucket")
-    public void assignItemBucket(@Payload AssignPlanTreeItemBucket action) {
-        planService.assignItemBucket(action.getId(), action.getBucketId());
+    @PutMapping("/{id}/rename")
+    public PlanMessage renameItem(
+            @PathVariable("id") Long id,
+            @RequestBody RenamePlanTreeItem action
+    ) {
+        return planService.renameItem(action.getId(), action.getName());
     }
 
-    @MessageMapping("/{id}/status")
-    public void setStatus(@Payload SetPlanTreeItemStatus action) {
-        planService.setItemStatus(action.getId(), action.getStatus());
+    @PostMapping("/{id}/assign-bucket")
+    public PlanMessage assignItemBucket(
+            @PathVariable("id") Long id,
+            @RequestBody AssignPlanTreeItemBucket action) {
+        return planService.assignItemBucket(action.getId(), action.getBucketId());
     }
 
-    @MessageMapping("/{id}/delete")
-    public void deleteItem(@Payload DeletePlanTreeItem action) {
-        planService.deleteItem(action.getId());
+    @PutMapping("/{id}/status")
+    public PlanMessage setStatus(
+            @PathVariable("id") Long id,
+            @RequestBody SetPlanTreeItemStatus action
+    ) {
+        return planService.setItemStatus(action.getId(), action.getStatus());
     }
 
-    @MessageMapping("/{id}/buckets/create")
-    public void createBucket(@DestinationVariable("id") long planId, @Payload CreatePlanBucket action) {
-        planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+    @DeleteMapping("/{planId}/{id}")
+    public void deleteItem(
+            @PathVariable("planId") Long planId,
+            @PathVariable("id") Long id) {
+        planService.deleteItem(id);
     }
 
-    @MessageMapping("/{id}/buckets/update")
-    public void updateBucket(@DestinationVariable("id") long planId, @Payload UpdatePlanBucket action) {
-        planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+    @PostMapping("/{id}/buckets")
+    public PlanMessage createBucket(
+            @PathVariable("id") long planId,
+            @RequestBody CreatePlanBucket action) {
+        return planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
     }
 
-    @MessageMapping("/{id}/buckets/delete")
-    public void deleteBucket(@DestinationVariable("id") long planId, @Payload DeletePlanBucket action) {
-        planService.deleteBucket(planId, action.getId());
+    @PutMapping("/{planId}/buckets/{id}")
+    public PlanMessage updateBucket(
+            @PathVariable("planId") long planId,
+            @PathVariable("id") long id,
+            @RequestBody UpdatePlanBucket action) {
+        return planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+    }
+
+    @DeleteMapping("/{planId}/buckets/{id}")
+    public PlanMessage deleteBucket(
+            @PathVariable("planId") long planId,
+            @PathVariable("id") long id) {
+        return planService.deleteBucket(planId, id);
     }
 
 }

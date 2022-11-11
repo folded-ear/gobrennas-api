@@ -23,7 +23,12 @@ public class TaskList extends Task implements AccessControlled {
     @BatchSize(size = 100)
     private Set<PlanBucket> buckets;
 
-    public TaskList() {}
+    @OneToMany(mappedBy = "trashBin", cascade = CascadeType.ALL)
+    @BatchSize(size = 100)
+    private Set<Task> trashBinTasks;
+
+    public TaskList() {
+    }
 
     public TaskList(String name) {
         super(name);
@@ -53,6 +58,17 @@ public class TaskList extends Task implements AccessControlled {
 
     public boolean hasBuckets() {
         return buckets != null && !buckets.isEmpty();
+    }
+
+    public Set<Task> getTrashBinTasks() {
+        if (trashBinTasks == null) {
+            trashBinTasks = new HashSet<>();
+        }
+        return trashBinTasks;
+    }
+
+    public boolean hasTrash() {
+        return trashBinTasks != null && !trashBinTasks.isEmpty();
     }
 
     public User getOwner() {
