@@ -21,7 +21,7 @@ spring:
             clientSecret: ${GOOGLE_CLIENT_SECRET}
 app:
   # where 'index.html' lives from the UA's perspective
-  public-url: https://cook.brennaswitzer.com/
+  public-url: https://gobrennas.com/
   aws:
     bucket-name: foodinger
 
