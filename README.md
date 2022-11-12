@@ -30,8 +30,8 @@ However, you _did_ just run the full regression suite (as would `./mvnw test`)!
 ## Run (For Development)
 
 You'll need a recent-ish Postgres (let's say 10 or newer) database to run
-against. If you're using a decent OS - or Docker Desktop; 🙄 - you'll
-have `docker` available, which is a great choice:
+against. If you're using a decent OS - or Docker Desktop; 🙄 - you'll have
+`docker` available, which is a great choice:
 
     docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:10
 
@@ -40,10 +40,11 @@ your `postgres` database remains pristine, and you want to use it).
 
 To run the app, you'll need two terminals, one for the server:
 
-    RDS_HOSTNAME=localhost \
-    RDS_DB_NAME=postgres \
-    RDS_USERNAME=postgres \
-    RDS_PASSWORD=passwd \
+    DB_HOST=localhost \
+    DB_PORT=5432 \
+    DB_NAME=postgres \
+    DB_USER=postgres \
+    DB_PASS=passwd \
     ./mvnw spring-boot:run
 
 and one for the client:
