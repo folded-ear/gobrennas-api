@@ -1,0 +1,6 @@
+/.ebextensions
+/.github
+/.gradle
+/.idea
+/client
+/target
