@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.brennaswitzer</groupId>
     <artifactId>cookbook</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>cookbook</name>
     <description>Personal CookBook and meal planning software</description>
 
@@ -209,18 +209,6 @@
                         </fileset>
                         <fileset>
                             <directory>${basedir}/src/main/java</directory>
-                            <includes>
-                                <include>*.tokens</include>
-                            </includes>
-                        </fileset>
-                        <fileset>
-                            <directory>${basedir}/client/src/com/brennaswitzer/cookbook/antlr</directory>
-                            <includes>
-                                <include>*.*</include>
-                            </includes>
-                        </fileset>
-                        <fileset>
-                            <directory>${basedir}/client/src</directory>
                             <includes>
                                 <include>*.tokens</include>
                             </includes>

@@ -1,67 +1,62 @@
-# Foodinger!
+# Brenna's Food Software API
 
-[![CI/CD](https://github.com/folded-ear/foodinger/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/folded-ear/foodinger/actions/workflows/ci-cd.yaml)
+Do you use food? Do you use software? Brenna's Food Software is for you!
 
-I'm a cookbook! I'm a todo list! I'm a meal planning package! I'm awesome!
-
-> Your _face_ is a cookbook!
+> Your _face_ is ~~a cookbook~~ food software!
 
 ## Build and Test
 
-You'll need Java 8, Maven 3, and Node 14 to build. More specific versions may be
-stipulated at some point. And shush about "old Node"; Maven 3 is the same age as
-_Node itself_, so Node 14 is pretty damn new. Take your ADHD pills and let's
-keep going.
+You'll need Java 8 to build. A more specific version may be stipulated at some
+point (though likely not before upgrading past Java 9/Jigsaw):
 
-The easiest way is to install `nvm` (see https://github.com/nvm-sh/nvm ) and use
-the included `mvnw` script:
-
-    nvm install
-    cd client
-    npm install
-    npm run build
-    cd ..
     ./mvnw package
 
 Now you'll have a nice self-running JAR file in the `target` directory. Which
 we'll immediately forget about, because it's for deployment, not development.
-However, you _did_ just run the full regression suite (as would `./mvnw test`)!
+However, you _did_ just run the full regression suite!
 
 ## Run (For Development)
 
-You'll need a recent-ish Postgres (let's say 10 or newer) database to run
-against. If you're using a decent OS - or Docker Desktop; 🙄 - you'll have
-`docker` available, which is a great choice:
+You'll need a recent-ish Postgres (let's say 10) database to run against. If
+you're using a decent OS - or Mac w/ Docker Desktop; 🙄 - you'll have `docker`
+available, which is a great choice:
 
     docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:10
 
 If you already have existing PG infrastructure, create a new database (unless
-your `postgres` database remains pristine, and you want to use it).
+you want to use your - still pristine - `postgres` database).
 
-To run the app, you'll need two terminals, one for the server:
+To run:
 
     DB_HOST=localhost \
-    DB_PORT=5432 \
     DB_NAME=postgres \
     DB_USER=postgres \
     DB_PASS=passwd \
     ./mvnw spring-boot:run
 
-and one for the client:
+You might create a `src/main/resources/application-default.yml` with your
+settings (look to the other `application*.yml` in that directory for
+inspiration) instead of using environment variables. They're equivalent.
 
-    cd client
-    npm start
+Open http://localhost:5000/ in your browser and ... see a 404 error. You have an
+API without a client, which isn't very useful. Check out
+https://github.com/folded-ear/gobrennas-client, a local instance of which is
+where the error's link wants to bring you.
 
-The latter should have opened http://localhost:3001/ in your default browser,
-but if not, hit that link manually. BAM.
-
-You probably want to create a `src/main/resources/application-default.yml` with
-setting (look to the other `application*.yml` in that directory for inspiration)
-instead of using environment variables. But either works.
+> ***NB:*** By default, you're using Folded Ear's development OAuth 2.0 client
+> ID. Its keys are hard coded in `application.yml`, and it's locked to
+> `localhost`. We deemed this "secure enough" to lubricate the developer
+> experience, particularly during bootstrap. We promise not to use demo accounts
+> for anything nefarious. You can decide whether to trust us or not. If "or
+> not", create an app and configure your id and secret in
+> `application-default.yml` to override the defaults.
 
 ## Run (For Production)
 
 That self-running JAR from the "Build and Test" section is perfect! Except you
-also need Google Auth secrets, DNS configuration, the right hostnames, the
-`package.json` config, and a bunch of mess. All of which is normal "host this
-thing" boilerplate and has nothing to do with Foodinger. So figure it out. :)
+also need Google Auth and AWS secrets, DNS configuration, the right hostnames, a
+matched client, and a bunch of mess. All of which is normal "host this thing"
+boilerplate. So figure it out. :) You may find `application-production.yml`
+useful, illustrating one way to parameterize things.
+
+You can hit https://api.gobrennas.com/ to see it in action.
