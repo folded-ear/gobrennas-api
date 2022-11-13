@@ -103,61 +103,63 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        //@formatter:off
         http
-                .cors()
-                    .and()
-                .headers()
-                    .frameOptions().sameOrigin()
-                    .and()
-                .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and()
-                .csrf()
-                    .disable()
-                .formLogin()
-                    .disable()
-                .httpBasic()
-                    .disable()
-                .exceptionHandling()
-                    .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-                    .and()
-                .logout()
-                    .logoutUrl("/oauth2/logout")
-                    .logoutSuccessUrl(appProperties.getPublicUrl())
-                    .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
+            .cors()
+                .and()
+            .headers()
+                .frameOptions().sameOrigin()
+                .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+            .csrf()
+                .disable()
+            .formLogin()
+                .disable()
+            .httpBasic()
+                .disable()
+            .exceptionHandling()
+                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                .and()
+            .logout()
+                .logoutUrl("/oauth2/logout")
+                .logoutSuccessUrl(appProperties.getPublicUrl())
+                .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
+                .permitAll()
+                .and()
+            .authorizeRequests()
+                .antMatchers("/",
+                    "/error",
+                    "/favicon.ico",
+                    "/shared/**/*",
+                    "/**/*.png",
+                    "/**/*.gif",
+                    "/**/*.svg",
+                    "/**/*.jpg",
+                    "/**/*.html",
+                    "/**/*.css",
+                    "/**/*.js")
+                    .permitAll()
+                .antMatchers("/api/**")
+                    .authenticated()
+                .anyRequest()
                     .permitAll()
                     .and()
-                .authorizeRequests()
-                    .antMatchers("/",
-                        "/error",
-                        "/favicon.ico",
-                        "/shared/**/*",
-                        "/**/*.png",
-                        "/**/*.gif",
-                        "/**/*.svg",
-                        "/**/*.jpg",
-                        "/**/*.html",
-                        "/**/*.css",
-                        "/**/*.js")
-                        .permitAll()
-                    .antMatchers("/api/**")
-                        .authenticated()
-                    .anyRequest()
-                        .permitAll()
+                .oauth2Login()
+                    .authorizationEndpoint()
+                        .baseUri("/oauth2/authorize")
+                        .authorizationRequestRepository(cookieAuthorizationRequestRepository())
                         .and()
-                    .oauth2Login()
-                        .authorizationEndpoint()
-                            .baseUri("/oauth2/authorize")
-                            .authorizationRequestRepository(cookieAuthorizationRequestRepository())
-                            .and()
-                        .redirectionEndpoint()
-                            .baseUri("/oauth2/callback/*")
-                            .and()
-                        .userInfoEndpoint()
-                            .userService(customOAuth2UserService)
-                            .and()
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(oAuth2AuthenticationFailureHandler);
+                    .redirectionEndpoint()
+                        .baseUri("/oauth2/callback/*")
+                        .and()
+                    .userInfoEndpoint()
+                        .userService(customOAuth2UserService)
+                        .and()
+                    .successHandler(oAuth2AuthenticationSuccessHandler)
+                    .failureHandler(oAuth2AuthenticationFailureHandler);
+        //@formatter:on
 
         // Add our custom Token based authentication filter
         http.addFilterBefore(cookieTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

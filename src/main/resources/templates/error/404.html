@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Not Found</title>
+</head>
+<body>
+<h1>Not Found</h1>
+<p>Are you looking for <a href="https://gobrennas.com"
+                          th:attr="href=${@environment.getProperty('app.public-url')}"
+                          th:text="${@environment.getProperty('app.public-url')}">gobrennas.com</a>?
+</p>
+</body>
+</html>
