@@ -35,6 +35,15 @@ public class ItemServiceTest {
     UserPrincipalAccess principalAccess;
 
     @Test
+    public void whitespaces() {
+        service.recognizeItem("", 0);
+        service.recognizeItem("cat", 0);
+        service.recognizeItem("cat  ", 3);
+        service.recognizeItem(" cat", 2);
+        service.recognizeItem(" cat", 1);
+    }
+
+    @Test
     public void recognizeItem() {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
@@ -85,7 +94,7 @@ public class ItemServiceTest {
                 service.recognizeItem(raw));
     }
 
-    private RecognizedItem recognizeChickenThighs(Function<String, RecognizedItem> doRecognition) {
+    private void recognizeChickenThighs(Function<String, RecognizedItem> doRecognition) {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
 
@@ -100,7 +109,12 @@ public class ItemServiceTest {
         assertEquals(new RecognizedItem.Range(2, 5, RecognizedItem.Type.UNIT), ri.next());
         assertEquals(new RecognizedItem.Range(6, 20, RecognizedItem.Type.ITEM), ri.next());
         assertFalse(ri.hasNext());
-        return el;
+    }
+
+    @Test
+    public void recognizeItemMultipleWordsWithCursorAtStart() {
+        recognizeChickenThighs(raw ->
+                service.recognizeItem(raw, 0));
     }
 
     @Test

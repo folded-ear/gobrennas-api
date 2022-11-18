@@ -11,6 +11,7 @@ import com.brennaswitzer.cookbook.payload.RecognizedItem.Suggestion;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,18 +113,17 @@ public class ItemService {
             // based on cursor position, see if we can suggest any names
             // start with looking backwards for a quote
             int start = raw.lastIndexOf('"', item.getCursor());
-            boolean hasQuote = true;
+            val hasQuote = start >= 0;
             boolean hasSpace = false;
             if (start < 0) { // look backwards for a non-trailing space
                 int end = item.getCursor() - 1;
-                while (Character.isWhitespace(raw.charAt(end))) end--;
+                while (end > 0 && Character.isWhitespace(raw.charAt(end)))
+                    end--;
                 start = raw.lastIndexOf(' ', end);
-                hasQuote = false;
                 hasSpace = true;
             }
             if (start < 0) { // whole prefix, i guess
                 start = 0;
-                hasQuote = false;
                 hasSpace = false;
             }
             int replaceStart = hasSpace ? start + 1 : start;
