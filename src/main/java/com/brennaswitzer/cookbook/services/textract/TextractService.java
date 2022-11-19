@@ -1,11 +1,13 @@
-package com.brennaswitzer.cookbook.services;
+package com.brennaswitzer.cookbook.services.textract;
 
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
+import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +29,7 @@ public class TextractService {
     private StorageService storageService;
 
     @Autowired
-    private TextractProvider textractProvider;
+    private ApplicationEventPublisher eventPublisher;
 
     public TextractJob getJob(long id) {
         return jobRepository.getReferenceById(id);
@@ -59,14 +61,7 @@ public class TextractService {
         ));
         job = jobRepository.save(job);
 
-        Long jobId = job.getId();
-        new Thread(() -> {
-            try {
-                textractProvider.processJob(jobId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        eventPublisher.publishEvent(new JobCreatedEvent(job.getId()));
 
         return job;
     }

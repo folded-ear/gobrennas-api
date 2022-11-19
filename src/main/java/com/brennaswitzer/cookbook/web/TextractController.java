@@ -3,7 +3,7 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.payload.TextractJobInfo;
 import com.brennaswitzer.cookbook.services.StorageService;
-import com.brennaswitzer.cookbook.services.TextractService;
+import com.brennaswitzer.cookbook.services.textract.TextractService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

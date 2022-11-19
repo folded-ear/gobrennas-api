@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.services;
+package com.brennaswitzer.cookbook.services.textract;
 
 public interface TextractProvider {
 

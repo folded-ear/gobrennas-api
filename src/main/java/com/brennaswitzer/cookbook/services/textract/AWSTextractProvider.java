@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.services;
+package com.brennaswitzer.cookbook.services.textract;
 
 import com.amazonaws.services.textract.AmazonTextract;
 import com.amazonaws.services.textract.model.BoundingBox;
@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 @Transactional
 public class AWSTextractProvider implements TextractProvider {
 
-    private AmazonTextract textractClient;
+    private final AmazonTextract textractClient;
 
-    private TextractJobRepository jobRepository;
+    private final TextractJobRepository jobRepository;
 
     private final String bucketName;
 
@@ -28,7 +28,7 @@ public class AWSTextractProvider implements TextractProvider {
     }
 
     public void processJob(long jobId) {
-        TextractJob job = jobRepository.getOne(jobId);
+        TextractJob job = jobRepository.getReferenceById(jobId);
         DetectDocumentTextRequest request = new DetectDocumentTextRequest()
                 .withDocument(new Document()
                         .withS3Object(new S3Object()
