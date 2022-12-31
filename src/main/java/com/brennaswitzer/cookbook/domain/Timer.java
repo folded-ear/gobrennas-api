@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,8 +16,10 @@ import java.time.Instant;
  * be paused and then resumed any number of times. Once its duration has
  * elapsed, it becomes complete and may no longer be paused.
  */
+@Entity
 public class Timer extends BaseEntity implements AccessControlled {
 
+    @Embedded
     @NotNull
     @Getter
     @Setter
