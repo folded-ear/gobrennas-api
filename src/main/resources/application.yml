@@ -16,6 +16,9 @@ spring:
   sql:
     init:
       platform: postgres
+  h2:
+    console:
+      enabled: false
   jpa:
     show-sql: false
     hibernate:
