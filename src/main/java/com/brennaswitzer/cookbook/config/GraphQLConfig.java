@@ -25,8 +25,8 @@ public class GraphQLConfig {
     }
 
     @Bean
-    public GraphQLScalarType dateTime() {
-        return ExtendedScalars.DateTime;
+    public GraphQLScalarType nonNegativeInt() {
+        return ExtendedScalars.NonNegativeInt;
     }
 
     @Bean
