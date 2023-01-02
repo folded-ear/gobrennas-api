@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.domain;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
-import lombok.var;
 import org.hibernate.annotations.SortComparator;
 
 import javax.persistence.*;
