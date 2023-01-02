@@ -3,6 +3,8 @@ server:
   error:
     whitelabel:
       enabled: false
+  compression:
+    enabled: true
 
 spring:
   main:
@@ -67,4 +69,6 @@ app:
 graphql:
   servlet:
     websocket:
+      # noinspection SpringBootApplicationYaml
       enabled: false
+    exception-handlers-enabled: true
