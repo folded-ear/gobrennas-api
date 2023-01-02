@@ -14,4 +14,15 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - run: mvn --batch-mode --update-snapshots verify
-
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cloud Build
+        uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: ${{ secrets.CLOUD_BUILD_WEBHOOK }}
+          # this is supposed to be optional, but it isn't?
+          webhook_secret: "NynDG5VRoakK1IFTzJgQJ5hv7xwY3ZViIL41j1lngGqTSDbgkaFmh6fvLDDKAfoECBNqlVyu7WlaBvm6TbdNPGGoyVYa1bF0MJaQ"
+          verbose: true
