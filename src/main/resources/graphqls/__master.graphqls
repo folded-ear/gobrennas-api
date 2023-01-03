@@ -1,0 +1,19 @@
+scalar Date
+scalar NonNegativeInt
+scalar NonNegativeFloat
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    node(id: ID!): Node
+}
+
+type Mutation {
+}
+
+interface Node {
+    id: ID!
+}

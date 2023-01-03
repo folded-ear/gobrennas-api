@@ -1,0 +1,48 @@
+extend type Query {
+    getPlans: [Plan]
+    getPlanItem(id: ID!): PlanItem
+}
+
+type Plan implements Node & AccessControlled {
+    id: ID!
+    owner: User!
+    name: String!
+    grants: [AccessControlEntry!]!
+    buckets: [PlanBucket]
+}
+
+"""
+Represents a single item on a plan
+"""
+type PlanItem implements Node {
+    id: ID!
+    name: String!
+    quantity: NonNegativeFloat
+    units: String
+    preparation: String
+    notes: String
+    parent: PlanItem
+    subtasks: [PlanItem]
+    components: [PlanItem]
+    bucket: PlanBucket
+    status: TaskStatus!
+    #    aggregateId: ID!
+    #    ingredientId: ID!
+
+    #    parentId: ID!
+    #    subtaskIds: [ID!]
+
+}
+
+type PlanBucket {
+    id: ID!
+    name: String!
+    date: Date!
+}
+
+enum TaskStatus {
+    NEEDED
+    ACQUIRED
+    COMPLETED
+    DELETED
+}

@@ -1,0 +1,45 @@
+extend type Query {
+    timer: TimerQuery
+}
+
+extend type Mutation {
+    timer: TimerMutation
+}
+
+type TimerQuery {
+    all: [Timer!]!
+    byId(id: ID!): Timer!
+}
+
+type TimerMutation {
+    """Create a new timer with the specified duration and start it."""
+    create(duration: NonNegativeInt): Timer!
+    """Pause the specified running timer."""
+    pause(id: ID!): Timer!
+    """Resume the specified paused timer."""
+    resume(id: ID!): Timer!
+    """
+    Ensure the specified timer has been deleted, regardless of its status or
+    existence, returning whether any action was taken.
+    """
+    delete(id: ID!): Boolean!
+}
+
+"""
+Represents a pause-able timer of user-specified length.
+"""
+type Timer implements Node & AccessControlled {
+    id: ID!
+    owner: User!
+    grants: [AccessControlEntry!]!
+    """Number of seconds the timer is set for."""
+    duration: NonNegativeInt!
+    """Number of seconds remaining; negative if already complete."""
+    remaining: Int!
+    """Whether the timer is running."""
+    running: Boolean!
+    """Whether the timer is paused."""
+    paused: Boolean!
+    """Whether the timer is complete."""
+    complete: Boolean!
+}

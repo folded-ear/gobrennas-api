@@ -26,6 +26,9 @@ public class Query implements GraphQLQueryResolver {
     @Autowired
     private UserPrincipalAccess userPrincipalAccess;
 
+    @Autowired
+    public TimerQuery timer;
+
     Object getNode(Long id) {
         return repositories.stream()
                 .map(r -> r.findById(id))
