@@ -278,3 +278,7 @@ create table timer_grants
         foreign key (user_id) references users (id)
             on delete cascade
 );
+
+--changeset bboisvert:generalize-pause_duration-to-extra_time
+alter table timer
+    rename pause_duration to extra_time;

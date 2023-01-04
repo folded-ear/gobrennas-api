@@ -24,6 +24,10 @@ public class TimerMutation {
         return update.resumeTimer(id);
     }
 
+    public Timer addTime(Long id, int duration) {
+        return update.addTime(id, duration);
+    }
+
     public boolean delete(Long id) {
         return update.deleteTimer(id);
     }

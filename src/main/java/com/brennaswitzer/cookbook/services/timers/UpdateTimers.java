@@ -40,6 +40,13 @@ public class UpdateTimers {
         return t;
     }
 
+    public Timer addTime(Long id, int duration) {
+        val t = repo.getReferenceById(id);
+        t.ensurePermitted(principalAccess.getUser(), AccessLevel.CHANGE);
+        t.addExtraTime(duration);
+        return t;
+    }
+
     public boolean deleteTimer(Long id) {
         val optionalTimer = repo.findById(id);
         if (optionalTimer.isEmpty()) {

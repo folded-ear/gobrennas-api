@@ -2,10 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
 @Embeddable
@@ -33,18 +30,13 @@ public class Acl {
 
     public Set<User> getGrantedUsers() {
         if (grants == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_SET;
+            return Collections.emptySet();
         }
         return grants.keySet();
     }
 
     public Map<User, AccessLevel> getGrants() {
-        if(grants == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_MAP;
-        }
-        return grants;
+        return Objects.requireNonNullElse(grants, Collections.emptyMap());
     }
 
     public AccessLevel getGrant(User user) {
