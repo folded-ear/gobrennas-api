@@ -1,35 +1,15 @@
-scalar Date
-scalar DateTime
-scalar NonNegativeFloat
-
-interface Node {
-    id: ID!
-}
-
-interface AccessControlled {
-    id: ID!
-    owner: User
-    grants: [AccessControlEntry]
-}
-
-
-### --- QUERY TYPES --- ###
-type Query {
-    node(id: ID!): Node
-    getCurrentUser: User
-
+extend type Query {
     getPlans: [Plan]
     getPlanItem(id: ID!): PlanItem
 }
 
-### --- RESOURCE TYPES --- ###
 type Plan implements Node & AccessControlled {
     id: ID!
-    owner: User
+    owner: User!
     name: String!
-    grants: [AccessControlEntry]
+    grants: [AccessControlEntry!]!
     buckets: [PlanBucket]
- }
+}
 
 """
 Represents a single item on a plan
@@ -46,8 +26,8 @@ type PlanItem implements Node {
     components: [PlanItem]
     bucket: PlanBucket
     status: TaskStatus!
-#    aggregateId: ID!
-#    ingredientId: ID!
+    #    aggregateId: ID!
+    #    ingredientId: ID!
 
     #    parentId: ID!
     #    subtaskIds: [ID!]
@@ -60,29 +40,9 @@ type PlanBucket {
     date: Date!
 }
 
-type User {
-    id: ID!
-    name: String
-    email: String
-    imageUrl: String
-    provider: String
-}
-
-type AccessControlEntry {
-    user: User
-    level: AccessLevel
-}
-
-#enum
 enum TaskStatus {
     NEEDED
     ACQUIRED
     COMPLETED
     DELETED
-}
-
-enum AccessLevel {
-    VIEW
-    CHANGE
-    ADMINISTER
 }

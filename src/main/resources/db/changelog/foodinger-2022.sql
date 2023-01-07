@@ -245,3 +245,40 @@ where raw.id = task.id
   and task._type != 'plan'
   and task.status_id in (-1/*deleted*/, 100/*completed*/)
 returning task.id, task.status_id, task.trash_bin_id;
+
+--changeset bboisvert:timer-storage
+create table timer
+(
+    id             bigint      not null default nextval('id_seq'),
+    created_at     timestamptz not null default now(),
+    updated_at     timestamptz not null default now(),
+    _eqkey         bigint      not null default date_part('epoch', clock_timestamp()),
+    owner_id       bigint      not null,
+    duration       int         not null,
+    paused_at      timestamptz null,
+    pause_duration int         not null default 0,
+    primary key (id),
+    constraint chk_timer_duration check ( duration > 0 ),
+    constraint chk_timer_pause_duration check ( pause_duration >= 0 ),
+    constraint fk_timer_owner
+        foreign key (owner_id) references users (id)
+            on delete cascade
+);
+create table timer_grants
+(
+    timer_id bigint not null,
+    user_id  bigint not null,
+    level_id bigint not null,
+    constraint pk_timer_grants
+        primary key (timer_id, user_id),
+    constraint fk_timer_grants_timer
+        foreign key (timer_id) references timer (id)
+            on delete cascade,
+    constraint fk_timer_grants_user
+        foreign key (user_id) references users (id)
+            on delete cascade
+);
+
+--changeset bboisvert:generalize-pause_duration-to-extra_time
+alter table timer
+    rename pause_duration to extra_time;

@@ -1,0 +1,27 @@
+interface AccessControlled {
+    owner: User!
+    grants: [AccessControlEntry!]!
+}
+
+extend type Query {
+    getCurrentUser: User
+}
+
+type User {
+    id: ID!
+    name: String
+    email: String
+    imageUrl: String
+    provider: String
+}
+
+type AccessControlEntry {
+    user: User
+    level: AccessLevel
+}
+
+enum AccessLevel {
+    VIEW
+    CHANGE
+    ADMINISTER
+}
