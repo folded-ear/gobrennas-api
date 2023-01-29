@@ -13,8 +13,8 @@ import java.util.Map;
 
 public class UserPrincipal implements OAuth2User, UserDetails {
 
-    private static final GrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
-    private static final GrantedAuthority ROLE_DEVELOPER = new SimpleGrantedAuthority("ROLE_DEVELOPER");
+    public static final GrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
+    public static final GrantedAuthority ROLE_DEVELOPER = new SimpleGrantedAuthority("ROLE_DEVELOPER");
 
     // super-kludgey authorization "framework"
     private static final String BARNEYS_EMAIL = "bboisvert@gmail.com";
@@ -22,13 +22,13 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     private static boolean isDeveloper(User user) {
         return BARNEYS_EMAIL.equalsIgnoreCase(user.getEmail())
-                || BRENNAS_EMAIL.equalsIgnoreCase(user.getEmail());
+            || BRENNAS_EMAIL.equalsIgnoreCase(user.getEmail());
     }
     // end "framework"
 
-    private Long id;
-    private String email;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final Long id;
+    private final String email;
+    private final Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
     public UserPrincipal(Long id, String email, Collection<? extends GrantedAuthority> authorities) {
@@ -38,7 +38,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     }
 
     public static UserPrincipal create(User user) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = new ArrayList<>(2);
         authorities.add(ROLE_USER);
         if (isDeveloper(user)) {
             authorities.add(ROLE_DEVELOPER);
