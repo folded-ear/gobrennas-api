@@ -2,157 +2,151 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.util.RecipeBox;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
-import com.brennaswitzer.cookbook.util.WithAliceBobEve;
+import org.hibernate.SynchronizeableQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Slice;
 
 import javax.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.Collections;
+import javax.persistence.Query;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@Transactional
-@WithAliceBobEve
+@ExtendWith(MockitoExtension.class)
 public class RecipeSearchRepositoryImplTest {
 
-    @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
-    private UserPrincipalAccess principalAccess;
-
-    @Autowired
-    private UserRepository userRepository;
-
+    @InjectMocks
     private RecipeSearchRepositoryImpl repo;
 
-    @BeforeEach
-    public void _createRepo() {
-        repo = new RecipeSearchRepositoryImpl();
-        repo.setEntityManager(entityManager);
-    }
+    @Mock
+    private EntityManager entityManager;
+
+    @Mock
+    private PostgresFullTextQueryParser queryParser;
+
+    @Mock
+    private Query query;
+
+    @Captor
+    private ArgumentCaptor<String> sqlCaptor;
+
+    @Captor
+    private ArgumentCaptor<String> queryCaptor;
 
     @BeforeEach
-    public void _loadBox() {
-        RecipeBox box = new RecipeBox();
-        User owner = principalAccess.getUser();
-        box.persist(entityManager, owner);
-        Recipe r = new Recipe("ZZZ Dinner");
-        r.setOwner(owner);
-        entityManager.persist(r);
+    public void setup() {
+        doReturn(mock(SynchronizeableQuery.class))
+            .when(query)
+            .unwrap(eq(SynchronizeableQuery.class));
+        doReturn(query)
+            .when(entityManager)
+            .createNativeQuery(any(), eq(Recipe.class));
     }
 
     @Test
-    public void unbounded() {
-        assertEquals(6, repo.searchRecipes(null, PageRequest.of(0, 10)).getNumberOfElements());
-        assertEquals(6, repo.searchRecipes("", PageRequest.of(0, 10)).getNumberOfElements());
+    public void pagingShenanigans() {
+        doReturn(List.of(new Recipe(), new Recipe(), new Recipe()))
+            .when(query)
+            .getResultList();
+
+        Slice<Recipe> result = repo.searchRecipes(null, PageRequest.of(3, 2));
+
+        verify(query)
+            .setFirstResult(6);
+        verify(query)
+            .setMaxResults(2 + 1);
+        assertTrue(result.hasPrevious());
+        assertTrue(result.hasNext());
+        assertEquals(2, result.getSize());
     }
 
     @Test
-    public void nameMatch() {
-        List<Recipe> l = repo.searchRecipes("pizza", PageRequest.of(0, 10))
-                .getContent();
-        l.stream().map(Recipe::getName).forEach(System.out::println);
-        assertEquals("Pizza", l.get(0).getName());
-        assertEquals("Pizza Crust", l.get(1).getName());
-        assertEquals("Pizza Sauce", l.get(2).getName());
-        assertEquals(3, l.size());
+    public void noOwnerNoFilter() {
+        repo.searchRecipes(null, PageRequest.of(0, 2));
+
+        verify(entityManager)
+            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_ALL));
+        assertFalse(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_ALL));
     }
 
     @Test
-    public void multipleTerms() {
-        List<Recipe> l = repo.searchRecipes("pizza dinner", PageRequest.of(0, 10))
-                .getContent();
-        l.stream().map(Recipe::getName).forEach(System.out::println);
-        assertEquals("Pizza", l.get(0).getName()); // both
-        assertEquals("Pizza Crust", l.get(1).getName()); // name
-        assertEquals("Pizza Sauce", l.get(2).getName()); // name
-        assertEquals("ZZZ Dinner", l.get(3).getName()); // label
-        assertEquals("Fried Chicken", l.get(4).getName()); // label
-        assertEquals(5, l.size());
+    public void noOwnerWithFilter() {
+        String filter = "a neat filter";
+        String tsquery = "parsed to query";
+        doReturn(tsquery)
+            .when(queryParser)
+            .parse(filter);
+
+        repo.searchRecipes(filter, PageRequest.of(0, 2));
+
+        verify(entityManager)
+            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+        verify(query)
+            .setParameter(eq("query"), queryCaptor.capture());
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_FULLTEXT));
+        assertFalse(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_FULLTEXT));
+        assertEquals(tsquery, queryCaptor.getValue());
     }
 
     @Test
-    public void paging() {
-        List<Recipe> l = repo.searchRecipes("pizza", PageRequest.of( 1, 2))
-                .getContent();
-        l.stream().map(Recipe::getName).forEach(System.out::println);
-        assertEquals("Pizza Sauce", l.get(0).getName());
-        assertEquals(1, l.size());
+    public void ownerNoFilter() {
+        User owner = mock(User.class);
+        doReturn(2L)
+            .when(owner)
+            .getId();
+
+        repo.searchRecipesByOwner(List.of(owner), "", PageRequest.of(0, 2));
+
+        verify(entityManager)
+            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+        verify(query)
+            .setParameter(eq("ownerIds"), eq(Set.of(2L)));
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_ALL));
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_ALL));
     }
 
     @Test
-    public void labelMatch() {
-        List<Recipe> l = repo.searchRecipes("dinner", PageRequest.of(0, 10))
-                .getContent();
-        l.stream().map(Recipe::getName).forEach(System.out::println);
-        assertEquals("ZZZ Dinner", l.get(0).getName()); // name match orders before other locations
-        assertEquals("Fried Chicken", l.get(1).getName());
-        assertEquals("Pizza", l.get(2).getName());
-        assertEquals(3, l.size());
-    }
+    public void ownerWithFilter() {
+        User owner = mock(User.class);
+        doReturn(2L)
+            .when(owner)
+            .getId();
 
-    @Test
-    public void directionsMatch() {
-        List<Recipe> l = repo.searchRecipes("knead", PageRequest.of(0, 10))
-                .getContent();
-        l.stream().map(Recipe::getName).forEach(System.out::println);
-        assertEquals("Pizza Crust", l.get(0).getName());
-        assertEquals(1, l.size());
-    }
+        repo.searchRecipesByOwner(List.of(owner), "chicken thighs", PageRequest.of(0, 2));
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
-    @Test
-    public void byOwner() {
-        User alice = principalAccess.getUser();
-        User bob = userRepository.findByEmail("bob@example.com").get();
-        User eve = userRepository.findByEmail("eve@example.com").get();
-        List<Recipe> l = repo.searchRecipes("pizza", PageRequest.of(0, 10))
-                .getContent();
-        assertEquals(3, l.size()); // sanity
-        l.get(1).setOwner(bob);
-        l.get(2).setOwner(eve);
-
-        l = repo.searchRecipesByOwner(
-                Collections.singletonList(alice),
-                "pizza",
-                PageRequest.of(0, 10)
-        ).getContent();
-
-        assertEquals(1, l.size());
-        assertEquals("Pizza", l.get(0).getName());
-
-        l = repo.searchRecipesByOwner(
-                Arrays.asList(alice, eve),
-                "pizza",
-                PageRequest.of(0, 10)
-        ).getContent();
-
-        assertEquals(2, l.size());
-        assertEquals("Pizza", l.get(0).getName());
-        assertEquals("Pizza Sauce", l.get(1).getName());
-
-        l = repo.searchRecipesByOwner(
-                Arrays.asList(bob, eve),
-                "",
-                PageRequest.of(0, 10)
-        ).getContent();
-
-        assertEquals(2, l.size());
-        assertEquals("Pizza Crust", l.get(0).getName());
-        assertEquals("Pizza Sauce", l.get(1).getName());
+        verify(entityManager)
+            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+        verify(query)
+            .setParameter(eq("ownerIds"), eq(Set.of(2L)));
+        verify(query)
+            .setParameter(eq("query"), queryCaptor.capture());
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_FULLTEXT));
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
+        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_FULLTEXT));
     }
 
 }

@@ -1,139 +1,210 @@
 package com.brennaswitzer.cookbook.repositories;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.User;
+import org.hibernate.SynchronizeableQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
-import java.util.*;
+import javax.persistence.Query;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
+
+    static final String SELECT_ALL = "SELECT *\n" +
+        "FROM ingredient\n" +
+        "WHERE dtype = 'Recipe'\n";
+
+    static final String SELECT_FULLTEXT = "WITH raw AS (SELECT *\n" +
+        "                  , SETWEIGHT(TO_TSVECTOR('english', COALESCE(name, '')), 'A') ||\n" +
+        "                    SETWEIGHT(TO_TSVECTOR('english', COALESCE(\n" +
+        "                            (SELECT STRING_AGG(l.name, ' ' ORDER BY l.name)\n" +
+        "                             FROM ingredient_labels il\n" +
+        "                                  JOIN label l ON l.id = il.label_id\n" +
+        "                             WHERE il.ingredient_id = ingredient.id), '')), 'B') ||\n" +
+        "                    SETWEIGHT(TO_TSVECTOR('english', COALESCE(\n" +
+        "                            (SELECT STRING_AGG(raw, CHR(10) ORDER BY _order)\n" +
+        "                             FROM recipe_ingredients\n" +
+        "                             WHERE recipe_id = ingredient.id), '')), 'C') ||\n" +
+        "                    SETWEIGHT(TO_TSVECTOR('english', COALESCE(directions, '')), 'D') fulltext\n" +
+        "             FROM ingredient\n" +
+        "             WHERE dtype = 'Recipe')\n" +
+        "SELECT raw.id\n" +
+        "     , raw._eqkey\n" +
+        "     , raw.created_at\n" +
+        "     , raw.updated_at\n" +
+        "     , raw.owner_id\n" +
+        "     , raw.name\n" +
+        "     , raw.directions\n" +
+        "     , raw.external_url\n" +
+        "     , raw.photo\n" +
+        "     , raw.photo_type\n" +
+        "     , raw.photo_size\n" +
+        "     , raw.photo_focus_top\n" +
+        "     , raw.photo_focus_left\n" +
+        "     , raw.yield\n" +
+        "     , raw.calories\n" +
+        "     , raw.total_time\n" +
+        "FROM raw\n" +
+        "   , TO_TSQUERY(:query) query\n" +
+        "WHERE fulltext @@ query\n";
+
+    static final String OWNER_CLAUSE = "  AND owner_id in (:ownerIds)";
+
+    static final String ORDER_BY_ALL = "ORDER BY LOWER(name)\n" +
+        "       , id";
+
+    static final String ORDER_BY_FULLTEXT = "ORDER BY TS_RANK(fulltext, query) DESC\n" +
+        "       , LOWER(name)\n" +
+        "       , id";
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public void setEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    @Autowired
+    private PostgresFullTextQueryParser queryParser;
+
+    // NOT thread safe
+    private static class ParameterizedQueryBuilder {
+        private final EntityManager entityManager;
+        private final Class<?> resultClass;
+        private final StringBuilder sql = new StringBuilder();
+        private final Map<String, Object> params = new HashMap<>();
+
+        public ParameterizedQueryBuilder(EntityManager entityManager,
+                                         Class<?> resultClass) {
+            this.entityManager = entityManager;
+            this.resultClass = resultClass;
+        }
+
+        public ParameterizedQueryBuilder append(String sql) {
+            this.sql.append(sql);
+            return this;
+        }
+
+        public ParameterizedQueryBuilder append(String sql,
+                                                Map<String, Object> params) {
+            append(sql);
+            params.forEach(this::addParam);
+            return this;
+        }
+
+        public ParameterizedQueryBuilder append(String sql,
+                                                String paramName,
+                                                Object paramValue) {
+            append(sql);
+            addParam(paramName, paramValue);
+            return this;
+        }
+
+        private void addParam(String paramName,
+                              Object paramValue) {
+            if (params.containsKey(paramName)) {
+                throw new IllegalArgumentException(String.format("A '%s' parameter is already defined (set to %s).",
+                                                                 paramName,
+                                                                 params.get(paramName)));
+            }
+            params.put(paramName, paramValue);
+        }
+
+        public String getSql() {
+            return sql.toString();
+        }
+
+        public Map<String, Object> getParameters() {
+            return params;
+        }
+
+        public Query build() {
+            Query query = entityManager.createNativeQuery(getSql(),
+                                                          resultClass);
+            getParameters().forEach(query::setParameter);
+            // You're forgiven for thinking Hibernate would know this...
+            query.unwrap(SynchronizeableQuery.class)
+                .addSynchronizedEntityClass(resultClass);
+            return query;
+        }
+
     }
 
-    /*
-        from Recipe r
-        where lower(r.name) LIKE %:term%
-            or lower(r.directions) LIKE %:term%
-            or exists (
-                select 1
-                from r.labels l
-                where lower(l.label.name) LIKE %:term%
-            )
-        order by case when lower(r.name) LIKE %:term% then 0 else 1 end
-               , r.name
-     */
     @Override
-    public Slice<Recipe> searchRecipes(
-            String filter,
-            Pageable pageable
-    ) {
+    public Slice<Recipe> searchRecipes(String filter,
+                                       Pageable pageable) {
         return searchRecipesByOwner(null, filter, pageable);
     }
 
     @Override
-    public Slice<Recipe> searchRecipesByOwner(
-            Collection<User> owners,
-            String filter,
-            Pageable pageable
-    ) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Recipe> query = cb.createQuery(Recipe.class);
-        Root<Recipe> recipeRoot = query.from(Recipe.class);
-        query.select(recipeRoot);
-        Expression<String> lowerName = cb.lower(recipeRoot.get(Recipe_.name));
-        Collection<Predicate> predicates = new ArrayList<>();
-        if (owners != null) {
-            predicates.add(recipeRoot.get(Recipe_.owner).in(owners));
-        }
+    public Slice<Recipe> searchRecipesByOwner(Collection<User> owners,
+                                              String filter,
+                                              Pageable pageable) {
+        ParameterizedQueryBuilder builder = new ParameterizedQueryBuilder(entityManager,
+                                                                          Recipe.class);
 
-        if (filter == null || filter.trim().isEmpty()) {
-            query.orderBy(cb.asc(lowerName));
+        boolean selectAll = filter == null || filter.isBlank();
+        if (selectAll) {
+            builder.append(SELECT_ALL);
         } else {
-            Set<String> terms = Arrays.stream(filter.split("\\s"))
-                    .map(String::trim)
-                    .map(String::toLowerCase)
-                    .filter(it -> !it.isEmpty())
-                    .map(it -> '%' + it + '%')
-                    .collect(Collectors.toSet());
-
-            Subquery<Integer> labelSubquery = query.subquery(Integer.class);
-            labelSubquery.select(cb.literal(1));
-            Join<LabelRef, Label> labelJoin = labelSubquery
-                    .correlate(recipeRoot)
-                    .join(Recipe_.labels)
-                    .join(LabelRef_.label);
-            Expression<String> lName = cb.lower(labelJoin.get(Label_.name));
-            labelSubquery.where(
-                    cb.not(cb.like(lName, "--%")),
-                    likeAny(cb, lName, terms)
-            );
-
-            Predicate nameMatch = likeAny(cb, lowerName, terms);
-            predicates.add(cb.or(
-                    nameMatch,
-                    likeAny(cb, cb.lower(recipeRoot.get(Recipe_.directions)), terms),
-                    cb.exists(labelSubquery)
-            ));
-            query.orderBy(
-                    cb.asc(cb.selectCase()
-                            .when(nameMatch, 0)
-                            .otherwise(1)),
-                    cb.asc(lowerName)
-            );
+            builder.append(SELECT_FULLTEXT,
+                           "query",
+                           queryParser.parse(filter));
+        }
+        if (owners != null) {
+            builder.append(OWNER_CLAUSE,
+                           "ownerIds",
+                           owners.stream()
+                               .map(User::getId)
+                               .collect(Collectors.toSet()));
+        }
+        if (selectAll) {
+            builder.append(ORDER_BY_ALL);
+        } else {
+            builder.append(ORDER_BY_FULLTEXT);
         }
 
-        if (!predicates.isEmpty()) {
-            query.where(cb.and(predicates.toArray(new Predicate[0])));
-        }
-
-        return executeAndSlice(query, pageable);
-    }
-
-    private Predicate likeAny(CriteriaBuilder cb, Expression<String> expr, Set<String> terms) {
-        if (terms.isEmpty()) throw new IllegalArgumentException("likeAny of the empty set?!");
-        return terms.stream()
-                .map(term -> cb.like(expr, term))
-                .reduce(cb::or)
-                .get();
+        return executeAndSlice(builder.build(), pageable);
     }
 
     /**
      * I provide the magic that Spring Data JPA does for a Slice return type on
      * a repository method, to execute an unbounded CriteriaQuery into a slice
      * of its result.
-     * @param query The query to take a slice of results
+     *
+     * @param query    The query to take a slice of results
      * @param pageable Where the slice should be taken
-     * @param <T> The result type of the query
+     * @param <T>      The result type of the query
      * @return The requested slice of the passed query.
      */
-    private <T> Slice<T> executeAndSlice(CriteriaQuery<T> query, Pageable pageable) {
+    private <T> Slice<T> executeAndSlice(Query query,
+                                         Pageable pageable) {
         // copied from SlicedExecution in JpaQueryExecution
-        TypedQuery<T> createQuery = entityManager.createQuery(query);
 
         int pageSize = pageable.getPageSize();
-        createQuery.setMaxResults(pageSize + 1);
+        query.setMaxResults(pageSize + 1);
 
         // this part wasn't in SlicedExecutions for reasons I don't understand
         int pageNumber = pageable.getPageNumber();
         if (pageNumber > 0) {
-            createQuery.setFirstResult(pageNumber * pageSize);
+            query.setFirstResult(pageNumber * pageSize);
         }
 
-        List<T> resultList = createQuery.getResultList();
+        @SuppressWarnings("unchecked")
+        List<T> resultList = (List<T>) query.getResultList();
         boolean hasNext = resultList.size() > pageSize;
 
-        return new SliceImpl<>(hasNext ? resultList.subList(0, pageSize) : resultList, pageable, hasNext);
+        return new SliceImpl<>(hasNext
+                                   ? resultList.subList(0, pageSize)
+                                   : resultList,
+                               pageable,
+                               hasNext);
     }
 
 }
