@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -48,22 +47,6 @@ public class RecipeService {
 
     public Optional<Recipe> findRecipeById(Long id) {
         return recipeRepository.findById(id);
-    }
-
-    public List<Recipe> findMyRecipes() {
-        return recipeRepository.findByOwner(principalAccess.getUser());
-    }
-
-    public List<Recipe> findEveryonesRecipes() {
-        return recipeRepository.findAll();
-    }
-
-    public Iterable<Recipe> findRecipeByName(String filter) {
-        return recipeRepository.findAllByTermContainingIgnoreCase(filter);
-    }
-
-    public Iterable<Recipe> findRecipeByNameAndOwner(String filter) {
-        return recipeRepository.findAllByOwnerAndTermContainingIgnoreCase(principalAccess.getUser(),filter);
     }
 
     public void deleteRecipeById(Long id) {
