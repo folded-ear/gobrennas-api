@@ -24,46 +24,18 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         "FROM ingredient\n" +
         "WHERE dtype = 'Recipe'\n";
 
-    static final String SELECT_FULLTEXT = "WITH raw AS (SELECT *\n" +
-        "                  , SETWEIGHT(TO_TSVECTOR('english', COALESCE(name, '')), 'A') ||\n" +
-        "                    SETWEIGHT(TO_TSVECTOR('english', COALESCE(\n" +
-        "                            (SELECT STRING_AGG(l.name, ' ' ORDER BY l.name)\n" +
-        "                             FROM ingredient_labels il\n" +
-        "                                  JOIN label l ON l.id = il.label_id\n" +
-        "                             WHERE il.ingredient_id = ingredient.id), '')), 'B') ||\n" +
-        "                    SETWEIGHT(TO_TSVECTOR('english', COALESCE(\n" +
-        "                            (SELECT STRING_AGG(raw, CHR(10) ORDER BY _order)\n" +
-        "                             FROM recipe_ingredients\n" +
-        "                             WHERE recipe_id = ingredient.id), '')), 'C') ||\n" +
-        "                    SETWEIGHT(TO_TSVECTOR('english', COALESCE(directions, '')), 'D') fulltext\n" +
-        "             FROM ingredient\n" +
-        "             WHERE dtype = 'Recipe')\n" +
-        "SELECT raw.id\n" +
-        "     , raw._eqkey\n" +
-        "     , raw.created_at\n" +
-        "     , raw.updated_at\n" +
-        "     , raw.owner_id\n" +
-        "     , raw.name\n" +
-        "     , raw.directions\n" +
-        "     , raw.external_url\n" +
-        "     , raw.photo\n" +
-        "     , raw.photo_type\n" +
-        "     , raw.photo_size\n" +
-        "     , raw.photo_focus_top\n" +
-        "     , raw.photo_focus_left\n" +
-        "     , raw.yield\n" +
-        "     , raw.calories\n" +
-        "     , raw.total_time\n" +
-        "FROM raw\n" +
-        "   , TO_TSQUERY(:query) query\n" +
-        "WHERE fulltext @@ query\n";
+    static final String SELECT_FULLTEXT = "SELECT *\n" +
+        "FROM ingredient\n" +
+        "   , TO_TSQUERY('en', :query) query\n" +
+        "WHERE dtype = 'Recipe'\n" +
+        "  AND recipe_fulltext @@ query\n";
 
-    static final String OWNER_CLAUSE = "  AND owner_id in (:ownerIds)";
+    static final String OWNER_CLAUSE = "  AND owner_id in (:ownerIds)\n";
 
     static final String ORDER_BY_ALL = "ORDER BY LOWER(name)\n" +
         "       , id";
 
-    static final String ORDER_BY_FULLTEXT = "ORDER BY TS_RANK(fulltext, query) DESC\n" +
+    static final String ORDER_BY_FULLTEXT = "ORDER BY TS_RANK(recipe_fulltext, query) DESC\n" +
         "       , LOWER(name)\n" +
         "       , id";
 
