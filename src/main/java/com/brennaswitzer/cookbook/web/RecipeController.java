@@ -11,6 +11,8 @@ import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.indexing.IndexStats;
+import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -20,15 +22,30 @@ import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -36,6 +53,9 @@ public class RecipeController {
 
     @Autowired
     private RecipeService recipeService;
+
+    @Autowired
+    private RecipeReindexQueueService recipeReindexQueueService;
 
     @Autowired
     private LabelService labelService;
@@ -168,7 +188,7 @@ public class RecipeController {
     }
 
     @GetMapping("/or-ingredient/{id}")
-    public IngredientInfo getIngredientById(@PathVariable("id") Long id) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public IngredientInfo getIngredientById(@PathVariable("id") Long id) {
         Ingredient i = em.find(Ingredient.class, id);
 
         // dynamic dispatch sure would be nice!
@@ -235,6 +255,12 @@ public class RecipeController {
     ) {
         recipeService.sendToPlan(id, planId);
         return true;
+    }
+
+    @GetMapping("/_index_stats")
+    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
+    public IndexStats getIndexStats() {
+        return recipeReindexQueueService.getIndexStats();
     }
 
     private Recipe getRecipe(Long id) {

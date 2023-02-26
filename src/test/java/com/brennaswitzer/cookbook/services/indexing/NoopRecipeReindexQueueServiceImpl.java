@@ -7,6 +7,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class NoopRecipeReindexQueueServiceImpl implements RecipeReindexQueueService {
+
+    @Override
+    public IndexStats getIndexStats() {
+        return IndexStats.builder().build();
+    }
+
     @Override
     public void enqueueRecipe(Recipe recipe) {
     }
