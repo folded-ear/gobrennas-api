@@ -10,6 +10,24 @@ public class NamedParameterQuery {
 
     private final Map<String, Object> params = new HashMap<>();
 
+    public NamedParameterQuery() {
+    }
+
+    public NamedParameterQuery(String queryFragment) {
+        append(queryFragment);
+    }
+
+    public NamedParameterQuery(String queryFragment,
+                               Map<String, Object> params) {
+        append(queryFragment, params);
+    }
+
+    public NamedParameterQuery(String queryFragment,
+                               String paramName,
+                               Object paramValue) {
+        append(queryFragment, paramName, paramValue);
+    }
+
     public NamedParameterQuery append(String queryFragment) {
         this.statement.append(queryFragment);
         return this;
