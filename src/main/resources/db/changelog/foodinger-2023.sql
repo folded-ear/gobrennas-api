@@ -66,6 +66,9 @@ CREATE TABLE recipe_fulltext_reindex_queue
             ON DELETE CASCADE
 );
 
+CREATE INDEX idx_recipe_fulltext_reindex_queue_ts
+    ON recipe_fulltext_reindex_queue (ts);
+
 CREATE TRIGGER recipe_fulltext_update_trigger
     AFTER DELETE
     ON recipe_fulltext_reindex_queue
