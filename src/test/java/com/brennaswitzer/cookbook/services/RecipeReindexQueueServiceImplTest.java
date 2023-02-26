@@ -4,7 +4,7 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Label;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
+import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueServiceImpl;
 import com.brennaswitzer.cookbook.services.indexing.ReindexRecipeEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,10 +26,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class RecipeReindexQueueServiceTest {
+class RecipeReindexQueueServiceImplTest {
 
     @InjectMocks
-    private RecipeReindexQueueService service;
+    private RecipeReindexQueueServiceImpl service;
 
     @Mock
     private NamedParameterJdbcTemplate jdbcTemplate;
