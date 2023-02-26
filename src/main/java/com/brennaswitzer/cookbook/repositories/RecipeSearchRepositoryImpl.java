@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import org.hibernate.SynchronizeableQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -12,9 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -45,61 +44,20 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     @Autowired
     private PostgresFullTextQueryParser queryParser;
 
-    // NOT thread safe
-    private static class ParameterizedQueryBuilder {
+    private static class NativeQueryBuilder extends NamedParameterQuery {
         private final EntityManager entityManager;
         private final Class<?> resultClass;
-        private final StringBuilder sql = new StringBuilder();
-        private final Map<String, Object> params = new HashMap<>();
 
-        public ParameterizedQueryBuilder(EntityManager entityManager,
-                                         Class<?> resultClass) {
+        public NativeQueryBuilder(EntityManager entityManager,
+                                  Class<?> resultClass) {
             this.entityManager = entityManager;
             this.resultClass = resultClass;
         }
 
-        public ParameterizedQueryBuilder append(String sql) {
-            this.sql.append(sql);
-            return this;
-        }
-
-        public ParameterizedQueryBuilder append(String sql,
-                                                Map<String, Object> params) {
-            append(sql);
-            params.forEach(this::addParam);
-            return this;
-        }
-
-        public ParameterizedQueryBuilder append(String sql,
-                                                String paramName,
-                                                Object paramValue) {
-            append(sql);
-            addParam(paramName, paramValue);
-            return this;
-        }
-
-        private void addParam(String paramName,
-                              Object paramValue) {
-            if (params.containsKey(paramName)) {
-                throw new IllegalArgumentException(String.format("A '%s' parameter is already defined (set to %s).",
-                                                                 paramName,
-                                                                 params.get(paramName)));
-            }
-            params.put(paramName, paramValue);
-        }
-
-        public String getSql() {
-            return sql.toString();
-        }
-
-        public Map<String, Object> getParameters() {
-            return params;
-        }
-
         public Query build() {
-            Query query = entityManager.createNativeQuery(getSql(),
+            Query query = entityManager.createNativeQuery(getStatement(),
                                                           resultClass);
-            getParameters().forEach(query::setParameter);
+            forEachParameter(query::setParameter);
             // You're forgiven for thinking Hibernate would know this...
             query.unwrap(SynchronizeableQuery.class)
                 .addSynchronizedEntityClass(resultClass);
@@ -118,8 +76,8 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     public Slice<Recipe> searchRecipesByOwner(Collection<User> owners,
                                               String filter,
                                               Pageable pageable) {
-        ParameterizedQueryBuilder builder = new ParameterizedQueryBuilder(entityManager,
-                                                                          Recipe.class);
+        NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
+                                                            Recipe.class);
 
         boolean selectAll = filter == null || filter.isBlank();
         if (selectAll) {
