@@ -1,17 +1,30 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.repositories.event.RecipeFulltextListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.ManyToOne;
+import javax.persistence.OrderBy;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
+@EntityListeners(RecipeFulltextListener.class)
 @JsonTypeName("Recipe")
 public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
