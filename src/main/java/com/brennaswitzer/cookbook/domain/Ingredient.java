@@ -1,11 +1,17 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.repositories.event.RecipeIngredientFulltextListener;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,9 +19,10 @@ import java.util.Set;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
+@EntityListeners(RecipeIngredientFulltextListener.class)
 @JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "type"
+    use = JsonTypeInfo.Id.NAME,
+    property = "type"
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = PantryItem.class, name = "PantryItem"),
@@ -64,4 +71,3 @@ public abstract class Ingredient extends BaseEntity implements Identified, Label
 
 
 }
-
