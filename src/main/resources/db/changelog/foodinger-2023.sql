@@ -82,3 +82,21 @@ SELECT id
 FROM ingredient
 WHERE dtype = 'Recipe'
 ON CONFLICT DO NOTHING;
+
+--changeset barneyb:favorites
+CREATE TABLE favorite
+(
+    id          BIGINT      NOT NULL DEFAULT NEXTVAL('id_seq'),
+    _eqkey      BIGINT      NOT NULL,
+    created_at  timestamptz NOT NULL DEFAULT NOW(),
+    updated_at  timestamptz NOT NULL DEFAULT NOW(),
+    owner_id    BIGINT      NOT NULL,
+    object_id   BIGINT      NOT NULL,
+    object_type VARCHAR     NOT NULL,
+    CONSTRAINT pk_favorite PRIMARY KEY (id),
+    CONSTRAINT fk_favorite_user FOREIGN KEY (owner_id)
+        REFERENCES users (id) ON DELETE CASCADE,
+    -- object_id will partition most quickly
+    -- also supports per-object fav count queries
+    CONSTRAINT uk_favorite UNIQUE (object_id, object_type, owner_id)
+);
