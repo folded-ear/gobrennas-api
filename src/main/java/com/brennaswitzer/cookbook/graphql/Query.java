@@ -1,6 +1,10 @@
 package com.brennaswitzer.cookbook.graphql;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.AccessControlled;
+import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
@@ -28,6 +32,9 @@ public class Query implements GraphQLQueryResolver {
 
     @Autowired
     public TimerQuery timer;
+
+    @Autowired
+    public FavoriteQuery favorite;
 
     Object getNode(Long id) {
         return repositories.stream()

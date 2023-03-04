@@ -1,0 +1,41 @@
+extend type Query {
+    favorite: FavoriteQuery
+}
+
+type FavoriteQuery {
+    """Retrieve the current user's favorites.
+    """
+    all: [Favorite!]!
+    """Retrieve the current user's for the specified object type.
+    """
+    byType(objectType: String!): [Favorite!]!
+    """Retrieve the current user's favorite of the specified object, if exists.
+    """
+    byObject(objectType: String!, objectId: ID!): Favorite
+}
+
+extend type Mutation {
+    favorite: FavoriteMutation
+}
+
+type FavoriteMutation {
+    """Add the specified object to the current user's favorites, if not already
+    present, and returns the favorite.
+    """
+    markFavorite(objectType: String!, objectId: ID!): Favorite!
+    """Remove the specified object from the current user's favorites, and return
+    whether any action was required to ensure this.
+    """
+    removeFavorite(objectType: String!, objectId: ID!): Boolean!
+}
+
+type Favorite implements Node {
+    id: ID!
+    owner: User!
+    """The type of object that is a favorite.
+    """
+    objectType: String!
+    """The ID of the object that is a favorite.
+    """
+    objectId: ID!
+}
