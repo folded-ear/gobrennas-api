@@ -19,25 +19,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
-    static final String SELECT_ALL = "SELECT *\n" +
-        "FROM ingredient\n" +
-        "WHERE dtype = 'Recipe'\n";
-
-    static final String SELECT_FULLTEXT = "SELECT *\n" +
-        "FROM ingredient\n" +
-        "   , TO_TSQUERY('en', :query) query\n" +
-        "WHERE dtype = 'Recipe'\n" +
-        "  AND recipe_fulltext @@ query\n";
-
-    static final String OWNER_CLAUSE = "  AND owner_id in (:ownerIds)\n";
-
-    static final String ORDER_BY_ALL = "ORDER BY LOWER(name)\n" +
-        "       , id";
-
-    static final String ORDER_BY_FULLTEXT = "ORDER BY TS_RANK(recipe_fulltext, query) DESC\n" +
-        "       , LOWER(name)\n" +
-        "       , id";
-
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -45,6 +26,7 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     private PostgresFullTextQueryConverter queryConverter;
 
     private static class NativeQueryBuilder extends NamedParameterQuery {
+
         private final EntityManager entityManager;
         private final Class<?> resultClass;
 
@@ -67,38 +49,51 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     }
 
     @Override
-    public Slice<Recipe> searchRecipes(String filter,
+    public Slice<Recipe> searchRecipes(User user,
+                                       String filter,
                                        Pageable pageable) {
-        return searchRecipesByOwner(null, filter, pageable);
+        return searchRecipesByOwner(user, null, filter, pageable);
     }
 
     @Override
-    public Slice<Recipe> searchRecipesByOwner(Collection<User> owners,
+    public Slice<Recipe> searchRecipesByOwner(User user,
+                                              Collection<User> owners,
                                               String filter,
                                               Pageable pageable) {
         NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
                                                             Recipe.class);
 
-        boolean selectAll = filter == null || filter.isBlank();
-        if (selectAll) {
-            builder.append(SELECT_ALL);
-        } else {
-            builder.append(SELECT_FULLTEXT,
+        boolean hasFilter = filter != null && !filter.isBlank();
+        builder.append("SELECT ing.*\n" +
+                               "FROM ingredient ing\n" +
+                               "     LEFT JOIN favorite fav\n" +
+                               "               ON fav.object_id = ing.id\n" +
+                               "                   AND fav.object_type = ing.dtype\n" +
+                               "                   AND fav.owner_id = :userId\n",
+                       "userId",
+                       user.getId());
+        if (hasFilter) {
+            builder.append("   , TO_TSQUERY('en', :query) query\n",
                            "query",
                            queryConverter.convert(filter));
         }
-        if (owners != null) {
-            builder.append(OWNER_CLAUSE,
+        builder.append("WHERE ing.dtype = 'Recipe'\n");
+        if (hasFilter) {
+            builder.append("  AND ing.recipe_fulltext @@ query\n");
+        }
+        if (owners != null && !owners.isEmpty()) {
+            builder.append("  AND ing.owner_id in (:ownerIds)\n",
                            "ownerIds",
                            owners.stream()
-                               .map(User::getId)
-                               .collect(Collectors.toSet()));
+                                   .map(User::getId)
+                                   .collect(Collectors.toSet()));
         }
-        if (selectAll) {
-            builder.append(ORDER_BY_ALL);
-        } else {
-            builder.append(ORDER_BY_FULLTEXT);
+        builder.append("ORDER BY fav.id IS NULL\n");
+        if (hasFilter) {
+            builder.append("       , TS_RANK(recipe_fulltext, query) DESC\n");
         }
+        builder.append("       , LOWER(ing.name)\n" +
+                               "       , ing.id\n");
 
         return executeAndSlice(builder.build(), pageable);
     }
