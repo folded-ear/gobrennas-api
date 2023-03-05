@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,11 +63,13 @@ public class RecipeService {
     }
 
     public Slice<Recipe> searchRecipes(String scope, String filter, Pageable pageable) {
+        User user = principalAccess.getUser();
         if ("everyone".equals(scope)) {
-            return recipeRepository.searchRecipes(filter, pageable);
+            return recipeRepository.searchRecipes(user, filter, pageable);
         } else {
             return recipeRepository.searchRecipesByOwner(
-                    Collections.singletonList(principalAccess.getUser()),
+                    user,
+                    Collections.singletonList(user),
                     filter,
                     pageable);
         }

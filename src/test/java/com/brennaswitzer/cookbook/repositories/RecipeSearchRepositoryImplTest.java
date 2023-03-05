@@ -49,14 +49,20 @@ public class RecipeSearchRepositoryImplTest {
     @Captor
     private ArgumentCaptor<String> queryCaptor;
 
+    @Mock
+    private User user;
+
     @BeforeEach
     public void setup() {
         doReturn(mock(SynchronizeableQuery.class))
-            .when(query)
-            .unwrap(eq(SynchronizeableQuery.class));
+                .when(query)
+                .unwrap(eq(SynchronizeableQuery.class));
         doReturn(query)
-            .when(entityManager)
-            .createNativeQuery(any(), eq(Recipe.class));
+                .when(entityManager)
+                .createNativeQuery(any(), eq(Recipe.class));
+        doReturn(2L)
+                .when(user)
+                .getId();
     }
 
     @Test
@@ -65,7 +71,7 @@ public class RecipeSearchRepositoryImplTest {
             .when(query)
             .getResultList();
 
-        Slice<Recipe> result = repo.searchRecipes(null, PageRequest.of(3, 2));
+        Slice<Recipe> result = repo.searchRecipes(user, null, PageRequest.of(3, 2));
 
         verify(query)
             .setFirstResult(6);
@@ -78,10 +84,12 @@ public class RecipeSearchRepositoryImplTest {
 
     @Test
     public void noOwnerNoFilter() {
-        repo.searchRecipes(null, PageRequest.of(0, 2));
+        repo.searchRecipes(user, null, PageRequest.of(0, 2));
 
         verify(entityManager)
-            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+                .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+        verify(query)
+                .setParameter(eq("userId"), eq(2L));
         String sql = sqlCaptor.getValue();
         assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_ALL));
         assertFalse(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
@@ -96,12 +104,14 @@ public class RecipeSearchRepositoryImplTest {
                 .when(queryConverter)
                 .convert(filter);
 
-        repo.searchRecipes(filter, PageRequest.of(0, 2));
+        repo.searchRecipes(user, filter, PageRequest.of(0, 2));
 
         verify(entityManager)
-            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+                .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
         verify(query)
-            .setParameter(eq("query"), queryCaptor.capture());
+                .setParameter(eq("userId"), eq(2L));
+        verify(query)
+                .setParameter(eq("query"), queryCaptor.capture());
         String sql = sqlCaptor.getValue();
         assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_FULLTEXT));
         assertFalse(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
@@ -111,17 +121,14 @@ public class RecipeSearchRepositoryImplTest {
 
     @Test
     public void ownerNoFilter() {
-        User owner = mock(User.class);
-        doReturn(2L)
-            .when(owner)
-            .getId();
-
-        repo.searchRecipesByOwner(List.of(owner), "", PageRequest.of(0, 2));
+        repo.searchRecipesByOwner(user, List.of(user), "", PageRequest.of(0, 2));
 
         verify(entityManager)
-            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+                .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
         verify(query)
-            .setParameter(eq("ownerIds"), eq(Set.of(2L)));
+                .setParameter(eq("userId"), eq(2L));
+        verify(query)
+                .setParameter(eq("ownerIds"), eq(Set.of(2L)));
         String sql = sqlCaptor.getValue();
         assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_ALL));
         assertTrue(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
@@ -130,19 +137,16 @@ public class RecipeSearchRepositoryImplTest {
 
     @Test
     public void ownerWithFilter() {
-        User owner = mock(User.class);
-        doReturn(2L)
-            .when(owner)
-            .getId();
-
-        repo.searchRecipesByOwner(List.of(owner), "chicken thighs", PageRequest.of(0, 2));
+        repo.searchRecipesByOwner(user, List.of(user), "chicken thighs", PageRequest.of(0, 2));
 
         verify(entityManager)
-            .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
+                .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
         verify(query)
-            .setParameter(eq("ownerIds"), eq(Set.of(2L)));
+                .setParameter(eq("userId"), eq(2L));
         verify(query)
-            .setParameter(eq("query"), queryCaptor.capture());
+                .setParameter(eq("ownerIds"), eq(Set.of(2L)));
+        verify(query)
+                .setParameter(eq("query"), queryCaptor.capture());
         String sql = sqlCaptor.getValue();
         assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_FULLTEXT));
         assertTrue(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));

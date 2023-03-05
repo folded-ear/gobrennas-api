@@ -9,15 +9,15 @@ import java.util.Collection;
 
 public interface RecipeSearchRepository {
 
-    Slice<Recipe> searchRecipes(
-            String term,
-            Pageable pageable
+    Slice<Recipe> searchRecipes(User user,
+                                String term,
+                                Pageable pageable
     );
 
-    Slice<Recipe> searchRecipesByOwner(
-            Collection<User> owners,
-            String term,
-            Pageable pageable
+    Slice<Recipe> searchRecipesByOwner(User user,
+                                       Collection<User> owners,
+                                       String term,
+                                       Pageable pageable
     );
 
 }

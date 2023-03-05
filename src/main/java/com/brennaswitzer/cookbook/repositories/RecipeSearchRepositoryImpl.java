@@ -20,23 +20,35 @@ import java.util.stream.Collectors;
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
     static final String SELECT_ALL = "SELECT *\n" +
-        "FROM ingredient\n" +
-        "WHERE dtype = 'Recipe'\n";
+            "FROM ingredient\n" +
+            "WHERE dtype = 'Recipe'\n";
 
     static final String SELECT_FULLTEXT = "SELECT *\n" +
-        "FROM ingredient\n" +
-        "   , TO_TSQUERY('en', :query) query\n" +
-        "WHERE dtype = 'Recipe'\n" +
-        "  AND recipe_fulltext @@ query\n";
+            "FROM ingredient\n" +
+            "   , TO_TSQUERY('en', :query) query\n" +
+            "WHERE dtype = 'Recipe'\n" +
+            "  AND recipe_fulltext @@ query\n";
 
     static final String OWNER_CLAUSE = "  AND owner_id in (:ownerIds)\n";
 
-    static final String ORDER_BY_ALL = "ORDER BY LOWER(name)\n" +
-        "       , id";
+    static final String BY_FAVORITE_CLAUSE = "CASE\n" +
+            "             WHEN EXISTS(\n" +
+            "                     SELECT *\n" +
+            "                     FROM favorite\n" +
+            "                     WHERE object_id = ingredient.id\n" +
+            "                       AND object_type = ingredient.dtype\n" +
+            "                       AND owner_id = :userId\n" +
+            "                 ) THEN 1\n" +
+            "             ELSE 2 END";
 
-    static final String ORDER_BY_FULLTEXT = "ORDER BY TS_RANK(recipe_fulltext, query) DESC\n" +
-        "       , LOWER(name)\n" +
-        "       , id";
+    static final String ORDER_BY_ALL = "ORDER BY " + BY_FAVORITE_CLAUSE + "\n" +
+            "       , LOWER(name)\n" +
+            "       , id";
+
+    static final String ORDER_BY_FULLTEXT = "ORDER BY " + BY_FAVORITE_CLAUSE + "\n" +
+            "       , TS_RANK(recipe_fulltext, query) DESC\n" +
+            "       , LOWER(name)\n" +
+            "       , id";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -45,6 +57,7 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     private PostgresFullTextQueryConverter queryConverter;
 
     private static class NativeQueryBuilder extends NamedParameterQuery {
+
         private final EntityManager entityManager;
         private final Class<?> resultClass;
 
@@ -67,13 +80,15 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     }
 
     @Override
-    public Slice<Recipe> searchRecipes(String filter,
+    public Slice<Recipe> searchRecipes(User user,
+                                       String filter,
                                        Pageable pageable) {
-        return searchRecipesByOwner(null, filter, pageable);
+        return searchRecipesByOwner(user, null, filter, pageable);
     }
 
     @Override
-    public Slice<Recipe> searchRecipesByOwner(Collection<User> owners,
+    public Slice<Recipe> searchRecipesByOwner(User user,
+                                              Collection<User> owners,
                                               String filter,
                                               Pageable pageable) {
         NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
@@ -91,14 +106,14 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
             builder.append(OWNER_CLAUSE,
                            "ownerIds",
                            owners.stream()
-                               .map(User::getId)
-                               .collect(Collectors.toSet()));
+                                   .map(User::getId)
+                                   .collect(Collectors.toSet()));
         }
-        if (selectAll) {
-            builder.append(ORDER_BY_ALL);
-        } else {
-            builder.append(ORDER_BY_FULLTEXT);
-        }
+        builder.append(selectAll
+                               ? ORDER_BY_ALL
+                               : ORDER_BY_FULLTEXT,
+                       "userId",
+                       user.getId());
 
         return executeAndSlice(builder.build(), pageable);
     }
