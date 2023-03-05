@@ -38,4 +38,7 @@ type Favorite implements Node {
     """The ID of the object that is a favorite.
     """
     objectId: ID!
+    """The name/title of the object that is a favorite.
+    """
+    name: String!
 }
