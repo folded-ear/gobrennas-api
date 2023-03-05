@@ -19,37 +19,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
-    static final String SELECT_ALL = "SELECT *\n" +
-            "FROM ingredient\n" +
-            "WHERE dtype = 'Recipe'\n";
-
-    static final String SELECT_FULLTEXT = "SELECT *\n" +
-            "FROM ingredient\n" +
-            "   , TO_TSQUERY('en', :query) query\n" +
-            "WHERE dtype = 'Recipe'\n" +
-            "  AND recipe_fulltext @@ query\n";
-
-    static final String OWNER_CLAUSE = "  AND owner_id in (:ownerIds)\n";
-
-    static final String BY_FAVORITE_CLAUSE = "CASE\n" +
-            "             WHEN EXISTS(\n" +
-            "                     SELECT *\n" +
-            "                     FROM favorite\n" +
-            "                     WHERE object_id = ingredient.id\n" +
-            "                       AND object_type = ingredient.dtype\n" +
-            "                       AND owner_id = :userId\n" +
-            "                 ) THEN 1\n" +
-            "             ELSE 2 END";
-
-    static final String ORDER_BY_ALL = "ORDER BY " + BY_FAVORITE_CLAUSE + "\n" +
-            "       , LOWER(name)\n" +
-            "       , id";
-
-    static final String ORDER_BY_FULLTEXT = "ORDER BY " + BY_FAVORITE_CLAUSE + "\n" +
-            "       , TS_RANK(recipe_fulltext, query) DESC\n" +
-            "       , LOWER(name)\n" +
-            "       , id";
-
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -94,26 +63,37 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
                                                             Recipe.class);
 
-        boolean selectAll = filter == null || filter.isBlank();
-        if (selectAll) {
-            builder.append(SELECT_ALL);
-        } else {
-            builder.append(SELECT_FULLTEXT,
+        boolean hasFilter = filter != null && !filter.isBlank();
+        builder.append("SELECT ing.*\n" +
+                               "FROM ingredient ing\n" +
+                               "     LEFT JOIN favorite fav\n" +
+                               "               ON fav.object_id = ing.id\n" +
+                               "                   AND fav.object_type = ing.dtype\n" +
+                               "                   AND fav.owner_id = :userId\n",
+                       "userId",
+                       user.getId());
+        if (hasFilter) {
+            builder.append("   , TO_TSQUERY('en', :query) query\n",
                            "query",
                            queryConverter.convert(filter));
         }
-        if (owners != null) {
-            builder.append(OWNER_CLAUSE,
+        builder.append("WHERE ing.dtype = 'Recipe'\n");
+        if (hasFilter) {
+            builder.append("  AND ing.recipe_fulltext @@ query\n");
+        }
+        if (owners != null && !owners.isEmpty()) {
+            builder.append("  AND ing.owner_id in (:ownerIds)\n",
                            "ownerIds",
                            owners.stream()
                                    .map(User::getId)
                                    .collect(Collectors.toSet()));
         }
-        builder.append(selectAll
-                               ? ORDER_BY_ALL
-                               : ORDER_BY_FULLTEXT,
-                       "userId",
-                       user.getId());
+        builder.append("ORDER BY fav.id IS NULL\n");
+        if (hasFilter) {
+            builder.append("       , TS_RANK(recipe_fulltext, query) DESC\n");
+        }
+        builder.append("       , LOWER(ing.name)\n" +
+                               "       , ing.id\n");
 
         return executeAndSlice(builder.build(), pageable);
     }

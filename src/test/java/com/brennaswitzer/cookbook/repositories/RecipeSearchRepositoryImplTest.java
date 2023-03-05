@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,10 +90,10 @@ public class RecipeSearchRepositoryImplTest {
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
         verify(query)
                 .setParameter(eq("userId"), eq(2L));
-        String sql = sqlCaptor.getValue();
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_ALL));
-        assertFalse(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_ALL));
+        verify(query, never())
+                .setParameter(eq("query"), any());
+        verify(query, never())
+                .setParameter(eq("ownerIds"), any());
     }
 
     @Test
@@ -112,11 +112,9 @@ public class RecipeSearchRepositoryImplTest {
                 .setParameter(eq("userId"), eq(2L));
         verify(query)
                 .setParameter(eq("query"), queryCaptor.capture());
-        String sql = sqlCaptor.getValue();
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_FULLTEXT));
-        assertFalse(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_FULLTEXT));
         assertEquals(tsquery, queryCaptor.getValue());
+        verify(query, never())
+                .setParameter(eq("ownerIds"), any());
     }
 
     @Test
@@ -127,12 +125,10 @@ public class RecipeSearchRepositoryImplTest {
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
         verify(query)
                 .setParameter(eq("userId"), eq(2L));
+        verify(query, never())
+                .setParameter(eq("query"), any());
         verify(query)
                 .setParameter(eq("ownerIds"), eq(Set.of(2L)));
-        String sql = sqlCaptor.getValue();
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_ALL));
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_ALL));
     }
 
     @Test
@@ -147,10 +143,6 @@ public class RecipeSearchRepositoryImplTest {
                 .setParameter(eq("ownerIds"), eq(Set.of(2L)));
         verify(query)
                 .setParameter(eq("query"), queryCaptor.capture());
-        String sql = sqlCaptor.getValue();
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.SELECT_FULLTEXT));
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.OWNER_CLAUSE));
-        assertTrue(sql.contains(RecipeSearchRepositoryImpl.ORDER_BY_FULLTEXT));
     }
 
 }
