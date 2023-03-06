@@ -1,0 +1,92 @@
+extend type Query {
+    library: LibraryQuery
+}
+
+enum LibrarySearchScope {
+    MINE
+    EVERYONE
+}
+
+type LibraryQuery{
+    """Search the recipe library.
+    """
+    recipes(
+        """The scope to search for recipes within.
+        """
+        scope: LibrarySearchScope! = MINE
+        """The textual query to filter results by. Can include simple words, as
+        well as quoted phrases.
+        """
+        query: String = ""
+        """How many recipes to return in the connection. If not specified, 10
+        will be returned.
+        """
+        first: NonNegativeInt! = 10
+        """Cursor to find results after. This should be omitted to retrieve the
+        first page.
+        """
+        after: Cursor = null
+    ): RecipeConnection!
+
+    pantryItem: PantryItem # something about graphql-java types and some kludge from the intergoogles?
+}
+
+type RecipeConnection {
+    edges: [RecipeConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
+type RecipeConnectionEdge {
+    node: Recipe!
+    cursor: Cursor!
+}
+
+interface Ingredient implements Node {
+    id: ID!
+    name: String
+    labels: [String!]
+}
+
+type PantryItem implements Node & Ingredient {
+    id: ID!
+    name: String
+    aisle: String
+    storeOrder: Int
+    labels: [String!]
+}
+
+type Recipe implements Node & Owned & Ingredient {
+    id: ID!
+    owner: User!
+    name: String
+    externalUrl: String
+    directions: String
+    ingredients: [IngredientRef!]!
+    labels: [String!]
+    yield: Int
+    calories: Int
+    totalTime: Int
+    photo: Photo
+}
+
+type Photo {
+    url: String!
+    focus: [Float!]
+}
+
+type IngredientRef {
+    raw: String!
+    quantity: Quantity
+    ingredient: Ingredient
+    preparation: String
+}
+
+type Quantity {
+    quantity: Float!
+    units: UnitOfMeasure
+}
+
+type UnitOfMeasure implements Node {
+    id: ID!
+    name: String!
+}

@@ -33,7 +33,7 @@ type TimerMutation {
 
 """Represents a pause-able timer of user-specified length.
 """
-type Timer implements Node & AccessControlled {
+type Timer implements Node & Owned & AccessControlled {
     id: ID!
     owner: User!
     grants: [AccessControlEntry!]!
