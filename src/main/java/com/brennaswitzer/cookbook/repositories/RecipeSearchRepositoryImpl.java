@@ -1,20 +1,17 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import org.hibernate.SynchronizeableQuery;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.singleton;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
@@ -49,21 +46,10 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     }
 
     @Override
-    public Slice<Recipe> searchRecipes(User user,
-                                       String filter,
-                                       Pageable pageable) {
-        return searchRecipesByOwner(user, null, filter, pageable);
-    }
-
-    @Override
-    public Slice<Recipe> searchRecipesByOwner(User user,
-                                              Collection<User> owners,
-                                              String filter,
-                                              Pageable pageable) {
+    public SearchResponse<Recipe> searchRecipes(LibrarySearchRequest request) {
         NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
                                                             Recipe.class);
 
-        boolean hasFilter = filter != null && !filter.isBlank();
         builder.append("SELECT ing.*\n" +
                                "FROM ingredient ing\n" +
                                "     LEFT JOIN favorite fav\n" +
@@ -71,65 +57,37 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
                                "                   AND fav.object_type = ing.dtype\n" +
                                "                   AND fav.owner_id = :userId\n",
                        "userId",
-                       user.getId());
-        if (hasFilter) {
+                       request.getUser().getId());
+        if (request.isFiltered()) {
             builder.append("   , TO_TSQUERY('en', :query) query\n",
                            "query",
-                           queryConverter.convert(filter));
+                           queryConverter.convert(request.getFilter()));
         }
         builder.append("WHERE ing.dtype = 'Recipe'\n");
-        if (hasFilter) {
+        if (request.isFiltered()) {
             builder.append("  AND ing.recipe_fulltext @@ query\n");
         }
-        if (owners != null && !owners.isEmpty()) {
+        if (request.isOwnerConstrained()) {
             builder.append("  AND ing.owner_id in (:ownerIds)\n",
                            "ownerIds",
-                           owners.stream()
-                                   .map(User::getId)
-                                   .collect(Collectors.toSet()));
+                           singleton(request.getUser().getId()));
         }
         builder.append("ORDER BY fav.id IS NULL\n");
-        if (hasFilter) {
+        if (request.isFiltered()) {
             builder.append("       , TS_RANK(recipe_fulltext, query) DESC\n");
         }
         builder.append("       , LOWER(ing.name)\n" +
                                "       , ing.id\n");
+        Query query = builder.build();
 
-        return executeAndSlice(builder.build(), pageable);
-    }
-
-    /**
-     * I provide the magic that Spring Data JPA does for a Slice return type on
-     * a repository method, to execute an unbounded CriteriaQuery into a slice
-     * of its result.
-     *
-     * @param query    The query to take a slice of results
-     * @param pageable Where the slice should be taken
-     * @param <T>      The result type of the query
-     * @return The requested slice of the passed query.
-     */
-    private <T> Slice<T> executeAndSlice(Query query,
-                                         Pageable pageable) {
-        // copied from SlicedExecution in JpaQueryExecution
-
-        int pageSize = pageable.getPageSize();
-        query.setMaxResults(pageSize + 1);
-
-        // this part wasn't in SlicedExecutions for reasons I don't understand
-        int pageNumber = pageable.getPageNumber();
-        if (pageNumber > 0) {
-            query.setFirstResult(pageNumber * pageSize);
+        query.setMaxResults(request.getLimit() + 1);
+        if (request.isOffset()) {
+            query.setFirstResult(request.getOffset());
         }
-
         @SuppressWarnings("unchecked")
-        List<T> resultList = (List<T>) query.getResultList();
-        boolean hasNext = resultList.size() > pageSize;
+        List<Recipe> resultList = (List<Recipe>) query.getResultList();
 
-        return new SliceImpl<>(hasNext
-                                   ? resultList.subList(0, pageSize)
-                                   : resultList,
-                               pageable,
-                               hasNext);
+        return SearchResponse.of(request, resultList);
     }
 
 }
