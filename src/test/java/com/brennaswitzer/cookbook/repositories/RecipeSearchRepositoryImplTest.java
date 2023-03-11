@@ -2,6 +2,8 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import org.hibernate.SynchronizeableQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,8 +13,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -68,23 +68,30 @@ public class RecipeSearchRepositoryImplTest {
     @Test
     public void pagingShenanigans() {
         doReturn(List.of(new Recipe(), new Recipe(), new Recipe()))
-            .when(query)
-            .getResultList();
+                .when(query)
+                .getResultList();
 
-        Slice<Recipe> result = repo.searchRecipes(user, null, PageRequest.of(3, 2));
+        SearchResponse<Recipe> result = repo.searchRecipes(LibrarySearchRequest.builder()
+                                                                   .user(user)
+                                                                   .limit(2)
+                                                                   .offset(6)
+                                                                   .build());
 
         verify(query)
-            .setFirstResult(6);
+                .setFirstResult(6);
         verify(query)
-            .setMaxResults(2 + 1);
-        assertTrue(result.hasPrevious());
-        assertTrue(result.hasNext());
+                .setMaxResults(2 + 1);
+        assertFalse(result.isFirst());
+        assertFalse(result.isLast());
         assertEquals(2, result.getSize());
     }
 
     @Test
     public void noOwnerNoFilter() {
-        repo.searchRecipes(user, null, PageRequest.of(0, 2));
+        repo.searchRecipes(LibrarySearchRequest.builder()
+                                   .user(user)
+                                   .scope(LibrarySearchScope.EVERYONE)
+                                   .build());
 
         verify(entityManager)
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
@@ -104,7 +111,12 @@ public class RecipeSearchRepositoryImplTest {
                 .when(queryConverter)
                 .convert(filter);
 
-        repo.searchRecipes(user, filter, PageRequest.of(0, 2));
+        repo.searchRecipes(LibrarySearchRequest.builder()
+                                   .user(user)
+                                   .scope(LibrarySearchScope.EVERYONE)
+                                   .filter(filter)
+                                   .limit(2)
+                                   .build());
 
         verify(entityManager)
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
@@ -119,7 +131,12 @@ public class RecipeSearchRepositoryImplTest {
 
     @Test
     public void ownerNoFilter() {
-        repo.searchRecipesByOwner(user, List.of(user), "", PageRequest.of(0, 2));
+        repo.searchRecipes(LibrarySearchRequest.builder()
+                                   .user(user)
+                                   .scope(LibrarySearchScope.MINE)
+                                   .filter("")
+                                   .limit(2)
+                                   .build());
 
         verify(entityManager)
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
@@ -133,7 +150,12 @@ public class RecipeSearchRepositoryImplTest {
 
     @Test
     public void ownerWithFilter() {
-        repo.searchRecipesByOwner(user, List.of(user), "chicken thighs", PageRequest.of(0, 2));
+        repo.searchRecipes(LibrarySearchRequest.builder()
+                                   .user(user)
+                                   .scope(LibrarySearchScope.MINE)
+                                   .filter("chicken thighs")
+                                   .limit(2)
+                                   .build());
 
         verify(entityManager)
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));

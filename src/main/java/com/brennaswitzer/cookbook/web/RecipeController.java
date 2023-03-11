@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.Page;
+import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
@@ -17,8 +18,6 @@ import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -82,8 +81,18 @@ public class RecipeController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
     ) {
-        Slice<Recipe> rs = recipeService.searchRecipes(scope, filter, PageRequest.of(page, pageSize));
-        return Page.from(rs.map(ingredientMapper::recipeToInfo));
+        SearchResponse<IngredientInfo> response = recipeService.searchRecipes(
+                        scope,
+                        filter,
+                        page * pageSize,
+                        pageSize)
+                .map(ingredientMapper::recipeToInfo);
+        return new Page<>(
+                page,
+                pageSize,
+                response.isFirst(),
+                response.isLast(),
+                response.getContent());
     }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
