@@ -1,0 +1,14 @@
+extend type Query {
+    labels: LabelsQuery
+}
+
+type LabelsQuery {
+    all: [Label!]!
+}
+
+type Label implements Node {
+    id: ID!
+    """Unique label name.
+    """
+    name: String!
+}

@@ -39,6 +39,9 @@ public class Query implements GraphQLQueryResolver {
     @Autowired
     public LibraryQuery library;
 
+    @Autowired
+    public LabelsQuery labels;
+
     Object getNode(Long id) {
         return repositories.stream()
                 .map(r -> r.findById(id))
