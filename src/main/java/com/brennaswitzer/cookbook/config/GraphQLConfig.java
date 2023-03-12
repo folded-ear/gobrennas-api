@@ -2,7 +2,12 @@ package com.brennaswitzer.cookbook.config;
 
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
-import graphql.execution.*;
+import graphql.Scalars;
+import graphql.execution.AsyncExecutionStrategy;
+import graphql.execution.ExecutionContext;
+import graphql.execution.ExecutionStrategy;
+import graphql.execution.ExecutionStrategyParameters;
+import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
@@ -43,6 +48,14 @@ public class GraphQLConfig {
     @Bean
     public GraphQLScalarType nonNegativeFloat() {
         return ExtendedScalars.NonNegativeFloat;
+    }
+
+    @Bean
+    public GraphQLScalarType cursor() { // todo: add a Coercing to avoid the toString silliness?
+        return GraphQLScalarType.newScalar(Scalars.GraphQLID)
+                .name("Cursor")
+                .description("The type of a cursor, an opaque string used for walking connections")
+                .build();
     }
 
     /*
