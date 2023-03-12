@@ -3,6 +3,9 @@ scalar DateTime
 scalar PositiveInt
 scalar NonNegativeInt
 scalar NonNegativeFloat
+"""The type of a cursor, an opaque string used for walking connections.
+"""
+scalar Cursor
 
 schema {
     query: Query
@@ -18,4 +21,21 @@ type Mutation {
 
 interface Node {
     id: ID!
+}
+
+type PageInfo {
+    """Whether this connection has a previous page, or null if included in the
+    result of a forward paging operation.
+    """
+    hasPreviousPage: Boolean!
+    """Whether this connection has a next page, or null if included in the
+    result of a backward paging operation.
+    """
+    hasNextPage: Boolean!
+    """The first cursor returned in this page's edges.
+    """
+    startCursor: Cursor
+    """The last cursor returned in this page's edges.
+    """
+    endCursor: Cursor
 }

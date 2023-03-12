@@ -38,6 +38,14 @@ public interface SearchResponse<R> {
         return getOffset() == 0;
     }
 
+    default boolean hasPrevious() {
+        return !isFirst();
+    }
+
+    default boolean hasNext() {
+        return !isLast();
+    }
+
     default <S> SearchResponse<S> map(Function<? super R, ? extends S> converter) {
         return SearchResponseImpl.<S>builder()
                 .content(getContent().stream()

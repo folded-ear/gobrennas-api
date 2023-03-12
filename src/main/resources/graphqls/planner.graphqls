@@ -3,7 +3,7 @@ extend type Query {
     getPlanItem(id: ID!): PlanItem
 }
 
-type Plan implements Node & AccessControlled {
+type Plan implements Node & Owned & AccessControlled {
     id: ID!
     owner: User!
     name: String!

@@ -36,6 +36,9 @@ public class Query implements GraphQLQueryResolver {
     @Autowired
     public FavoriteQuery favorite;
 
+    @Autowired
+    public LibraryQuery library;
+
     Object getNode(Long id) {
         return repositories.stream()
                 .map(r -> r.findById(id))

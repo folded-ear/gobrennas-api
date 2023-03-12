@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -28,11 +29,10 @@ public class FetchFavorites {
                                              objectType);
     }
 
-    public Favorite byObject(String objectType, Long objectId) {
+    public Optional<Favorite> byObject(String objectType, Long objectId) {
         return repo.findByOwnerAndObjectTypeAndObjectId(principalAccess.getUser(),
                                                         objectType,
-                                                        objectId)
-                .orElse(null);
+                                                        objectId);
     }
 
 }

@@ -1,6 +1,29 @@
-interface AccessControlled {
+interface Owned {
+    """The user who owns this object.
+    """
     owner: User!
+}
+
+interface AccessControlled implements Owned {
+    owner: User!
+    """The ACL describing grants of access, by the other, to other users.
+    """
     grants: [AccessControlEntry!]!
+}
+
+type AccessControlEntry {
+    """The user who has been granted access to an AccessControlled object.
+    """
+    user: User
+    """The level of access the user has been granted.
+    """
+    level: AccessLevel
+}
+
+enum AccessLevel {
+    VIEW
+    CHANGE
+    ADMINISTER
 }
 
 extend type Query {
@@ -13,15 +36,4 @@ type User {
     email: String
     imageUrl: String
     provider: String
-}
-
-type AccessControlEntry {
-    user: User
-    level: AccessLevel
-}
-
-enum AccessLevel {
-    VIEW
-    CHANGE
-    ADMINISTER
 }
