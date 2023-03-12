@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.config;
 
+import com.brennaswitzer.cookbook.graphql.support.OffsetConnectionCursorCoercing;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
-import graphql.Scalars;
 import graphql.execution.AsyncExecutionStrategy;
 import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategy;
@@ -51,10 +51,11 @@ public class GraphQLConfig {
     }
 
     @Bean
-    public GraphQLScalarType cursor() { // todo: add a Coercing to avoid the toString silliness?
-        return GraphQLScalarType.newScalar(Scalars.GraphQLID)
+    public GraphQLScalarType cursor(OffsetConnectionCursorCoercing coercing) {
+        return GraphQLScalarType.newScalar()
                 .name("Cursor")
                 .description("The type of a cursor, an opaque string used for walking connections")
+                .coercing(coercing)
                 .build();
     }
 

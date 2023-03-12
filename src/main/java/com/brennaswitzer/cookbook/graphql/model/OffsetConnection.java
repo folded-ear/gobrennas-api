@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.graphql;
+package com.brennaswitzer.cookbook.graphql.model;
 
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import graphql.relay.Connection;

@@ -1,5 +1,6 @@
-package com.brennaswitzer.cookbook.graphql;
+package com.brennaswitzer.cookbook.graphql.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import graphql.relay.ConnectionCursor;
 import lombok.Value;
 
@@ -11,14 +12,16 @@ public class OffsetConnectionCursor implements ConnectionCursor {
 
     private static final String PREFIX = "offset-";
 
-    private static int decode(String value) {
+    @VisibleForTesting
+    static int decode(String value) {
         return Integer.parseInt(
                 new String(Base64.getDecoder()
                                    .decode(value))
                         .substring(PREFIX.length()));
     }
 
-    private static String encode(int offset) {
+    @VisibleForTesting
+    static String encode(int offset) {
         return Base64.getEncoder()
                 .encodeToString((PREFIX + offset).getBytes());
     }
@@ -27,7 +30,6 @@ public class OffsetConnectionCursor implements ConnectionCursor {
 
     String value;
 
-    @SuppressWarnings("unused") // reflected by graphql-java
     public OffsetConnectionCursor(String value) {
         this(decode(value));
         if (!Objects.equals(value, this.value)) {
@@ -43,11 +45,6 @@ public class OffsetConnectionCursor implements ConnectionCursor {
         }
         this.offset = offset;
         this.value = encode(offset);
-    }
-
-    @Override
-    public String toString() {
-        return value; // todo: add a Coercing to the scalar type so this can be normal?
     }
 
 }
