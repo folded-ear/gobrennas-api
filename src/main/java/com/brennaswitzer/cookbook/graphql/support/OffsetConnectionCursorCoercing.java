@@ -3,9 +3,10 @@ package com.brennaswitzer.cookbook.graphql.support;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
-import graphql.schema.CoercingSerializeException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+
+import static com.brennaswitzer.cookbook.graphql.support.CoercingUtil.coercionFailure;
 
 @Component
 public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnectionCursor, String> {
@@ -15,7 +16,7 @@ public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnection
         if (object instanceof OffsetConnectionCursor) {
             return ((OffsetConnectionCursor) object).getValue();
         }
-        throw gonk("serialize", object);
+        throw coercionFailure("serialize", object);
     }
 
     @Override
@@ -24,10 +25,10 @@ public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnection
             try {
                 return new OffsetConnectionCursor((String) input);
             } catch (RuntimeException re) {
-                throw gonk("parse", input, re);
+                throw coercionFailure("parse", input, re);
             }
         }
-        throw gonk("parse", input);
+        throw coercionFailure("parse", input);
     }
 
     @Override
@@ -35,21 +36,7 @@ public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnection
         if (literal instanceof StringValue) {
             return parseValue(((StringValue) literal).getValue());
         }
-        throw gonk("parse", literal);
-    }
-
-    private CoercingSerializeException gonk(String action, Object badValue) {
-        return gonk(action, badValue, null);
-    }
-
-    private CoercingSerializeException gonk(String action, Object badValue, Throwable cause) {
-        String msg = String.format("Unable to %s '%s' of type '%s' as Cursor",
-                                   action,
-                                   badValue,
-                                   badValue.getClass().getName());
-        return cause == null
-                ? new CoercingSerializeException(msg)
-                : new CoercingSerializeException(msg, cause);
+        throw coercionFailure("parse", literal);
     }
 
 }
