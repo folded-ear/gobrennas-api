@@ -67,6 +67,7 @@ type Recipe implements Node & Owned & Ingredient {
     calories: Int
     totalTime: Int
     photo: Photo
+    favorite: Boolean!
 }
 
 type Photo {

@@ -23,7 +23,8 @@ public class FavoriteQuery {
     }
 
     public Favorite byObject(String objectType, Long objectId) {
-        return fetchFavorites.byObject(objectType, objectId);
+        return fetchFavorites.byObject(objectType, objectId)
+                .orElse(null);
     }
 
 }
