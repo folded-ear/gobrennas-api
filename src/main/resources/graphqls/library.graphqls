@@ -43,13 +43,13 @@ type RecipeConnectionEdge {
 
 interface Ingredient implements Node {
     id: ID!
-    name: String
+    name: String!
     labels: [String!]
 }
 
 type PantryItem implements Node & Ingredient {
     id: ID!
-    name: String
+    name: String!
     aisle: String
     storeOrder: Int
     labels: [String!]
@@ -58,7 +58,7 @@ type PantryItem implements Node & Ingredient {
 type Recipe implements Node & Owned & Ingredient {
     id: ID!
     owner: User!
-    name: String
+    name: String!
     externalUrl: String
     directions: String
     ingredients: [IngredientRef!]!
