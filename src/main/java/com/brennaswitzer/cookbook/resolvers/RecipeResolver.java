@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.resolvers;
 
 import com.brennaswitzer.cookbook.domain.FavoriteType;
+import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
@@ -34,6 +35,12 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                         FavoriteType.RECIPE.getKey(),
                         recipe.getId())
                 .isPresent();
+    }
+
+    public Photo getPhoto(Recipe recipe) {
+        return recipe.hasPhoto()
+                ? recipe.getPhoto()
+                : null;
     }
 
 }
