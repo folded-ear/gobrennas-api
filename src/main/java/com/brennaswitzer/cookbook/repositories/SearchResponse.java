@@ -16,6 +16,10 @@ public interface SearchResponse<R> {
         return getContent().size();
     }
 
+    default boolean isEmpty() {
+        return getContent().isEmpty();
+    }
+
     SearchRequest getRequest();
 
     default int getOffset() {

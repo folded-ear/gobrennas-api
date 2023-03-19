@@ -26,8 +26,8 @@ public class OffsetConnection<T> implements Connection<T> {
             edges.add(new DefaultEdge<>(r, new OffsetConnectionCursor(offset + i++)));
         }
         pageInfo = new DefaultPageInfo(
-                new OffsetConnectionCursor(offset),
-                new OffsetConnectionCursor(offset + rs.getSize() - 1),
+                rs.isEmpty() ? null : new OffsetConnectionCursor(offset),
+                rs.isEmpty() ? null : new OffsetConnectionCursor(offset + rs.getSize() - 1),
                 rs.hasPrevious(),
                 rs.hasNext());
     }
