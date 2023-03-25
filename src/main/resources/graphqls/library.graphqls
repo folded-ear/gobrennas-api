@@ -55,6 +55,13 @@ type PantryItem implements Node & Ingredient {
     labels: [String!]
 }
 
+enum ChronoUnit {
+    MILLIS
+    SECONDS
+    MINUTES
+    HOURS
+}
+
 type Recipe implements Node & Owned & Ingredient {
     id: ID!
     owner: User!
@@ -65,7 +72,7 @@ type Recipe implements Node & Owned & Ingredient {
     labels: [String!]
     yield: Int
     calories: Int
-    totalTime: Int
+    totalTime(unit: ChronoUnit = MINUTES): Int
     photo: Photo
     favorite: Boolean!
 }
