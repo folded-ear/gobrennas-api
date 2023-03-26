@@ -248,9 +248,9 @@ public class RecipeController {
     @DeleteMapping("/{id}/labels/{label}")
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeLable(
-            @PathVariable Long id,
-            @PathVariable String label
+    public void removeLabel(
+        @PathVariable Long id,
+        @PathVariable String label
     ) {
         Recipe recipe = getRecipe(id);
         labelService.removeLabel(recipe, label);
@@ -259,10 +259,11 @@ public class RecipeController {
     @PostMapping("/{id}/_send_to_plan/{planId}")
     @ResponseBody
     public Object performRecipeAction(
-            @PathVariable("id") Long id,
-            @PathVariable("planId") Long planId
+        @PathVariable("id") Long id,
+        @PathVariable("planId") Long planId,
+        @RequestParam(name = "scale", defaultValue = "1") Double scale
     ) {
-        recipeService.sendToPlan(id, planId);
+        recipeService.sendToPlan(id, planId, scale);
         return true;
     }
 

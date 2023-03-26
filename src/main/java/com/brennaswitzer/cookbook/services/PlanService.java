@@ -1,6 +1,13 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.AggregateIngredient;
+import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.PlanBucket;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
 import com.brennaswitzer.cookbook.payload.PlanBucketInfo;
@@ -126,24 +133,40 @@ public class PlanService {
         return buildUpdateMessage(t);
     }
 
-    private void sendToPlan(AggregateIngredient r, Task aggTask) {
+    private void sendToPlan(AggregateIngredient r, Task aggTask, Double scale) {
         r.getIngredients().forEach(ir ->
-                sendToPlan(ir, aggTask));
+                                       sendToPlan(ir, aggTask, scale));
     }
 
-    private void sendToPlan(IngredientRef ir, Task aggTask) {
-        Task t = new Task(ir.getRaw(), ir.getQuantity(), ir.getIngredient(), ir.getPreparation());
+    private void sendToPlan(IngredientRef ir, Task aggTask, Double scale) {
+        if (scale == null || scale <= 0) { // nonsense!
+            scale = 1d;
+        }
+        boolean isAggregate = ir.getIngredient() instanceof AggregateIngredient;
+        Task t = new Task(
+            isAggregate
+                ? ir.getIngredient().getName()
+                : ir.getRaw(),
+            ir.getQuantity().times(scale),
+            ir.getIngredient(),
+            ir.getPreparation());
         aggTask.addAggregateComponent(t);
-        if (ir.getIngredient() instanceof AggregateIngredient) {
-            sendToPlan((AggregateIngredient) ir.getIngredient(), t);
+        if (isAggregate) {
+            // Subrecipes DO NOT get scaled; there's not a quantifiable
+            // relationship to multiply across.
+            sendToPlan((AggregateIngredient) ir.getIngredient(), t, 1d);
         }
     }
 
     public void addRecipe(Long planId, Recipe r) {
+        addRecipe(planId, r, 1d);
+    }
+
+    public void addRecipe(Long planId, Recipe r, Double scale) {
         Task recipeTask = new Task(r.getName(), r);
         Task plan = getTaskById(planId, AccessLevel.CHANGE);
         plan.addSubtask(recipeTask);
-        sendToPlan(r, recipeTask);
+        sendToPlan(r, recipeTask, scale);
     }
 
     private PlanMessage buildCreationMessage(Task task) {
@@ -258,4 +281,3 @@ public class PlanService {
     }
 
 }
-
