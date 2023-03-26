@@ -51,10 +51,15 @@ public class RecipeService {
         recipeRepository.delete(r);
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void sendToPlan(Long recipeId, Long planId) {
+        sendToPlan(recipeId, planId, 1d);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public void sendToPlan(Long recipeId, Long planId, Double scale) {
         planService.addRecipe(planId,
-                              recipeRepository.findById(recipeId).get());
+                              recipeRepository.findById(recipeId).get(),
+                              scale);
     }
 
     public SearchResponse<Recipe> searchRecipes(String scope,
