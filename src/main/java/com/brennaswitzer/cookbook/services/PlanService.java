@@ -138,23 +138,26 @@ public class PlanService {
                                        sendToPlan(ir, aggTask, scale));
     }
 
-    private void sendToPlan(IngredientRef ir, Task aggTask, Double scale) {
+    private void sendToPlan(IngredientRef ref, Task aggTask, Double scale) {
         if (scale == null || scale <= 0) { // nonsense!
             scale = 1d;
         }
-        boolean isAggregate = ir.getIngredient() instanceof AggregateIngredient;
+        boolean isAggregate = ref.getIngredient() instanceof AggregateIngredient;
+        if (ref.hasQuantity()) {
+            ref = ref.scale(scale);
+        }
         Task t = new Task(
             isAggregate
-                ? ir.getIngredient().getName()
-                : ir.getRaw(),
-            ir.getQuantity().times(scale),
-            ir.getIngredient(),
-            ir.getPreparation());
+                ? ref.getIngredient().getName()
+                : ref.getRaw(),
+            ref.getQuantity(),
+            ref.getIngredient(),
+            ref.getPreparation());
         aggTask.addAggregateComponent(t);
         if (isAggregate) {
             // Subrecipes DO NOT get scaled; there's not a quantifiable
             // relationship to multiply across.
-            sendToPlan((AggregateIngredient) ir.getIngredient(), t, 1d);
+            sendToPlan((AggregateIngredient) ref.getIngredient(), t, 1d);
         }
     }
 
