@@ -3,7 +3,11 @@ package com.brennaswitzer.cookbook.domain;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.ManyToOne;
 import java.util.Comparator;
 
 @Embeddable
@@ -68,6 +72,14 @@ public class IngredientRef implements MutableItem {
 
     public boolean hasQuantity() {
         return quantity != null;
+    }
+
+    public IngredientRef scale(Double scale) {
+        if (!hasQuantity() || scale == 1) return this;
+        return new IngredientRef(
+            getQuantity().times(scale),
+            getIngredient(),
+            getPreparation());
     }
 
     public boolean hasPreparation() {
