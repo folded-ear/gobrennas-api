@@ -3,10 +3,10 @@ extend type Query {
 }
 
 type FavoriteQuery {
-    """Retrieve the current user's favorites.
+    """Retrieve the current user's favorites, if any.
     """
     all: [Favorite!]!
-    """Retrieve the current user's for the specified object type.
+    """Retrieve the current user's favorites for the specified object type, if any.
     """
     byType(objectType: String!): [Favorite!]!
     """Retrieve the current user's favorite of the specified object, if exists.
