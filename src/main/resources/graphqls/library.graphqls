@@ -34,6 +34,8 @@ type LibraryQuery {
     in the available types.
     """
     pantryItem: PantryItem
+
+    getRecipeById(id: ID!): Recipe
 }
 
 type RecipeConnection {
