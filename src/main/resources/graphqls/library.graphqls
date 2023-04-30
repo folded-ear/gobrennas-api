@@ -7,7 +7,7 @@ enum LibrarySearchScope {
     EVERYONE
 }
 
-type LibraryQuery{
+type LibraryQuery {
     """Search the recipe library.
     """
     recipes(
@@ -28,7 +28,12 @@ type LibraryQuery{
         after: Cursor = null
     ): RecipeConnection!
 
-    pantryItem: PantryItem # something about graphql-java types and some kludge from the intergoogles?
+    """Please ignore; I exist because GraphQL defines the available types as
+    those reachable from fields. Since PantryItem is currently only used
+    polymorphically (e.g., by `Query`'s `node` field), it will not be included
+    in the available types.
+    """
+    pantryItem: PantryItem
 }
 
 type RecipeConnection {

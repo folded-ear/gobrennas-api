@@ -32,7 +32,7 @@ public class LibraryQuery {
     }
 
     public PantryItem pantryItem() {
-        return null;
+        throw new UnsupportedOperationException("library.pantryItem is not supported.");
     }
 
 }
