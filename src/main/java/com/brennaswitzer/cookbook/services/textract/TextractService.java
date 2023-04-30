@@ -6,10 +6,13 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -59,11 +62,16 @@ public class TextractService {
                 photo.getContentType(),
                 photo.getSize()
         ));
-        job = jobRepository.save(job);
+        val savedJob = jobRepository.save(job);
 
-        eventPublisher.publishEvent(new JobCreatedEvent(job.getId()));
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publishEvent(new JobCreatedEvent(savedJob.getId()));
+            }
+        });
 
-        return job;
+        return savedJob;
     }
 
     public List<TextractJob> getAllJobs() {
