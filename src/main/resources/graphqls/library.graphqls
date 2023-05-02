@@ -34,6 +34,8 @@ type LibraryQuery {
     in the available types.
     """
     pantryItem: PantryItem
+
+    getRecipeById(id: ID!): Recipe
 }
 
 type RecipeConnection {
@@ -74,6 +76,10 @@ type Recipe implements Node & Owned & Ingredient {
     externalUrl: String
     directions: String
     ingredients: [IngredientRef!]!
+    """All subrecipes. Multiple layers of nested recipes are flattened, and the
+    contextual recipe is not included.
+    """
+    subrecipes: [Recipe!]!
     labels: [String!]
     yield: Int
     calories: Int

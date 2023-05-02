@@ -11,6 +11,8 @@ import graphql.relay.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @SuppressWarnings("unused") // reflected by java-graphql
 @Component
 public class LibraryQuery {
@@ -33,6 +35,10 @@ public class LibraryQuery {
 
     public PantryItem pantryItem() {
         throw new UnsupportedOperationException("library.pantryItem is not supported.");
+    }
+
+    public Optional<Recipe> getRecipeById(Long id) {
+        return recipeService.findRecipeById(id);
     }
 
 }
