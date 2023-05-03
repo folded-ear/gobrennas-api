@@ -20,7 +20,7 @@ public class PlanBucket extends BaseEntity {
     @Getter
     @Setter
     @ManyToOne
-    private TaskList plan;
+    private Plan plan;
 
     @Getter
     @Setter

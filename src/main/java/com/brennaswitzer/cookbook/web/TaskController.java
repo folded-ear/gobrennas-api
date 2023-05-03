@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.Acl;
-import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
@@ -53,14 +53,14 @@ public class TaskController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public PlanItemInfo createTaskList(@RequestBody TaskCreate info) {
-        TaskList taskList;
+        Plan plan;
         if (info.hasFromId()) {
-            taskList = taskService.duplicateTaskList(info.getName(), info.getFromId());
+            plan = taskService.duplicateTaskList(info.getName(), info.getFromId());
         } else {
-            taskList = taskService.createTaskList(info.getName());
+            plan = taskService.createTaskList(info.getName());
         }
-        taskList.setOwner(principalAccess.getUser());
-        return PlanItemInfo.fromList(taskList);
+        plan.setOwner(principalAccess.getUser());
+        return PlanItemInfo.fromList(plan);
     }
 
     @GetMapping("/{id}")
@@ -105,7 +105,7 @@ public class TaskController {
     public AclInfo getListAcl(
             @PathVariable("id") Long id
     ) {
-        TaskList list = taskService.getTaskListById(id);
+        Plan list = taskService.getTaskListById(id);
         return AclInfo.fromAcl(list.getAcl());
     }
 
@@ -116,7 +116,7 @@ public class TaskController {
             @PathVariable("id") Long id,
             @RequestBody GrantInfo grant
     ) {
-        TaskList list = taskService.setGrantOnList(id, grant.getUserId(), grant.getAccessLevel());
+        Plan list = taskService.setGrantOnList(id, grant.getUserId(), grant.getAccessLevel());
         Acl acl = list.getAcl();
         User user = userRepo.getById(grant.getUserId());
         return GrantInfo.fromGrant(user, acl.getGrant(user));

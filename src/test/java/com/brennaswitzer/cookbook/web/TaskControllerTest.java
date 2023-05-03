@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
@@ -79,7 +79,7 @@ public class TaskControllerTest {
 
     @Test
     public void subtasksCollection() throws Exception {
-        TaskList root = taskRepo.save(new TaskList(alice, "Root"));
+        Plan root = taskRepo.save(new Plan(alice, "Root"));
         PlanItem one = taskRepo.save(new PlanItem("One").of(root));
         PlanItem oneA = taskRepo.save(new PlanItem("A").of(one));
         PlanItem oneB = taskRepo.save(new PlanItem("B").of(one));
@@ -123,7 +123,7 @@ public class TaskControllerTest {
 
     @Test
     public void listGrants() throws Exception {
-        TaskList root = taskRepo.save(new TaskList(alice, "Root"));
+        Plan root = taskRepo.save(new Plan(alice, "Root"));
         AclInfo acl = forObject(
                 get("/api/tasks/{id}/acl", root.getId()),
                 status().isOk(),

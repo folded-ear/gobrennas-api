@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.repositories;
 
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ public class PlanItemRepositoryTest {
 
     @Test
     public void findById() {
-        TaskList groceries = new TaskList(alice, "Groceries");
+        Plan groceries = new Plan(alice, "Groceries");
         listRepo.save(groceries);
 
         PlanItem oj = new PlanItem("OJ").of(groceries);
@@ -63,7 +63,7 @@ public class PlanItemRepositoryTest {
 
     @Test
     public void trashBin() {
-        PlanItem plan = new TaskList(alice, "The Plan");
+        PlanItem plan = new Plan(alice, "The Plan");
         repo.save(plan);
         PlanItem a = new PlanItem("a").of(plan);
         repo.save(a);

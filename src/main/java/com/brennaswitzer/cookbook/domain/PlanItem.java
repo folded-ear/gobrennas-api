@@ -15,7 +15,6 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +36,6 @@ import static javax.persistence.CascadeType.REFRESH;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
-@Table(name = "task")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("item")
@@ -105,7 +103,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     private Set<PlanItem> subtasks;
 
     @ManyToOne
-    private TaskList trashBin;
+    private Plan trashBin;
 
     @ManyToOne
     @Getter
@@ -282,7 +280,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
         return getParent() != null;
     }
 
-    public TaskList getTaskList() {
+    public Plan getTaskList() {
         return getParent().getTaskList();
     }
 

@@ -240,7 +240,7 @@ public class PlanItemTest {
 
     @Test
     public void trashBin() {
-        val plan = new TaskList("The Plan");
+        val plan = new Plan("The Plan");
         val a = new PlanItem("a");
         plan.addSubtask(a);
         val b = new PlanItem("b");

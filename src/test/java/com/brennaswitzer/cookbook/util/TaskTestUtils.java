@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.util;
 
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import lombok.val;
 import org.hibernate.Hibernate;
 
@@ -46,8 +46,8 @@ public final class TaskTestUtils {
         for (PlanItem s : t.getSubtaskView(PlanItem.BY_ORDER)) {
             renderTree(sb, s, depth + 1);
         }
-        if (Hibernate.unproxy(t) instanceof TaskList) {
-            val l = (TaskList) Hibernate.unproxy(t);
+        if (Hibernate.unproxy(t) instanceof Plan) {
+            val l = (Plan) Hibernate.unproxy(t);
             if (l.hasTrash()) {
                 sb.append("  ".repeat(Math.max(0, depth)));
                 sb.append("[trash]");

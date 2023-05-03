@@ -3,10 +3,10 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
@@ -62,8 +62,8 @@ public class PlanService {
         return task;
     }
 
-    protected TaskList getPlanById(Long id, @SuppressWarnings("SameParameterValue") AccessLevel requiredAccess) {
-        TaskList plan = planRepo.getReferenceById(id);
+    protected Plan getPlanById(Long id, @SuppressWarnings("SameParameterValue") AccessLevel requiredAccess) {
+        Plan plan = planRepo.getReferenceById(id);
         plan.ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
@@ -194,7 +194,7 @@ public class PlanService {
     }
 
     public PlanMessage createBucket(Long planId, Object bucketId, String name, LocalDate date) {
-        TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = new PlanBucket();
         bucket.setName(name);
         bucket.setDate(date);
@@ -210,7 +210,7 @@ public class PlanService {
     }
 
     public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
-        TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
@@ -222,7 +222,7 @@ public class PlanService {
     }
 
     public PlanMessage deleteBucket(Long planId, Long id) {
-        TaskList plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);

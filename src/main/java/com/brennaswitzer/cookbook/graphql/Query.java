@@ -2,8 +2,8 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
@@ -55,10 +55,10 @@ public class Query implements GraphQLQueryResolver {
                 .orElse(null);
     }
 
-    List<TaskList> getPlans() {
-        List<TaskList> result = new ArrayList<>();
-        Iterable<TaskList> plans = taskService.getTaskLists();
-        Iterator<TaskList> iterator = plans.iterator();
+    List<Plan> getPlans() {
+        List<Plan> result = new ArrayList<>();
+        Iterable<Plan> plans = taskService.getTaskLists();
+        Iterator<Plan> iterator = plans.iterator();
         iterator.forEachRemaining(result::add);
         return result;
     }

@@ -15,7 +15,7 @@ import java.util.Set;
 
 @Entity
 @DiscriminatorValue("plan")
-public class TaskList extends PlanItem implements AccessControlled {
+public class Plan extends PlanItem implements AccessControlled {
 
     @Embedded
     @NotNull
@@ -31,14 +31,14 @@ public class TaskList extends PlanItem implements AccessControlled {
     @BatchSize(size = 100)
     private Set<PlanItem> trashBinTasks;
 
-    public TaskList() {
+    public Plan() {
     }
 
-    public TaskList(String name) {
+    public Plan(String name) {
         super(name);
     }
 
-    public TaskList(User owner, String name) {
+    public Plan(User owner, String name) {
         super(name);
         setOwner(owner);
     }
@@ -49,7 +49,7 @@ public class TaskList extends PlanItem implements AccessControlled {
     }
 
     @Override
-    public TaskList getTaskList() {
+    public Plan getTaskList() {
         return this;
     }
 

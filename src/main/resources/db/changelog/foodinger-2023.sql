@@ -100,3 +100,11 @@ CREATE TABLE favorite
     -- also supports per-object fav count queries
     CONSTRAINT uk_favorite UNIQUE (object_id, object_type, owner_id)
 );
+
+--changeset barneyb:tasks-to-plans
+ALTER TABLE task
+    RENAME TO plan_item;
+ALTER TABLE task_list_grants
+    RENAME TO plan_grants;
+ALTER TABLE plan_grants
+    RENAME task_list_id TO plan_id;

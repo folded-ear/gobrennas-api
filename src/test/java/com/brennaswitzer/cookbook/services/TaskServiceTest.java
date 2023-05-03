@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
@@ -61,10 +61,10 @@ public class TaskServiceTest {
 
     @Test
     public void getTaskLists() {
-        Iterator<TaskList> itr = service.getTaskLists(alice.getId()).iterator();
+        Iterator<Plan> itr = service.getTaskLists(alice.getId()).iterator();
         assertFalse(itr.hasNext());
 
-        PlanItem groceries = taskRepo.save(new TaskList(alice, "groceries"));
+        PlanItem groceries = taskRepo.save(new Plan(alice, "groceries"));
 
         itr = service.getTaskLists(alice).iterator();
         assertTrue(itr.hasNext());
@@ -100,7 +100,7 @@ public class TaskServiceTest {
 
     @Test
     public void createSubtask() {
-        TaskList groceries = listRepo.save(new TaskList(alice,"groceries"));
+        Plan groceries = listRepo.save(new Plan(alice, "groceries"));
         assertEquals(0, groceries.getSubtaskCount());
 
         PlanItem oj = service.createSubtask(groceries.getId(), "OJ");
@@ -134,20 +134,20 @@ public class TaskServiceTest {
 
     @Test
     public void renameTask() {
-        TaskList list = listRepo.save(new TaskList(alice, "root"));
+        Plan list = listRepo.save(new Plan(alice, "root"));
         PlanItem bill = taskRepo.save(new PlanItem("bill").of(list));
 
         service.renameTask(bill.getId(), "William");
         taskRepo.flush();
         entityManager.clear();
 
-        bill = taskRepo.getOne(bill.getId());
+        bill = taskRepo.getReferenceById(bill.getId());
         assertEquals("William", bill.getName());
     }
 
     @Test
     public void resetSubtasks() {
-        TaskList groceries = listRepo.save(new TaskList(alice, "groceries"));
+        Plan groceries = listRepo.save(new Plan(alice, "groceries"));
         PlanItem milk = taskRepo.save(new PlanItem("milk").of(groceries));
         PlanItem oj = taskRepo.save(new PlanItem("OJ").after(milk));
         PlanItem bagels = taskRepo.save(new PlanItem("bagels").after(oj));
@@ -160,7 +160,7 @@ public class TaskServiceTest {
         taskRepo.flush();
         entityManager.clear();
 
-        groceries = listRepo.getOne(groceries.getId());
+        groceries = listRepo.getReferenceById(groceries.getId());
         List<PlanItem> view = groceries.getOrderedSubtasksView();
         Iterator<PlanItem> itr = view.iterator();
         assertEquals("bagels", itr.next().getName());
@@ -175,7 +175,7 @@ public class TaskServiceTest {
     @Test
     public void deleteTask() {
         assertEquals(0, taskRepo.count());
-        TaskList groceries = listRepo.save(new TaskList(alice, "groceries"));
+        Plan groceries = listRepo.save(new Plan(alice, "groceries"));
         PlanItem milk = taskRepo.save(new PlanItem("milk").of(groceries));
         PlanItem oj = taskRepo.save(new PlanItem("OJ").after(milk));
         PlanItem bagels = taskRepo.save(new PlanItem("bagels").after(oj));
@@ -199,7 +199,7 @@ public class TaskServiceTest {
 
     @Test
     public void grants() {
-        TaskList groceries = service.createTaskList("groceries", alice);
+        Plan groceries = service.createTaskList("groceries", alice);
         taskRepo.flush();
         entityManager.clear();
 
@@ -227,7 +227,7 @@ public class TaskServiceTest {
 
     @Test
     public void muppetLikeListsForShopping() {
-        TaskList groceries = service.createTaskList("groceries", alice);
+        Plan groceries = service.createTaskList("groceries", alice);
         PlanItem tacos = service.createSubtask(groceries.getId(), "Tacos");
         PlanItem salad = service.createSubtaskAfter(groceries.getId(), "Salad", tacos.getId());
         PlanItem lunch = service.createSubtaskAfter(groceries.getId(), "Lunch", salad.getId());

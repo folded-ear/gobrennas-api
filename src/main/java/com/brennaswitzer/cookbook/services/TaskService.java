@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
@@ -37,17 +37,17 @@ public class TaskService {
     @Autowired
     private ItemService itemService;
 
-    public Iterable<TaskList> getTaskLists(User owner) {
+    public Iterable<Plan> getTaskLists(User owner) {
         return getTaskLists(owner.getId());
     }
 
-    public Iterable<TaskList> getTaskLists() {
+    public Iterable<Plan> getTaskLists() {
         return getTaskLists(principalAccess.getId());
     }
 
-    public Iterable<TaskList> getTaskLists(Long userId) {
+    public Iterable<Plan> getTaskLists(Long userId) {
         User user = userRepo.getById(userId);
-        List<TaskList> result = new LinkedList<>();
+        List<Plan> result = new LinkedList<>();
         listRepo.findAccessibleLists(userId)
                 .forEach(l -> {
                     if (l.isPermitted(user, AccessLevel.VIEW)) {
@@ -70,12 +70,12 @@ public class TaskService {
         return item;
     }
 
-    public TaskList getTaskListById(Long id) {
+    public Plan getTaskListById(Long id) {
         return getTaskListById(id, AccessLevel.VIEW);
     }
 
-    private TaskList getTaskListById(Long id, AccessLevel accessLevel) {
-        TaskList list = listRepo.getReferenceById(id);
+    private Plan getTaskListById(Long id, AccessLevel accessLevel) {
+        Plan list = listRepo.getReferenceById(id);
         list.ensurePermitted(
                 principalAccess.getUser(),
                 accessLevel
@@ -83,13 +83,13 @@ public class TaskService {
         return list;
     }
 
-    public TaskList createTaskList(String name, User user) {
+    public Plan createTaskList(String name, User user) {
         return createTaskList(name, user.getId());
     }
 
-    public TaskList duplicateTaskList(String name, Long fromId) {
-        TaskList list = createTaskList(name);
-        TaskList src = listRepo.getReferenceById(fromId);
+    public Plan duplicateTaskList(String name, Long fromId) {
+        Plan list = createTaskList(name);
+        Plan src = listRepo.getReferenceById(fromId);
         duplicateChildren(src, list);
         return list;
     }
@@ -109,13 +109,13 @@ public class TaskService {
         }
     }
 
-    public TaskList createTaskList(String name) {
+    public Plan createTaskList(String name) {
         return createTaskList(name, principalAccess.getId());
     }
 
-    public TaskList createTaskList(String name, Long userId) {
+    public Plan createTaskList(String name, Long userId) {
         User user = userRepo.getById(userId);
-        TaskList list = new TaskList(name);
+        Plan list = new Plan(name);
         list.setOwner(user);
         list.setPosition(1 + listRepo.getMaxPosition(user));
         return listRepo.save(list);
@@ -171,14 +171,14 @@ public class TaskService {
         planItemRepo.delete(it);
     }
 
-    public TaskList setGrantOnList(Long listId, Long userId, AccessLevel level) {
-        TaskList list = getTaskListById(listId, AccessLevel.ADMINISTER);
+    public Plan setGrantOnList(Long listId, Long userId, AccessLevel level) {
+        Plan list = getTaskListById(listId, AccessLevel.ADMINISTER);
         list.getAcl().setGrant(userRepo.getById(userId), level);
         return list;
     }
 
-    public TaskList deleteGrantFromList(Long listId, Long userId) {
-        TaskList list = getTaskListById(listId, AccessLevel.ADMINISTER);
+    public Plan deleteGrantFromList(Long listId, Long userId) {
+        Plan list = getTaskListById(listId, AccessLevel.ADMINISTER);
         list.getAcl().deleteGrant(userRepo.getById(userId));
         return list;
     }

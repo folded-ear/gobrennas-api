@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Quantity;
-import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
@@ -53,11 +53,11 @@ public class PlanItemInfo {
         return info;
     }
 
-    public static PlanItemInfo fromList(TaskList list) {
+    public static PlanItemInfo fromList(Plan list) {
         return fromPlan(list);
     }
 
-    public static PlanItemInfo fromPlan(TaskList plan) {
+    public static PlanItemInfo fromPlan(Plan plan) {
         PlanItemInfo info = fromPlanItem(plan);
         info.acl = AclInfo.fromAcl(plan.getAcl());
         if (plan.hasBuckets()) {
@@ -74,11 +74,11 @@ public class PlanItemInfo {
                 .collect(Collectors.toList());
     }
 
-    public static List<PlanItemInfo> fromLists(Iterable<TaskList> lists) {
+    public static List<PlanItemInfo> fromLists(Iterable<Plan> lists) {
         return fromPlans(lists);
     }
 
-    public static List<PlanItemInfo> fromPlans(Iterable<TaskList> plans) {
+    public static List<PlanItemInfo> fromPlans(Iterable<Plan> plans) {
         return StreamSupport.stream(plans.spliterator(), false)
                 .map(PlanItemInfo::fromList)
                 .collect(Collectors.toList());
