@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.repositories.TaskRepository;
+import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +18,12 @@ import java.util.concurrent.TimeUnit;
 public class EmptyTrashBins {
 
     @Autowired
-    private TaskRepository taskRepository;
+    private PlanItemRepository planItemRepository;
 
     @Scheduled(fixedDelay = 60, initialDelay = 1, timeUnit = TimeUnit.MINUTES)
     public void emptyTrashBins() {
         val cutoff = Instant.now().minus(4, ChronoUnit.HOURS);
-        val n = taskRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
+        val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
         log.info("Deleted {} old task(s) from the trash bin", n);
     }
 }

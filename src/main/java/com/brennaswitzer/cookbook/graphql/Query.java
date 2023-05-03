@@ -2,7 +2,7 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
@@ -63,7 +63,7 @@ public class Query implements GraphQLQueryResolver {
         return result;
     }
 
-    Task getPlanItem(Long id) {
+    PlanItem getPlanItem(Long id) {
         return taskService.getTaskById(id);
     }
 

@@ -1,15 +1,15 @@
 package com.brennaswitzer.cookbook.web;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
-import com.brennaswitzer.cookbook.payload.TaskInfo;
+import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
-import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -33,9 +33,14 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
@@ -52,7 +57,7 @@ public class TaskControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private TaskRepository taskRepo;
+    private PlanItemRepository taskRepo;
 
     @Autowired
     private TaskListRepository listRepo;
@@ -75,16 +80,16 @@ public class TaskControllerTest {
     @Test
     public void subtasksCollection() throws Exception {
         TaskList root = taskRepo.save(new TaskList(alice, "Root"));
-        Task one = taskRepo.save(new Task("One").of(root));
-        Task oneA = taskRepo.save(new Task("A").of(one));
-        Task oneB = taskRepo.save(new Task("B").of(one));
-        Task two = taskRepo.save(new Task("Two").of(root));
+        PlanItem one = taskRepo.save(new PlanItem("One").of(root));
+        PlanItem oneA = taskRepo.save(new PlanItem("A").of(one));
+        PlanItem oneB = taskRepo.save(new PlanItem("B").of(one));
+        PlanItem two = taskRepo.save(new PlanItem("Two").of(root));
         sync();
 
-        TaskInfo ti;
+        PlanItemInfo ti;
         // sanity
         ti = forInfo(get("/api/tasks/{id}", root.getId()), status().isOk());
-        assertArrayEquals(new long[] {
+        assertArrayEquals(new long[]{
                 one.getId(),
                 two.getId(),
         }, ti.getSubtaskIds());
@@ -96,7 +101,7 @@ public class TaskControllerTest {
         ti = forInfo(get("/api/tasks/{id}", oneA.getId()), status().isOk());
         assertNull(ti.getSubtaskIds());
 
-        List<TaskInfo> tasks = forInfoList(
+        List<PlanItemInfo> tasks = forInfoList(
                 get("/api/tasks/{id}/subtasks", root.getId()),
                 status().isOk());
         assertEquals(2, tasks.size());
@@ -127,7 +132,7 @@ public class TaskControllerTest {
         assertNull(acl.getGrants());
 
         // if bob asks for lists, he gets nothing
-        List<TaskInfo> ls = forInfoList(
+        List<PlanItemInfo> ls = forInfoList(
                 get("/api/tasks/"),
                 status().isOk(),
                 bob);
@@ -145,7 +150,7 @@ public class TaskControllerTest {
             assertEquals(AccessLevel.VIEW, grant.getAccessLevel());
         }
 
-        root = listRepo.getOne(root.getId());
+        root = listRepo.getReferenceById(root.getId());
         assertEquals(AccessLevel.VIEW, root.getAcl().getGrant(bob));
 
         // if bob asks for lists, he gets root
@@ -166,7 +171,7 @@ public class TaskControllerTest {
         perform(makeJson(renameReq, new TaskName("Root Eve")), eve)
                 .andExpect(status().isForbidden());
 
-        root = listRepo.getOne(root.getId());
+        root = listRepo.getReferenceById(root.getId());
         assertEquals("Root Alice", root.getName());
 
         forJson(
@@ -178,7 +183,7 @@ public class TaskControllerTest {
         perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
                 .andExpect(status().isOk());
 
-        root = listRepo.getOne(root.getId());
+        root = listRepo.getReferenceById(root.getId());
         assertEquals("Root Bob", root.getName());
 
         // idempotent
@@ -187,7 +192,7 @@ public class TaskControllerTest {
                     .andExpect(status().isNoContent());
         }
 
-        root = listRepo.getOne(root.getId());
+        root = listRepo.getReferenceById(root.getId());
         assertNull(root.getAcl().getGrant(bob));
 
         // if bob asks for lists, he gets nothing
@@ -222,7 +227,10 @@ public class TaskControllerTest {
         return forObject(req, expect, type, null);
     }
 
-    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, JavaType type, User as) throws Exception {
+    private <T> T forObject(MockHttpServletRequestBuilder req,
+                            ResultMatcher expect,
+                            JavaType type,
+                            User as) throws Exception {
         return objectMapper.readValue(forJson(req, expect, as), type);
     }
 
@@ -230,24 +238,29 @@ public class TaskControllerTest {
         return forObject(req, expect, clazz, null);
     }
 
-    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, Class<T> clazz, User as) throws Exception {
+    private <T> T forObject(MockHttpServletRequestBuilder req,
+                            ResultMatcher expect,
+                            Class<T> clazz,
+                            User as) throws Exception {
         return forObject(req, expect,
-                objectMapper.getTypeFactory().constructType(clazz), as);
+                         objectMapper.getTypeFactory().constructType(clazz), as);
     }
 
-    private TaskInfo forInfo(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
-        return forObject(req, expect, TaskInfo.class);
+    private PlanItemInfo forInfo(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
+        return forObject(req, expect, PlanItemInfo.class);
     }
 
-    private List<TaskInfo> forInfoList(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
+    private List<PlanItemInfo> forInfoList(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
         return forInfoList(req, expect, null);
     }
 
-    private List<TaskInfo> forInfoList(MockHttpServletRequestBuilder req, ResultMatcher expect, User as) throws Exception {
+    private List<PlanItemInfo> forInfoList(MockHttpServletRequestBuilder req,
+                                           ResultMatcher expect,
+                                           User as) throws Exception {
         return forObject(req, expect,
-                objectMapper.getTypeFactory().constructCollectionType(
-                        List.class,
-                        TaskInfo.class), as);
+                         objectMapper.getTypeFactory().constructCollectionType(
+                                 List.class,
+                                 PlanItemInfo.class), as);
     }
 
     private String forJson(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {

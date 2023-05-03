@@ -3,14 +3,27 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
-import com.brennaswitzer.cookbook.payload.*;
+import com.brennaswitzer.cookbook.payload.AclInfo;
+import com.brennaswitzer.cookbook.payload.GrantInfo;
+import com.brennaswitzer.cookbook.payload.PlanItemInfo;
+import com.brennaswitzer.cookbook.payload.TaskCreate;
+import com.brennaswitzer.cookbook.payload.TaskName;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.TaskService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -31,15 +44,15 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<TaskInfo> getTaskLists(
+    public List<PlanItemInfo> getTaskLists(
     ) {
-        return TaskInfo.fromLists(taskService.getTaskLists());
+        return PlanItemInfo.fromLists(taskService.getTaskLists());
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public TaskInfo createTaskList(@RequestBody TaskCreate info) {
+    public PlanItemInfo createTaskList(@RequestBody TaskCreate info) {
         TaskList taskList;
         if (info.hasFromId()) {
             taskList = taskService.duplicateTaskList(info.getName(), info.getFromId());
@@ -47,36 +60,36 @@ public class TaskController {
             taskList = taskService.createTaskList(info.getName());
         }
         taskList.setOwner(principalAccess.getUser());
-        return TaskInfo.fromList(taskList);
+        return PlanItemInfo.fromList(taskList);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskInfo getTask(
+    public PlanItemInfo getTask(
             @PathVariable("id") Long id
     ) {
-        return TaskInfo.fromTask(taskService.getTaskById(id));
+        return PlanItemInfo.fromPlanItem(taskService.getTaskById(id));
     }
 
     @GetMapping("/{id}/subtasks")
     @ResponseStatus(HttpStatus.OK)
-    public List<TaskInfo> getSubtasks(
+    public List<PlanItemInfo> getSubtasks(
             @PathVariable("id") Long parentId
     ) {
-        return TaskInfo.fromTasks(taskService
-                .getTaskById(parentId)
-                .getOrderedSubtasksView());
+        return PlanItemInfo.fromTasks(taskService
+                                              .getTaskById(parentId)
+                                              .getOrderedSubtasksView());
     }
 
     @PutMapping("/{id}/name")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public TaskInfo renameTask(
+    public PlanItemInfo renameTask(
             @PathVariable("id") Long id,
             @RequestBody TaskName info
     ) {
-        return TaskInfo.fromTask(taskService
-                .renameTask(id, info.getName()));
+        return PlanItemInfo.fromPlanItem(taskService
+                                                 .renameTask(id, info.getName()));
     }
 
     @DeleteMapping("/{id}")

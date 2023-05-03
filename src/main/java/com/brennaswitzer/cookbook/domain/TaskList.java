@@ -4,14 +4,18 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @DiscriminatorValue("plan")
-public class TaskList extends Task implements AccessControlled {
+public class TaskList extends PlanItem implements AccessControlled {
 
     @Embedded
     @NotNull
@@ -25,7 +29,7 @@ public class TaskList extends Task implements AccessControlled {
 
     @OneToMany(mappedBy = "trashBin", cascade = CascadeType.ALL)
     @BatchSize(size = 100)
-    private Set<Task> trashBinTasks;
+    private Set<PlanItem> trashBinTasks;
 
     public TaskList() {
     }
@@ -40,7 +44,7 @@ public class TaskList extends Task implements AccessControlled {
     }
 
     @Override
-    public void setParent(Task parent) {
+    public void setParent(PlanItem parent) {
         throw new UnsupportedOperationException("TaskLists can't have parents");
     }
 
@@ -60,7 +64,7 @@ public class TaskList extends Task implements AccessControlled {
         return buckets != null && !buckets.isEmpty();
     }
 
-    public Set<Task> getTrashBinTasks() {
+    public Set<PlanItem> getTrashBinTasks() {
         if (trashBinTasks == null) {
             trashBinTasks = new HashSet<>();
         }

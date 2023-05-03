@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.util;
 
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import lombok.val;
 import org.hibernate.Hibernate;
@@ -12,7 +12,7 @@ public final class TaskTestUtils {
 
     private TaskTestUtils() {}
 
-    public static <T extends Task> String renderTree(String header, Iterable<T> tasks) {
+    public static <T extends PlanItem> String renderTree(String header, Iterable<T> tasks) {
         List<T> list;
         if (tasks instanceof List) {
             list = (List<T>) tasks;
@@ -22,41 +22,37 @@ public final class TaskTestUtils {
                 list.add(t);
             }
         }
-        return renderTree(header, list.toArray(new Task[0]));
+        return renderTree(header, list.toArray(new PlanItem[0]));
     }
 
-    public static String renderTree(String header, Task... task) {
+    public static String renderTree(String header, PlanItem... task) {
         StringBuilder sb = new StringBuilder("= ")
                 .append(header)
                 .append(' ');
-        for (int i = 80 - sb.length(); i > 0; i--) sb.append('=');
+        sb.append("=".repeat(Math.max(0, 80 - sb.length())));
         sb.append('\n');
-        for (Task t : task) {
+        for (PlanItem t : task) {
             renderTree(sb, t, 0);
         }
-        for (int i = 80; i > 0; i--) sb.append('-');
+        sb.append("-".repeat(80));
         sb.append('\n');
         return sb.toString();
     }
 
-    private static void renderTree(StringBuilder sb, Task t, int depth) {
-        for (int i = 0; i < depth; i++) {
-            sb.append("  ");
-        }
+    private static void renderTree(StringBuilder sb, PlanItem t, int depth) {
+        sb.append("  ".repeat(Math.max(0, depth)));
         sb.append(t.getName());
         sb.append('\n');
-        for (Task s : t.getSubtaskView(Task.BY_ORDER)) {
+        for (PlanItem s : t.getSubtaskView(PlanItem.BY_ORDER)) {
             renderTree(sb, s, depth + 1);
         }
         if (Hibernate.unproxy(t) instanceof TaskList) {
             val l = (TaskList) Hibernate.unproxy(t);
             if (l.hasTrash()) {
-                for (int i = 0; i < depth; i++) {
-                    sb.append("  ");
-                }
+                sb.append("  ".repeat(Math.max(0, depth)));
                 sb.append("[trash]");
                 sb.append('\n');
-                for (Task s : l.getTrashBinTasks()) {
+                for (PlanItem s : l.getTrashBinTasks()) {
                     renderTree(sb, s, depth + 1);
                 }
             }

@@ -5,11 +5,14 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TaskTest {
+public class PlanItemTest {
 
-    private void assertBefore(Task first, Task second) {
+    private void assertBefore(PlanItem first, PlanItem second) {
         assertTrue(
                 first.getPosition() < second.getPosition(),
                 first.getName() + " (" + first.getPosition() + ") is before " + second.getName() + " (" + second.getPosition() + ")"
@@ -18,12 +21,12 @@ public class TaskTest {
 
     @Test
     public void addSubtask_basics() {
-        Task groceries = new Task("Groceries");
+        PlanItem groceries = new PlanItem("Groceries");
         assertFalse(groceries.isSubtask());
         assertFalse(groceries.hasSubtasks());
         assertEquals(0, groceries.getSubtaskCount());
 
-        Task oj = new Task("OJ");
+        PlanItem oj = new PlanItem("OJ");
         groceries.addSubtask(oj);
 
         assertFalse(groceries.isSubtask());
@@ -37,11 +40,11 @@ public class TaskTest {
 
     @Test
     public void addSubtask_ordering() {
-        Task groceries = new Task("Groceries");
-        Task apples = new Task("Apples");
-        Task oj = new Task("OJ");
-        Task bagels = new Task("Bagels");
-        Task iceCream = new Task("Ice Cream");
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem apples = new PlanItem("Apples");
+        PlanItem oj = new PlanItem("OJ");
+        PlanItem bagels = new PlanItem("Bagels");
+        PlanItem iceCream = new PlanItem("Ice Cream");
         groceries.addSubtask(apples);
         groceries.addSubtask(oj);
         groceries.addSubtask(bagels);
@@ -54,11 +57,11 @@ public class TaskTest {
 
     @Test
     public void addSubtaskAfter() {
-        Task groceries = new Task("Groceries");
-        Task apples = new Task("Apples");
-        Task oj = new Task("OJ");
-        Task bagels = new Task("Bagels");
-        Task iceCream = new Task("Ice Cream");
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem apples = new PlanItem("Apples");
+        PlanItem oj = new PlanItem("OJ");
+        PlanItem bagels = new PlanItem("Bagels");
+        PlanItem iceCream = new PlanItem("Ice Cream");
         groceries.addSubtask(oj);
         groceries.addSubtask(bagels);
         groceries.addSubtaskAfter(apples, null);
@@ -79,11 +82,11 @@ public class TaskTest {
 
     @Test
     public void insertSubtask() {
-        Task groceries = new Task("Groceries");
-        Task apples = new Task("Apples");
-        Task oj = new Task("OJ");
-        Task bagels = new Task("Bagels");
-        Task iceCream = new Task("Ice Cream");
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem apples = new PlanItem("Apples");
+        PlanItem oj = new PlanItem("OJ");
+        PlanItem bagels = new PlanItem("Bagels");
+        PlanItem iceCream = new PlanItem("Ice Cream");
         groceries.addSubtask(apples);
         groceries.addSubtask(oj);
         groceries.addSubtask(bagels);
@@ -96,10 +99,10 @@ public class TaskTest {
 
     @Test
     public void setChildPosition() {
-        Task groceries = new Task("Groceries");
-        Task apples = new Task("Apples");
-        Task bagels = new Task("Bagels");
-        Task chicken = new Task("Chicken");
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem apples = new PlanItem("Apples");
+        PlanItem bagels = new PlanItem("Bagels");
+        PlanItem chicken = new PlanItem("Chicken");
         groceries.addSubtask(apples);
         groceries.addSubtask(bagels);
         groceries.addSubtask(chicken);
@@ -119,16 +122,16 @@ public class TaskTest {
 
     @Test
     public void toString_() {
-        Task groceries = new Task("Groceries");
+        PlanItem groceries = new PlanItem("Groceries");
         assertEquals("Groceries", groceries.toString());
 
-        Task oj = new Task("OJ");
+        PlanItem oj = new PlanItem("OJ");
         groceries.addSubtask(oj);
 
         assertEquals("Groceries", groceries.toString());
         assertEquals("OJ [Groceries]", oj.toString());
 
-        Task orange = new Task("Orange");
+        PlanItem orange = new PlanItem("Orange");
         oj.addSubtask(orange);
 
         assertEquals("OJ [Groceries]", oj.toString());
@@ -137,77 +140,77 @@ public class TaskTest {
 
     @Test
     public void BY_NAME() {
-        Task a = new Task("a");
+        PlanItem a = new PlanItem("a");
         //noinspection EqualsWithItself
-        assertEquals(0, Task.BY_NAME.compare(a, a));
-        assertTrue(Task.BY_NAME.compare(a, null) < 0);
-        assertTrue(Task.BY_NAME.compare(null, a) > 0);
-        Task b = new Task("b");
-        assertTrue(Task.BY_NAME.compare(a, b) < 0);
-        assertTrue(Task.BY_NAME.compare(b, a) > 0);
+        assertEquals(0, PlanItem.BY_NAME.compare(a, a));
+        assertTrue(PlanItem.BY_NAME.compare(a, null) < 0);
+        assertTrue(PlanItem.BY_NAME.compare(null, a) > 0);
+        PlanItem b = new PlanItem("b");
+        assertTrue(PlanItem.BY_NAME.compare(a, b) < 0);
+        assertTrue(PlanItem.BY_NAME.compare(b, a) > 0);
 
         // UPPERCASE < lowercase
-        Task B = new Task("B");
-        assertTrue(Task.BY_NAME.compare(a, B) > 0);
-        assertTrue(Task.BY_NAME.compare(B, a) < 0);
+        PlanItem B = new PlanItem("B");
+        assertTrue(PlanItem.BY_NAME.compare(a, B) > 0);
+        assertTrue(PlanItem.BY_NAME.compare(B, a) < 0);
     }
 
     @Test
     public void BY_NAME_IGNORE_CASE() {
-        Task a = new Task("a");
+        PlanItem a = new PlanItem("a");
         //noinspection EqualsWithItself
-        assertEquals(0, Task.BY_NAME_IGNORE_CASE.compare(a, a));
-        assertTrue(Task.BY_NAME_IGNORE_CASE.compare(a, null) < 0);
-        assertTrue(Task.BY_NAME_IGNORE_CASE.compare(null, a) > 0);
-        Task b = new Task("b");
-        assertTrue(Task.BY_NAME_IGNORE_CASE.compare(a, b) < 0);
-        assertTrue(Task.BY_NAME_IGNORE_CASE.compare(b, a) > 0);
+        assertEquals(0, PlanItem.BY_NAME_IGNORE_CASE.compare(a, a));
+        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, null) < 0);
+        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(null, a) > 0);
+        PlanItem b = new PlanItem("b");
+        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, b) < 0);
+        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(b, a) > 0);
 
-        Task B = new Task("B");
-        assertTrue(Task.BY_NAME_IGNORE_CASE.compare(a, B) < 0);
-        assertTrue(Task.BY_NAME_IGNORE_CASE.compare(B, a) > 0);
+        PlanItem B = new PlanItem("B");
+        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, B) < 0);
+        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(B, a) > 0);
     }
 
     @Test
     public void BY_ORDER() {
-        Task a = new Task("", 1);
+        PlanItem a = new PlanItem("", 1);
         //noinspection EqualsWithItself
-        assertEquals(0, Task.BY_ORDER.compare(a, a));
-        assertTrue(Task.BY_ORDER.compare(a, null) < 0);
-        assertTrue(Task.BY_ORDER.compare(null, a) > 0);
-        Task b = new Task("", 2);
-        assertTrue(Task.BY_ORDER.compare(a, b) < 0);
-        assertTrue(Task.BY_ORDER.compare(b, a) > 0);
+        assertEquals(0, PlanItem.BY_ORDER.compare(a, a));
+        assertTrue(PlanItem.BY_ORDER.compare(a, null) < 0);
+        assertTrue(PlanItem.BY_ORDER.compare(null, a) > 0);
+        PlanItem b = new PlanItem("", 2);
+        assertTrue(PlanItem.BY_ORDER.compare(a, b) < 0);
+        assertTrue(PlanItem.BY_ORDER.compare(b, a) > 0);
     }
 
     @Test
     public void muppetLikeListsForShopping() {
-        Task groceries = new Task("Groceries");
-        Task tacos = new Task("Tacos").of(groceries);
-        Task salad = new Task("Salad").of(groceries);
-        Task lunch = new Task("Lunch").of(groceries);
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem tacos = new PlanItem("Tacos").of(groceries);
+        PlanItem salad = new PlanItem("Salad").of(groceries);
+        PlanItem lunch = new PlanItem("Lunch").of(groceries);
 
         System.out.println(renderTree("Meals", groceries));
 
-        Task meat = new Task("meat").of(tacos);
-        Task tortillas = new Task("tortillas").of(tacos);
-        Task salsa = new Task("salsa").of(tacos);
+        PlanItem meat = new PlanItem("meat").of(tacos);
+        PlanItem tortillas = new PlanItem("tortillas").of(tacos);
+        PlanItem salsa = new PlanItem("salsa").of(tacos);
 
-        Task lettuce = new Task("lettuce").of(salad);
-        Task dressing = new Task("dressing").of(salad);
-        Task chicken = new Task("chicken").of(salad);
+        PlanItem lettuce = new PlanItem("lettuce").of(salad);
+        PlanItem dressing = new PlanItem("dressing").of(salad);
+        PlanItem chicken = new PlanItem("chicken").of(salad);
 
         // oh, we need cheese too
-        Task cheese = new Task("cheese").of(tacos);
+        PlanItem cheese = new PlanItem("cheese").of(tacos);
 
-        Task ham = new Task("deli ham").of(lunch);
-        Task cheese2 = new Task("cheese").of(lunch);
-        Task bread = new Task("bread").of(lunch);
+        PlanItem ham = new PlanItem("deli ham").of(lunch);
+        PlanItem cheese2 = new PlanItem("cheese").of(lunch);
+        PlanItem bread = new PlanItem("bread").of(lunch);
 
         System.out.println(renderTree("Ingredients", groceries));
 
-        Task costco = new Task("Costco").of(groceries, null),
-                winco = new Task("Winco").of(groceries, costco);
+        PlanItem costco = new PlanItem("Costco").of(groceries, null),
+                winco = new PlanItem("Winco").of(groceries, costco);
 
         meat.of(winco);
         tortillas.after(meat);
@@ -231,18 +234,18 @@ public class TaskTest {
     @Test
     public void taskCanBeItem() {
         RecipeBox box = new RecipeBox();
-        Task saltTask = new Task("salt", box.salt);
+        PlanItem saltTask = new PlanItem("salt", box.salt);
         System.out.println(saltTask);
     }
 
     @Test
     public void trashBin() {
         val plan = new TaskList("The Plan");
-        val a = new Task("a");
+        val a = new PlanItem("a");
         plan.addSubtask(a);
-        val b = new Task("b");
+        val b = new PlanItem("b");
         a.addSubtask(b);
-        val c = new Task("c");
+        val c = new PlanItem("c");
         b.addSubtask(c);
 
         System.out.println(renderTree("initial", plan));

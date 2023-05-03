@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.repositories;
 
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -16,16 +16,18 @@ import javax.persistence.EntityManager;
 import java.util.function.Function;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @Transactional
 @WithAliceBobEve
-public class TaskRepositoryTest {
+public class PlanItemRepositoryTest {
 
     @Autowired
-    private TaskRepository repo;
+    private PlanItemRepository repo;
 
     @Autowired
     private TaskListRepository listRepo;
@@ -48,7 +50,7 @@ public class TaskRepositoryTest {
         TaskList groceries = new TaskList(alice, "Groceries");
         listRepo.save(groceries);
 
-        Task oj = new Task("OJ").of(groceries);
+        PlanItem oj = new PlanItem("OJ").of(groceries);
         assertNull(oj.getId());
         oj = repo.saveAndFlush(oj); // because IDENTITY generation, the flush isn't needed, but it's good style
         Long id = oj.getId();
@@ -61,15 +63,15 @@ public class TaskRepositoryTest {
 
     @Test
     public void trashBin() {
-        Task plan = new TaskList(alice, "The Plan");
+        PlanItem plan = new TaskList(alice, "The Plan");
         repo.save(plan);
-        Task a = new Task("a").of(plan);
+        PlanItem a = new PlanItem("a").of(plan);
         repo.save(a);
-        Task b = new Task("b").of(a);
+        PlanItem b = new PlanItem("b").of(a);
         repo.save(b);
-        Task c = new Task("c").of(b);
+        PlanItem c = new PlanItem("c").of(b);
         repo.save(c);
-        Function<Long, Task> fetch = id -> {
+        Function<Long, PlanItem> fetch = id -> {
             entityManager.flush();
             entityManager.clear();
             return repo.getReferenceById(id);

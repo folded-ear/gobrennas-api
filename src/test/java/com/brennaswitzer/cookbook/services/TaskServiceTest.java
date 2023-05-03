@@ -1,11 +1,11 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.TaskList;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
-import com.brennaswitzer.cookbook.repositories.TaskRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -33,7 +39,7 @@ public class TaskServiceTest {
     private TaskService service;
 
     @Autowired
-    private TaskRepository taskRepo;
+    private PlanItemRepository taskRepo;
 
     @Autowired
     private TaskListRepository listRepo;
@@ -58,15 +64,15 @@ public class TaskServiceTest {
         Iterator<TaskList> itr = service.getTaskLists(alice.getId()).iterator();
         assertFalse(itr.hasNext());
 
-        Task groceries = taskRepo.save(new TaskList(alice, "groceries"));
+        PlanItem groceries = taskRepo.save(new TaskList(alice, "groceries"));
 
         itr = service.getTaskLists(alice).iterator();
         assertTrue(itr.hasNext());
         itr.next();
         assertFalse(itr.hasNext());
 
-        Task oj = taskRepo.save(new Task("OJ")
-                .of(groceries));
+        PlanItem oj = taskRepo.save(new PlanItem("OJ")
+                                            .of(groceries));
 
         // still only one!
         itr = service.getTaskLists(alice).iterator();
@@ -78,13 +84,13 @@ public class TaskServiceTest {
     @Test
     public void createTaskList() {
 
-        Task g = service.createTaskList("Groceries", alice);
+        PlanItem g = service.createTaskList("Groceries", alice);
         assertNotNull(g.getId());
         assertEquals("Groceries", g.getName());
         assertEquals(0, g.getPosition());
         assertEquals(0, g.getSubtaskCount());
 
-        Task v = service.createTaskList("Vacation", alice);
+        PlanItem v = service.createTaskList("Vacation", alice);
         assertNotNull(v.getId());
         assertNotEquals(g.getId(), v.getId());
         assertEquals("Vacation", v.getName());
@@ -97,19 +103,19 @@ public class TaskServiceTest {
         TaskList groceries = listRepo.save(new TaskList(alice,"groceries"));
         assertEquals(0, groceries.getSubtaskCount());
 
-        Task oj = service.createSubtask(groceries.getId(), "OJ");
+        PlanItem oj = service.createSubtask(groceries.getId(), "OJ");
         assertEquals("OJ", oj.getName());
         assertSame(groceries, oj.getParent());
         assertEquals(0, oj.getPosition());
         assertEquals(0, oj.getSubtaskCount());
 
-        Task bagels = service.createSubtaskAfter(groceries.getId(), "bagels", oj.getId());
+        PlanItem bagels = service.createSubtaskAfter(groceries.getId(), "bagels", oj.getId());
         assertEquals("bagels", bagels.getName());
         assertSame(groceries, bagels.getParent());
         assertEquals(1, bagels.getPosition());
         assertEquals(0, bagels.getSubtaskCount());
 
-        Task apples = service.createSubtask(groceries.getId(), "apples");
+        PlanItem apples = service.createSubtask(groceries.getId(), "apples");
         assertEquals("apples", apples.getName());
         assertSame(groceries, apples.getParent());
         assertEquals(0, apples.getPosition());
@@ -120,7 +126,7 @@ public class TaskServiceTest {
         assertEquals(2, bagels.getPosition());
 
         assertEquals(3, groceries.getSubtaskCount());
-        Iterator<Task> itr = groceries.getOrderedSubtasksView().iterator();
+        Iterator<PlanItem> itr = groceries.getOrderedSubtasksView().iterator();
         assertSame(apples, itr.next());
         assertSame(oj, itr.next());
         assertSame(bagels, itr.next());
@@ -129,7 +135,7 @@ public class TaskServiceTest {
     @Test
     public void renameTask() {
         TaskList list = listRepo.save(new TaskList(alice, "root"));
-        Task bill = taskRepo.save(new Task("bill").of(list));
+        PlanItem bill = taskRepo.save(new PlanItem("bill").of(list));
 
         service.renameTask(bill.getId(), "William");
         taskRepo.flush();
@@ -142,11 +148,11 @@ public class TaskServiceTest {
     @Test
     public void resetSubtasks() {
         TaskList groceries = listRepo.save(new TaskList(alice, "groceries"));
-        Task milk = taskRepo.save(new Task("milk").of(groceries));
-        Task oj = taskRepo.save(new Task("OJ").after(milk));
-        Task bagels = taskRepo.save(new Task("bagels").after(oj));
+        PlanItem milk = taskRepo.save(new PlanItem("milk").of(groceries));
+        PlanItem oj = taskRepo.save(new PlanItem("OJ").after(milk));
+        PlanItem bagels = taskRepo.save(new PlanItem("bagels").after(oj));
 
-        service.resetSubtasks(groceries.getId(), new long[] {
+        service.resetSubtasks(groceries.getId(), new long[]{
                 bagels.getId(),
                 milk.getId(),
                 oj.getId(),
@@ -155,8 +161,8 @@ public class TaskServiceTest {
         entityManager.clear();
 
         groceries = listRepo.getOne(groceries.getId());
-        List<Task> view = groceries.getOrderedSubtasksView();
-        Iterator<Task> itr = view.iterator();
+        List<PlanItem> view = groceries.getOrderedSubtasksView();
+        Iterator<PlanItem> itr = view.iterator();
         assertEquals("bagels", itr.next().getName());
         assertEquals("milk", itr.next().getName());
         assertEquals("OJ", itr.next().getName());
@@ -170,9 +176,9 @@ public class TaskServiceTest {
     public void deleteTask() {
         assertEquals(0, taskRepo.count());
         TaskList groceries = listRepo.save(new TaskList(alice, "groceries"));
-        Task milk = taskRepo.save(new Task("milk").of(groceries));
-        Task oj = taskRepo.save(new Task("OJ").after(milk));
-        Task bagels = taskRepo.save(new Task("bagels").after(oj));
+        PlanItem milk = taskRepo.save(new PlanItem("milk").of(groceries));
+        PlanItem oj = taskRepo.save(new PlanItem("OJ").after(milk));
+        PlanItem bagels = taskRepo.save(new PlanItem("bagels").after(oj));
         taskRepo.flush();
         entityManager.clear();
 
@@ -222,41 +228,41 @@ public class TaskServiceTest {
     @Test
     public void muppetLikeListsForShopping() {
         TaskList groceries = service.createTaskList("groceries", alice);
-        Task tacos = service.createSubtask(groceries.getId(), "Tacos");
-        Task salad = service.createSubtaskAfter(groceries.getId(), "Salad", tacos.getId());
-        Task lunch = service.createSubtaskAfter(groceries.getId(), "Lunch", salad.getId());
+        PlanItem tacos = service.createSubtask(groceries.getId(), "Tacos");
+        PlanItem salad = service.createSubtaskAfter(groceries.getId(), "Salad", tacos.getId());
+        PlanItem lunch = service.createSubtaskAfter(groceries.getId(), "Lunch", salad.getId());
 
         muppetView("Meals");
 
-        Task meat = service.createSubtask(tacos.getId(), "meat");
-        Task tortillas = service.createSubtaskAfter(tacos.getId(), "tortillas", meat.getId());
-        Task salsa = service.createSubtaskAfter(tacos.getId(), "salsa", tortillas.getId());
+        PlanItem meat = service.createSubtask(tacos.getId(), "meat");
+        PlanItem tortillas = service.createSubtaskAfter(tacos.getId(), "tortillas", meat.getId());
+        PlanItem salsa = service.createSubtaskAfter(tacos.getId(), "salsa", tortillas.getId());
 
-        Task lettuce = service.createSubtask(salad.getId(), "lettuce");
-        Task dressing = service.createSubtaskAfter(salad.getId(), "dressing", lettuce.getId());
-        Task chicken = service.createSubtaskAfter(salad.getId(), "chicken", dressing.getId());
+        PlanItem lettuce = service.createSubtask(salad.getId(), "lettuce");
+        PlanItem dressing = service.createSubtaskAfter(salad.getId(), "dressing", lettuce.getId());
+        PlanItem chicken = service.createSubtaskAfter(salad.getId(), "chicken", dressing.getId());
 
         // oh, we need cheese too
-        Task cheese = service.createSubtask(tacos.getId(), "cheese");
+        PlanItem cheese = service.createSubtask(tacos.getId(), "cheese");
 
-        Task ham = service.createSubtask(lunch.getId(), "deli ham");
-        Task cheese2 = service.createSubtaskAfter(lunch.getId(), "cheese", ham.getId());
-        Task bread = service.createSubtaskAfter(lunch.getId(), "bread", cheese2.getId());
+        PlanItem ham = service.createSubtask(lunch.getId(), "deli ham");
+        PlanItem cheese2 = service.createSubtaskAfter(lunch.getId(), "cheese", ham.getId());
+        PlanItem bread = service.createSubtaskAfter(lunch.getId(), "bread", cheese2.getId());
 
         muppetView("Ingredients");
 
-        Task costco = service.createSubtask(groceries.getId(), "Costco");
-        Task winco = service.createSubtaskAfter(groceries.getId(), "Winco", costco.getId());
+        PlanItem costco = service.createSubtask(groceries.getId(), "Costco");
+        PlanItem winco = service.createSubtaskAfter(groceries.getId(), "Winco", costco.getId());
 
-        service.resetSubtasks(winco.getId(), new long[] {
+        service.resetSubtasks(winco.getId(), new long[]{
                 meat.getId(),
         });
-        service.resetSubtasks(winco.getId(), new long[] {
+        service.resetSubtasks(winco.getId(), new long[]{
                 meat.getId(),
                 tortillas.getId(),
                 salsa.getId(),
         });
-        service.resetSubtasks(winco.getId(), new long[] {
+        service.resetSubtasks(winco.getId(), new long[]{
                 dressing.getId(),
                 lettuce.getId(),
                 meat.getId(),

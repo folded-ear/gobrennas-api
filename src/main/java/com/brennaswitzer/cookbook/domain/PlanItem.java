@@ -6,41 +6,62 @@ import lombok.val;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static javax.persistence.CascadeType.*;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.DETACH;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REFRESH;
 
 @SuppressWarnings("WeakerAccess")
 @Entity
+@Table(name = "task")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("item")
-public class Task extends BaseEntity implements MutableItem {
+public class PlanItem extends BaseEntity implements MutableItem {
 
-    public static final Comparator<Task> BY_ID = (a, b) -> {
+    public static final Comparator<PlanItem> BY_ID = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
         return a.getId().compareTo(b.getId());
     };
 
-    public static final Comparator<Task> BY_NAME = (a, b) -> {
+    public static final Comparator<PlanItem> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
         return a.getName().compareTo(b.getName());
     };
 
-    public static final Comparator<Task> BY_NAME_IGNORE_CASE = (a, b) -> {
+    public static final Comparator<PlanItem> BY_NAME_IGNORE_CASE = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
         return a.getName().compareToIgnoreCase(b.getName());
     };
 
-    public static final Comparator<Task> BY_ORDER = (a, b) -> {
+    public static final Comparator<PlanItem> BY_ORDER = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
         int c = a.getPosition() - b.getPosition();
@@ -77,22 +98,22 @@ public class Task extends BaseEntity implements MutableItem {
 
     @ManyToOne
     @Getter
-    private Task parent;
+    private PlanItem parent;
 
     @OneToMany(mappedBy = "parent", cascade = ALL)
     @BatchSize(size = 100)
-    private Set<Task> subtasks;
+    private Set<PlanItem> subtasks;
 
     @ManyToOne
     private TaskList trashBin;
 
     @ManyToOne
     @Getter
-    private Task aggregate;
+    private PlanItem aggregate;
 
     @OneToMany(mappedBy = "aggregate", cascade = {PERSIST, MERGE, REFRESH, DETACH})
     @BatchSize(size = 100)
-    private Set<Task> components;
+    private Set<PlanItem> components;
 
     @ManyToOne(cascade = MERGE)
     @Getter
@@ -104,33 +125,33 @@ public class Task extends BaseEntity implements MutableItem {
     @ManyToOne
     private PlanBucket bucket;
 
-    public Task() {
+    public PlanItem() {
     }
 
-    public Task(String name) {
+    public PlanItem(String name) {
         setName(name);
     }
 
-    Task(String name, int position) {
+    PlanItem(String name, int position) {
         setName(name);
         setPosition(position);
     }
 
-    public Task(String name, Quantity quantity, Ingredient ingredient, String preparation) {
+    public PlanItem(String name, Quantity quantity, Ingredient ingredient, String preparation) {
         setName(name);
         setQuantity(quantity);
         setIngredient(ingredient);
         setPreparation(preparation);
     }
 
-    public Task(String name, Ingredient ingredient) {
+    public PlanItem(String name, Ingredient ingredient) {
         this(name, null, ingredient, null);
     }
 
-    public void setChildPosition(Task child, int position) {
+    public void setChildPosition(PlanItem child, int position) {
         AtomicInteger seq = new AtomicInteger();
         boolean pending = true;
-        for (Task t : getOrderedSubtasksView()) {
+        for (PlanItem t : getOrderedSubtasksView()) {
             if (t.equals(child)) continue;
             int min = seq.getAndIncrement();
             if (pending && min >= position) {
@@ -166,22 +187,22 @@ public class Task extends BaseEntity implements MutableItem {
         return getComponentCount() != 0;
     }
 
-    public boolean isDescendant(Task t) {
+    public boolean isDescendant(PlanItem t) {
         for (; t != null; t = t.getParent()) {
             if (t == this) return true;
         }
         return false;
     }
 
-    public boolean isDescendantComponent(Task t) {
+    public boolean isDescendantComponent(PlanItem t) {
         for (; t != null; t = t.getAggregate()) {
             if (t == this) return true;
         }
         return false;
     }
 
-    public void setParent(Task parent) {
-        Task currentParent = (Task) Hibernate.unproxy(getParent());
+    public void setParent(PlanItem parent) {
+        PlanItem currentParent = (PlanItem) Hibernate.unproxy(getParent());
         // see if it's a no-op
         if (Objects.equals(parent, currentParent)) {
             return;
@@ -204,7 +225,7 @@ public class Task extends BaseEntity implements MutableItem {
             if (parent.subtasks.add(this)) {
                 setPosition(1 + parent.subtasks
                         .stream()
-                        .map(Task::getPosition)
+                        .map(PlanItem::getPosition)
                         .reduce(0, Integer::max));
             }
             parent.markDirty();
@@ -237,7 +258,7 @@ public class Task extends BaseEntity implements MutableItem {
         this.status = TaskStatus.NEEDED;
     }
 
-    public void setAggregate(Task agg) {
+    public void setAggregate(PlanItem agg) {
         if (agg == null ? getAggregate() == null : agg.equals(getAggregate())) {
             return;
         }
@@ -267,9 +288,10 @@ public class Task extends BaseEntity implements MutableItem {
 
     /**
      * Add a new Task to the end of this list.
+     *
      * @param task the task to add.
      */
-    public void addSubtask(Task task) {
+    public void addSubtask(PlanItem task) {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
@@ -278,14 +300,15 @@ public class Task extends BaseEntity implements MutableItem {
 
     /**
      * Add a new Task as both a child and component of this task.
+     *
      * @param t the task to add as a component
      */
-    public void addAggregateComponent(Task t) {
+    public void addAggregateComponent(PlanItem t) {
         addSubtask(t);
         t.setAggregate(this);
     }
 
-    public void addSubtaskAfter(Task task, Task after) {
+    public void addSubtaskAfter(PlanItem task, PlanItem after) {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
@@ -299,7 +322,7 @@ public class Task extends BaseEntity implements MutableItem {
         insertSubtask(position, task);
     }
 
-    public void insertSubtask(int position, Task task) {
+    public void insertSubtask(int position, PlanItem task) {
         if (position < 0) {
             throw new IllegalArgumentException("You can't insert a task at a negative position");
         }
@@ -310,21 +333,21 @@ public class Task extends BaseEntity implements MutableItem {
         setChildPosition(task, position);
     }
 
-    public void removeSubtask(Task task) {
+    public void removeSubtask(PlanItem task) {
         if (task == null) {
             throw new IllegalArgumentException("You can't remove the null subtask");
         }
         task.setParent(null);
     }
 
-    public Collection<Task> getSubtaskView() {
+    public Collection<PlanItem> getSubtaskView() {
         // I have no idea why HashSet::new doesn't work here, while
         // ArrayList::new is just fine
         return Collections.unmodifiableSet(getSubtaskView(() ->
-                new HashSet<>()));
+                                                                  new HashSet<>()));
     }
 
-    private <T extends Collection<Task>> T getSubtaskView(Supplier<T> collectionSupplier) {
+    private <T extends Collection<PlanItem>> T getSubtaskView(Supplier<T> collectionSupplier) {
         if (subtasks == null) {
             return collectionSupplier.get();
         }
@@ -333,26 +356,26 @@ public class Task extends BaseEntity implements MutableItem {
                 .collect(Collectors.toCollection(collectionSupplier));
     }
 
-    public List<Task> getOrderedSubtasksView() {
+    public List<PlanItem> getOrderedSubtasksView() {
         return getSubtaskView(BY_ORDER);
     }
 
-    public List<Task> getSubtaskView(Comparator<Task> comparator) {
+    public List<PlanItem> getSubtaskView(Comparator<PlanItem> comparator) {
         val list = getSubtaskView(ArrayList::new);
         list.sort(comparator);
         return list;
     }
 
-    public List<Task> getOrderedComponentsView() {
+    public List<PlanItem> getOrderedComponentsView() {
         return getComponentView(BY_ID);
     }
 
-    public List<Task> getComponentView(Comparator<Task> comparator) {
+    public List<PlanItem> getComponentView(Comparator<PlanItem> comparator) {
         if (components == null) {
             //noinspection unchecked
             return Collections.EMPTY_LIST;
         }
-        List<Task> list = new ArrayList<>(components);
+        List<PlanItem> list = new ArrayList<>(components);
         list.sort(comparator);
         return list;
     }
@@ -376,17 +399,17 @@ public class Task extends BaseEntity implements MutableItem {
         return sb.toString();
     }
 
-    public Task of(Task parent) {
+    public PlanItem of(PlanItem parent) {
         parent.addSubtask(this);
         return this;
     }
 
-    public Task of(Task parent, Task after) {
+    public PlanItem of(PlanItem parent, PlanItem after) {
         parent.addSubtaskAfter(this, after);
         return this;
     }
 
-    public Task after(Task after) {
+    public PlanItem after(PlanItem after) {
         return of(after.getParent(), after);
     }
 

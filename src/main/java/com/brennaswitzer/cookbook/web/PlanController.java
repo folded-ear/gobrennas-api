@@ -1,11 +1,27 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.message.*;
-import com.brennaswitzer.cookbook.payload.TaskInfo;
+import com.brennaswitzer.cookbook.message.AssignPlanTreeItemBucket;
+import com.brennaswitzer.cookbook.message.CreatePlanBucket;
+import com.brennaswitzer.cookbook.message.CreatePlanTreeItem;
+import com.brennaswitzer.cookbook.message.MutatePlanTree;
+import com.brennaswitzer.cookbook.message.PlanMessage;
+import com.brennaswitzer.cookbook.message.RenamePlanTreeItem;
+import com.brennaswitzer.cookbook.message.ReorderSubitems;
+import com.brennaswitzer.cookbook.message.SetPlanTreeItemStatus;
+import com.brennaswitzer.cookbook.message.UpdatePlanBucket;
+import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,20 +36,20 @@ public class PlanController {
     private PlanService planService;
 
     @GetMapping("/{id}/descendants")
-    public List<TaskInfo> getDescendants(
+    public List<PlanItemInfo> getDescendants(
             @PathVariable("id") Long id
     ) {
-        return TaskInfo.fromTasks(planService
-                .getTreeById(id));
+        return PlanItemInfo.fromTasks(planService
+                                              .getTreeById(id));
     }
 
     @GetMapping("/{id}/all-since")
-    public List<TaskInfo> getUpdatedSince(
+    public List<PlanItemInfo> getUpdatedSince(
             @PathVariable("id") Long id,
             @RequestParam Long cutoff
     ) {
-        return TaskInfo.fromTasks(planService
-                .getTreeDeltasById(id, Instant.ofEpochMilli(cutoff)));
+        return PlanItemInfo.fromTasks(planService
+                                              .getTreeDeltasById(id, Instant.ofEpochMilli(cutoff)));
     }
 
     @PostMapping("/{id}/mutate-tree")
