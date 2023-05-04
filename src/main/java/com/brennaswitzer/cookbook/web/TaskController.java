@@ -7,7 +7,6 @@ import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
-import com.brennaswitzer.cookbook.payload.PlanItemName;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.services.TaskService;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -48,8 +46,7 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<PlanItemInfo> getPlans(
-    ) {
+    public List<PlanItemInfo> getPlans() {
         return PlanItemInfo.fromPlans(planService.getPlans());
     }
 
@@ -73,27 +70,6 @@ public class TaskController {
             @PathVariable("id") Long id
     ) {
         return PlanItemInfo.fromPlanItem(planService.getPlanItemById(id));
-    }
-
-    @GetMapping("/{id}/subtasks")
-    @ResponseStatus(HttpStatus.OK)
-    public List<PlanItemInfo> getChildItems(
-            @PathVariable("id") Long parentId
-    ) {
-        return PlanItemInfo.fromPlanItems(planService
-                                                  .getPlanItemById(parentId)
-                                                  .getOrderedChildView());
-    }
-
-    @PutMapping("/{id}/name")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public PlanItemInfo renameItem(
-            @PathVariable("id") Long id,
-            @RequestBody PlanItemName info
-    ) {
-        return PlanItemInfo.fromPlanItem(taskService
-                                                 .renameItem(id, info.getName()));
     }
 
     @DeleteMapping("/{id}")

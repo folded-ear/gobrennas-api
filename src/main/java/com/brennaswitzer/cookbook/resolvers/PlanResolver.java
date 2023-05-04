@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.brennaswitzer.cookbook.util.CollectionUtils.tail;
+
 @SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class PlanResolver implements GraphQLResolver<Plan> {
@@ -25,7 +27,7 @@ public class PlanResolver implements GraphQLResolver<Plan> {
     }
 
     public List<PlanItem> descendants(Plan plan) {
-        return planService.getTreeById(plan);
+        return tail(planService.getTreeById(plan));
     }
 
 }

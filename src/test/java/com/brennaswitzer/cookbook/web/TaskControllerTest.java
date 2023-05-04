@@ -4,10 +4,10 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.message.RenamePlanTreeItem;
 import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
-import com.brennaswitzer.cookbook.payload.PlanItemName;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
@@ -30,11 +30,13 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -94,7 +96,7 @@ public class TaskControllerTest {
                 two.getId(),
         }, ti.getSubtaskIds());
         ti = forInfo(get("/api/tasks/{id}", one.getId()), status().isOk());
-        assertArrayEquals(new long[] {
+        assertArrayEquals(new long[]{
                 oneA.getId(),
                 oneB.getId(),
         }, ti.getSubtaskIds());
@@ -102,23 +104,15 @@ public class TaskControllerTest {
         assertNull(ti.getSubtaskIds());
 
         List<PlanItemInfo> tasks = forInfoList(
-                get("/api/tasks/{id}/subtasks", root.getId()),
+                get("/api/plan/{id}/self-and-descendants", root.getId()),
                 status().isOk());
-        assertEquals(2, tasks.size());
-        assertEquals("One", tasks.get(0).getName());
-        assertEquals("Two", tasks.get(1).getName());
-
-        tasks = forInfoList(
-                get("/api/tasks/{id}/subtasks", one.getId()),
-                status().isOk());
-        assertEquals(2, tasks.size());
-        assertEquals("A", tasks.get(0).getName());
-        assertEquals("B", tasks.get(1).getName());
-
-        tasks = forInfoList(
-                get("/api/tasks/{id}/subtasks", two.getId()),
-                status().isOk());
-        assertEquals(0, tasks.size());
+        Iterator<PlanItemInfo> itr = tasks.iterator();
+        assertEquals("Root", itr.next().getName());
+        assertEquals("One", itr.next().getName());
+        assertEquals("A", itr.next().getName());
+        assertEquals("B", itr.next().getName());
+        assertEquals("Two", itr.next().getName());
+        assertFalse(itr.hasNext());
     }
 
     @Test
@@ -162,13 +156,14 @@ public class TaskControllerTest {
         assertEquals("Root", ls.get(0).getName());
 
         // alice can rename
-        MockHttpServletRequestBuilder renameReq = put("/api/tasks/{id}/name", root.getId());
-        perform(makeJson(renameReq, new PlanItemName("Root Alice")), alice) // default, but be explicit
+        MockHttpServletRequestBuilder renameReq = put("/api/plan/{id}/rename", root.getId());
+        perform(makeJson(renameReq, new RenamePlanTreeItem(root.getId(), "Root Alice")),
+                alice) // default, but be explicit
                 .andExpect(status().isOk());
         // bob and eve cannot
-        perform(makeJson(renameReq, new PlanItemName("Root Bob")), bob)
+        perform(makeJson(renameReq, new RenamePlanTreeItem(root.getId(), "Root Bob")), bob)
                 .andExpect(status().isForbidden());
-        perform(makeJson(renameReq, new PlanItemName("Root Eve")), eve)
+        perform(makeJson(renameReq, new RenamePlanTreeItem(root.getId(), "Root Eve")), eve)
                 .andExpect(status().isForbidden());
 
         root = planRepo.getReferenceById(root.getId());
@@ -180,7 +175,7 @@ public class TaskControllerTest {
                 status().isCreated());
 
         // now bob can rename too!
-        perform(makeJson(renameReq, new PlanItemName("Root Bob")), bob)
+        perform(makeJson(renameReq, new RenamePlanTreeItem(root.getId(), "Root Bob")), bob)
                 .andExpect(status().isOk());
 
         root = planRepo.getReferenceById(root.getId());

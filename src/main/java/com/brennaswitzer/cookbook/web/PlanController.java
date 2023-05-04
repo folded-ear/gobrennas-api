@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
@@ -35,7 +36,8 @@ public class PlanController {
     @Autowired
     private PlanService planService;
 
-    @GetMapping("/{id}/descendants")
+    @GetMapping({"/{id}/self-and-descendants",
+            "/{id}/descendants"})
     public List<PlanItemInfo> getDescendants(
             @PathVariable("id") Long id
     ) {
@@ -80,6 +82,10 @@ public class PlanController {
             @PathVariable("id") Long id,
             @RequestBody RenamePlanTreeItem action
     ) {
+        assert Objects.equals(id, action.getId())
+                : String.format("ID mismatch on rename (%s on URL, %s in action)",
+                                id,
+                                action.getId());
         return planService.renameItem(action.getId(), action.getName());
     }
 

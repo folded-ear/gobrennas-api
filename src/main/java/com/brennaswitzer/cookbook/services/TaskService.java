@@ -41,40 +41,10 @@ public class TaskService {
         return planService.createPlan(name, user);
     }
 
-    public PlanItem createChildItem(Long parentId, String name) {
-        PlanItem it = new PlanItem(name);
-        itemService.autoRecognize(it);
-        planService.getPlanItemById(parentId, AccessLevel.CHANGE)
-                .addChildAfter(it, null);
-        return planItemRepo.save(it);
-    }
-
-    public PlanItem createChildItemAfter(Long parentId, String name, Long afterId) {
-        if (afterId == null) {
-            throw new IllegalArgumentException("You can't create an item after 'null'");
-        }
-        PlanItem it = new PlanItem(name);
-        itemService.autoRecognize(it);
-        planService.getPlanItemById(parentId, AccessLevel.CHANGE)
-                .addChildAfter(it, planService.getPlanItemById(afterId));
-        return planItemRepo.save(it);
-    }
-
     public PlanItem renameItem(Long id, String name) {
         PlanItem it = planService.getPlanItemById(id, AccessLevel.CHANGE);
         it.setName(name);
         itemService.updateAutoRecognition(it);
-        return it;
-    }
-
-    public PlanItem resetChildItems(Long planId, long[] childItemIds) {
-        PlanItem it = planService.getPlanItemById(planId, AccessLevel.CHANGE);
-        PlanItem prev = null;
-        for (long itemId : childItemIds) {
-            PlanItem curr = planService.getPlanItemById(itemId);
-            it.addChildAfter(curr, prev);
-            prev = curr;
-        }
         return it;
     }
 
