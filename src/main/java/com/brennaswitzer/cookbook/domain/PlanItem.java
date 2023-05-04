@@ -79,7 +79,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     @Column(name = "status_id")
     @Getter
     @Setter
-    private TaskStatus status = TaskStatus.NEEDED;
+    private PlanItemStatus status = PlanItemStatus.NEEDED;
 
     @Embedded
     @Setter
@@ -234,7 +234,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     public void moveToTrash() {
         this.trashBin = getPlan();
         this.trashBin.getTrashBinItems().add(this);
-        this.status = TaskStatus.DELETED;
+        this.status = PlanItemStatus.DELETED;
         getParent().markDirty();
     }
 
@@ -253,7 +253,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
         this.trashBin.getTrashBinItems().remove(this);
         this.trashBin = null;
         getParent().markDirty();
-        this.status = TaskStatus.NEEDED;
+        this.status = PlanItemStatus.NEEDED;
     }
 
     public void setAggregate(PlanItem agg) {

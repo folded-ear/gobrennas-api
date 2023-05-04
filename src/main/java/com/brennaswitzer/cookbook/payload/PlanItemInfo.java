@@ -2,8 +2,8 @@ package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.Quantity;
-import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
@@ -90,7 +90,7 @@ public class PlanItemInfo {
 
     @Getter
     @Setter
-    private TaskStatus status;
+    private PlanItemStatus status;
 
     @Getter
     @Setter

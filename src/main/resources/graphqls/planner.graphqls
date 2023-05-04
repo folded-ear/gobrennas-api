@@ -36,7 +36,7 @@ type PlanItem implements Node & CorePlanItem {
     descendants: [PlanItem!]!
     components: [PlanItem!]!
     bucket: PlanBucket
-    status: TaskStatus!
+    status: PlanItemStatus!
 }
 
 type PlanBucket {
@@ -45,7 +45,7 @@ type PlanBucket {
     date: Date!
 }
 
-enum TaskStatus {
+enum PlanItemStatus {
     NEEDED
     ACQUIRED
     COMPLETED

@@ -6,8 +6,8 @@ import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
@@ -324,8 +324,8 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage setItemStatus(Long id, TaskStatus status) {
-        if (TaskStatus.COMPLETED.equals(status) || TaskStatus.DELETED.equals(status)) {
+    public PlanMessage setItemStatus(Long id, PlanItemStatus status) {
+        if (PlanItemStatus.COMPLETED.equals(status) || PlanItemStatus.DELETED.equals(status)) {
             return deleteItem(id);
         }
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
