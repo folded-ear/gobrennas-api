@@ -8,6 +8,7 @@ import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.TaskStatus;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
 import com.brennaswitzer.cookbook.payload.PlanBucketInfo;
@@ -15,6 +16,7 @@ import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.TaskListRepository;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +51,34 @@ public class PlanService {
     @Autowired
     private ItemService itemService;
 
-    protected PlanItem getTaskById(Long id) {
+    @Autowired
+    private UserRepository userRepo;
+
+    public Iterable<Plan> getPlans(User owner) {
+        return getPlans(owner.getId());
+    }
+
+    public Iterable<Plan> getPlans() {
+        return getPlans(principalAccess.getId());
+    }
+
+    public Iterable<Plan> getPlans(Long userId) {
+        User user = userRepo.getById(userId);
+        List<Plan> result = new LinkedList<>();
+        planRepo.findAccessibleLists(userId)
+                .forEach(l -> {
+                    if (l.isPermitted(user, AccessLevel.VIEW)) {
+                        result.add(l);
+                    }
+                });
+        return result;
+    }
+
+    public PlanItem getTaskById(Long id) {
         return getTaskById(id, AccessLevel.VIEW);
     }
 
-    protected PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
+    public PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
         PlanItem task = taskRepo.getReferenceById(id);
         task.getPlan().ensurePermitted(
                 principalAccess.getUser(),
@@ -62,7 +87,11 @@ public class PlanService {
         return task;
     }
 
-    protected Plan getPlanById(Long id, @SuppressWarnings("SameParameterValue") AccessLevel requiredAccess) {
+    public Plan getPlanById(Long id) {
+        return getPlanById(id, AccessLevel.VIEW);
+    }
+
+    public Plan getPlanById(Long id, AccessLevel requiredAccess) {
         Plan plan = planRepo.getReferenceById(id);
         plan.ensurePermitted(
                 principalAccess.getUser(),
@@ -113,7 +142,7 @@ public class PlanService {
         PlanItem after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
             PlanItem t = getTaskById(id, AccessLevel.CHANGE);
-            parent.addSubtaskAfter(t, after);
+            parent.addChildAfter(t, after);
             after = t;
         }
         val m = new PlanMessage();
@@ -127,7 +156,7 @@ public class PlanService {
         PlanItem prev = null;
         for (Long sid : subitemIds) {
             PlanItem curr = getTaskById(sid);
-            t.addSubtaskAfter(curr, prev);
+            t.addChildAfter(curr, prev);
             prev = curr;
         }
         return buildUpdateMessage(t);
@@ -180,6 +209,44 @@ public class PlanService {
         List<PlanItem> tree = getTreeById(parent);
         m.setInfo(PlanItemInfo.fromTasks(tree));
         return m;
+    }
+
+    public Plan createTaskList(String name, User user) {
+        return createTaskList(name, user.getId());
+    }
+
+    public Plan duplicateTaskList(String name, Long fromId) {
+        Plan list = createTaskList(name);
+        Plan src = planRepo.getReferenceById(fromId);
+        duplicateChildren(src, list);
+        return list;
+    }
+
+    private void duplicateChildren(PlanItem src, PlanItem dest) {
+        if (!src.hasChildren()) return;
+        for (PlanItem s : src.getOrderedChildView()) {
+            PlanItem d = new PlanItem(
+                    s.getName(),
+                    s.getQuantity(),
+                    s.getIngredient(),
+                    s.getPreparation()
+            );
+            d.setStatus(s.getStatus()); // unclear if this is good?
+            dest.addChild(d);
+            duplicateChildren(s, d);
+        }
+    }
+
+    public Plan createTaskList(String name) {
+        return createTaskList(name, principalAccess.getId());
+    }
+
+    public Plan createTaskList(String name, Long userId) {
+        User user = userRepo.getById(userId);
+        Plan list = new Plan(name);
+        list.setOwner(user);
+        list.setPosition(1 + planRepo.getMaxPosition(user));
+        return planRepo.save(list);
     }
 
     public PlanMessage createItem(Object id, Long parentId, Long afterId, String name) {

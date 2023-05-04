@@ -45,7 +45,7 @@ public class PlanServiceTreeMutationTest {
         }).when(repo).getReferenceById(Mockito.anyLong());
         service = new PlanService() {
             @Override
-            protected PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
+            public PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
                 // Just skip the access checks. This is a smell that says the
                 // service is doing multiple things!
                 return taskRepo.getReferenceById(id);

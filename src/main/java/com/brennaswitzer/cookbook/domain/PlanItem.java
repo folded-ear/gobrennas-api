@@ -306,36 +306,36 @@ public class PlanItem extends BaseEntity implements MutableItem {
         t.setAggregate(this);
     }
 
-    public void addSubtaskAfter(PlanItem task, PlanItem after) {
-        if (task == null) {
-            throw new IllegalArgumentException("You can't add the null subtask");
+    public void addChildAfter(PlanItem child, PlanItem after) {
+        if (child == null) {
+            throw new IllegalArgumentException("You can't add a null child");
         }
         if (after != null && !this.equals(after.getParent())) {
-            throw new IllegalArgumentException("The 'after' task isn't a child of this; that makes no sense.");
+            throw new IllegalArgumentException("The 'after' item isn't a child of this; that makes no sense.");
         }
-        if (task.getParent() != null) {
-            task.getParent().removeSubtask(task);
+        if (child.getParent() != null) {
+            child.getParent().removeChild(child);
         }
         int position = after == null ? 0 : after.getPosition() + 1;
-        insertSubtask(position, task);
+        insertChild(position, child);
     }
 
-    public void insertSubtask(int position, PlanItem task) {
+    public void insertChild(int position, PlanItem child) {
         if (position < 0) {
-            throw new IllegalArgumentException("You can't insert a task at a negative position");
+            throw new IllegalArgumentException("You can't insert an child at a negative position");
         }
-        if (task == null) {
-            throw new IllegalArgumentException("You can't add the null subtask");
+        if (child == null) {
+            throw new IllegalArgumentException("You can't insert a null child");
         }
-        addChild(task);
-        setChildPosition(task, position);
+        addChild(child);
+        setChildPosition(child, position);
     }
 
-    public void removeSubtask(PlanItem task) {
-        if (task == null) {
+    public void removeChild(PlanItem child) {
+        if (child == null) {
             throw new IllegalArgumentException("You can't remove the null subtask");
         }
-        task.setParent(null);
+        child.setParent(null);
     }
 
     public Collection<PlanItem> getChildView() {
@@ -401,7 +401,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     }
 
     public PlanItem of(PlanItem parent, PlanItem after) {
-        parent.addSubtaskAfter(this, after);
+        parent.addChildAfter(this, after);
         return this;
     }
 

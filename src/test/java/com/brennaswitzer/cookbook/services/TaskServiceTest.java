@@ -61,7 +61,7 @@ public class TaskServiceTest {
 
     @Test
     public void getTaskLists() {
-        Iterator<Plan> itr = service.getTaskLists(alice.getId()).iterator();
+        Iterator<Plan> itr = service.getTaskLists(alice).iterator();
         assertFalse(itr.hasNext());
 
         PlanItem groceries = taskRepo.save(new Plan(alice, "groceries"));

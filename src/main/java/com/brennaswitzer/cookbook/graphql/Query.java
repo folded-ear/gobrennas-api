@@ -6,7 +6,7 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
-import com.brennaswitzer.cookbook.services.TaskService;
+import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import graphql.kickstart.tools.GraphQLQueryResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class Query implements GraphQLQueryResolver {
     private List<BaseEntityRepository<?>> repositories;
 
     @Autowired
-    private TaskService taskService;
+    private PlanService planService;
 
     @Autowired
     private UserPrincipalAccess userPrincipalAccess;
@@ -57,14 +57,14 @@ public class Query implements GraphQLQueryResolver {
 
     List<Plan> getPlans() {
         List<Plan> result = new ArrayList<>();
-        Iterable<Plan> plans = taskService.getTaskLists();
+        Iterable<Plan> plans = planService.getPlans();
         Iterator<Plan> iterator = plans.iterator();
         iterator.forEachRemaining(result::add);
         return result;
     }
 
     PlanItem getPlanItem(Long id) {
-        return taskService.getTaskById(id);
+        return planService.getTaskById(id);
     }
 
     User getCurrentUser() {

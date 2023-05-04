@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.payload.TaskCreate;
 import com.brennaswitzer.cookbook.payload.TaskName;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.services.TaskService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class TaskController {
     private TaskService taskService;
 
     @Autowired
+    private PlanService planService;
+
+    @Autowired
     private UserRepository userRepo;
 
     @Autowired
@@ -46,7 +50,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public List<PlanItemInfo> getTaskLists(
     ) {
-        return PlanItemInfo.fromLists(taskService.getTaskLists());
+        return PlanItemInfo.fromLists(planService.getPlans());
     }
 
     @PostMapping("")
@@ -55,9 +59,9 @@ public class TaskController {
     public PlanItemInfo createTaskList(@RequestBody TaskCreate info) {
         Plan plan;
         if (info.hasFromId()) {
-            plan = taskService.duplicateTaskList(info.getName(), info.getFromId());
+            plan = planService.duplicateTaskList(info.getName(), info.getFromId());
         } else {
-            plan = taskService.createTaskList(info.getName());
+            plan = planService.createTaskList(info.getName());
         }
         plan.setOwner(principalAccess.getUser());
         return PlanItemInfo.fromList(plan);
@@ -68,7 +72,7 @@ public class TaskController {
     public PlanItemInfo getTask(
             @PathVariable("id") Long id
     ) {
-        return PlanItemInfo.fromPlanItem(taskService.getTaskById(id));
+        return PlanItemInfo.fromPlanItem(planService.getTaskById(id));
     }
 
     @GetMapping("/{id}/subtasks")
@@ -76,7 +80,7 @@ public class TaskController {
     public List<PlanItemInfo> getSubtasks(
             @PathVariable("id") Long parentId
     ) {
-        return PlanItemInfo.fromTasks(taskService
+        return PlanItemInfo.fromTasks(planService
                                               .getTaskById(parentId)
                                               .getOrderedChildView());
     }
@@ -105,8 +109,8 @@ public class TaskController {
     public AclInfo getListAcl(
             @PathVariable("id") Long id
     ) {
-        Plan list = taskService.getTaskListById(id);
-        return AclInfo.fromAcl(list.getAcl());
+        Plan plan = planService.getPlanById(id);
+        return AclInfo.fromAcl(plan.getAcl());
     }
 
     // todo: this method is confused. :) it's both create and update?

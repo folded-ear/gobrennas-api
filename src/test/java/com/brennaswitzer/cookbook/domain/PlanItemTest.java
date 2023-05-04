@@ -64,8 +64,8 @@ public class PlanItemTest {
         PlanItem iceCream = new PlanItem("Ice Cream");
         groceries.addChild(oj);
         groceries.addChild(bagels);
-        groceries.addSubtaskAfter(apples, null);
-        groceries.addSubtaskAfter(iceCream, apples);
+        groceries.addChildAfter(apples, null);
+        groceries.addChildAfter(iceCream, apples);
 
         assertBefore(apples, iceCream);
         assertBefore(iceCream, oj);
@@ -73,7 +73,7 @@ public class PlanItemTest {
 
         // oops, Ice Cream is after OJ
 
-        groceries.addSubtaskAfter(iceCream, oj);
+        groceries.addChildAfter(iceCream, oj);
 
         assertBefore(apples, oj);
         assertBefore(oj, iceCream);
@@ -90,7 +90,7 @@ public class PlanItemTest {
         groceries.addChild(apples);
         groceries.addChild(oj);
         groceries.addChild(bagels);
-        groceries.insertSubtask(bagels.getPosition(), iceCream);
+        groceries.insertChild(bagels.getPosition(), iceCream);
 
         assertBefore(apples, oj);
         assertBefore(oj, iceCream);
