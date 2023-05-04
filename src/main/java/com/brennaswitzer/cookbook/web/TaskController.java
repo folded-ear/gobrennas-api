@@ -5,12 +5,10 @@ import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
-import com.brennaswitzer.cookbook.services.TaskService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,9 +25,6 @@ import java.util.List;
 @RequestMapping("api/tasks")
 @PreAuthorize("hasRole('USER')")
 public class TaskController {
-
-    @Autowired
-    private TaskService taskService;
 
     @Autowired
     private PlanService planService;
@@ -63,14 +58,6 @@ public class TaskController {
             @PathVariable("id") Long id
     ) {
         return PlanItemInfo.fromPlanItem(planService.getPlanItemById(id));
-    }
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteItem(
-            @PathVariable("id") Long id
-    ) {
-        taskService.deleteItem(id);
     }
 
     @GetMapping("/{id}/acl")

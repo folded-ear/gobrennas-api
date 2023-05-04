@@ -3,8 +3,10 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
+import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,9 @@ class PlanServiceTest {
 
     @Autowired
     private PlanItemRepository itemRepo;
+
+    @Autowired
+    private PlanRepository planRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -115,6 +120,32 @@ class PlanServiceTest {
         groceries = service.getPlanById(groceries.getId());
 
         assertNull(groceries.getAcl().getGrant(bob));
+    }
+
+    @Test
+    public void deleteItem() {
+        assertEquals(0, itemRepo.count());
+        Plan groceries = planRepo.save(new Plan(alice, "groceries"));
+        PlanItem milk = itemRepo.save(new PlanItem("milk").of(groceries));
+        PlanItem oj = itemRepo.save(new PlanItem("OJ").after(milk));
+        itemRepo.save(new PlanItem("bagels").after(oj));
+        itemRepo.flush();
+        entityManager.clear();
+
+        assertEquals(4, itemRepo.count());
+
+        service.deleteItem(oj.getId());
+        itemRepo.flush();
+        entityManager.clear();
+
+        assertEquals(4, itemRepo.count());
+        assertEquals(3, itemRepo.countByStatusNot(PlanItemStatus.DELETED));
+
+        service.deleteItem(groceries.getId());
+        itemRepo.flush();
+        entityManager.clear();
+
+        assertEquals(0, itemRepo.count());
     }
 
 }

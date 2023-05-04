@@ -136,6 +136,14 @@ public class PlanController {
         return planService.setItemStatus(action.getId(), action.getStatus());
     }
 
+    @DeleteMapping("/{planId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePlan(
+            @PathVariable("planId") Long planId
+    ) {
+        planService.deleteItem(planId);
+    }
+
     @DeleteMapping("/{planId}/{id}")
     public void deleteItem(
             @PathVariable("planId") Long planId,

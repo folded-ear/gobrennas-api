@@ -331,7 +331,12 @@ public class PlanService {
 
     public PlanMessage deleteItem(Long id) {
         val item = getPlanItemById(id, AccessLevel.CHANGE);
-        item.moveToTrash();
+        if (item.hasParent()) {
+            item.moveToTrash();
+        } else {
+            // a plan
+            itemRepo.delete(item);
+        }
         val m = new PlanMessage();
         m.setId(id);
         m.setType("delete");
