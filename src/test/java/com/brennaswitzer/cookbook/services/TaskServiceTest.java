@@ -68,8 +68,8 @@ public class TaskServiceTest {
         itr.next();
         assertFalse(itr.hasNext());
 
-        PlanItem oj = itemRepo.save(new PlanItem("OJ")
-                                            .of(groceries));
+        itemRepo.save(new PlanItem("OJ")
+                              .of(groceries));
 
         // still only one!
         itr = service.getPlans(alice).iterator();
@@ -114,7 +114,7 @@ public class TaskServiceTest {
         Plan groceries = planRepo.save(new Plan(alice, "groceries"));
         PlanItem milk = itemRepo.save(new PlanItem("milk").of(groceries));
         PlanItem oj = itemRepo.save(new PlanItem("OJ").after(milk));
-        PlanItem bagels = itemRepo.save(new PlanItem("bagels").after(oj));
+        itemRepo.save(new PlanItem("bagels").after(oj));
         itemRepo.flush();
         entityManager.clear();
 

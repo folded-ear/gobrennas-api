@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.web;
 
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.message.AssignPlanTreeItemBucket;
 import com.brennaswitzer.cookbook.message.CreatePlanBucket;
 import com.brennaswitzer.cookbook.message.CreatePlanTreeItem;
@@ -59,6 +60,10 @@ public class PlanController {
             @PathVariable("id") Long id,
             @RequestBody MutatePlanTree action
     ) {
+        assert Objects.equals(id, action.getParentId())
+                : String.format("ID mismatch on rename (%s on URL, %s in action)",
+                                id,
+                                action.getParentId());
         return planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
     }
 
@@ -66,6 +71,10 @@ public class PlanController {
     public PlanMessage reorderSubitems(
             @PathVariable("id") Long id,
             @RequestBody ReorderSubitems action) {
+        assert Objects.equals(id, action.getId())
+                : String.format("ID mismatch on reorder (%s on URL, %s in action)",
+                                id,
+                                action.getId());
         return planService.resetSubitems(action.getId(), action.getSubitemIds());
     }
 
@@ -74,6 +83,10 @@ public class PlanController {
             @PathVariable("id") Long id,
             @RequestBody CreatePlanTreeItem action
     ) {
+        assert Objects.equals(id, action.getId())
+                : String.format("ID mismatch on create (%s on URL, %s in action)",
+                                id,
+                                action.getId());
         return planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
     }
 
@@ -93,6 +106,10 @@ public class PlanController {
     public PlanMessage assignItemBucket(
             @PathVariable("id") Long id,
             @RequestBody AssignPlanTreeItemBucket action) {
+        assert Objects.equals(id, action.getId())
+                : String.format("ID mismatch on assign bucket (%s on URL, %s in action)",
+                                id,
+                                action.getId());
         return planService.assignItemBucket(action.getId(), action.getBucketId());
     }
 
@@ -101,6 +118,10 @@ public class PlanController {
             @PathVariable("id") Long id,
             @RequestBody SetPlanTreeItemStatus action
     ) {
+        assert Objects.equals(id, action.getId())
+                : String.format("ID mismatch on set status (%s on URL, %s in action)",
+                                id,
+                                action.getId());
         return planService.setItemStatus(action.getId(), action.getStatus());
     }
 
@@ -108,6 +129,10 @@ public class PlanController {
     public void deleteItem(
             @PathVariable("planId") Long planId,
             @PathVariable("id") Long id) {
+        PlanItem item = planService.getPlanItemById(id);
+        if (!planId.equals(item.getPlan().getId())) {
+            throw new IllegalArgumentException("Item belongs to a different plan");
+        }
         planService.deleteItem(id);
     }
 
@@ -123,6 +148,10 @@ public class PlanController {
             @PathVariable("planId") long planId,
             @PathVariable("id") long id,
             @RequestBody UpdatePlanBucket action) {
+        assert Objects.equals(id, action.getId())
+                : String.format("ID mismatch on update bucket (%s on URL, %s in action)",
+                                id,
+                                action.getId());
         return planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
     }
 

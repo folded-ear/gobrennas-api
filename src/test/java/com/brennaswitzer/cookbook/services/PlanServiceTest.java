@@ -56,8 +56,8 @@ class PlanServiceTest {
         itr.next();
         assertFalse(itr.hasNext());
 
-        PlanItem oj = itemRepo.save(new PlanItem("OJ")
-                                            .of(groceries));
+        itemRepo.save(new PlanItem("OJ")
+                              .of(groceries));
 
         // still only one!
         itr = service.getPlans(alice).iterator();

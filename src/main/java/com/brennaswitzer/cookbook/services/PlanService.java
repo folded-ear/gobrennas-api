@@ -190,10 +190,6 @@ public class PlanService {
         }
     }
 
-    public void addRecipe(Long planId, Recipe r) {
-        addRecipe(planId, r, 1d);
-    }
-
     public void addRecipe(Long planId, Recipe r, Double scale) {
         PlanItem recipeItem = new PlanItem(r.getName(), r);
         Plan plan = getPlanById(planId, AccessLevel.CHANGE);
@@ -277,7 +273,7 @@ public class PlanService {
     }
 
     public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        getPlanById(planId, AccessLevel.ADMINISTER); // for the authorization check
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
