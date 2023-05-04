@@ -345,4 +345,17 @@ public class PlanService {
         });
     }
 
+    public Plan setGrantOnPlan(Long planId, Long userId, AccessLevel level) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        plan.getAcl().setGrant(userRepo.getById(userId), level);
+        return plan;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public Plan deleteGrantFromPlan(Long planId, Long userId) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        plan.getAcl().deleteGrant(userRepo.getById(userId));
+        return plan;
+    }
+
 }

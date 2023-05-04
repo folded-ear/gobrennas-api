@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
@@ -23,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
@@ -45,15 +43,13 @@ public class TaskServiceTest {
     private EntityManager entityManager;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepo;
 
-    private User alice, bob, eve;
+    private User alice;
 
     @BeforeEach
     public void setUp() {
-        alice = userRepository.getByName("Alice");
-        bob = userRepository.getByName("Bob");
-        eve = userRepository.getByName("Eve");
+        alice = userRepo.getByName("Alice");
     }
 
     @Test
@@ -131,33 +127,6 @@ public class TaskServiceTest {
         entityManager.clear();
 
         assertEquals(0, itemRepo.count());
-    }
-
-    @Test
-    public void grants() {
-        Plan groceries = service.createPlan("groceries", alice);
-        itemRepo.flush();
-        entityManager.clear();
-
-        service.setGrantOnPlan(groceries.getId(), bob.getId(), AccessLevel.VIEW);
-
-        groceries = service.getPlanById(groceries.getId());
-        assertEquals(AccessLevel.ADMINISTER, groceries.getAcl().getGrant(alice));
-        assertEquals(AccessLevel.VIEW, groceries.getAcl().getGrant(bob));
-        assertNull(groceries.getAcl().getGrant(eve));
-
-        entityManager.flush();
-        entityManager.clear();
-        groceries = service.getPlanById(groceries.getId());
-
-        service.deleteGrantFromPlan(groceries.getId(), bob.getId());
-        assertNull(groceries.getAcl().getGrant(bob));
-
-        entityManager.flush();
-        entityManager.clear();
-        groceries = service.getPlanById(groceries.getId());
-
-        assertNull(groceries.getAcl().getGrant(bob));
     }
 
 }

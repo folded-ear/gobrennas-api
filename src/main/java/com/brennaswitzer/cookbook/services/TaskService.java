@@ -5,7 +5,6 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
-import com.brennaswitzer.cookbook.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +23,10 @@ public class TaskService {
     private PlanService planService;
 
     @Autowired
-    private UserRepository userRepo;
-
-    @Autowired
     private ItemService itemService;
 
     public Iterable<Plan> getPlans(User owner) {
         return planService.getPlans(owner);
-    }
-
-    public Plan getPlanById(Long id) {
-        return planService.getPlanById(id, AccessLevel.VIEW);
     }
 
     public Plan createPlan(String name, User user) {
@@ -57,18 +49,6 @@ public class TaskService {
             it.getParent().removeChild(it);
         }
         planItemRepo.delete(it);
-    }
-
-    public Plan setGrantOnPlan(Long planId, Long userId, AccessLevel level) {
-        Plan plan = planService.getPlanById(planId, AccessLevel.ADMINISTER);
-        plan.getAcl().setGrant(userRepo.getById(userId), level);
-        return plan;
-    }
-
-    public Plan deleteGrantFromPlan(Long planId, Long userId) {
-        Plan plan = planService.getPlanById(planId, AccessLevel.ADMINISTER);
-        plan.getAcl().deleteGrant(userRepo.getById(userId));
-        return plan;
     }
 
 }

@@ -1,13 +1,9 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.Plan;
-import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.AclInfo;
-import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
-import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.services.TaskService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
@@ -37,9 +33,6 @@ public class TaskController {
 
     @Autowired
     private PlanService planService;
-
-    @Autowired
-    private UserRepository userRepo;
 
     @Autowired
     private UserPrincipalAccess principalAccess;
@@ -87,28 +80,6 @@ public class TaskController {
     ) {
         Plan plan = planService.getPlanById(id);
         return AclInfo.fromAcl(plan.getAcl());
-    }
-
-    // todo: this method is confused. :) it's both create and update?
-    @PostMapping("/{id}/acl/grants")
-    @ResponseStatus(HttpStatus.CREATED)
-    public GrantInfo addGrant(
-            @PathVariable("id") Long id,
-            @RequestBody GrantInfo grant
-    ) {
-        Plan plan = taskService.setGrantOnPlan(id, grant.getUserId(), grant.getAccessLevel());
-        Acl acl = plan.getAcl();
-        User user = userRepo.getById(grant.getUserId());
-        return GrantInfo.fromGrant(user, acl.getGrant(user));
-    }
-
-    @DeleteMapping("/{id}/acl/grants/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteGrant(
-            @PathVariable("id") Long id,
-            @PathVariable("userId") Long userId
-    ) {
-        taskService.deleteGrantFromPlan(id, userId);
     }
 
 }

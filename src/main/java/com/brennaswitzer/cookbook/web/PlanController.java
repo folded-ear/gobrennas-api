@@ -1,6 +1,9 @@
 package com.brennaswitzer.cookbook.web;
 
+import com.brennaswitzer.cookbook.domain.Acl;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.message.AssignPlanTreeItemBucket;
 import com.brennaswitzer.cookbook.message.CreatePlanBucket;
 import com.brennaswitzer.cookbook.message.CreatePlanTreeItem;
@@ -10,9 +13,12 @@ import com.brennaswitzer.cookbook.message.RenamePlanTreeItem;
 import com.brennaswitzer.cookbook.message.ReorderSubitems;
 import com.brennaswitzer.cookbook.message.SetPlanTreeItemStatus;
 import com.brennaswitzer.cookbook.message.UpdatePlanBucket;
+import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +28,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
@@ -30,12 +37,16 @@ import java.util.Objects;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
-@RequestMapping("api/plan")
+@RequestMapping({"api/plan",
+        "api/tasks"})
 @PreAuthorize("hasRole('USER')")
 public class PlanController {
 
     @Autowired
     private PlanService planService;
+
+    @Autowired
+    private UserRepository userRepo;
 
     @GetMapping({"/{id}/self-and-descendants",
             "/{id}/descendants"})
@@ -160,6 +171,28 @@ public class PlanController {
             @PathVariable("planId") long planId,
             @PathVariable("id") long id) {
         return planService.deleteBucket(planId, id);
+    }
+
+    // todo: this method is confused. :) it's both create and update?
+    @PostMapping("/{id}/acl/grants")
+    @ResponseStatus(HttpStatus.CREATED)
+    public GrantInfo addGrant(
+            @PathVariable("id") Long id,
+            @RequestBody GrantInfo grant
+    ) {
+        Plan plan = planService.setGrantOnPlan(id, grant.getUserId(), grant.getAccessLevel());
+        Acl acl = plan.getAcl();
+        User user = userRepo.getById(grant.getUserId());
+        return GrantInfo.fromGrant(user, acl.getGrant(user));
+    }
+
+    @DeleteMapping("/{id}/acl/grants/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteGrant(
+            @PathVariable("id") Long id,
+            @PathVariable("userId") Long userId
+    ) {
+        planService.deleteGrantFromPlan(id, userId);
     }
 
 }
