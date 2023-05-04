@@ -13,7 +13,9 @@ import com.brennaswitzer.cookbook.message.RenamePlanTreeItem;
 import com.brennaswitzer.cookbook.message.ReorderSubitems;
 import com.brennaswitzer.cookbook.message.SetPlanTreeItemStatus;
 import com.brennaswitzer.cookbook.message.UpdatePlanBucket;
+import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
+import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,6 +50,40 @@ public class PlanController {
 
     @Autowired
     private UserRepository userRepo;
+
+    @GetMapping("")
+    @ResponseStatus(HttpStatus.OK)
+    public List<PlanItemInfo> getPlans() {
+        return PlanItemInfo.fromPlans(planService.getPlans());
+    }
+
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public PlanItemInfo createPlan(@RequestBody PlanItemCreate info) {
+        Plan plan = info.hasFromId()
+                ? planService.duplicatePlan(info.getName(),
+                                            info.getFromId())
+                : planService.createPlan(info.getName());
+        return PlanItemInfo.fromPlan(plan);
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public PlanItemInfo getPlanItem(
+            @PathVariable("id") Long id
+    ) {
+        return PlanItemInfo.fromPlanItem(planService.getPlanItemById(id));
+    }
+
+    @GetMapping("/{id}/acl")
+    @ResponseStatus(HttpStatus.OK)
+    public AclInfo getPlanAcl(
+            @PathVariable("id") Long id
+    ) {
+        Plan plan = planService.getPlanById(id);
+        return AclInfo.fromAcl(plan.getAcl());
+    }
 
     @GetMapping({"/{id}/self-and-descendants",
             "/{id}/descendants"})

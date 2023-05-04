@@ -33,7 +33,6 @@ import javax.persistence.EntityManager;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -50,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @AutoConfigureMockMvc
 @WithAliceBobEve(authentication = false)
-public class TaskControllerTest {
+public class PlanControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -218,10 +217,6 @@ public class TaskControllerTest {
                 .content(objectMapper.writeValueAsString(body));
     }
 
-    private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, JavaType type) throws Exception {
-        return forObject(req, expect, type, null);
-    }
-
     private <T> T forObject(MockHttpServletRequestBuilder req,
                             ResultMatcher expect,
                             JavaType type,
@@ -230,15 +225,8 @@ public class TaskControllerTest {
     }
 
     private <T> T forObject(MockHttpServletRequestBuilder req, ResultMatcher expect, Class<T> clazz) throws Exception {
-        return forObject(req, expect, clazz, null);
-    }
-
-    private <T> T forObject(MockHttpServletRequestBuilder req,
-                            ResultMatcher expect,
-                            Class<T> clazz,
-                            User as) throws Exception {
         return forObject(req, expect,
-                         objectMapper.getTypeFactory().constructType(clazz), as);
+                         objectMapper.getTypeFactory().constructType(clazz), null);
     }
 
     private PlanItemInfo forInfo(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
@@ -258,6 +246,7 @@ public class TaskControllerTest {
                                  PlanItemInfo.class), as);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String forJson(MockHttpServletRequestBuilder req, ResultMatcher expect) throws Exception {
         return forJson(req, expect, null);
     }
@@ -270,11 +259,6 @@ public class TaskControllerTest {
                 .getContentAsString();
         System.out.println(content);
         return content;
-    }
-
-    private void treeView(String header) {
-        sync();
-        System.out.println(renderTree(header, planRepo.findByOwner(alice)));
     }
 
 }
