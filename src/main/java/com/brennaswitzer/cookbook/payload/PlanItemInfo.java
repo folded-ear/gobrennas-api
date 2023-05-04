@@ -53,10 +53,6 @@ public class PlanItemInfo {
         return info;
     }
 
-    public static PlanItemInfo fromList(Plan list) {
-        return fromPlan(list);
-    }
-
     public static PlanItemInfo fromPlan(Plan plan) {
         PlanItemInfo info = fromPlanItem(plan);
         info.acl = AclInfo.fromAcl(plan.getAcl());
@@ -68,19 +64,15 @@ public class PlanItemInfo {
         return info;
     }
 
-    public static List<PlanItemInfo> fromTasks(Iterable<PlanItem> tasks) {
-        return StreamSupport.stream(tasks.spliterator(), false)
+    public static List<PlanItemInfo> fromPlanItems(Iterable<PlanItem> items) {
+        return StreamSupport.stream(items.spliterator(), false)
                 .map(PlanItemInfo::fromPlanItem)
                 .collect(Collectors.toList());
     }
 
-    public static List<PlanItemInfo> fromLists(Iterable<Plan> lists) {
-        return fromPlans(lists);
-    }
-
     public static List<PlanItemInfo> fromPlans(Iterable<Plan> plans) {
         return StreamSupport.stream(plans.spliterator(), false)
-                .map(PlanItemInfo::fromList)
+                .map(PlanItemInfo::fromPlan)
                 .collect(Collectors.toList());
     }
 

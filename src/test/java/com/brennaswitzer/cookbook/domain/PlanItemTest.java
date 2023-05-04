@@ -4,7 +4,7 @@ import com.brennaswitzer.cookbook.util.RecipeBox;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
-import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -20,7 +20,7 @@ public class PlanItemTest {
     }
 
     @Test
-    public void addSubtask_basics() {
+    public void addChild_basics() {
         PlanItem groceries = new PlanItem("Groceries");
         assertFalse(groceries.isChild());
         assertFalse(groceries.hasChildren());
@@ -39,7 +39,7 @@ public class PlanItemTest {
     }
 
     @Test
-    public void addSubtask_ordering() {
+    public void addChild_ordering() {
         PlanItem groceries = new PlanItem("Groceries");
         PlanItem apples = new PlanItem("Apples");
         PlanItem oj = new PlanItem("OJ");
@@ -56,7 +56,7 @@ public class PlanItemTest {
     }
 
     @Test
-    public void addSubtaskAfter() {
+    public void addChildAfter() {
         PlanItem groceries = new PlanItem("Groceries");
         PlanItem apples = new PlanItem("Apples");
         PlanItem oj = new PlanItem("OJ");
@@ -81,7 +81,7 @@ public class PlanItemTest {
     }
 
     @Test
-    public void insertSubtask() {
+    public void insertChild() {
         PlanItem groceries = new PlanItem("Groceries");
         PlanItem apples = new PlanItem("Apples");
         PlanItem oj = new PlanItem("OJ");
@@ -232,10 +232,10 @@ public class PlanItemTest {
     }
 
     @Test
-    public void taskCanBeItem() {
+    public void planItemCanBePantryItem() {
         RecipeBox box = new RecipeBox();
-        PlanItem saltTask = new PlanItem("salt", box.salt);
-        System.out.println(saltTask);
+        PlanItem saltPlanItem = new PlanItem("salt", box.salt);
+        System.out.println(saltPlanItem);
     }
 
     @Test

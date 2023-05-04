@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.util.function.Function;
 
-import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,7 +30,7 @@ public class PlanItemRepositoryTest {
     private PlanItemRepository repo;
 
     @Autowired
-    private TaskListRepository listRepo;
+    private PlanRepository planRepo;
 
     @Autowired
     private UserRepository userRepo;
@@ -48,7 +48,7 @@ public class PlanItemRepositoryTest {
     @Test
     public void findById() {
         Plan groceries = new Plan(alice, "Groceries");
-        listRepo.save(groceries);
+        planRepo.save(groceries);
 
         PlanItem oj = new PlanItem("OJ").of(groceries);
         assertNull(oj.getId());

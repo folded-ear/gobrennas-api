@@ -5,9 +5,7 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
-import com.brennaswitzer.cookbook.repositories.TaskListRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,101 +24,81 @@ public class TaskService {
     private PlanService planService;
 
     @Autowired
-    private TaskListRepository listRepo;
-
-    @Autowired
     private UserRepository userRepo;
-
-    @Autowired
-    private UserPrincipalAccess principalAccess;
 
     @Autowired
     private ItemService itemService;
 
-    public Iterable<Plan> getTaskLists() {
-        return planService.getPlans();
-    }
-
-    public Iterable<Plan> getTaskLists(User owner) {
+    public Iterable<Plan> getPlans(User owner) {
         return planService.getPlans(owner);
     }
 
-    public Plan getTaskListById(Long id) {
+    public Plan getPlanById(Long id) {
         return planService.getPlanById(id, AccessLevel.VIEW);
     }
 
-    public Plan createTaskList(String name, User user) {
-        return planService.createTaskList(name, user);
+    public Plan createPlan(String name, User user) {
+        return planService.createPlan(name, user);
     }
 
-    public Plan duplicateTaskList(String name, Long fromId) {
-        return planService.duplicateTaskList(name, fromId);
-    }
-
-    public Plan createTaskList(String name, Long userId) {
-        return planService.createTaskList(name, userId);
-    }
-
-    public PlanItem createSubtask(Long parentId, String name) {
+    public PlanItem createChildItem(Long parentId, String name) {
         PlanItem it = new PlanItem(name);
         itemService.autoRecognize(it);
-        planService.getTaskById(parentId, AccessLevel.CHANGE)
+        planService.getPlanItemById(parentId, AccessLevel.CHANGE)
                 .addChildAfter(it, null);
-        planItemRepo.save(it);
-        return it;
+        return planItemRepo.save(it);
     }
 
-    public PlanItem createSubtaskAfter(Long parentId, String name, Long afterId) {
+    public PlanItem createChildItemAfter(Long parentId, String name, Long afterId) {
         if (afterId == null) {
-            throw new IllegalArgumentException("You can't create a subtask after 'null'");
+            throw new IllegalArgumentException("You can't create an item after 'null'");
         }
         PlanItem it = new PlanItem(name);
         itemService.autoRecognize(it);
-        planService.getTaskById(parentId, AccessLevel.CHANGE)
-                .addChildAfter(it, planService.getTaskById(afterId));
-        planItemRepo.save(it);
-        return it;
+        planService.getPlanItemById(parentId, AccessLevel.CHANGE)
+                .addChildAfter(it, planService.getPlanItemById(afterId));
+        return planItemRepo.save(it);
     }
 
-    public PlanItem renameTask(Long id, String name) {
-        PlanItem it = planService.getTaskById(id, AccessLevel.CHANGE);
+    public PlanItem renameItem(Long id, String name) {
+        PlanItem it = planService.getPlanItemById(id, AccessLevel.CHANGE);
         it.setName(name);
         itemService.updateAutoRecognition(it);
         return it;
     }
 
-    public PlanItem resetSubtasks(Long id, long[] subtaskIds) {
-        PlanItem it = planService.getTaskById(id, AccessLevel.CHANGE);
+    public PlanItem resetChildItems(Long planId, long[] childItemIds) {
+        PlanItem it = planService.getPlanItemById(planId, AccessLevel.CHANGE);
         PlanItem prev = null;
-        for (long sid : subtaskIds) {
-            PlanItem curr = planService.getTaskById(sid);
+        for (long itemId : childItemIds) {
+            PlanItem curr = planService.getPlanItemById(itemId);
             it.addChildAfter(curr, prev);
             prev = curr;
         }
         return it;
     }
 
-    public void deleteTask(Long id) {
-        deleteTask(planService.getTaskById(id, AccessLevel.CHANGE));
+    public void deleteItem(Long id) {
+        deleteItem(planService.getPlanItemById(id, AccessLevel.CHANGE));
     }
 
-    private void deleteTask(PlanItem it) {
+    private void deleteItem(PlanItem it) {
         if (it.hasParent()) {
             it.getParent().removeChild(it);
         }
         planItemRepo.delete(it);
     }
 
-    public Plan setGrantOnList(Long listId, Long userId, AccessLevel level) {
-        Plan list = planService.getPlanById(listId, AccessLevel.ADMINISTER);
-        list.getAcl().setGrant(userRepo.getById(userId), level);
-        return list;
+    public Plan setGrantOnPlan(Long planId, Long userId, AccessLevel level) {
+        Plan plan = planService.getPlanById(planId, AccessLevel.ADMINISTER);
+        plan.getAcl().setGrant(userRepo.getById(userId), level);
+        return plan;
     }
 
-    public Plan deleteGrantFromList(Long listId, Long userId) {
-        Plan list = planService.getPlanById(listId, AccessLevel.ADMINISTER);
-        list.getAcl().deleteGrant(userRepo.getById(userId));
-        return list;
+    public Plan deleteGrantFromPlan(Long planId, Long userId) {
+        Plan plan = planService.getPlanById(planId, AccessLevel.ADMINISTER);
+        plan.getAcl().deleteGrant(userRepo.getById(userId));
+        return plan;
     }
 
 }

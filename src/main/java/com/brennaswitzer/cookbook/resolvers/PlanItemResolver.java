@@ -17,8 +17,8 @@ public class PlanItemResolver implements GraphQLResolver<PlanItem> {
     @Autowired
     private PlanService planService;
 
-    public Double getQuantity(PlanItem task) {
-        return task.getQuantity().getQuantity();
+    public Double getQuantity(PlanItem item) {
+        return item.getQuantity().getQuantity();
     }
 
     public String getUnits(PlanItem item) {

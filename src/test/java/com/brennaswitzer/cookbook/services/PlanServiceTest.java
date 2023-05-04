@@ -67,15 +67,14 @@ class PlanServiceTest {
     }
 
     @Test
-    public void createTaskList() {
-
-        PlanItem g = service.createTaskList("Groceries", alice);
+    public void createPlan() {
+        PlanItem g = service.createPlan("Groceries", alice);
         assertNotNull(g.getId());
         assertEquals("Groceries", g.getName());
         assertEquals(0, g.getPosition());
         assertEquals(0, g.getChildCount());
 
-        PlanItem v = service.createTaskList("Vacation", alice);
+        PlanItem v = service.createPlan("Vacation", alice);
         assertNotNull(v.getId());
         assertNotEquals(g.getId(), v.getId());
         assertEquals("Vacation", v.getName());

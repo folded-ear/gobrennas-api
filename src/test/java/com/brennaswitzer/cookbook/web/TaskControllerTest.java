@@ -7,9 +7,9 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
-import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.payload.PlanItemName;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
-import com.brennaswitzer.cookbook.repositories.TaskListRepository;
+import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static com.brennaswitzer.cookbook.util.TaskTestUtils.renderTree;
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -57,10 +57,10 @@ public class TaskControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private PlanItemRepository taskRepo;
+    private PlanItemRepository itemRepo;
 
     @Autowired
-    private TaskListRepository listRepo;
+    private PlanRepository planRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -79,11 +79,11 @@ public class TaskControllerTest {
 
     @Test
     public void subtasksCollection() throws Exception {
-        Plan root = taskRepo.save(new Plan(alice, "Root"));
-        PlanItem one = taskRepo.save(new PlanItem("One").of(root));
-        PlanItem oneA = taskRepo.save(new PlanItem("A").of(one));
-        PlanItem oneB = taskRepo.save(new PlanItem("B").of(one));
-        PlanItem two = taskRepo.save(new PlanItem("Two").of(root));
+        Plan root = itemRepo.save(new Plan(alice, "Root"));
+        PlanItem one = itemRepo.save(new PlanItem("One").of(root));
+        PlanItem oneA = itemRepo.save(new PlanItem("A").of(one));
+        PlanItem oneB = itemRepo.save(new PlanItem("B").of(one));
+        PlanItem two = itemRepo.save(new PlanItem("Two").of(root));
         sync();
 
         PlanItemInfo ti;
@@ -123,7 +123,7 @@ public class TaskControllerTest {
 
     @Test
     public void listGrants() throws Exception {
-        Plan root = taskRepo.save(new Plan(alice, "Root"));
+        Plan root = itemRepo.save(new Plan(alice, "Root"));
         AclInfo acl = forObject(
                 get("/api/tasks/{id}/acl", root.getId()),
                 status().isOk(),
@@ -150,7 +150,7 @@ public class TaskControllerTest {
             assertEquals(AccessLevel.VIEW, grant.getAccessLevel());
         }
 
-        root = listRepo.getReferenceById(root.getId());
+        root = planRepo.getReferenceById(root.getId());
         assertEquals(AccessLevel.VIEW, root.getAcl().getGrant(bob));
 
         // if bob asks for lists, he gets root
@@ -163,15 +163,15 @@ public class TaskControllerTest {
 
         // alice can rename
         MockHttpServletRequestBuilder renameReq = put("/api/tasks/{id}/name", root.getId());
-        perform(makeJson(renameReq, new TaskName("Root Alice")), alice) // default, but be explicit
+        perform(makeJson(renameReq, new PlanItemName("Root Alice")), alice) // default, but be explicit
                 .andExpect(status().isOk());
         // bob and eve cannot
-        perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
+        perform(makeJson(renameReq, new PlanItemName("Root Bob")), bob)
                 .andExpect(status().isForbidden());
-        perform(makeJson(renameReq, new TaskName("Root Eve")), eve)
+        perform(makeJson(renameReq, new PlanItemName("Root Eve")), eve)
                 .andExpect(status().isForbidden());
 
-        root = listRepo.getReferenceById(root.getId());
+        root = planRepo.getReferenceById(root.getId());
         assertEquals("Root Alice", root.getName());
 
         forJson(
@@ -180,10 +180,10 @@ public class TaskControllerTest {
                 status().isCreated());
 
         // now bob can rename too!
-        perform(makeJson(renameReq, new TaskName("Root Bob")), bob)
+        perform(makeJson(renameReq, new PlanItemName("Root Bob")), bob)
                 .andExpect(status().isOk());
 
-        root = listRepo.getReferenceById(root.getId());
+        root = planRepo.getReferenceById(root.getId());
         assertEquals("Root Bob", root.getName());
 
         // idempotent
@@ -192,7 +192,7 @@ public class TaskControllerTest {
                     .andExpect(status().isNoContent());
         }
 
-        root = listRepo.getReferenceById(root.getId());
+        root = planRepo.getReferenceById(root.getId());
         assertNull(root.getAcl().getGrant(bob));
 
         // if bob asks for lists, he gets nothing
@@ -279,7 +279,7 @@ public class TaskControllerTest {
 
     private void treeView(String header) {
         sync();
-        System.out.println(renderTree(header, listRepo.findByOwner(alice)));
+        System.out.println(renderTree(header, planRepo.findByOwner(alice)));
     }
 
 }

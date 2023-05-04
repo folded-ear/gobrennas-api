@@ -24,6 +24,6 @@ public class EmptyTrashBins {
     public void emptyTrashBins() {
         val cutoff = Instant.now().minus(4, ChronoUnit.HOURS);
         val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
-        log.info("Deleted {} old task(s) from the trash bin", n);
+        log.info("Deleted {} old item(s) from the trash bin", n);
     }
 }

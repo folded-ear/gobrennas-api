@@ -45,7 +45,7 @@ public class Plan extends PlanItem implements AccessControlled {
 
     @Override
     public void setParent(PlanItem parent) {
-        throw new UnsupportedOperationException("TaskLists can't have parents");
+        throw new UnsupportedOperationException("Plans can't have parents");
     }
 
     @Override

@@ -206,12 +206,12 @@ public class PlanItem extends BaseEntity implements MutableItem {
             return;
         }
         if (isDescendant(parent)) {
-            throw new IllegalArgumentException("You can't make a task a descendant of one of its own descendants");
+            throw new IllegalArgumentException("You can't make an item a descendant of one of its own descendants");
         }
         // tear down the old one
         if (currentParent != null && currentParent.children != null) {
             if (!currentParent.children.remove(this)) {
-                throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of its parent #" + currentParent.getId() + "?!");
+                throw new IllegalStateException("Item #" + getId() + " wasn't a child of its parent #" + currentParent.getId() + "?!");
             }
             currentParent.markDirty();
         }
@@ -244,7 +244,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
 
     public void restoreFromTrash() {
         if (!isInTrashBin()) {
-            throw new IllegalArgumentException("This task is not in the trash");
+            throw new IllegalArgumentException("This item is not in the trash");
         }
         if (getParent().isInTrashBin()) {
             // can't put it back where it was, so top-level it is!
@@ -261,11 +261,11 @@ public class PlanItem extends BaseEntity implements MutableItem {
             return;
         }
         if (isDescendantComponent(agg)) {
-            throw new IllegalArgumentException("You can't make a task a component of one of its own components");
+            throw new IllegalArgumentException("You can't make an item a component of one of its own components");
         }
         if (getAggregate() != null && getAggregate().components != null) {
             if (!getAggregate().components.remove(this)) {
-                throw new IllegalStateException("Task #" + getId() + " wasn't a component of its aggregate #" + getAggregate().getId() + "?!");
+                throw new IllegalStateException("Item #" + getId() + " wasn't a component of its aggregate #" + getAggregate().getId() + "?!");
             }
         }
         if (agg != null) {
@@ -285,7 +285,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     }
 
     /**
-     * Add a new PlanItem to the end of this list.
+     * Add a new PlanItem to the end of this item's children.
      *
      * @param item the item to add.
      */
@@ -297,9 +297,9 @@ public class PlanItem extends BaseEntity implements MutableItem {
     }
 
     /**
-     * Add a new Task as both a child and component of this task.
+     * Add a new PlanItem as both a child and component of this item.
      *
-     * @param t the task to add as a component
+     * @param t the item to add as a component
      */
     public void addAggregateComponent(PlanItem t) {
         addChild(t);
@@ -333,7 +333,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
 
     public void removeChild(PlanItem child) {
         if (child == null) {
-            throw new IllegalArgumentException("You can't remove the null subtask");
+            throw new IllegalArgumentException("You can't remove a null item");
         }
         child.setParent(null);
     }
@@ -358,9 +358,9 @@ public class PlanItem extends BaseEntity implements MutableItem {
     }
 
     public List<PlanItem> getChildView(Comparator<PlanItem> comparator) {
-        val list = getChildView(ArrayList::new);
-        list.sort(comparator);
-        return list;
+        val items = getChildView(ArrayList::new);
+        items.sort(comparator);
+        return items;
     }
 
     public List<PlanItem> getOrderedComponentsView() {
@@ -371,9 +371,9 @@ public class PlanItem extends BaseEntity implements MutableItem {
         if (components == null) {
             return Collections.emptyList();
         }
-        List<PlanItem> list = new ArrayList<>(components);
-        list.sort(comparator);
-        return list;
+        List<PlanItem> items = new ArrayList<>(components);
+        items.sort(comparator);
+        return items;
     }
 
     public int getChildCount() {

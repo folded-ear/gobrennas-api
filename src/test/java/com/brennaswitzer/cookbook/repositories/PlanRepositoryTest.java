@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PlanRepositoryTest {
 
     @Autowired
-    private TaskListRepository repo;
+    private PlanRepository repo;
 
     @Autowired
     private EntityManager entityManager;

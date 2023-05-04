@@ -5,9 +5,9 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
+import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
-import com.brennaswitzer.cookbook.payload.TaskCreate;
-import com.brennaswitzer.cookbook.payload.TaskName;
+import com.brennaswitzer.cookbook.payload.PlanItemName;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.services.TaskService;
@@ -48,65 +48,65 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<PlanItemInfo> getTaskLists(
+    public List<PlanItemInfo> getPlans(
     ) {
-        return PlanItemInfo.fromLists(planService.getPlans());
+        return PlanItemInfo.fromPlans(planService.getPlans());
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public PlanItemInfo createTaskList(@RequestBody TaskCreate info) {
+    public PlanItemInfo createPlan(@RequestBody PlanItemCreate info) {
         Plan plan;
         if (info.hasFromId()) {
-            plan = planService.duplicateTaskList(info.getName(), info.getFromId());
+            plan = planService.duplicatePlan(info.getName(), info.getFromId());
         } else {
-            plan = planService.createTaskList(info.getName());
+            plan = planService.createPlan(info.getName());
         }
         plan.setOwner(principalAccess.getUser());
-        return PlanItemInfo.fromList(plan);
+        return PlanItemInfo.fromPlan(plan);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PlanItemInfo getTask(
+    public PlanItemInfo getPlanItem(
             @PathVariable("id") Long id
     ) {
-        return PlanItemInfo.fromPlanItem(planService.getTaskById(id));
+        return PlanItemInfo.fromPlanItem(planService.getPlanItemById(id));
     }
 
     @GetMapping("/{id}/subtasks")
     @ResponseStatus(HttpStatus.OK)
-    public List<PlanItemInfo> getSubtasks(
+    public List<PlanItemInfo> getChildItems(
             @PathVariable("id") Long parentId
     ) {
-        return PlanItemInfo.fromTasks(planService
-                                              .getTaskById(parentId)
-                                              .getOrderedChildView());
+        return PlanItemInfo.fromPlanItems(planService
+                                                  .getPlanItemById(parentId)
+                                                  .getOrderedChildView());
     }
 
     @PutMapping("/{id}/name")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public PlanItemInfo renameTask(
+    public PlanItemInfo renameItem(
             @PathVariable("id") Long id,
-            @RequestBody TaskName info
+            @RequestBody PlanItemName info
     ) {
         return PlanItemInfo.fromPlanItem(taskService
-                                                 .renameTask(id, info.getName()));
+                                                 .renameItem(id, info.getName()));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTask(
+    public void deleteItem(
             @PathVariable("id") Long id
     ) {
-        taskService.deleteTask(id);
+        taskService.deleteItem(id);
     }
 
     @GetMapping("/{id}/acl")
     @ResponseStatus(HttpStatus.OK)
-    public AclInfo getListAcl(
+    public AclInfo getPlanAcl(
             @PathVariable("id") Long id
     ) {
         Plan plan = planService.getPlanById(id);
@@ -120,8 +120,8 @@ public class TaskController {
             @PathVariable("id") Long id,
             @RequestBody GrantInfo grant
     ) {
-        Plan list = taskService.setGrantOnList(id, grant.getUserId(), grant.getAccessLevel());
-        Acl acl = list.getAcl();
+        Plan plan = taskService.setGrantOnPlan(id, grant.getUserId(), grant.getAccessLevel());
+        Acl acl = plan.getAcl();
         User user = userRepo.getById(grant.getUserId());
         return GrantInfo.fromGrant(user, acl.getGrant(user));
     }
@@ -132,7 +132,7 @@ public class TaskController {
             @PathVariable("id") Long id,
             @PathVariable("userId") Long userId
     ) {
-        taskService.deleteGrantFromList(id, userId);
+        taskService.deleteGrantFromPlan(id, userId);
     }
 
 }

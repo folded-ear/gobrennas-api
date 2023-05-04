@@ -45,13 +45,13 @@ public class PlanServiceTreeMutationTest {
         }).when(repo).getReferenceById(Mockito.anyLong());
         service = new PlanService() {
             @Override
-            public PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
+            public PlanItem getPlanItemById(Long id, AccessLevel requiredAccess) {
                 // Just skip the access checks. This is a smell that says the
                 // service is doing multiple things!
-                return taskRepo.getReferenceById(id);
+                return itemRepo.getReferenceById(id);
             }
         };
-        service.taskRepo = repo;
+        service.itemRepo = repo;
     }
 
     private void checkKids(PlanItem parent, PlanItem... kids) {
@@ -63,7 +63,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveFirstToTop() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 c = new PlanItem("c").of(l);
@@ -76,7 +76,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveMiddleToTop() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 c = new PlanItem("c").of(l);
@@ -89,7 +89,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveMiddleToLast() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 c = new PlanItem("c").of(l);
@@ -102,7 +102,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveLastToTop() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 c = new PlanItem("c").of(l);
@@ -115,7 +115,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveUnderChildlessPeer() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 c = new PlanItem("c").of(l);
@@ -129,7 +129,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveToFirstChildOfPeer() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 a1 = new PlanItem("a1").of(a),
                 b = new PlanItem("b").of(l),
@@ -144,7 +144,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveToLastChildOfPeer() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 a1 = new PlanItem("a1").of(a),
                 b = new PlanItem("b").of(l),
@@ -166,7 +166,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void moveSubtreeAfterPeer() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 a1 = new PlanItem("a1").of(a),
                 b = new PlanItem("b").of(l),
@@ -181,7 +181,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void crossTreeUpward() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 b1 = new PlanItem("b1").of(b),
@@ -204,7 +204,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void crossTreeDownward() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 b1 = new PlanItem("b1").of(b),
@@ -227,7 +227,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void nestBlock() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 c = new PlanItem("c").of(l),
@@ -242,7 +242,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void unnestBlock() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 a1 = new PlanItem("a1").of(a),
                 a2 = new PlanItem("a2").of(a),
@@ -257,7 +257,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void dragBlockAfter() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 b1 = new PlanItem("b1").of(b),
@@ -280,7 +280,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void dragBlockUnder() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 b = new PlanItem("b").of(l),
                 b1 = new PlanItem("b1").of(b),
@@ -304,7 +304,7 @@ public class PlanServiceTreeMutationTest {
 
     @Test
     public void refuseToCreateCycles() {
-        PlanItem l = new Plan("the list"),
+        PlanItem l = new Plan("the plan"),
                 a = new PlanItem("a").of(l),
                 a1 = new PlanItem("a1").of(a);
         repo.save(l);

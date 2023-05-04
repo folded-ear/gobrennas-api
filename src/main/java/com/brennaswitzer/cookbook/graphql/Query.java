@@ -64,7 +64,7 @@ public class Query implements GraphQLQueryResolver {
     }
 
     PlanItem getPlanItem(Long id) {
-        return planService.getTaskById(id);
+        return planService.getPlanItemById(id);
     }
 
     User getCurrentUser() {

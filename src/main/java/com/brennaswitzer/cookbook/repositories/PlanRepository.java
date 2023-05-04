@@ -4,7 +4,7 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.User;
 import org.springframework.data.jpa.repository.Query;
 
-public interface TaskListRepository extends BaseEntityRepository<Plan> {
+public interface PlanRepository extends BaseEntityRepository<Plan> {
 
     @Query("from Plan where acl.owner = ?1")
     Iterable<Plan> findByOwner(User owner);

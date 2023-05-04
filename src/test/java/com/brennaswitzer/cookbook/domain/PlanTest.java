@@ -9,11 +9,11 @@ public class PlanTest {
 
     @Test
     public void owner() {
-        Plan list = new Plan();
-        assertNull(list.getOwner());
+        Plan plan = new Plan();
+        assertNull(plan.getOwner());
         User u = new User();
-        list.setOwner(u);
-        assertSame(u, list.getOwner());
+        plan.setOwner(u);
+        assertSame(u, plan.getOwner());
     }
 
 }

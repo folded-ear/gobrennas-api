@@ -15,7 +15,7 @@ import com.brennaswitzer.cookbook.payload.PlanBucketInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
-import com.brennaswitzer.cookbook.repositories.TaskListRepository;
+import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
@@ -25,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,10 +37,10 @@ import java.util.stream.Stream;
 public class PlanService {
 
     @Autowired
-    protected PlanItemRepository taskRepo;
+    protected PlanItemRepository itemRepo;
 
     @Autowired
-    protected TaskListRepository planRepo;
+    protected PlanRepository planRepo;
 
     @Autowired
     protected PlanBucketRepository bucketRepo;
@@ -74,17 +74,17 @@ public class PlanService {
         return result;
     }
 
-    public PlanItem getTaskById(Long id) {
-        return getTaskById(id, AccessLevel.VIEW);
+    public PlanItem getPlanItemById(Long id) {
+        return getPlanItemById(id, AccessLevel.VIEW);
     }
 
-    public PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
-        PlanItem task = taskRepo.getReferenceById(id);
-        task.getPlan().ensurePermitted(
+    public PlanItem getPlanItemById(Long id, AccessLevel requiredAccess) {
+        PlanItem item = itemRepo.getReferenceById(id);
+        item.getPlan().ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
         );
-        return task;
+        return item;
     }
 
     public Plan getPlanById(Long id) {
@@ -101,29 +101,29 @@ public class PlanService {
     }
 
     public List<PlanItem> getTreeById(Long id) {
-        return getTreeById(getTaskById(id, AccessLevel.VIEW));
+        return getTreeById(getPlanItemById(id, AccessLevel.VIEW));
     }
 
-    public List<PlanItem> getTreeById(PlanItem task) {
-        List<PlanItem> tasks = treeHelper(task);
-        for (PlanItem t : tasks) {
+    public List<PlanItem> getTreeById(PlanItem item) {
+        List<PlanItem> treeItems = treeHelper(item);
+        for (PlanItem t : treeItems) {
             // to load the collection before the session closes
             t.getOrderedComponentsView();
         }
-        return tasks;
+        return treeItems;
     }
 
-    private List<PlanItem> treeHelper(PlanItem task) {
-        List<PlanItem> result = new LinkedList<>();
-        treeHelper(task, result);
-        return result;
+    private List<PlanItem> treeHelper(PlanItem item) {
+        List<PlanItem> treeItems = new LinkedList<>();
+        treeHelper(item, treeItems::add);
+        return treeItems;
     }
 
-    private void treeHelper(PlanItem task, Collection<PlanItem> collector) {
-        collector.add(task);
-        if (task.hasChildren()) {
-            task.getOrderedChildView()
-                    .forEach(t -> treeHelper(t, collector));
+    private void treeHelper(PlanItem item, Consumer<PlanItem> itemSink) {
+        itemSink.accept(item);
+        if (item.hasChildren()) {
+            item.getOrderedChildView()
+                    .forEach(t -> treeHelper(t, itemSink));
         }
     }
 
@@ -138,10 +138,10 @@ public class PlanService {
     }
 
     public PlanMessage mutateTree(List<Long> ids, Long parentId, Long afterId) {
-        PlanItem parent = getTaskById(parentId, AccessLevel.CHANGE);
-        PlanItem after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
+        PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
+        PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
-            PlanItem t = getTaskById(id, AccessLevel.CHANGE);
+            PlanItem t = getPlanItemById(id, AccessLevel.CHANGE);
             parent.addChildAfter(t, after);
             after = t;
         }
@@ -152,22 +152,22 @@ public class PlanService {
     }
 
     public PlanMessage resetSubitems(Long id, List<Long> subitemIds) {
-        PlanItem t = getTaskById(id, AccessLevel.CHANGE);
+        PlanItem t = getPlanItemById(id, AccessLevel.CHANGE);
         PlanItem prev = null;
         for (Long sid : subitemIds) {
-            PlanItem curr = getTaskById(sid);
+            PlanItem curr = getPlanItemById(sid);
             t.addChildAfter(curr, prev);
             prev = curr;
         }
         return buildUpdateMessage(t);
     }
 
-    private void sendToPlan(AggregateIngredient r, PlanItem aggTask, Double scale) {
-        r.getIngredients().forEach(ir ->
-                                           sendToPlan(ir, aggTask, scale));
+    private void sendToPlan(AggregateIngredient r, PlanItem aggItem, Double scale) {
+        r.getIngredients()
+                .forEach(ir -> sendToPlan(ir, aggItem, scale));
     }
 
-    private void sendToPlan(IngredientRef ref, PlanItem aggTask, Double scale) {
+    private void sendToPlan(IngredientRef ref, PlanItem aggItem, Double scale) {
         if (scale == null || scale <= 0) { // nonsense!
             scale = 1d;
         }
@@ -182,7 +182,7 @@ public class PlanService {
                 ref.getQuantity(),
                 ref.getIngredient(),
                 ref.getPreparation());
-        aggTask.addAggregateComponent(t);
+        aggItem.addAggregateComponent(t);
         if (isAggregate) {
             // Subrecipes DO NOT get scaled; there's not a quantifiable
             // relationship to multiply across.
@@ -195,31 +195,31 @@ public class PlanService {
     }
 
     public void addRecipe(Long planId, Recipe r, Double scale) {
-        PlanItem recipeTask = new PlanItem(r.getName(), r);
-        PlanItem plan = getTaskById(planId, AccessLevel.CHANGE);
-        plan.addChild(recipeTask);
-        sendToPlan(r, recipeTask, scale);
+        PlanItem recipeItem = new PlanItem(r.getName(), r);
+        Plan plan = getPlanById(planId, AccessLevel.CHANGE);
+        plan.addChild(recipeItem);
+        sendToPlan(r, recipeItem, scale);
     }
 
-    private PlanMessage buildCreationMessage(PlanItem task) {
-        PlanItem parent = task.getParent();
+    private PlanMessage buildCreationMessage(PlanItem item) {
+        PlanItem parent = item.getParent();
         PlanMessage m = new PlanMessage();
         m.setId(parent.getId());
         m.setType("create");
         List<PlanItem> tree = getTreeById(parent);
-        m.setInfo(PlanItemInfo.fromTasks(tree));
+        m.setInfo(PlanItemInfo.fromPlanItems(tree));
         return m;
     }
 
-    public Plan createTaskList(String name, User user) {
-        return createTaskList(name, user.getId());
+    public Plan createPlan(String name, User owner) {
+        return createPlan(name, owner.getId());
     }
 
-    public Plan duplicateTaskList(String name, Long fromId) {
-        Plan list = createTaskList(name);
+    public Plan duplicatePlan(String name, Long fromId) {
+        Plan plan = createPlan(name);
         Plan src = planRepo.getReferenceById(fromId);
-        duplicateChildren(src, list);
-        return list;
+        duplicateChildren(src, plan);
+        return plan;
     }
 
     private void duplicateChildren(PlanItem src, PlanItem dest) {
@@ -237,26 +237,26 @@ public class PlanService {
         }
     }
 
-    public Plan createTaskList(String name) {
-        return createTaskList(name, principalAccess.getId());
+    public Plan createPlan(String name) {
+        return createPlan(name, principalAccess.getId());
     }
 
-    public Plan createTaskList(String name, Long userId) {
-        User user = userRepo.getById(userId);
-        Plan list = new Plan(name);
-        list.setOwner(user);
-        list.setPosition(1 + planRepo.getMaxPosition(user));
-        return planRepo.save(list);
+    public Plan createPlan(String name, Long ownerId) {
+        User user = userRepo.getById(ownerId);
+        Plan plan = new Plan(name);
+        plan.setOwner(user);
+        plan.setPosition(1 + planRepo.getMaxPosition(user));
+        return planRepo.save(plan);
     }
 
     public PlanMessage createItem(Object id, Long parentId, Long afterId, String name) {
-        PlanItem parent = getTaskById(parentId, AccessLevel.CHANGE);
-        PlanItem after = afterId == null ? null : getTaskById(afterId, AccessLevel.VIEW);
-        PlanItem task = taskRepo.save(new PlanItem(name).of(parent, after));
-        itemService.autoRecognize(task);
-        if (task.getId() == null) taskRepo.flush();
-        PlanMessage m = buildCreationMessage(task);
-        m.addNewId(task.getId(), id);
+        PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
+        PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
+        PlanItem item = itemRepo.save(new PlanItem(name).of(parent, after));
+        itemService.autoRecognize(item);
+        if (item.getId() == null) itemRepo.flush();
+        PlanMessage m = buildCreationMessage(item);
+        m.addNewId(item.getId(), id);
         return m;
     }
 
@@ -300,27 +300,27 @@ public class PlanService {
     }
 
     public PlanMessage renameItem(Long id, String name) {
-        PlanItem task = getTaskById(id, AccessLevel.CHANGE);
-        task.setName(name);
-        if (!task.hasIngredient() || !(task.getIngredient() instanceof Recipe)) {
-            itemService.updateAutoRecognition(task);
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        item.setName(name);
+        if (!item.hasIngredient() || !(item.getIngredient() instanceof Recipe)) {
+            itemService.updateAutoRecognition(item);
         }
-        return buildUpdateMessage(task);
+        return buildUpdateMessage(item);
     }
 
     public PlanMessage assignItemBucket(Long id, Long bucketId) {
-        PlanItem task = getTaskById(id, AccessLevel.CHANGE);
-        task.setBucket(bucketId == null
-                ? null
-                : bucketRepo.getReferenceById(bucketId));
-        return buildUpdateMessage(task);
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        item.setBucket(bucketId == null
+                               ? null
+                               : bucketRepo.getReferenceById(bucketId));
+        return buildUpdateMessage(item);
     }
 
-    private PlanMessage buildUpdateMessage(PlanItem task) {
+    private PlanMessage buildUpdateMessage(PlanItem item) {
         PlanMessage m = new PlanMessage();
-        m.setId(task.getId());
+        m.setId(item.getId());
         m.setType("update");
-        m.setInfo(PlanItemInfo.fromPlanItem(task));
+        m.setInfo(PlanItemInfo.fromPlanItem(item));
         return m;
     }
 
@@ -328,15 +328,14 @@ public class PlanService {
         if (TaskStatus.COMPLETED.equals(status) || TaskStatus.DELETED.equals(status)) {
             return deleteItem(id);
         }
-        PlanItem task = getTaskById(id, AccessLevel.CHANGE);
-        task.setStatus(status);
-        return buildUpdateMessage(task);
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        item.setStatus(status);
+        return buildUpdateMessage(item);
     }
 
     public PlanMessage deleteItem(Long id) {
-        val task = getTaskById(id, AccessLevel.CHANGE);
-        val plan = task.getPlan();
-        task.moveToTrash();
+        val item = getPlanItemById(id, AccessLevel.CHANGE);
+        item.moveToTrash();
         val m = new PlanMessage();
         m.setId(id);
         m.setType("delete");
@@ -344,7 +343,7 @@ public class PlanService {
     }
 
     public void severLibraryLinks(Recipe r) {
-        taskRepo.findByIngredient(r).forEach(t -> {
+        itemRepo.findByIngredient(r).forEach(t -> {
             if (!t.hasNotes()) t.setNotes(r.getDirections());
             t.setIngredient(null);
         });

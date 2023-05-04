@@ -4,17 +4,17 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-public class TaskName {
+public class PlanItemName {
 
     @NonNull
     @Getter
     @Setter
     private String name;
 
-    public TaskName() {
+    public PlanItemName() {
     }
 
-    public TaskName(String name) {
+    public PlanItemName(String name) {
         setName(name);
     }
 

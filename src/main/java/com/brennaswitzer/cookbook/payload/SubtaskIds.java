@@ -23,18 +23,18 @@ public class SubtaskIds {
     }
 
     public SubtaskIds(Iterable<Long> ids) {
-        List<Long> list;
+        List<Long> idList;
         if (ids instanceof List) {
-            list = (List<Long>) ids;
+            idList = (List<Long>) ids;
         } else {
-            list = new LinkedList<>();
+            idList = new LinkedList<>();
             for (Long id : ids) {
-                list.add(id);
+                idList.add(id);
             }
         }
-        long[] arr = new long[list.size()];
+        long[] arr = new long[idList.size()];
         int i = 0;
-        for (Long id : list) {
+        for (Long id : idList) {
             arr[i++] = id;
         }
         setSubtaskIds(arr);
