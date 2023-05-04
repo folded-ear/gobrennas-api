@@ -33,8 +33,6 @@ type PlanItem implements Node & CorePlanItem {
     plan: Plan!
     parent: PlanItem!
     children: [PlanItem!]!
-    "DEPRECATED: use 'children' instead"
-    subtasks: [PlanItem]
     descendants: [PlanItem!]!
     components: [PlanItem!]!
     bucket: PlanBucket

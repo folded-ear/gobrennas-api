@@ -13,11 +13,11 @@ import java.util.List;
  * Timers are projected with initialDuration/duration, while the business layer
  * considers duration/extraTime.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class TimerResolver implements GraphQLResolver<Timer> {
 
-    public List<AccessControlEntry> getGrants(Timer timer) {
+    public List<AccessControlEntry> grants(Timer timer) {
         return AclHelpers.getGrants(timer);
     }
 

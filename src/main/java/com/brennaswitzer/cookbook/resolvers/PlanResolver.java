@@ -9,15 +9,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class PlanResolver implements GraphQLResolver<Plan> {
 
     @Autowired
     private PlanService planService;
 
-    public List<AccessControlEntry> getGrants(Plan plan) {
+    public List<AccessControlEntry> grants(Plan plan) {
         return AclHelpers.getGrants(plan);
+    }
+
+    public List<PlanItem> children(PlanItem item) {
+        return item.getOrderedChildView();
     }
 
     public List<PlanItem> descendants(Plan plan) {

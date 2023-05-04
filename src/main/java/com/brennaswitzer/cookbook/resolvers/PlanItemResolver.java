@@ -7,21 +7,20 @@ import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class PlanItemResolver implements GraphQLResolver<PlanItem> {
 
     @Autowired
     private PlanService planService;
 
-    public Double getQuantity(PlanItem item) {
+    public Double quantity(PlanItem item) {
         return item.getQuantity().getQuantity();
     }
 
-    public String getUnits(PlanItem item) {
+    public String units(PlanItem item) {
         Quantity q = item.getQuantity();
         if (q.hasUnits()) {
             return q.getUnits().getName();
@@ -30,21 +29,16 @@ public class PlanItemResolver implements GraphQLResolver<PlanItem> {
         }
     }
 
-    public List<PlanItem> descendants(PlanItem item) {
-        return planService.getTreeById(item);
-    }
-
     public List<PlanItem> children(PlanItem item) {
         return item.getOrderedChildView();
     }
 
-    @Deprecated
-    public Collection<PlanItem> subtasks(PlanItem item) {
-        return children(item);
-    }
-
     public List<PlanItem> components(PlanItem item) {
         return item.getOrderedComponentsView();
+    }
+
+    public List<PlanItem> descendants(PlanItem item) {
+        return planService.getTreeById(item);
     }
 
 }
