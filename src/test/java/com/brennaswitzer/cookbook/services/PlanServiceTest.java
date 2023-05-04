@@ -123,6 +123,19 @@ class PlanServiceTest {
     }
 
     @Test
+    public void renameItem() {
+        Plan plan = planRepo.save(new Plan(alice, "root"));
+        PlanItem bill = itemRepo.save(new PlanItem("bill").of(plan));
+
+        service.renameItem(bill.getId(), "William");
+        itemRepo.flush();
+        entityManager.clear();
+
+        bill = itemRepo.getReferenceById(bill.getId());
+        assertEquals("William", bill.getName());
+    }
+
+    @Test
     public void deleteItem() {
         assertEquals(0, itemRepo.count());
         Plan groceries = planRepo.save(new Plan(alice, "groceries"));
