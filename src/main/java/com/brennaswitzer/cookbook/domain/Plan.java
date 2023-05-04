@@ -29,7 +29,7 @@ public class Plan extends PlanItem implements AccessControlled {
 
     @OneToMany(mappedBy = "trashBin", cascade = CascadeType.ALL)
     @BatchSize(size = 100)
-    private Set<PlanItem> trashBinTasks;
+    private Set<PlanItem> trashBinItems;
 
     public Plan() {
     }
@@ -49,7 +49,7 @@ public class Plan extends PlanItem implements AccessControlled {
     }
 
     @Override
-    public Plan getTaskList() {
+    public Plan getPlan() {
         return this;
     }
 
@@ -64,15 +64,15 @@ public class Plan extends PlanItem implements AccessControlled {
         return buckets != null && !buckets.isEmpty();
     }
 
-    public Set<PlanItem> getTrashBinTasks() {
-        if (trashBinTasks == null) {
-            trashBinTasks = new HashSet<>();
+    public Set<PlanItem> getTrashBinItems() {
+        if (trashBinItems == null) {
+            trashBinItems = new HashSet<>();
         }
-        return trashBinTasks;
+        return trashBinItems;
     }
 
     public boolean hasTrash() {
-        return trashBinTasks != null && !trashBinTasks.isEmpty();
+        return trashBinItems != null && !trashBinItems.isEmpty();
     }
 
     public User getOwner() {

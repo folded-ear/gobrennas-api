@@ -63,7 +63,7 @@ public class TaskService {
 
     private PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
         PlanItem item = planItemRepo.getReferenceById(id);
-        item.getTaskList().ensurePermitted(
+        item.getPlan().ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
         );
@@ -95,8 +95,8 @@ public class TaskService {
     }
 
     private void duplicateChildren(PlanItem src, PlanItem dest) {
-        if (!src.hasSubtasks()) return;
-        for (PlanItem s : src.getOrderedSubtasksView()) {
+        if (!src.hasChildren()) return;
+        for (PlanItem s : src.getOrderedChildView()) {
             PlanItem d = new PlanItem(
                     s.getName(),
                     s.getQuantity(),
@@ -104,7 +104,7 @@ public class TaskService {
                     s.getPreparation()
             );
             d.setStatus(s.getStatus()); // unclear if this is good?
-            dest.addSubtask(d);
+            dest.addChild(d);
             duplicateChildren(s, d);
         }
     }

@@ -33,8 +33,9 @@ public class PlanServiceTreeMutationTest {
             if (t.getId() != null) return t;
             t.setId(idSeq.incrementAndGet());
             database.put(t.getId(), t);
-            if (t.hasSubtasks()) {
-                t.getOrderedSubtasksView().forEach(repo::save);
+            if (t.hasChildren()) {
+                //noinspection UseBulkOperation
+                t.getOrderedChildView().forEach(repo::save);
             }
             return t;
         }).when(repo).save(Mockito.any());
@@ -56,7 +57,7 @@ public class PlanServiceTreeMutationTest {
     private void checkKids(PlanItem parent, PlanItem... kids) {
         assertEquals(
                 Arrays.asList(kids),
-                parent.getOrderedSubtasksView(),
+                parent.getOrderedChildView(),
                 "Children of " + parent + " are wrong:");
     }
 

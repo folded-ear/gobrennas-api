@@ -55,7 +55,7 @@ public class PlanService {
 
     protected PlanItem getTaskById(Long id, AccessLevel requiredAccess) {
         PlanItem task = taskRepo.getReferenceById(id);
-        task.getTaskList().ensurePermitted(
+        task.getPlan().ensurePermitted(
                 principalAccess.getUser(),
                 requiredAccess
         );
@@ -92,8 +92,8 @@ public class PlanService {
 
     private void treeHelper(PlanItem task, Collection<PlanItem> collector) {
         collector.add(task);
-        if (task.hasSubtasks()) {
-            task.getOrderedSubtasksView()
+        if (task.hasChildren()) {
+            task.getOrderedChildView()
                     .forEach(t -> treeHelper(t, collector));
         }
     }
@@ -102,7 +102,7 @@ public class PlanService {
         val plan = getPlanById(id, AccessLevel.VIEW);
         return Stream.concat(
                         getTreeById(plan).stream(),
-                        plan.getTrashBinTasks().stream()
+                        plan.getTrashBinItems().stream()
                 )
                 .filter(t -> t.getUpdatedAt().isAfter(cutoff))
                 .collect(Collectors.toList());
@@ -168,7 +168,7 @@ public class PlanService {
     public void addRecipe(Long planId, Recipe r, Double scale) {
         PlanItem recipeTask = new PlanItem(r.getName(), r);
         PlanItem plan = getTaskById(planId, AccessLevel.CHANGE);
-        plan.addSubtask(recipeTask);
+        plan.addChild(recipeTask);
         sendToPlan(r, recipeTask, scale);
     }
 
@@ -268,7 +268,7 @@ public class PlanService {
 
     public PlanMessage deleteItem(Long id) {
         val task = getTaskById(id, AccessLevel.CHANGE);
-        val plan = task.getTaskList();
+        val plan = task.getPlan();
         task.moveToTrash();
         val m = new PlanMessage();
         m.setId(id);

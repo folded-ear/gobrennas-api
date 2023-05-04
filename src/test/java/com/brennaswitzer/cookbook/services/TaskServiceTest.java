@@ -88,45 +88,45 @@ public class TaskServiceTest {
         assertNotNull(g.getId());
         assertEquals("Groceries", g.getName());
         assertEquals(0, g.getPosition());
-        assertEquals(0, g.getSubtaskCount());
+        assertEquals(0, g.getChildCount());
 
         PlanItem v = service.createTaskList("Vacation", alice);
         assertNotNull(v.getId());
         assertNotEquals(g.getId(), v.getId());
         assertEquals("Vacation", v.getName());
         assertEquals(1, v.getPosition());
-        assertEquals(0, v.getSubtaskCount());
+        assertEquals(0, v.getChildCount());
     }
 
     @Test
     public void createSubtask() {
         Plan groceries = listRepo.save(new Plan(alice, "groceries"));
-        assertEquals(0, groceries.getSubtaskCount());
+        assertEquals(0, groceries.getChildCount());
 
         PlanItem oj = service.createSubtask(groceries.getId(), "OJ");
         assertEquals("OJ", oj.getName());
         assertSame(groceries, oj.getParent());
         assertEquals(0, oj.getPosition());
-        assertEquals(0, oj.getSubtaskCount());
+        assertEquals(0, oj.getChildCount());
 
         PlanItem bagels = service.createSubtaskAfter(groceries.getId(), "bagels", oj.getId());
         assertEquals("bagels", bagels.getName());
         assertSame(groceries, bagels.getParent());
         assertEquals(1, bagels.getPosition());
-        assertEquals(0, bagels.getSubtaskCount());
+        assertEquals(0, bagels.getChildCount());
 
         PlanItem apples = service.createSubtask(groceries.getId(), "apples");
         assertEquals("apples", apples.getName());
         assertSame(groceries, apples.getParent());
         assertEquals(0, apples.getPosition());
-        assertEquals(0, apples.getSubtaskCount());
+        assertEquals(0, apples.getChildCount());
 
         assertEquals(0, apples.getPosition());
         assertEquals(1, oj.getPosition());
         assertEquals(2, bagels.getPosition());
 
-        assertEquals(3, groceries.getSubtaskCount());
-        Iterator<PlanItem> itr = groceries.getOrderedSubtasksView().iterator();
+        assertEquals(3, groceries.getChildCount());
+        Iterator<PlanItem> itr = groceries.getOrderedChildView().iterator();
         assertSame(apples, itr.next());
         assertSame(oj, itr.next());
         assertSame(bagels, itr.next());
@@ -161,7 +161,7 @@ public class TaskServiceTest {
         entityManager.clear();
 
         groceries = listRepo.getReferenceById(groceries.getId());
-        List<PlanItem> view = groceries.getOrderedSubtasksView();
+        List<PlanItem> view = groceries.getOrderedChildView();
         Iterator<PlanItem> itr = view.iterator();
         assertEquals("bagels", itr.next().getName());
         assertEquals("milk", itr.next().getName());

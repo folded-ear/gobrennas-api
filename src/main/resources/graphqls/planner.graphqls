@@ -3,40 +3,47 @@ extend type Query {
     getPlanItem(id: ID!): PlanItem
 }
 
-type Plan implements Node & Owned & AccessControlled {
+interface CorePlanItem implements Node {
+    id: ID!
+    name: String!
+    children: [PlanItem!]!
+    descendants: [PlanItem!]!
+}
+
+type Plan implements Node & Owned & AccessControlled & CorePlanItem {
     id: ID!
     owner: User!
     name: String!
     grants: [AccessControlEntry!]!
-    buckets: [PlanBucket]
+    children: [PlanItem!]!
+    descendants: [PlanItem!]!
+    buckets: [PlanBucket!]!
 }
 
 """
 Represents a single item on a plan
 """
-type PlanItem implements Node {
+type PlanItem implements Node & CorePlanItem {
     id: ID!
     name: String!
     quantity: NonNegativeFloat
     units: String
     preparation: String
     notes: String
-    parent: PlanItem
+    plan: Plan!
+    parent: PlanItem!
+    children: [PlanItem!]!
+    "DEPRECATED: use 'children' instead"
     subtasks: [PlanItem]
-    components: [PlanItem]
+    descendants: [PlanItem!]!
+    components: [PlanItem!]!
     bucket: PlanBucket
     status: TaskStatus!
-    #    aggregateId: ID!
-    #    ingredientId: ID!
-
-    #    parentId: ID!
-    #    subtaskIds: [ID!]
-
 }
 
 type PlanBucket {
     id: ID!
-    name: String!
+    name: String
     date: Date!
 }
 

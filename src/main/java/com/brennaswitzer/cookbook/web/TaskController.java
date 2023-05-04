@@ -78,7 +78,7 @@ public class TaskController {
     ) {
         return PlanItemInfo.fromTasks(taskService
                                               .getTaskById(parentId)
-                                              .getOrderedSubtasksView());
+                                              .getOrderedChildView());
     }
 
     @PutMapping("/{id}/name")

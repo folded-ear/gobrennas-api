@@ -100,7 +100,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
 
     @OneToMany(mappedBy = "parent", cascade = ALL)
     @BatchSize(size = 100)
-    private Set<PlanItem> subtasks;
+    private Set<PlanItem> children;
 
     @ManyToOne
     private Plan trashBin;
@@ -149,7 +149,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     public void setChildPosition(PlanItem child, int position) {
         AtomicInteger seq = new AtomicInteger();
         boolean pending = true;
-        for (PlanItem t : getOrderedSubtasksView()) {
+        for (PlanItem t : getOrderedChildView()) {
             if (t.equals(child)) continue;
             int min = seq.getAndIncrement();
             if (pending && min >= position) {
@@ -169,7 +169,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
         }
     }
 
-    public boolean isSubtask() {
+    public boolean isChild() {
         return getParent() != null;
     }
 
@@ -177,8 +177,8 @@ public class PlanItem extends BaseEntity implements MutableItem {
         return getAggregate() != null;
     }
 
-    public boolean hasSubtasks() {
-        return getSubtaskCount() != 0;
+    public boolean hasChildren() {
+        return getChildCount() != 0;
     }
 
     public boolean hasComponents() {
@@ -209,19 +209,19 @@ public class PlanItem extends BaseEntity implements MutableItem {
             throw new IllegalArgumentException("You can't make a task a descendant of one of its own descendants");
         }
         // tear down the old one
-        if (currentParent != null && currentParent.subtasks != null) {
-            if (!currentParent.subtasks.remove(this)) {
+        if (currentParent != null && currentParent.children != null) {
+            if (!currentParent.children.remove(this)) {
                 throw new IllegalStateException("Task #" + getId() + " wasn't a subtask of its parent #" + currentParent.getId() + "?!");
             }
             currentParent.markDirty();
         }
         // wire up the new one
         if (parent != null) {
-            if (parent.subtasks == null) {
-                parent.subtasks = new HashSet<>();
+            if (parent.children == null) {
+                parent.children = new HashSet<>();
             }
-            if (parent.subtasks.add(this)) {
-                setPosition(1 + parent.subtasks
+            if (parent.children.add(this)) {
+                setPosition(1 + parent.children
                         .stream()
                         .map(PlanItem::getPosition)
                         .reduce(0, Integer::max));
@@ -232,8 +232,8 @@ public class PlanItem extends BaseEntity implements MutableItem {
     }
 
     public void moveToTrash() {
-        this.trashBin = getTaskList();
-        this.trashBin.getTrashBinTasks().add(this);
+        this.trashBin = getPlan();
+        this.trashBin.getTrashBinItems().add(this);
         this.status = TaskStatus.DELETED;
         getParent().markDirty();
     }
@@ -250,7 +250,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
             // can't put it back where it was, so top-level it is!
             setParent(this.trashBin);
         }
-        this.trashBin.getTrashBinTasks().remove(this);
+        this.trashBin.getTrashBinItems().remove(this);
         this.trashBin = null;
         getParent().markDirty();
         this.status = TaskStatus.NEEDED;
@@ -280,20 +280,20 @@ public class PlanItem extends BaseEntity implements MutableItem {
         return getParent() != null;
     }
 
-    public Plan getTaskList() {
-        return getParent().getTaskList();
+    public Plan getPlan() {
+        return getParent().getPlan();
     }
 
     /**
-     * Add a new Task to the end of this list.
+     * Add a new PlanItem to the end of this list.
      *
-     * @param task the task to add.
+     * @param item the item to add.
      */
-    public void addSubtask(PlanItem task) {
-        if (task == null) {
-            throw new IllegalArgumentException("You can't add the null subtask");
+    public void addChild(PlanItem item) {
+        if (item == null) {
+            throw new IllegalArgumentException("You can't add a null child item");
         }
-        task.setParent(this);
+        item.setParent(this);
     }
 
     /**
@@ -302,7 +302,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
      * @param t the task to add as a component
      */
     public void addAggregateComponent(PlanItem t) {
-        addSubtask(t);
+        addChild(t);
         t.setAggregate(this);
     }
 
@@ -327,7 +327,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
         if (task == null) {
             throw new IllegalArgumentException("You can't add the null subtask");
         }
-        addSubtask(task);
+        addChild(task);
         setChildPosition(task, position);
     }
 
@@ -338,28 +338,27 @@ public class PlanItem extends BaseEntity implements MutableItem {
         task.setParent(null);
     }
 
-    public Collection<PlanItem> getSubtaskView() {
+    public Collection<PlanItem> getChildView() {
         // I have no idea why HashSet::new doesn't work here, while
         // ArrayList::new is just fine
-        return Collections.unmodifiableSet(getSubtaskView(() ->
-                                                                  new HashSet<>()));
+        return Collections.unmodifiableSet(getChildView(() -> new HashSet<>()));
     }
 
-    private <T extends Collection<PlanItem>> T getSubtaskView(Supplier<T> collectionSupplier) {
-        if (subtasks == null) {
+    private <T extends Collection<PlanItem>> T getChildView(Supplier<T> collectionSupplier) {
+        if (children == null) {
             return collectionSupplier.get();
         }
-        return subtasks.stream()
+        return children.stream()
                 .filter(t -> !t.isInTrashBin()) // Predicate.not is Java 11 :(
                 .collect(Collectors.toCollection(collectionSupplier));
     }
 
-    public List<PlanItem> getOrderedSubtasksView() {
-        return getSubtaskView(BY_ORDER);
+    public List<PlanItem> getOrderedChildView() {
+        return getChildView(BY_ORDER);
     }
 
-    public List<PlanItem> getSubtaskView(Comparator<PlanItem> comparator) {
-        val list = getSubtaskView(ArrayList::new);
+    public List<PlanItem> getChildView(Comparator<PlanItem> comparator) {
+        val list = getChildView(ArrayList::new);
         list.sort(comparator);
         return list;
     }
@@ -370,16 +369,15 @@ public class PlanItem extends BaseEntity implements MutableItem {
 
     public List<PlanItem> getComponentView(Comparator<PlanItem> comparator) {
         if (components == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         List<PlanItem> list = new ArrayList<>(components);
         list.sort(comparator);
         return list;
     }
 
-    public int getSubtaskCount() {
-        return subtasks == null ? 0 : subtasks.size();
+    public int getChildCount() {
+        return children == null ? 0 : children.size();
     }
 
     public int getComponentCount() {
@@ -389,7 +387,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(getName());
-        if (isSubtask()) {
+        if (isChild()) {
             sb.append(" [")
                     .append(getParent().getName()) // NOT .toString()!
                     .append(']');
@@ -398,7 +396,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     }
 
     public PlanItem of(PlanItem parent) {
-        parent.addSubtask(this);
+        parent.addChild(this);
         return this;
     }
 

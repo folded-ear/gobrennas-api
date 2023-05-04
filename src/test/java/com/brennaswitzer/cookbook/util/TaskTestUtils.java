@@ -43,7 +43,7 @@ public final class TaskTestUtils {
         sb.append("  ".repeat(Math.max(0, depth)));
         sb.append(t.getName());
         sb.append('\n');
-        for (PlanItem s : t.getSubtaskView(PlanItem.BY_ORDER)) {
+        for (PlanItem s : t.getChildView(PlanItem.BY_ORDER)) {
             renderTree(sb, s, depth + 1);
         }
         if (Hibernate.unproxy(t) instanceof Plan) {
@@ -52,7 +52,7 @@ public final class TaskTestUtils {
                 sb.append("  ".repeat(Math.max(0, depth)));
                 sb.append("[trash]");
                 sb.append('\n');
-                for (PlanItem s : l.getTrashBinTasks()) {
+                for (PlanItem s : l.getTrashBinItems()) {
                     renderTree(sb, s, depth + 1);
                 }
             }

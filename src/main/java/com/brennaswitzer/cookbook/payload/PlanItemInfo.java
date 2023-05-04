@@ -25,11 +25,11 @@ public class PlanItemInfo {
             info.notes = item.getNotes();
         }
         info.status = item.getStatus();
-        if (item.isSubtask()) {
+        if (item.isChild()) {
             info.parentId = item.getParent().getId();
         }
-        if (item.hasSubtasks()) {
-            info.subtaskIds = toIdList(item.getOrderedSubtasksView());
+        if (item.hasChildren()) {
+            info.subtaskIds = toIdList(item.getOrderedChildView());
         }
         if (item.isComponent()) {
             info.aggregateId = item.getAggregate().getId();

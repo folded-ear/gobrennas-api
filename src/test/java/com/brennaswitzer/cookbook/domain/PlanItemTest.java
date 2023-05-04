@@ -22,20 +22,20 @@ public class PlanItemTest {
     @Test
     public void addSubtask_basics() {
         PlanItem groceries = new PlanItem("Groceries");
-        assertFalse(groceries.isSubtask());
-        assertFalse(groceries.hasSubtasks());
-        assertEquals(0, groceries.getSubtaskCount());
+        assertFalse(groceries.isChild());
+        assertFalse(groceries.hasChildren());
+        assertEquals(0, groceries.getChildCount());
 
         PlanItem oj = new PlanItem("OJ");
-        groceries.addSubtask(oj);
+        groceries.addChild(oj);
 
-        assertFalse(groceries.isSubtask());
-        assertTrue(groceries.hasSubtasks());
-        assertEquals(1, groceries.getSubtaskCount());
+        assertFalse(groceries.isChild());
+        assertTrue(groceries.hasChildren());
+        assertEquals(1, groceries.getChildCount());
 
-        assertTrue(oj.isSubtask());
+        assertTrue(oj.isChild());
         assertSame(groceries, oj.getParent());
-        assertSame(oj, groceries.getSubtaskView().iterator().next());
+        assertSame(oj, groceries.getChildView().iterator().next());
     }
 
     @Test
@@ -45,10 +45,10 @@ public class PlanItemTest {
         PlanItem oj = new PlanItem("OJ");
         PlanItem bagels = new PlanItem("Bagels");
         PlanItem iceCream = new PlanItem("Ice Cream");
-        groceries.addSubtask(apples);
-        groceries.addSubtask(oj);
-        groceries.addSubtask(bagels);
-        groceries.addSubtask(iceCream);
+        groceries.addChild(apples);
+        groceries.addChild(oj);
+        groceries.addChild(bagels);
+        groceries.addChild(iceCream);
 
         assertBefore(apples, oj);
         assertBefore(oj, bagels);
@@ -62,8 +62,8 @@ public class PlanItemTest {
         PlanItem oj = new PlanItem("OJ");
         PlanItem bagels = new PlanItem("Bagels");
         PlanItem iceCream = new PlanItem("Ice Cream");
-        groceries.addSubtask(oj);
-        groceries.addSubtask(bagels);
+        groceries.addChild(oj);
+        groceries.addChild(bagels);
         groceries.addSubtaskAfter(apples, null);
         groceries.addSubtaskAfter(iceCream, apples);
 
@@ -87,9 +87,9 @@ public class PlanItemTest {
         PlanItem oj = new PlanItem("OJ");
         PlanItem bagels = new PlanItem("Bagels");
         PlanItem iceCream = new PlanItem("Ice Cream");
-        groceries.addSubtask(apples);
-        groceries.addSubtask(oj);
-        groceries.addSubtask(bagels);
+        groceries.addChild(apples);
+        groceries.addChild(oj);
+        groceries.addChild(bagels);
         groceries.insertSubtask(bagels.getPosition(), iceCream);
 
         assertBefore(apples, oj);
@@ -103,9 +103,9 @@ public class PlanItemTest {
         PlanItem apples = new PlanItem("Apples");
         PlanItem bagels = new PlanItem("Bagels");
         PlanItem chicken = new PlanItem("Chicken");
-        groceries.addSubtask(apples);
-        groceries.addSubtask(bagels);
-        groceries.addSubtask(chicken);
+        groceries.addChild(apples);
+        groceries.addChild(bagels);
+        groceries.addChild(chicken);
         assertBefore(apples, bagels);
         assertBefore(bagels, chicken);
 
@@ -126,13 +126,13 @@ public class PlanItemTest {
         assertEquals("Groceries", groceries.toString());
 
         PlanItem oj = new PlanItem("OJ");
-        groceries.addSubtask(oj);
+        groceries.addChild(oj);
 
         assertEquals("Groceries", groceries.toString());
         assertEquals("OJ [Groceries]", oj.toString());
 
         PlanItem orange = new PlanItem("Orange");
-        oj.addSubtask(orange);
+        oj.addChild(orange);
 
         assertEquals("OJ [Groceries]", oj.toString());
         assertEquals("Orange [OJ]", orange.toString());
@@ -242,11 +242,11 @@ public class PlanItemTest {
     public void trashBin() {
         val plan = new Plan("The Plan");
         val a = new PlanItem("a");
-        plan.addSubtask(a);
+        plan.addChild(a);
         val b = new PlanItem("b");
-        a.addSubtask(b);
+        a.addChild(b);
         val c = new PlanItem("c");
-        b.addSubtask(c);
+        b.addChild(c);
 
         System.out.println(renderTree("initial", plan));
 
