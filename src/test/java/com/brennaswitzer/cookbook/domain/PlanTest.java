@@ -5,15 +5,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-public class TaskListTest {
+public class PlanTest {
 
     @Test
     public void owner() {
-        TaskList list = new TaskList();
-        assertNull(list.getOwner());
+        Plan plan = new Plan();
+        assertNull(plan.getOwner());
         User u = new User();
-        list.setOwner(u);
-        assertSame(u, list.getOwner());
+        plan.setOwner(u);
+        assertSame(u, plan.getOwner());
     }
 
 }

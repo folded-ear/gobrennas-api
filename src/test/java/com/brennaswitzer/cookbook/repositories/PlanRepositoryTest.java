@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
-import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,16 +16,21 @@ import javax.persistence.EntityManager;
 import java.time.Instant;
 import java.util.Iterator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @Transactional
 @WithAliceBobEve
-public class TaskListRepositoryTest {
+public class PlanRepositoryTest {
 
     @Autowired
-    private TaskListRepository repo;
+    private PlanRepository repo;
 
     @Autowired
     private EntityManager entityManager;
@@ -46,7 +51,7 @@ public class TaskListRepositoryTest {
     public void createUpdateTimestamps() throws InterruptedException {
         assertFalse(repo.findByOwner(alice).iterator().hasNext());
 
-        TaskList groceries = new TaskList(alice, "Groceries");
+        Plan groceries = new Plan(alice, "Groceries");
         assertNull(groceries.getCreatedAt());
         assertNull(groceries.getUpdatedAt());
         groceries = repo.save(groceries);
@@ -67,12 +72,12 @@ public class TaskListRepositoryTest {
 
     @Test
     public void findAccessibleLists() {
-        Iterable<TaskList> lists = repo.findAccessibleLists(alice.getId());
-        Iterator<TaskList> itr = lists.iterator();
+        Iterable<Plan> lists = repo.findAccessibleLists(alice.getId());
+        Iterator<Plan> itr = lists.iterator();
         assertFalse(itr.hasNext());
 
-        TaskList alicesList = repo.save(new TaskList(alice, "Alice's List"));
-        TaskList bobsList = repo.save(new TaskList(bob, "Bob's List"));
+        Plan alicesList = repo.save(new Plan(alice, "Alice's List"));
+        Plan bobsList = repo.save(new Plan(bob, "Bob's List"));
 
         lists = repo.findAccessibleLists(alice.getId());
         itr = lists.iterator();

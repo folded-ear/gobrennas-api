@@ -13,11 +13,11 @@ public class PhotoResolver implements GraphQLResolver<Photo> {
     @Autowired
     private StorageService storageService;
 
-    public String getUrl(Photo photo) {
+    public String url(Photo photo) {
         return storageService.load(photo.getObjectKey());
     }
 
-    public float[] getFocus(Photo photo) {
+    public float[] focus(Photo photo) {
         return photo.getFocusArray();
     }
 

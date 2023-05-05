@@ -1,9 +1,9 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.Quantity;
-import com.brennaswitzer.cookbook.domain.Task;
-import com.brennaswitzer.cookbook.domain.TaskList;
-import com.brennaswitzer.cookbook.domain.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,50 +15,46 @@ import java.util.stream.StreamSupport;
 import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
 
 @SuppressWarnings("WeakerAccess")
-public class TaskInfo {
+public class PlanItemInfo {
 
-    public static TaskInfo fromTask(Task task) {
-        TaskInfo info = new TaskInfo();
-        info.id = task.getId();
-        info.name = task.getName();
-        if (task.hasNotes()) {
-            info.notes = task.getNotes();
+    public static PlanItemInfo fromPlanItem(PlanItem item) {
+        PlanItemInfo info = new PlanItemInfo();
+        info.id = item.getId();
+        info.name = item.getName();
+        if (item.hasNotes()) {
+            info.notes = item.getNotes();
         }
-        info.status = task.getStatus();
-        if (task.isSubtask()) {
-            info.parentId = task.getParent().getId();
+        info.status = item.getStatus();
+        if (item.isChild()) {
+            info.parentId = item.getParent().getId();
         }
-        if (task.hasSubtasks()) {
-            info.subtaskIds = toIdList(task.getOrderedSubtasksView());
+        if (item.hasChildren()) {
+            info.subtaskIds = toIdList(item.getOrderedChildView());
         }
-        if (task.isComponent()) {
-            info.aggregateId = task.getAggregate().getId();
+        if (item.isComponent()) {
+            info.aggregateId = item.getAggregate().getId();
         }
-        if (task.hasComponents()) {
-            info.componentIds = toIdList(task.getOrderedComponentsView());
+        if (item.hasComponents()) {
+            info.componentIds = toIdList(item.getOrderedComponentsView());
         }
-        if (task.hasIngredient()) {
-            info.ingredientId = task.getIngredient().getId();
-            Quantity q = task.getQuantity();
+        if (item.hasIngredient()) {
+            info.ingredientId = item.getIngredient().getId();
+            Quantity q = item.getQuantity();
             info.quantity = q.getQuantity();
             if (q.hasUnits()) {
                 info.uomId = q.getUnits().getId();
                 info.units = q.getUnits().getName();
             }
-            info.preparation = task.getPreparation();
+            info.preparation = item.getPreparation();
         }
-        if (task.hasBucket()) {
-            info.bucketId = task.getBucket().getId();
+        if (item.hasBucket()) {
+            info.bucketId = item.getBucket().getId();
         }
         return info;
     }
 
-    public static TaskInfo fromList(TaskList list) {
-        return fromPlan(list);
-    }
-
-    public static TaskInfo fromPlan(TaskList plan) {
-        TaskInfo info = fromTask(plan);
+    public static PlanItemInfo fromPlan(Plan plan) {
+        PlanItemInfo info = fromPlanItem(plan);
         info.acl = AclInfo.fromAcl(plan.getAcl());
         if (plan.hasBuckets()) {
             info.buckets = plan.getBuckets().stream()
@@ -68,19 +64,15 @@ public class TaskInfo {
         return info;
     }
 
-    public static List<TaskInfo> fromTasks(Iterable<Task> tasks) {
-        return StreamSupport.stream(tasks.spliterator(), false)
-                .map(TaskInfo::fromTask)
+    public static List<PlanItemInfo> fromPlanItems(Iterable<PlanItem> items) {
+        return StreamSupport.stream(items.spliterator(), false)
+                .map(PlanItemInfo::fromPlanItem)
                 .collect(Collectors.toList());
     }
 
-    public static List<TaskInfo> fromLists(Iterable<TaskList> lists) {
-        return fromPlans(lists);
-    }
-
-    public static List<TaskInfo> fromPlans(Iterable<TaskList> plans) {
+    public static List<PlanItemInfo> fromPlans(Iterable<Plan> plans) {
         return StreamSupport.stream(plans.spliterator(), false)
-                .map(TaskInfo::fromList)
+                .map(PlanItemInfo::fromPlan)
                 .collect(Collectors.toList());
     }
 
@@ -98,7 +90,7 @@ public class TaskInfo {
 
     @Getter
     @Setter
-    private TaskStatus status;
+    private PlanItemStatus status;
 
     @Getter
     @Setter

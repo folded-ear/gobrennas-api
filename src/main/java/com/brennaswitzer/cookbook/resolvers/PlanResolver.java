@@ -1,16 +1,33 @@
 package com.brennaswitzer.cookbook.resolvers;
 
-import com.brennaswitzer.cookbook.domain.TaskList;
+import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.services.PlanService;
 import graphql.kickstart.tools.GraphQLResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
-@Component
-public class PlanResolver implements GraphQLResolver<TaskList> {
+import static com.brennaswitzer.cookbook.util.CollectionUtils.tail;
 
-    public List<AccessControlEntry> getGrants(TaskList taskList) {
-        return AclHelpers.getGrants(taskList);
+@SuppressWarnings("unused") // component-scanned for graphql-java
+@Component
+public class PlanResolver implements GraphQLResolver<Plan> {
+
+    @Autowired
+    private PlanService planService;
+
+    public List<AccessControlEntry> grants(Plan plan) {
+        return AclHelpers.getGrants(plan);
     }
+
+    public List<PlanItem> children(PlanItem item) {
+        return item.getOrderedChildView();
+    }
+
+    public List<PlanItem> descendants(Plan plan) {
+        return tail(planService.getTreeById(plan));
+    }
+
 }

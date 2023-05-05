@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
-public enum TaskStatus implements Identified {
+public enum PlanItemStatus implements Identified {
 
     NEEDED(0L),
     ACQUIRED(50L),
@@ -9,7 +9,7 @@ public enum TaskStatus implements Identified {
 
     private final Long id;
 
-    TaskStatus(Long id) {
+    PlanItemStatus(Long id) {
         this.id = id;
     }
 

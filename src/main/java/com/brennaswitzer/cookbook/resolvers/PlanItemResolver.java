@@ -1,22 +1,46 @@
 package com.brennaswitzer.cookbook.resolvers;
 
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Quantity;
-import com.brennaswitzer.cookbook.domain.Task;
+import com.brennaswitzer.cookbook.services.PlanService;
 import graphql.kickstart.tools.GraphQLResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-public class PlanItemResolver implements GraphQLResolver<Task> {
+import java.util.List;
 
-    Double getQuantity(Task task) {
-        return task.getQuantity().getQuantity();
+import static com.brennaswitzer.cookbook.util.CollectionUtils.tail;
+
+@SuppressWarnings("unused") // component-scanned for graphql-java
+@Component
+public class PlanItemResolver implements GraphQLResolver<PlanItem> {
+
+    @Autowired
+    private PlanService planService;
+
+    public Double quantity(PlanItem item) {
+        return item.getQuantity().getQuantity();
     }
 
-    String getUnits(Task task) {
-        Quantity q = task.getQuantity();
-        if(q.hasUnits()) {
+    public String units(PlanItem item) {
+        Quantity q = item.getQuantity();
+        if (q.hasUnits()) {
             return q.getUnits().getName();
-        } else return null;
+        } else {
+            return null;
+        }
+    }
+
+    public List<PlanItem> children(PlanItem item) {
+        return item.getOrderedChildView();
+    }
+
+    public List<PlanItem> components(PlanItem item) {
+        return item.getOrderedComponentsView();
+    }
+
+    public List<PlanItem> descendants(PlanItem item) {
+        return tail(planService.getTreeById(item));
     }
 
 }

@@ -4,14 +4,18 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @DiscriminatorValue("plan")
-public class TaskList extends Task implements AccessControlled {
+public class Plan extends PlanItem implements AccessControlled {
 
     @Embedded
     @NotNull
@@ -25,27 +29,27 @@ public class TaskList extends Task implements AccessControlled {
 
     @OneToMany(mappedBy = "trashBin", cascade = CascadeType.ALL)
     @BatchSize(size = 100)
-    private Set<Task> trashBinTasks;
+    private Set<PlanItem> trashBinItems;
 
-    public TaskList() {
+    public Plan() {
     }
 
-    public TaskList(String name) {
+    public Plan(String name) {
         super(name);
     }
 
-    public TaskList(User owner, String name) {
+    public Plan(User owner, String name) {
         super(name);
         setOwner(owner);
     }
 
     @Override
-    public void setParent(Task parent) {
-        throw new UnsupportedOperationException("TaskLists can't have parents");
+    public void setParent(PlanItem parent) {
+        throw new UnsupportedOperationException("Plans can't have parents");
     }
 
     @Override
-    public TaskList getTaskList() {
+    public Plan getPlan() {
         return this;
     }
 
@@ -60,15 +64,15 @@ public class TaskList extends Task implements AccessControlled {
         return buckets != null && !buckets.isEmpty();
     }
 
-    public Set<Task> getTrashBinTasks() {
-        if (trashBinTasks == null) {
-            trashBinTasks = new HashSet<>();
+    public Set<PlanItem> getTrashBinItems() {
+        if (trashBinItems == null) {
+            trashBinItems = new HashSet<>();
         }
-        return trashBinTasks;
+        return trashBinItems;
     }
 
     public boolean hasTrash() {
-        return trashBinTasks != null && !trashBinTasks.isEmpty();
+        return trashBinItems != null && !trashBinItems.isEmpty();
     }
 
     public User getOwner() {
