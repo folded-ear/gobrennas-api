@@ -222,7 +222,7 @@ function getUrlParts(scripts) {
         right: 0,
         zIndex: 99999,
         backgroundColor: "whitesmoke",
-        border: "1px solid #bf360c",
+        border: "1px solid #F57F17",
         borderRightWidth: 0,
         borderTopWidth: 0,
         boxShadow: "0 5px 5px #d3b8ae",
@@ -234,7 +234,7 @@ function getUrlParts(scripts) {
         fontSize: "2rem",
         fontWeight: "bold",
         padding: "0.2em 0.4em",
-        backgroundColor: "#bf360c",
+        backgroundColor: "#F57F17",
         color: "#fff",
     });
     const formItemStyle = toStyle({
@@ -260,7 +260,7 @@ function getUrlParts(scripts) {
         borderRadius: "0.2em",
         color: "white",
         textTransform: "uppercase",
-        backgroundColor: "#bf360c",
+        backgroundColor: "#F57F17",
         border: "1px solid #ddd",
         fontWeight: "bold",
         padding: "0.5em 1em",
