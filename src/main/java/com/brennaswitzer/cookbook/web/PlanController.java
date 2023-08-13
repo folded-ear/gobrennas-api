@@ -19,6 +19,8 @@ import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
+import com.brennaswitzer.cookbook.util.ShareHelper;
+import com.brennaswitzer.cookbook.util.SlugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,18 +37,23 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @RestController
-@RequestMapping({"api/plan",
-        "api/tasks"})
+@RequestMapping({ "api/plan",
+        "api/tasks" })
 @PreAuthorize("hasRole('USER')")
 public class PlanController {
 
     @Autowired
     private PlanService planService;
+
+    @Autowired
+    private ShareHelper shareHelper;
 
     @Autowired
     private UserRepository userRepo;
@@ -85,8 +92,21 @@ public class PlanController {
         return AclInfo.fromAcl(plan.getAcl());
     }
 
-    @GetMapping({"/{id}/self-and-descendants",
-            "/{id}/descendants"})
+    @GetMapping("/{id}/share")
+    public Object getShareInfoById(
+            @PathVariable("id") Long id
+    ) {
+        Plan plan = planService.getPlanById(id);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", plan.getId());
+        result.put("slug", SlugUtils.toSlug(plan.getName()));
+        result.put("secret", shareHelper.getSecret(Plan.class,
+                                                   plan.getId()));
+        return result;
+    }
+
+    @GetMapping({ "/{id}/self-and-descendants",
+            "/{id}/descendants" })
     public List<PlanItemInfo> getDescendants(
             @PathVariable("id") Long id
     ) {

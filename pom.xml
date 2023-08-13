@@ -165,6 +165,11 @@
             <artifactId>postgres-socket-factory</artifactId>
             <version>1.6.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.mnode.ical4j</groupId>
+            <artifactId>ical4j</artifactId>
+            <version>3.2.12</version>
+        </dependency>
     </dependencies>
 
     <build>

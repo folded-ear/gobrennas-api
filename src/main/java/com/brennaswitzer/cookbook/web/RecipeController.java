@@ -15,6 +15,7 @@ import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.services.indexing.IndexStats;
 import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
+import com.brennaswitzer.cookbook.util.SlugUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,20 +163,11 @@ public class RecipeController {
     ) {
         //noinspection OptionalGetWithoutIsPresent
         Recipe r = recipeService.findRecipeById(id).get();
-        String secret = shareHelper.getSecret(r);
-        String slug = r.getName()
-                .toLowerCase()
-                .replaceAll("[^a-z0-9]+", " ")
-                .trim();
-        if (slug.length() > 35) {
-            slug = slug.substring(0, 30);
-        }
-        slug = slug.trim().replace(' ', '-');
-
         Map<String, Object> result = new HashMap<>();
-        result.put("slug", slug);
-        result.put("secret", secret);
-        result.put("id", id);
+        result.put("id", r.getId());
+        result.put("slug", SlugUtils.toSlug(r.getName()));
+        result.put("secret", shareHelper.getSecret(Recipe.class,
+                                                   r.getId()));
         return result;
     }
 

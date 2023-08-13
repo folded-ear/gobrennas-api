@@ -1,6 +1,10 @@
 package com.brennaswitzer.cookbook.web;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.AggregateIngredient;
+import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.UserInfo;
@@ -14,7 +18,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 @Controller
 @RequestMapping("/shared/recipe")
@@ -32,9 +41,8 @@ public class SharedRecipeController {
     @GetMapping("/{slug}/{secret}/{id}.json")
     @ResponseBody
     public Object getSharedRecipe(
-            @SuppressWarnings("unused") @PathVariable("slug") String slug,
-            @PathVariable("id") Long id,
-            @PathVariable("secret") String secret
+            @PathVariable("secret") String secret,
+            @PathVariable("id") Long id
     ) {
         if (!helper.isSecretValid(Recipe.class, id, secret)) {
             throw new AuthorizationServiceException("Bad secret");

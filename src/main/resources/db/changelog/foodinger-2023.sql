@@ -108,3 +108,9 @@ ALTER TABLE task_list_grants
     RENAME TO plan_grants;
 ALTER TABLE plan_grants
     RENAME task_list_id TO plan_id;
+
+--changeset barneyb:mod-counts-for-plan-items-and-buckets
+alter table plan_item
+    add mod_count int not null default 1;
+alter table plan_bucket
+    add mod_count int not null default 1;
