@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -13,8 +14,11 @@ import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Email;
+import net.fortuna.ical4j.model.parameter.FbType;
 import net.fortuna.ical4j.model.property.CalScale;
+import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStart;
+import net.fortuna.ical4j.model.property.FreeBusy;
 import net.fortuna.ical4j.model.property.Organizer;
 import net.fortuna.ical4j.model.property.RefreshInterval;
 import net.fortuna.ical4j.model.property.Sequence;
@@ -44,6 +48,9 @@ public class PlanCalendar {
     @Autowired
     private PlanBucketRepository bucketRepo;
 
+    @Autowired
+    private AppProperties appProperties;
+
     private VEvent getEvent(PlanItem item) {
         return new VEvent()
                 .withProperty(getEventSummary(item))
@@ -51,7 +58,29 @@ public class PlanCalendar {
                 .withProperty(getEventUid(item))
                 .withProperty(getEventSequence(item))
                 .withProperty(getEventOrganizer(item))
+                .withProperty(getFreeBusy(item))
+                .withProperty(getDescription(item))
                 .getFluentTarget();
+    }
+
+    @NotNull
+    private FreeBusy getFreeBusy(PlanItem item) {
+        return new FreeBusy()
+                .withParameter(FbType.FREE)
+                .getFluentTarget();
+    }
+
+    private Description getDescription(PlanItem item) {
+        Plan plan = item.getPlan();
+        return new Description(String.format(
+                "<p>Cook: <a href=\"%splan/%s/recipe/%s\">%s</a></p>%n" +
+                        "%n" +
+                        "<p>Plan: <a href=\"%1$splan/%2$s\">%s</a></p>",
+                appProperties.getPublicUrl(),
+                plan.getId(),
+                item.getId(),
+                item.getName(),
+                plan.getName()));
     }
 
     private Summary getEventSummary(PlanItem item) {
