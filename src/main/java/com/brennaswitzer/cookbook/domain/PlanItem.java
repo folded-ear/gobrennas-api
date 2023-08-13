@@ -15,6 +15,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,7 +110,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
     @Getter
     private PlanItem aggregate;
 
-    @OneToMany(mappedBy = "aggregate", cascade = {PERSIST, MERGE, REFRESH, DETACH})
+    @OneToMany(mappedBy = "aggregate", cascade = { PERSIST, MERGE, REFRESH, DETACH })
     @BatchSize(size = 100)
     private Set<PlanItem> components;
 
@@ -122,6 +123,11 @@ public class PlanItem extends BaseEntity implements MutableItem {
     @Setter
     @ManyToOne
     private PlanBucket bucket;
+
+    @Getter
+    @Setter
+    @Column(name = "mod_count")
+    private int modCount;
 
     public PlanItem() {
     }
@@ -144,6 +150,17 @@ public class PlanItem extends BaseEntity implements MutableItem {
 
     public PlanItem(String name, Ingredient ingredient) {
         this(name, null, ingredient, null);
+    }
+
+    @Override
+    protected void onPrePersist() {
+        super.onPrePersist();
+        setModCount(1);
+    }
+
+    @PreUpdate
+    protected void onPreUpdate() {
+        setModCount(getModCount() + 1);
     }
 
     public void setChildPosition(PlanItem child, int position) {
