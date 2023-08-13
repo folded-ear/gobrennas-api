@@ -61,4 +61,12 @@ public class PlanBucket extends BaseEntity {
         setModCount(getModCount() + 1);
     }
 
+    public boolean isDated() {
+        return date != null;
+    }
+
+    public boolean isNamed() {
+        return name != null && !name.isBlank();
+    }
+
 }
