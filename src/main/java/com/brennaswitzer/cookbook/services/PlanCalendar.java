@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.FluentCalendar;
+import net.fortuna.ical4j.model.FluentComponent;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
@@ -17,9 +18,11 @@ import net.fortuna.ical4j.model.parameter.Email;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStart;
+import net.fortuna.ical4j.model.property.Method;
 import net.fortuna.ical4j.model.property.Organizer;
 import net.fortuna.ical4j.model.property.RefreshInterval;
 import net.fortuna.ical4j.model.property.Sequence;
+import net.fortuna.ical4j.model.property.Status;
 import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.model.property.Transp;
 import net.fortuna.ical4j.model.property.Uid;
@@ -51,15 +54,19 @@ public class PlanCalendar {
     private AppProperties appProperties;
 
     private VEvent getEvent(PlanItem item) {
-        return new VEvent()
+        FluentComponent event = new VEvent()
                 .withProperty(getEventSummary(item))
                 .withProperty(getEventStartDate(item))
                 .withProperty(getEventUid(item))
                 .withProperty(getEventSequence(item))
                 .withProperty(getEventOrganizer(item))
                 .withProperty(getEventTransparency(item))
-                .withProperty(getEventDescription(item))
-                .getFluentTarget();
+                .withProperty(getEventDescription(item));
+        if (item.isInTrashBin()) {
+            event.withProperty(Method.CANCEL)
+                    .withProperty(Status.VEVENT_CANCELLED);
+        }
+        return event.getFluentTarget();
     }
 
     @NotNull
