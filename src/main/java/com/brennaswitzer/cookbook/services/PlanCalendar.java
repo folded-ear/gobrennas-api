@@ -14,15 +14,14 @@ import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Email;
-import net.fortuna.ical4j.model.parameter.FbType;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStart;
-import net.fortuna.ical4j.model.property.FreeBusy;
 import net.fortuna.ical4j.model.property.Organizer;
 import net.fortuna.ical4j.model.property.RefreshInterval;
 import net.fortuna.ical4j.model.property.Sequence;
 import net.fortuna.ical4j.model.property.Summary;
+import net.fortuna.ical4j.model.property.Transp;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
 import org.jetbrains.annotations.NotNull;
@@ -58,24 +57,22 @@ public class PlanCalendar {
                 .withProperty(getEventUid(item))
                 .withProperty(getEventSequence(item))
                 .withProperty(getEventOrganizer(item))
-                .withProperty(getFreeBusy(item))
-                .withProperty(getDescription(item))
+                .withProperty(getEventTransparency(item))
+                .withProperty(getEventDescription(item))
                 .getFluentTarget();
     }
 
     @NotNull
-    private FreeBusy getFreeBusy(PlanItem item) {
-        return new FreeBusy()
-                .withParameter(FbType.FREE)
-                .getFluentTarget();
+    private Transp getEventTransparency(PlanItem item) {
+        return Transp.TRANSPARENT;
     }
 
-    private Description getDescription(PlanItem item) {
+    private Description getEventDescription(PlanItem item) {
         Plan plan = item.getPlan();
         return new Description(String.format(
-                "<p>Cook: <a href=\"%splan/%s/recipe/%s\">%s</a></p>%n" +
+                "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>%n" +
                         "%n" +
-                        "<p>Plan: <a href=\"%1$splan/%2$s\">%s</a></p>",
+                        "Plan: <a href=\"%1$splan/%2$s\">%s</a>",
                 appProperties.getPublicUrl(),
                 plan.getId(),
                 item.getId(),
