@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -366,7 +367,7 @@ public class PlanItem extends BaseEntity implements MutableItem {
             return collectionSupplier.get();
         }
         return children.stream()
-                .filter(t -> !t.isInTrashBin()) // Predicate.not is Java 11 :(
+                .filter(Predicate.not(PlanItem::isInTrashBin))
                 .collect(Collectors.toCollection(collectionSupplier));
     }
 

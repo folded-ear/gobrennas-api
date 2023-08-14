@@ -15,6 +15,7 @@ import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Email;
+import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStart;
@@ -41,6 +42,12 @@ import java.util.Comparator;
 @Service
 @Transactional
 public class PlanCalendar {
+
+    /**
+     * Used to artificially inflate sequence numbers when a code change
+     * requires an update to <em>all</em> events.
+     */
+    private static final int SEQUENCE_OFFSET = 1;
 
     private static final String PROD_ID = "-//Brenna's Food Software//NONSGML BFS API/plan Plan 1.0/EN";
 
@@ -116,7 +123,8 @@ public class PlanCalendar {
 
     private Sequence getEventSequence(PlanItem item) {
         return new Sequence(String.valueOf(
-                item.getModCount()
+                SEQUENCE_OFFSET
+                        + item.getModCount()
                         + item.getBucket().getModCount()));
     }
 
@@ -138,9 +146,8 @@ public class PlanCalendar {
                 .withProperty(new Summary(plan.getName() + " - Brenna's Food Software"))
                 .withProperty(Version.VERSION_2_0)
                 .withProperty(CalScale.GREGORIAN)
-                .withProperty(new RefreshInterval(
-                        new ParameterList(),
-                        Duration.of(4, ChronoUnit.HOURS)));
+                .withProperty(Method.PUBLISH)
+                .withProperty(getRefreshInterval());
         bucketRepo.streamAllByPlanIdAndDateIsNotNull(planId)
                 .sorted(Comparator.comparing(PlanBucket::getDate))
                 .map(PlanBucket::getItems)
@@ -148,6 +155,14 @@ public class PlanCalendar {
                 .map(this::getEvent)
                 .forEach(cal::withComponent);
         return cal.getFluentTarget();
+    }
+
+    private RefreshInterval getRefreshInterval() {
+        ParameterList params = new ParameterList();
+        params.add(Value.DURATION);
+        return new RefreshInterval(
+                params,
+                Duration.of(4, ChronoUnit.HOURS));
     }
 
 }
