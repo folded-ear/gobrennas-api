@@ -11,6 +11,7 @@ import com.brennaswitzer.cookbook.payload.RecognizedItem.Suggestion;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import lombok.Getter;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,12 +75,13 @@ public class ItemService {
             ));
         }
         RawIngredientDissection.Section secName = d.getName();
-        int idxNameStart = -1;
+        int idxExplicitItemStart = -1;
+        int idxImplicitItemStart = -1;
         if (secName != null) {
             // there's an explicit name
             Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
-            idxNameStart = secName.getStart();
+            idxExplicitItemStart = secName.getStart();
             item.withRange(new RecognizedItem.Range(
                     secName.getStart(),
                     secName.getEnd(),
@@ -89,27 +91,36 @@ public class ItemService {
                     oing.map(Ingredient::getId).orElse(null)
             ));
         } else if (!raw.contains("\"")) {
-            // no name, so see if there's an implicit one
+            // no explicit name, so see if there's an implicit one
             Optional<Range> matched = multiPass(item.unrecognizedWords(), raw);
             // TODO: Break out pieces and test for item service
             // This line means that when we have a match, we get no more suggestions, which is not the behavior we want
             // idxNameStart = matched.get().getStart();
-            matched.ifPresent(item::withRange);
+            if (matched.isPresent()) {
+                Range r = matched.get();
+                item.withRange(r);
+                idxImplicitItemStart = r.getStart();
+            }
         }
         if (secAmount != null && secUnit == null && !raw.contains("_")) {
-            // there's an amount, but no explicit unit, so see if there's an implicit one
-            for (RecognizedItem.Range r : item.unrecognizedWords()) {
-                // unit must precede name, so abort if we get there
-                if (idxNameStart >= 0 && idxNameStart < r.getStart()) break;
+            // There's an amount, but no explicit unit, so see if there's an
+            // implicit one. But only before the item, if one exists.
+            int idxItemStart = Math.max(
+                    idxExplicitItemStart,
+                    idxImplicitItemStart);
+            Iterable<Range> wordRanges = idxItemStart < 0
+                    ? item.unrecognizedWords()
+                    : item.unrecognizedWordsThrough(idxItemStart);
+            for (RecognizedItem.Range r : wordRanges) {
                 Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                         entityManager,
                         raw.substring(r.getStart(), r.getEnd()));
-                if (!ouom.isPresent()) continue;
+                if (ouom.isEmpty()) continue;
                 item.withRange(r.of(RecognizedItem.Type.UNIT).withValue(ouom.get().getId()));
                 break;
             }
         }
-        if (withSuggestions && idxNameStart < 0) { // there's no name, explicit or implicit
+        if (withSuggestions && idxExplicitItemStart < 0) { // there's no name, explicit or implicit
             // based on cursor position, see if we can suggest any names
             // start with looking backwards for a quote
             int start = raw.lastIndexOf('"', item.getCursor());
@@ -197,7 +208,10 @@ public class ItemService {
     }
 
     static class Phrase implements Comparable<Phrase> {
+
+        @Getter
         String original;
+        @Getter
         String canonical;
         Range range;
 
@@ -216,14 +230,6 @@ public class ItemService {
             sanitized = EnglishUtils.canonicalize(sanitized);
             sanitized = EnglishUtils.unpluralize(sanitized);
             this.canonical = sanitized;
-        }
-
-        public String getOriginal() {
-            return original;
-        }
-
-        public String getCanonical() {
-            return canonical;
         }
 
         public Phrase of(RecognizedItem.Type type) {
@@ -288,7 +294,7 @@ public class ItemService {
         return best == null ? Optional.empty() : Optional.of(best.range);
     }
 
-    public List<Phrase> buildPhrases(List<Phrase> phrases) {
+    private List<Phrase> buildPhrases(List<Phrase> phrases) {
         List<Phrase> options = new ArrayList<>(phrases);
 
         for (int i = 0; i < phrases.size(); i++) {

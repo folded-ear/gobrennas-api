@@ -27,6 +27,8 @@ public class RawUtilsTest {
         r.readLine(); // the header
         r.lines()
                 .filter(l -> !l.trim().isEmpty())
+                .filter(l -> !l.startsWith("#"))
+                .filter(l -> !l.startsWith("//"))
                 .map(l -> l.split("\\|"))
                 .map(this::inflateDissection)
                 .forEach(this::testDissection);
