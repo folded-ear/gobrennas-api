@@ -88,6 +88,34 @@ public class ItemServiceTest {
         assertEquals(new RecognizedItem.Range(6, 11, RecognizedItem.Type.ITEM), ing);
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @Test
+    void multiNumberRecog() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+        String raw = "12 flour, grated (~3 cups or 19 Tbsp)";
+
+        var recog = service.recognizeItem(raw, raw.length(), false);
+
+        var q = recog.getRanges()
+                .stream()
+                .filter(r -> r.getType() == RecognizedItem.Type.AMOUNT)
+                .findFirst()
+                .get();
+        assertEquals("12", raw.substring(q.getStart(), q.getEnd()));
+        var item = recog.getRanges()
+                .stream()
+                .filter(r -> r.getType() == RecognizedItem.Type.ITEM)
+                .findFirst()
+                .get();
+        assertEquals("flour", raw.substring(item.getStart(), item.getEnd()));
+        var optUnit = recog.getRanges()
+                .stream()
+                .filter(r -> r.getType() == RecognizedItem.Type.UNIT)
+                .findFirst();
+        assertFalse(optUnit.isPresent());
+    }
+
     @Test
     public void recognizeItemMultipleWords() {
         recognizeChickenThighs(raw ->
