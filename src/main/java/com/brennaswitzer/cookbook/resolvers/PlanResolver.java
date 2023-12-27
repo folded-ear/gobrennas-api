@@ -11,7 +11,6 @@ import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.CollectionUtils.tail;
 
-@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class PlanResolver implements GraphQLResolver<Plan> {
 
@@ -22,8 +21,12 @@ public class PlanResolver implements GraphQLResolver<Plan> {
         return AclHelpers.getGrants(plan);
     }
 
-    public List<PlanItem> children(PlanItem item) {
-        return item.getOrderedChildView();
+    public List<PlanItem> children(Plan plan) {
+        return plan.getOrderedChildView();
+    }
+
+    public int descendantCount(Plan item) {
+        return planService.getTreeById(item).size() - 1;
     }
 
     public List<PlanItem> descendants(Plan plan) {

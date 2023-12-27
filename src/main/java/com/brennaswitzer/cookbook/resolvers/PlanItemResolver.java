@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.resolvers;
 
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.services.PlanService;
 import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,24 +10,14 @@ import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.CollectionUtils.tail;
 
-@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class PlanItemResolver implements GraphQLResolver<PlanItem> {
 
     @Autowired
     private PlanService planService;
 
-    public Double quantity(PlanItem item) {
-        return item.getQuantity().getQuantity();
-    }
-
-    public String units(PlanItem item) {
-        Quantity q = item.getQuantity();
-        if (q.hasUnits()) {
-            return q.getUnits().getName();
-        } else {
-            return null;
-        }
+    public PlanItem parent(PlanItem item) {
+        return item.getParent();
     }
 
     public List<PlanItem> children(PlanItem item) {
@@ -37,6 +26,10 @@ public class PlanItemResolver implements GraphQLResolver<PlanItem> {
 
     public List<PlanItem> components(PlanItem item) {
         return item.getOrderedComponentsView();
+    }
+
+    public int descendantCount(PlanItem item) {
+        return planService.getTreeById(item).size() - 1;
     }
 
     public List<PlanItem> descendants(PlanItem item) {
