@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql;
 
+import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.services.PlanService;
@@ -22,8 +23,16 @@ public class PlannerMutation {
         return planService.createBucket(planId, name, date);
     }
 
+    public Plan deleteBucket(Long planId, Long bucketId) {
+        return planService.deleteBucket(planId, bucketId).getPlan();
+    }
+
     public PlanItem rename(Long id, String name) {
         return planService.renameItem(id, name);
+    }
+
+    public PlanBucket updateBucket(Long planId, Long bucketId, String name, LocalDate date) {
+        return planService.updateBucket(planId, bucketId, name, date);
     }
 
 }

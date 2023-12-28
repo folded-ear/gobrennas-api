@@ -74,4 +74,8 @@ type PlannerMutation {
     assignBucket(id: ID!, bucketId: ID!): PlanItem!
     """Create a new bucket w/in a plan, with an optional name and date."""
     createBucket(planId: ID!, name: String, date: Date): PlanBucket!
+    """Update a bucket w/in a plan, by setting or clearing its name and date."""
+    updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
+    """Delete a bucket from a plan."""
+    deleteBucket(planId: ID!, bucketId: ID!): Plan!
 }

@@ -228,14 +228,14 @@ public class PlanController {
                 : String.format("ID mismatch on update bucket (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+        return planService.updateBucketForMessage(planId, action.getId(), action.getName(), action.getDate());
     }
 
     @DeleteMapping("/{planId}/buckets/{id}")
     public PlanMessage deleteBucket(
             @PathVariable("planId") long planId,
             @PathVariable("id") long id) {
-        return planService.deleteBucket(planId, id);
+        return planService.deleteBucketForMessage(planId, id);
     }
 
     // todo: this method is confused. :) it's both create and update?

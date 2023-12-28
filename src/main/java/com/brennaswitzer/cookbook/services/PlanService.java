@@ -277,11 +277,16 @@ public class PlanService {
         return bucket;
     }
 
-    public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
+    public PlanBucket updateBucket(Long planId, Long id, String name, LocalDate date) {
         getPlanById(planId, AccessLevel.ADMINISTER); // for the authorization check
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
+        return bucket;
+    }
+
+    public PlanMessage updateBucketForMessage(Long planId, Long id, String name, LocalDate date) {
+        PlanBucket bucket = updateBucket(planId, id, name, date);
         PlanMessage m = new PlanMessage();
         m.setId(bucket.getId());
         m.setType("update-bucket");
@@ -289,11 +294,16 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage deleteBucket(Long planId, Long id) {
+    public PlanBucket deleteBucket(Long planId, Long id) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);
+        return bucket;
+    }
+
+    public PlanMessage deleteBucketForMessage(Long planId, Long id) {
+        PlanBucket bucket = deleteBucket(planId, id);
         PlanMessage m = new PlanMessage();
         m.setId(bucket.getId());
         m.setType("delete-bucket");
