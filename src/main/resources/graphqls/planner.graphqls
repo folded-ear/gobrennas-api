@@ -97,13 +97,16 @@ type PlannerMutation {
     deleteItem(id: ID!): PlanItem
     """Deletes the given plan, and all its related data."""
     deletePlan(id: ID!): Boolean
+    """Move the given items under the given parent, in order, optionally after a
+    specific item already under that parent. The parent's info is returned."""
+    mutateTree(itemIds: [ID!]!, parentId: ID!, afterId: ID): PlanItem!
     """Update the name of the given plan or plan item (but not bucket)."""
     rename(id: ID!, name: String!): PlanItem!
     """Reorder the item/plan subitems in the same order as the passed list. If
     there are subitems not included in the list, they will not be reordered. If
     an item under a different parent is included in the list, it will be moved
     under this item."""
-    reorderSubitems(id:ID!, subitemIds: [ID!]!): PlanItem
+    reorderSubitems(parentId:ID!, itemIds: [ID!]!): PlanItem
     """Set the access level granted to a user w/in a plan."""
     setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!
     """Sets the status of the given item. This will always return the updated

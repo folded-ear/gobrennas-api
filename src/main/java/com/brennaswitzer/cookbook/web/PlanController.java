@@ -125,7 +125,7 @@ public class PlanController {
                 : String.format("ID mismatch on rename (%s on URL, %s in action)",
                                 id,
                                 action.getParentId());
-        return planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
+        return planService.mutateTreeForMessage(action.getIds(), action.getParentId(), action.getAfterId());
     }
 
     @PostMapping("/{id}/reorder-subitems")

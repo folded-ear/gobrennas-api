@@ -133,6 +133,20 @@ class PlannerMutationTest extends MockTest {
     }
 
     @Test
+    void mutateTree() {
+        List<Long> itemIds = Arrays.asList(456L, 789L);
+        long parentId = 123L;
+        long afterId = 999L;
+        PlanItem parent = mock(PlanItem.class);
+        when(planService.mutateTree(itemIds, parentId, afterId))
+                .thenReturn(parent);
+
+        PlanItem result = mutation.mutateTree(itemIds, parentId, afterId);
+
+        assertSame(parent, result);
+    }
+
+    @Test
     void rename() {
         long id = 123L;
         String newName = "goat log";
@@ -147,13 +161,13 @@ class PlannerMutationTest extends MockTest {
 
     @Test
     void reorderSubitems() {
-        long id = 123L;
-        List<Long> subIds = Arrays.asList(456L, 789L);
+        long parentId = 123L;
+        List<Long> itemIds = Arrays.asList(456L, 789L);
         PlanItem parent = mock(PlanItem.class);
-        when(planService.resetSubitems(id, subIds))
+        when(planService.resetSubitems(parentId, itemIds))
                 .thenReturn(parent);
 
-        PlanItem result = mutation.reorderSubitems(id, subIds);
+        PlanItem result = mutation.reorderSubitems(parentId, itemIds);
 
         assertSame(parent, result);
     }

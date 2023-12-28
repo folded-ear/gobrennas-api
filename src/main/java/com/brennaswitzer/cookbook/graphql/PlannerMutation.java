@@ -51,12 +51,16 @@ public class PlannerMutation {
         return planService.duplicatePlan(name, sourcePlanId);
     }
 
+    public PlanItem mutateTree(List<Long> itemIds, Long parentId, Long afterId) {
+        return planService.mutateTree(itemIds, parentId, afterId);
+    }
+
     public PlanItem rename(Long id, String name) {
         return planService.renameItem(id, name);
     }
 
-    public PlanItem reorderSubitems(Long id, List<Long> subitemIds) {
-        return planService.resetSubitems(id, subitemIds);
+    public PlanItem reorderSubitems(Long parentId, List<Long> itemIds) {
+        return planService.resetSubitems(parentId, itemIds);
     }
 
     public PlanBucket updateBucket(Long planId, Long bucketId, String name, LocalDate date) {

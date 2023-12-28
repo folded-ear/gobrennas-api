@@ -137,7 +137,7 @@ public class PlanService {
                 .collect(Collectors.toList());
     }
 
-    public PlanMessage mutateTree(List<Long> ids, Long parentId, Long afterId) {
+    public PlanItem mutateTree(List<Long> ids, Long parentId, Long afterId) {
         PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
         PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
@@ -145,6 +145,11 @@ public class PlanService {
             parent.addChildAfter(t, after);
             after = t;
         }
+        return parent;
+    }
+
+    public PlanMessage mutateTreeForMessage(List<Long> ids, Long parentId, Long afterId) {
+        mutateTree(ids, parentId, afterId);
         val m = new PlanMessage();
         m.setType("tree-mutation");
         m.setInfo(new MutatePlanTree(ids, parentId, afterId));
