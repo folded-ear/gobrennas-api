@@ -51,6 +51,7 @@ type PlanItem implements Node {
 
 type PlanBucket {
     id: ID!
+    plan: Plan!
     name: String
     date: Date
 }
@@ -60,4 +61,17 @@ enum PlanItemStatus {
     ACQUIRED
     COMPLETED
     DELETED
+}
+
+extend type Mutation {
+    planner: PlannerMutation
+}
+
+type PlannerMutation {
+    """Update the name of the given plan item."""
+    rename(id: ID!, name: String!): PlanItem!
+    """Assign a plan item to a bucket (in the same plan)."""
+    assignBucket(id: ID!, bucketId: ID!): PlanItem!
+    """Create a new bucket w/in a plan, with an optional name and date."""
+    createBucket(planId: ID!, name: String, date: Date): PlanBucket!
 }

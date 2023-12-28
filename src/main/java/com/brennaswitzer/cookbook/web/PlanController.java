@@ -167,7 +167,7 @@ public class PlanController {
                 : String.format("ID mismatch on rename (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.renameItem(action.getId(), action.getName());
+        return planService.renameItemForMessage(action.getId(), action.getName());
     }
 
     @PostMapping("/{id}/assign-bucket")
@@ -178,7 +178,7 @@ public class PlanController {
                 : String.format("ID mismatch on assign bucket (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.assignItemBucket(action.getId(), action.getBucketId());
+        return planService.assignItemBucketForMessage(action.getId(), action.getBucketId());
     }
 
     @PutMapping("/{id}/status")
@@ -216,7 +216,7 @@ public class PlanController {
     public PlanMessage createBucket(
             @PathVariable("id") long planId,
             @RequestBody CreatePlanBucket action) {
-        return planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+        return planService.createBucketForMessage(planId, action.getId(), action.getName(), action.getDate());
     }
 
     @PutMapping("/{planId}/buckets/{id}")

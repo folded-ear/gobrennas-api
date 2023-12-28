@@ -13,4 +13,7 @@ public class Mutation implements GraphQLMutationResolver {
     @Autowired
     public FavoriteMutation favorite;
 
+    @Autowired
+    public PlannerMutation planner;
+
 }

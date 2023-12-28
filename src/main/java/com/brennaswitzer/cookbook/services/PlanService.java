@@ -256,7 +256,17 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage createBucket(Long planId, Object bucketId, String name, LocalDate date) {
+    public PlanMessage createBucketForMessage(Long planId, Object bucketId, String name, LocalDate date) {
+        PlanBucket bucket = createBucket(planId, name, date);
+        PlanMessage m = new PlanMessage();
+        m.setId(bucket.getId());
+        m.setType("create-bucket");
+        m.setInfo(PlanBucketInfo.from(bucket));
+        m.addNewId(bucket.getId(), bucketId);
+        return m;
+    }
+
+    public PlanBucket createBucket(Long planId, String name, LocalDate date) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = new PlanBucket();
         bucket.setName(name);
@@ -264,12 +274,7 @@ public class PlanService {
         bucket.setPlan(plan);
         bucket = bucketRepo.save(bucket);
         if (bucket.getId() != null) bucketRepo.flush();
-        PlanMessage m = new PlanMessage();
-        m.setId(bucket.getId());
-        m.setType("create-bucket");
-        m.setInfo(PlanBucketInfo.from(bucket));
-        m.addNewId(bucket.getId(), bucketId);
-        return m;
+        return bucket;
     }
 
     public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
@@ -295,21 +300,33 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage renameItem(Long id, String name) {
+    public PlanItem renameItem(Long id, String name) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setName(name);
         if (!item.hasIngredient() || !(item.getIngredient() instanceof Recipe)) {
             itemService.updateAutoRecognition(item);
         }
-        return buildUpdateMessage(item);
+        return item;
     }
 
-    public PlanMessage assignItemBucket(Long id, Long bucketId) {
+    public PlanMessage renameItemForMessage(Long id, String name) {
+        return buildUpdateMessage(renameItem(id, name));
+    }
+
+    public PlanItem assignItemBucket(Long id, Long bucketId) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
-        item.setBucket(bucketId == null
-                               ? null
-                               : bucketRepo.getReferenceById(bucketId));
-        return buildUpdateMessage(item);
+        PlanBucket bucket = bucketId == null
+                ? null
+                : bucketRepo.getReferenceById(bucketId);
+        if (bucket != null && !item.getPlan().equals(bucket.getPlan())) {
+            throw new IllegalArgumentException("Cannot assign item to a bucket from a different plan.");
+        }
+        item.setBucket(bucket);
+        return item;
+    }
+
+    public PlanMessage assignItemBucketForMessage(Long id, Long bucketId) {
+        return buildUpdateMessage(assignItemBucket(id, bucketId));
     }
 
     private PlanMessage buildUpdateMessage(PlanItem item) {
