@@ -28,8 +28,21 @@ public class PlannerMutation {
         return planService.createItem(parentId, afterId, name);
     }
 
+    public Plan createPlan(String name) {
+        return planService.createPlan(name);
+    }
+
     public Plan deleteBucket(Long planId, Long bucketId) {
         return planService.deleteBucket(planId, bucketId).getPlan();
+    }
+
+    public boolean deletePlan(Long id) {
+        planService.deleteItem(id);
+        return true;
+    }
+
+    public Plan duplicatePlan(String name, Long sourcePlanId) {
+        return planService.duplicatePlan(name, sourcePlanId);
     }
 
     public PlanItem rename(Long id, String name) {

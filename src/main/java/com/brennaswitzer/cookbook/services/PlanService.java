@@ -215,6 +215,7 @@ public class PlanService {
         Plan plan = createPlan(name);
         Plan src = planRepo.getReferenceById(fromId);
         duplicateChildren(src, plan);
+        // todo: should duplicating a plan copy buckets and grants?
         return plan;
     }
 

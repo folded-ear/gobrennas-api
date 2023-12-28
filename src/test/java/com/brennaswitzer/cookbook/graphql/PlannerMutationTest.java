@@ -13,7 +13,9 @@ import org.mockito.Mock;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PlannerMutationTest extends MockTest {
@@ -66,6 +68,18 @@ class PlannerMutationTest extends MockTest {
     }
 
     @Test
+    void createPlan() {
+        String name = "cheese party";
+        Plan plan = mock(Plan.class);
+        when(planService.createPlan(name))
+                .thenReturn(plan);
+
+        Plan result = mutation.createPlan(name);
+
+        assertSame(plan, result);
+    }
+
+    @Test
     void deleteBucket() {
         long planId = 123L;
         long bucketId = 456L;
@@ -76,6 +90,29 @@ class PlannerMutationTest extends MockTest {
                 .thenReturn(bucket);
 
         Plan result = mutation.deleteBucket(planId, bucketId);
+
+        assertSame(plan, result);
+    }
+
+    @Test
+    void deletePlan() {
+        long planId = 123L;
+
+        boolean result = mutation.deletePlan(planId);
+
+        assertTrue(result);
+        verify(planService).deleteItem(planId);
+    }
+
+    @Test
+    void duplicatePlan() {
+        String name = "cheese party";
+        long sourcePlanId = 456L;
+        Plan plan = mock(Plan.class);
+        when(planService.duplicatePlan(name, sourcePlanId))
+                .thenReturn(plan);
+
+        Plan result = mutation.duplicatePlan(name, sourcePlanId);
 
         assertSame(plan, result);
     }

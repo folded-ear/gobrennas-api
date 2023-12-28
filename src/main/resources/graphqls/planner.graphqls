@@ -76,11 +76,17 @@ type PlannerMutation {
     top-level items), after the specified peer item (null means 'at end'), and with
     the specified name.
     """
-    createItem(parentId:ID!, afterId:ID, name:String): PlanItem!
+    createItem(parentId: ID!, afterId: ID, name: String!): PlanItem!
+    """Create a new empty plan."""
+    createPlan(name: String!): Plan!
+    """Create a new plan by duplicating the specified source plan."""
+    duplicatePlan(name: String!, sourcePlanId: ID!): Plan!
     """Delete a bucket from a plan."""
     deleteBucket(planId: ID!, bucketId: ID!): Plan!
     """Deletes the grant for a user w/in a plan, if one exists."""
     deleteGrant(planId: ID!, userId: ID!): Plan!
+    """Deletes the given plan, and all its related data."""
+    deletePlan(id: ID!): Boolean
     """Update the name of the given plan item."""
     rename(id: ID!, name: String!): PlanItem!
     """Set the access level granted to a user w/in a plan."""
