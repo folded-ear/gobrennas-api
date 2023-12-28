@@ -23,6 +23,7 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     name: String!
     """A plan's plan is always itself."""
     plan: Plan!
+    share: ShareInfo
     grants: [AccessControlEntry!]!
     childCount: NonNegativeInt!
     children: [PlanItem!]!

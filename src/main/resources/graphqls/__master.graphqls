@@ -39,3 +39,9 @@ type PageInfo {
     """
     endCursor: Cursor
 }
+
+type ShareInfo {
+    id: ID!
+    slug: String!
+    secret: String!
+}

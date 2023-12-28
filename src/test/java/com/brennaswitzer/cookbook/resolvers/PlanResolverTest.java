@@ -5,9 +5,11 @@ import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.MockTestTarget;
+import com.brennaswitzer.cookbook.util.ShareHelper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -30,6 +32,9 @@ class PlanResolverTest extends MockTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private ShareHelper shareHelper;
 
     @Test
     void grants() {
@@ -80,6 +85,18 @@ class PlanResolverTest extends MockTest {
 
         assertEquals(singletonList(kid), ds);
         verify(planService).getTreeById(plan);
+    }
+
+    @Test
+    void share() {
+        Plan plan = mock(Plan.class);
+        ShareInfo info = mock(ShareInfo.class);
+        when(shareHelper.getInfo(Plan.class, plan))
+                .thenReturn(info);
+
+        ShareInfo result = resolver.share(plan);
+
+        assertSame(info, result);
     }
 
 }

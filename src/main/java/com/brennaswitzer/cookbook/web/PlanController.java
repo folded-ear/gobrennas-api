@@ -17,10 +17,10 @@ import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
+import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
-import com.brennaswitzer.cookbook.util.SlugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,9 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
@@ -93,16 +91,11 @@ public class PlanController {
     }
 
     @GetMapping("/{id}/share")
-    public Object getShareInfoById(
+    public ShareInfo getShareInfoById(
             @PathVariable("id") Long id
     ) {
-        Plan plan = planService.getPlanById(id);
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", plan.getId());
-        result.put("slug", SlugUtils.toSlug(plan.getName()));
-        result.put("secret", shareHelper.getSecret(Plan.class,
-                                                   plan.getId()));
-        return result;
+        return shareHelper.getInfo(Plan.class,
+                                   planService.getPlanById(id));
     }
 
     @GetMapping({ "/{id}/self-and-descendants",
