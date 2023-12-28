@@ -95,13 +95,25 @@ class PlannerMutationTest extends MockTest {
     }
 
     @Test
+    void deleteItem() {
+        long itemId = 123L;
+        PlanItem parent = mock(PlanItem.class);
+        when(planService.deleteItemForParent(itemId))
+                .thenReturn(parent);
+
+        PlanItem result = mutation.deleteItem(itemId);
+
+        assertSame(parent, result);
+    }
+
+    @Test
     void deletePlan() {
         long planId = 123L;
 
         boolean result = mutation.deletePlan(planId);
 
         assertTrue(result);
-        verify(planService).deleteItem(planId);
+        verify(planService).deletePlan(planId);
     }
 
     @Test

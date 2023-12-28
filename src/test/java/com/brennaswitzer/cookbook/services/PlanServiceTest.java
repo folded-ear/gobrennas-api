@@ -147,14 +147,14 @@ class PlanServiceTest {
 
         assertEquals(4, itemRepo.count());
 
-        service.deleteItem(oj.getId());
+        service.deleteItemForParent(oj.getId());
         itemRepo.flush();
         entityManager.clear();
 
         assertEquals(4, itemRepo.count());
         assertEquals(3, itemRepo.countByStatusNot(PlanItemStatus.DELETED));
 
-        service.deleteItem(groceries.getId());
+        service.deletePlan(groceries.getId());
         itemRepo.flush();
         entityManager.clear();
 

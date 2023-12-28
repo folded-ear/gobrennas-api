@@ -36,8 +36,12 @@ public class PlannerMutation {
         return planService.deleteBucket(planId, bucketId).getPlan();
     }
 
+    public PlanItem deleteItem(Long id) {
+        return planService.deleteItemForParent(id);
+    }
+
     public boolean deletePlan(Long id) {
-        planService.deleteItem(id);
+        planService.deletePlan(id);
         return true;
     }
 

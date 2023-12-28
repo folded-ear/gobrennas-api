@@ -10,27 +10,30 @@ type PlannerQuery {
 interface CorePlanItem implements Node {
     id: ID!
     name: String!
-    childCount: NonNegativeInt
+    plan: Plan!
+    childCount: NonNegativeInt!
     children: [PlanItem!]!
-    descendantCount: NonNegativeInt
+    descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
 }
 
-type Plan implements Node & Owned & AccessControlled  {
+type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     id: ID!
     owner: User!
     name: String!
+    """A plan's plan is always itself."""
+    plan: Plan!
     grants: [AccessControlEntry!]!
-    childCount: NonNegativeInt
+    childCount: NonNegativeInt!
     children: [PlanItem!]!
-    descendantCount: NonNegativeInt
+    descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
-    bucketCount: NonNegativeInt
+    bucketCount: NonNegativeInt!
     buckets: [PlanBucket!]!
 }
 
 """Represents a single item on a plan"""
-type PlanItem implements Node {
+type PlanItem implements Node & CorePlanItem {
     id: ID!
     name: String!
     quantity: Quantity
@@ -38,12 +41,12 @@ type PlanItem implements Node {
     notes: String
     plan: Plan!
     parent: PlanItem
-    childCount: NonNegativeInt
+    childCount: NonNegativeInt!
     children: [PlanItem!]!
-    descendantCount: NonNegativeInt
+    descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
     aggregate: PlanItem
-    componentCount: NonNegativeInt
+    componentCount: NonNegativeInt!
     components: [PlanItem!]!
     bucket: PlanBucket
     status: PlanItemStatus!
@@ -85,9 +88,11 @@ type PlannerMutation {
     deleteBucket(planId: ID!, bucketId: ID!): Plan!
     """Deletes the grant for a user w/in a plan, if one exists."""
     deleteGrant(planId: ID!, userId: ID!): Plan!
+    """Deletes an item from a plan, and return its former parent (plan or item). This operation cascades."""
+    deleteItem(id: ID!): PlanItem
     """Deletes the given plan, and all its related data."""
     deletePlan(id: ID!): Boolean
-    """Update the name of the given plan item."""
+    """Update the name of the given plan or plan item (but not bucket)."""
     rename(id: ID!, name: String!): PlanItem!
     """Set the access level granted to a user w/in a plan."""
     setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!

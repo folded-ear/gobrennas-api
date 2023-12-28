@@ -355,25 +355,37 @@ public class PlanService {
 
     public PlanMessage setItemStatus(Long id, PlanItemStatus status) {
         if (PlanItemStatus.COMPLETED.equals(status) || PlanItemStatus.DELETED.equals(status)) {
-            return deleteItem(id);
+            return deleteItemForMessage(id);
         }
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setStatus(status);
         return buildUpdateMessage(item);
     }
 
-    public PlanMessage deleteItem(Long id) {
+    public PlanItem deleteItemForParent(Long id) {
         val item = getPlanItemById(id, AccessLevel.CHANGE);
         if (item.hasParent()) {
+            val parent = item.getParent();
             item.moveToTrash();
+            return parent;
         } else {
-            // a plan
-            itemRepo.delete(item);
+            throw new IllegalArgumentException(String.format(
+                    "ID '%s' is a plan",
+                    id));
         }
+    }
+
+    public PlanMessage deleteItemForMessage(Long id) {
+        deleteItemForParent(id);
         val m = new PlanMessage();
         m.setId(id);
         m.setType("delete");
         return m;
+    }
+
+    public void deletePlan(Long id) {
+        val plan = getPlanById(id, AccessLevel.ADMINISTER);
+        planRepo.delete(plan);
     }
 
     public void severLibraryLinks(Recipe r) {

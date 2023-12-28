@@ -201,7 +201,7 @@ public class PlanController {
     public void deletePlan(
             @PathVariable("planId") Long planId
     ) {
-        planService.deleteItem(planId);
+        planService.deletePlan(planId);
     }
 
     @DeleteMapping("/{planId}/{id}")
@@ -212,7 +212,7 @@ public class PlanController {
         if (!planId.equals(item.getPlan().getId())) {
             throw new IllegalArgumentException("Item belongs to a different plan");
         }
-        planService.deleteItem(id);
+        planService.deleteItemForParent(id);
     }
 
     @PostMapping("/{id}/buckets")
