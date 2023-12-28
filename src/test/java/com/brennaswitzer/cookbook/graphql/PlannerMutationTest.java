@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -76,6 +77,33 @@ class PlannerMutationTest extends MockTest {
         PlanItem item = mutation.rename(id, newName);
 
         assertSame(mock, item);
+    }
+
+    @Test
+    void setGrant() {
+        long planId = 123L;
+        long userId = 456L;
+        AccessLevel level = AccessLevel.CHANGE;
+        Plan plan = mock(Plan.class);
+        when(planService.setGrantOnPlan(planId, userId, level))
+                .thenReturn(plan);
+
+        Plan result = mutation.setGrant(planId, userId, level);
+
+        assertSame(plan, result);
+    }
+
+    @Test
+    void removeGrant() {
+        long planId = 123L;
+        long userId = 456L;
+        Plan plan = mock(Plan.class);
+        when(planService.deleteGrantFromPlan(planId, userId))
+                .thenReturn(plan);
+
+        Plan result = mutation.deleteGrant(planId, userId);
+
+        assertSame(plan, result);
     }
 
     @Test

@@ -1,8 +1,16 @@
 package com.brennaswitzer.cookbook.domain;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyJoinColumn;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 @SuppressWarnings("WeakerAccess")
 @Embeddable
@@ -48,6 +56,7 @@ public class Acl {
 
     public AccessLevel setGrant(User user, AccessLevel level) {
         if (user == null) throw new IllegalArgumentException("You can't grant access to the null user.");
+        if (level == null) throw new IllegalArgumentException("You can't grant a null access level.");
         if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) grants = new HashMap<>();
         return grants.put(user, level);

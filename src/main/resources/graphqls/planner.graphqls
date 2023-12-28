@@ -78,4 +78,8 @@ type PlannerMutation {
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
     """Delete a bucket from a plan."""
     deleteBucket(planId: ID!, bucketId: ID!): Plan!
+    """Set the access level granted to a user w/in a plan."""
+    setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!
+    """Deletes the grant for a user w/in a plan, if one exists."""
+    deleteGrant(planId: ID!, userId: ID!): Plan!
 }

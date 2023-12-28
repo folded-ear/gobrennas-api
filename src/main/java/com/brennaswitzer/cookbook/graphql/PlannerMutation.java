@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -33,6 +34,14 @@ public class PlannerMutation {
 
     public PlanBucket updateBucket(Long planId, Long bucketId, String name, LocalDate date) {
         return planService.updateBucket(planId, bucketId, name, date);
+    }
+
+    public Plan setGrant(Long planId, Long userId, AccessLevel accessLevel) {
+        return planService.setGrantOnPlan(planId, userId, accessLevel);
+    }
+
+    public Plan deleteGrant(Long planId, Long userId) {
+        return planService.deleteGrantFromPlan(planId, userId);
     }
 
 }
