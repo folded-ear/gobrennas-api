@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,10 @@ public class PlannerMutation {
 
     public Plan setGrant(Long planId, Long userId, AccessLevel accessLevel) {
         return planService.setGrantOnPlan(planId, userId, accessLevel);
+    }
+
+    public PlanItem setStatus(Long id, PlanItemStatus status) {
+        return planService.setItemStatus(id, status);
     }
 
     public Plan deleteGrant(Long planId, Long userId) {

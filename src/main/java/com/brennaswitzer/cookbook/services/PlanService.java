@@ -353,8 +353,17 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage setItemStatus(Long id, PlanItemStatus status) {
-        if (PlanItemStatus.COMPLETED.equals(status) || PlanItemStatus.DELETED.equals(status)) {
+    public PlanItem setItemStatus(Long id, PlanItemStatus status) {
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        if (status.isForDelete()) {
+            item.moveToTrash();
+        }
+        item.setStatus(status);
+        return item;
+    }
+
+    public PlanMessage setItemStatusForMessage(Long id, PlanItemStatus status) {
+        if (status.isForDelete()) {
             return deleteItemForMessage(id);
         }
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);

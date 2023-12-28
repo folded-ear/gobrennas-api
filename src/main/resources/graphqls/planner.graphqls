@@ -92,7 +92,8 @@ type PlannerMutation {
     deleteBucket(planId: ID!, bucketId: ID!): Plan!
     """Deletes the grant for a user w/in a plan, if one exists."""
     deleteGrant(planId: ID!, userId: ID!): Plan!
-    """Deletes an item from a plan, and return its former parent (plan or item). This operation cascades."""
+    """Deletes an item from a plan, and return its former parent (plan or item).
+    This operation cascades."""
     deleteItem(id: ID!): PlanItem
     """Deletes the given plan, and all its related data."""
     deletePlan(id: ID!): Boolean
@@ -100,6 +101,9 @@ type PlannerMutation {
     rename(id: ID!, name: String!): PlanItem!
     """Set the access level granted to a user w/in a plan."""
     setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!
+    """Sets the status of the given item. This will always return the updated
+    item, though it may immediately moved to the trash (in the background)."""
+    setStatus(id: ID!, status: PlanItemStatus!): PlanItem!
     """Update a bucket w/in a plan, by setting or clearing its name and date."""
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
 }

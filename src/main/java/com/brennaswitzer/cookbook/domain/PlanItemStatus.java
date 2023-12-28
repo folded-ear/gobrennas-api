@@ -18,4 +18,7 @@ public enum PlanItemStatus implements Identified {
         return id;
     }
 
+    public boolean isForDelete() {
+        return COMPLETED.equals(this) || DELETED.equals(this);
+    }
 }

@@ -186,7 +186,7 @@ public class PlanController {
                 : String.format("ID mismatch on set status (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.setItemStatus(action.getId(), action.getStatus());
+        return planService.setItemStatusForMessage(action.getId(), action.getStatus());
     }
 
     @DeleteMapping("/{planId}")

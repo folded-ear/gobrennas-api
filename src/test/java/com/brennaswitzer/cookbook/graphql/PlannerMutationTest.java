@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.MockTestTarget;
@@ -154,6 +155,19 @@ class PlannerMutationTest extends MockTest {
         Plan result = mutation.setGrant(planId, userId, level);
 
         assertSame(plan, result);
+    }
+
+    @Test
+    void setStatus() {
+        long id = 123L;
+        PlanItemStatus status = PlanItemStatus.ACQUIRED;
+        PlanItem item = mock(PlanItem.class);
+        when(planService.setItemStatus(id, status))
+                .thenReturn(item);
+
+        PlanItem result = mutation.setStatus(id, status);
+
+        assertSame(item, result);
     }
 
     @Test
