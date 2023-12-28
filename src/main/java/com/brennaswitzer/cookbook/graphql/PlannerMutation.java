@@ -24,6 +24,10 @@ public class PlannerMutation {
         return planService.createBucket(planId, name, date);
     }
 
+    public PlanItem createItem(Long parentId, Long afterId, String name) {
+        return planService.createItem(parentId, afterId, name);
+    }
+
     public Plan deleteBucket(Long planId, Long bucketId) {
         return planService.deleteBucket(planId, bucketId).getPlan();
     }

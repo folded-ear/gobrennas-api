@@ -42,13 +42,27 @@ class PlannerMutationTest extends MockTest {
         long planId = 123L;
         String name = "bucket";
         LocalDate date = LocalDate.of(2023, 12, 27);
-        PlanBucket mock = mock(PlanBucket.class);
+        PlanBucket bucket = mock(PlanBucket.class);
         when(planService.createBucket(planId, name, date))
-                .thenReturn(mock);
+                .thenReturn(bucket);
 
-        PlanBucket bucket = mutation.createBucket(planId, name, date);
+        PlanBucket result = mutation.createBucket(planId, name, date);
 
-        assertSame(mock, bucket);
+        assertSame(bucket, result);
+    }
+
+    @Test
+    void createItem() {
+        long parentId = 123L;
+        long afterId = 456L;
+        String name = "cheese";
+        PlanItem item = mock(PlanItem.class);
+        when(planService.createItem(parentId, afterId, name))
+                .thenReturn(item);
+
+        PlanItem result = mutation.createItem(parentId, afterId, name);
+
+        assertSame(item, result);
     }
 
     @Test

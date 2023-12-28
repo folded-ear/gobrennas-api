@@ -155,7 +155,10 @@ public class PlanController {
                 : String.format("ID mismatch on create (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
+        return planService.createItemForMessage(action.getId(),
+                                                action.getParentId(),
+                                                action.getAfterId(),
+                                                action.getName());
     }
 
     @PutMapping("/{id}/rename")

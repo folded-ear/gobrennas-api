@@ -245,12 +245,17 @@ public class PlanService {
         return planRepo.save(plan);
     }
 
-    public PlanMessage createItem(Object id, Long parentId, Long afterId, String name) {
+    public PlanItem createItem(Long parentId, Long afterId, String name) {
         PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
         PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         PlanItem item = itemRepo.save(new PlanItem(name).of(parent, after));
         itemService.autoRecognize(item);
         if (item.getId() == null) itemRepo.flush();
+        return item;
+    }
+
+    public PlanMessage createItemForMessage(Object id, Long parentId, Long afterId, String name) {
+        PlanItem item = createItem(parentId, afterId, name);
         PlanMessage m = buildCreationMessage(item);
         m.addNewId(item.getId(), id);
         return m;
