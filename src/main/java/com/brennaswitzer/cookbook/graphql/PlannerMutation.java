@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class PlannerMutation {
@@ -52,6 +53,10 @@ public class PlannerMutation {
 
     public PlanItem rename(Long id, String name) {
         return planService.renameItem(id, name);
+    }
+
+    public PlanItem reorderSubitems(Long id, List<Long> subitemIds) {
+        return planService.resetSubitems(id, subitemIds);
     }
 
     public PlanBucket updateBucket(Long planId, Long bucketId, String name, LocalDate date) {

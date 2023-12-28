@@ -151,15 +151,20 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage resetSubitems(Long id, List<Long> subitemIds) {
-        PlanItem t = getPlanItemById(id, AccessLevel.CHANGE);
+    public PlanItem resetSubitems(Long id, List<Long> subitemIds) {
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         PlanItem prev = null;
         for (Long sid : subitemIds) {
             PlanItem curr = getPlanItemById(sid);
-            t.addChildAfter(curr, prev);
+            item.addChildAfter(curr, prev);
             prev = curr;
         }
-        return buildUpdateMessage(t);
+        return item;
+    }
+
+    public PlanMessage resetSubitemsForMessage(Long id, List<Long> subitemIds) {
+        PlanItem item = resetSubitems(id, subitemIds);
+        return buildUpdateMessage(item);
     }
 
     private void sendToPlan(AggregateIngredient r, PlanItem aggItem, Double scale) {

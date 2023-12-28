@@ -136,7 +136,7 @@ public class PlanController {
                 : String.format("ID mismatch on reorder (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.resetSubitems(action.getId(), action.getSubitemIds());
+        return planService.resetSubitemsForMessage(action.getId(), action.getSubitemIds());
     }
 
     @PostMapping("/{id}")

@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -134,13 +136,26 @@ class PlannerMutationTest extends MockTest {
     void rename() {
         long id = 123L;
         String newName = "goat log";
-        PlanItem mock = mock(PlanItem.class);
+        PlanItem item = mock(PlanItem.class);
         when(planService.renameItem(id, newName))
-                .thenReturn(mock);
+                .thenReturn(item);
 
-        PlanItem item = mutation.rename(id, newName);
+        PlanItem result = mutation.rename(id, newName);
 
-        assertSame(mock, item);
+        assertSame(item, result);
+    }
+
+    @Test
+    void reorderSubitems() {
+        long id = 123L;
+        List<Long> subIds = Arrays.asList(456L, 789L);
+        PlanItem parent = mock(PlanItem.class);
+        when(planService.resetSubitems(id, subIds))
+                .thenReturn(parent);
+
+        PlanItem result = mutation.reorderSubitems(id, subIds);
+
+        assertSame(parent, result);
     }
 
     @Test
