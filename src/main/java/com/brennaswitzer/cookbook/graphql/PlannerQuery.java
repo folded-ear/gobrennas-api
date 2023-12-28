@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,11 @@ public class PlannerQuery {
 
     PlanItem planItem(Long id) {
         return planService.getPlanItemById(id);
+    }
+
+    List<PlanItem> updatedSince(Long planId, Long cutoff) {
+        return planService.getTreeDeltasById(planId,
+                                             Instant.ofEpochMilli(cutoff));
     }
 
 }

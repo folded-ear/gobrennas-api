@@ -8,6 +8,8 @@ import com.brennaswitzer.cookbook.util.MockTestTarget;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -52,6 +54,18 @@ class PlannerQueryTest extends MockTest {
 
         assertSame(pi, it);
         verify(planService).getPlanItemById(123L);
+    }
+
+    @Test
+    void updatedSince() {
+        List<PlanItem> list = new ArrayList<>();
+        when(planService.getTreeDeltasById(123L,
+                                           Instant.EPOCH.plusMillis(456)))
+                .thenReturn(list);
+
+        List<PlanItem> result = query.updatedSince(123L, 456L);
+
+        assertSame(list, result);
     }
 
     private <O, V> void assertEach(List<V> expected, List<O> objects, Function<O, V> extractor) {

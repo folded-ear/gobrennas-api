@@ -5,6 +5,9 @@ extend type Query {
 type PlannerQuery {
     plans: [Plan]!
     planItem(id: ID!): PlanItem!
+    """Retrieve all items on the given plan which have been updated since the
+    passed cutoff (expressed in milliseconds since the UNIX epoch)."""
+    updatedSince(planId: ID!, cutoff: Long): [PlanItem!]!
 }
 
 interface CorePlanItem implements Node {

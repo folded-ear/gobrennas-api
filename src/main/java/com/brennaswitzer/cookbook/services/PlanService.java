@@ -127,8 +127,8 @@ public class PlanService {
         }
     }
 
-    public List<PlanItem> getTreeDeltasById(Long id, Instant cutoff) {
-        val plan = getPlanById(id, AccessLevel.VIEW);
+    public List<PlanItem> getTreeDeltasById(Long planId, Instant cutoff) {
+        val plan = getPlanById(planId, AccessLevel.VIEW);
         return Stream.concat(
                         getTreeById(plan).stream(),
                         plan.getTrashBinItems().stream()
