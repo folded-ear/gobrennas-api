@@ -15,7 +15,6 @@ import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.services.indexing.IndexStats;
 import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
-import com.brennaswitzer.cookbook.util.SlugUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +41,7 @@ import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -157,18 +154,13 @@ public class RecipeController {
         return ingredientMapper.recipeToInfo(recipe);
     }
 
-    @GetMapping("/share/{id}")
+    @GetMapping("/share/{id}") // todo: this should be /{id}/share
     public Object getShareInfoById(
             @PathVariable("id") Long id
     ) {
         //noinspection OptionalGetWithoutIsPresent
-        Recipe r = recipeService.findRecipeById(id).get();
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", r.getId());
-        result.put("slug", SlugUtils.toSlug(r.getName()));
-        result.put("secret", shareHelper.getSecret(Recipe.class,
-                                                   r.getId()));
-        return result;
+        return shareHelper.getInfo(Recipe.class,
+                                   recipeService.findRecipeById(id).get());
     }
 
     // begin kludge (3 of 3)

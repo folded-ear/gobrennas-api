@@ -1,5 +1,6 @@
 scalar Date
 scalar DateTime
+scalar Long
 scalar PositiveInt
 scalar NonNegativeInt
 scalar NonNegativeFloat
@@ -38,4 +39,10 @@ type PageInfo {
     """The last cursor returned in this page's edges.
     """
     endCursor: Cursor
+}
+
+type ShareInfo {
+    id: ID!
+    slug: String!
+    secret: String!
 }

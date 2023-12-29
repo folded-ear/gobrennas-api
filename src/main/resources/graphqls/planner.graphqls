@@ -1,39 +1,56 @@
 extend type Query {
-    getPlans: [Plan]
-    getPlanItem(id: ID!): PlanItem
+    planner: PlannerQuery
+}
+
+type PlannerQuery {
+    plans: [Plan]!
+    planItem(id: ID!): PlanItem!
+    """Retrieve all items on the given plan which have been updated since the
+    passed cutoff (expressed in milliseconds since the UNIX epoch)."""
+    updatedSince(planId: ID!, cutoff: Long): [PlanItem!]!
 }
 
 interface CorePlanItem implements Node {
     id: ID!
     name: String!
+    plan: Plan!
+    childCount: NonNegativeInt!
     children: [PlanItem!]!
+    descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
 }
 
-type Plan implements Node & Owned & AccessControlled & CorePlanItem {
+type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     id: ID!
     owner: User!
     name: String!
+    """A plan's plan is always itself."""
+    plan: Plan!
+    share: ShareInfo
     grants: [AccessControlEntry!]!
+    childCount: NonNegativeInt!
     children: [PlanItem!]!
+    descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
+    bucketCount: NonNegativeInt!
     buckets: [PlanBucket!]!
 }
 
-"""
-Represents a single item on a plan
-"""
+"""Represents a single item on a plan"""
 type PlanItem implements Node & CorePlanItem {
     id: ID!
     name: String!
-    quantity: NonNegativeFloat
-    units: String
+    quantity: Quantity
     preparation: String
     notes: String
     plan: Plan!
-    parent: PlanItem!
+    parent: PlanItem
+    childCount: NonNegativeInt!
     children: [PlanItem!]!
+    descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
+    aggregate: PlanItem
+    componentCount: NonNegativeInt!
     components: [PlanItem!]!
     bucket: PlanBucket
     status: PlanItemStatus!
@@ -41,8 +58,9 @@ type PlanItem implements Node & CorePlanItem {
 
 type PlanBucket {
     id: ID!
+    plan: Plan!
     name: String
-    date: Date!
+    date: Date
 }
 
 enum PlanItemStatus {
@@ -50,4 +68,50 @@ enum PlanItemStatus {
     ACQUIRED
     COMPLETED
     DELETED
+}
+
+extend type Mutation {
+    planner: PlannerMutation
+}
+
+type PlannerMutation {
+    """Assign a plan item to a bucket (in the same plan)."""
+    assignBucket(id: ID!, bucketId: ID!): PlanItem!
+    """Create a new bucket w/in a plan, with an optional name and date."""
+    createBucket(planId: ID!, name: String, date: Date): PlanBucket!
+    """Create a new item under the specified parent (which may be a plan, for
+    top-level items), after the specified peer item (null means 'at end'), and with
+    the specified name.
+    """
+    createItem(parentId: ID!, afterId: ID, name: String!): PlanItem!
+    """Create a new empty plan."""
+    createPlan(name: String!): Plan!
+    """Create a new plan by duplicating the specified source plan."""
+    duplicatePlan(name: String!, sourcePlanId: ID!): Plan!
+    """Delete a bucket from a plan."""
+    deleteBucket(planId: ID!, bucketId: ID!): Plan!
+    """Deletes the grant for a user w/in a plan, if one exists."""
+    deleteGrant(planId: ID!, userId: ID!): Plan!
+    """Deletes an item from a plan, and return its former parent (plan or item).
+    This operation cascades."""
+    deleteItem(id: ID!): PlanItem
+    """Deletes the given plan, and all its related data."""
+    deletePlan(id: ID!): Boolean
+    """Move the given items under the given parent, in order, optionally after a
+    specific item already under that parent. The parent's info is returned."""
+    mutateTree(itemIds: [ID!]!, parentId: ID!, afterId: ID): PlanItem!
+    """Update the name of the given plan or plan item (but not bucket)."""
+    rename(id: ID!, name: String!): PlanItem!
+    """Reorder the item/plan subitems in the same order as the passed list. If
+    there are subitems not included in the list, they will not be reordered. If
+    an item under a different parent is included in the list, it will be moved
+    under this item."""
+    reorderSubitems(parentId:ID!, itemIds: [ID!]!): PlanItem
+    """Set the access level granted to a user w/in a plan."""
+    setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!
+    """Sets the status of the given item. This will always return the updated
+    item, though it may immediately moved to the trash (in the background)."""
+    setStatus(id: ID!, status: PlanItemStatus!): PlanItem!
+    """Update a bucket w/in a plan, by setting or clearing its name and date."""
+    updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
 }

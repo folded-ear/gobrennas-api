@@ -60,6 +60,10 @@ public class Plan extends PlanItem implements AccessControlled {
         return buckets;
     }
 
+    public int getBucketCount() {
+        return buckets == null ? 0 : buckets.size();
+    }
+
     public boolean hasBuckets() {
         return buckets != null && !buckets.isEmpty();
     }

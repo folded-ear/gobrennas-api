@@ -28,7 +28,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = PantryItem.class, name = "PantryItem"),
         @JsonSubTypes.Type(value = Recipe.class, name = "Recipe")
 })
-public abstract class Ingredient extends BaseEntity implements Identified, Labeled {
+public abstract class Ingredient extends BaseEntity implements Identified, Named, Labeled {
 
     public static Comparator<Ingredient> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;

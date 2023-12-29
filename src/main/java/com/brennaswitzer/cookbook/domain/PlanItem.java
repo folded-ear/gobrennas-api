@@ -41,7 +41,7 @@ import static javax.persistence.CascadeType.REFRESH;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "_type")
 @DiscriminatorValue("item")
-public class PlanItem extends BaseEntity implements MutableItem {
+public class PlanItem extends BaseEntity implements Named, MutableItem {
 
     public static final Comparator<PlanItem> BY_ID = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;

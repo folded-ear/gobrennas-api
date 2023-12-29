@@ -28,4 +28,12 @@ public class SlugUtilsTest {
         assertEquals("team", toSlug("TeamUSA", 5));
     }
 
+    @Test
+    void punctuation() {
+        assertEquals("i-cant-sleep", toSlug("I can't sleep"));
+        assertEquals("eat-at-joes", toSlug("Eat, at Joe's"));
+        assertEquals("eat-at-joes", toSlug("Eat, at Joe's!"));
+        assertEquals("eat-at-joes-yo", toSlug("Eat, at Joe's, yo!"));
+    }
+
 }

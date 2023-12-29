@@ -127,8 +127,8 @@ public class PlanService {
         }
     }
 
-    public List<PlanItem> getTreeDeltasById(Long id, Instant cutoff) {
-        val plan = getPlanById(id, AccessLevel.VIEW);
+    public List<PlanItem> getTreeDeltasById(Long planId, Instant cutoff) {
+        val plan = getPlanById(planId, AccessLevel.VIEW);
         return Stream.concat(
                         getTreeById(plan).stream(),
                         plan.getTrashBinItems().stream()
@@ -137,7 +137,7 @@ public class PlanService {
                 .collect(Collectors.toList());
     }
 
-    public PlanMessage mutateTree(List<Long> ids, Long parentId, Long afterId) {
+    public PlanItem mutateTree(List<Long> ids, Long parentId, Long afterId) {
         PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
         PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
@@ -145,21 +145,31 @@ public class PlanService {
             parent.addChildAfter(t, after);
             after = t;
         }
+        return parent;
+    }
+
+    public PlanMessage mutateTreeForMessage(List<Long> ids, Long parentId, Long afterId) {
+        mutateTree(ids, parentId, afterId);
         val m = new PlanMessage();
         m.setType("tree-mutation");
         m.setInfo(new MutatePlanTree(ids, parentId, afterId));
         return m;
     }
 
-    public PlanMessage resetSubitems(Long id, List<Long> subitemIds) {
-        PlanItem t = getPlanItemById(id, AccessLevel.CHANGE);
+    public PlanItem resetSubitems(Long id, List<Long> subitemIds) {
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         PlanItem prev = null;
         for (Long sid : subitemIds) {
             PlanItem curr = getPlanItemById(sid);
-            t.addChildAfter(curr, prev);
+            item.addChildAfter(curr, prev);
             prev = curr;
         }
-        return buildUpdateMessage(t);
+        return item;
+    }
+
+    public PlanMessage resetSubitemsForMessage(Long id, List<Long> subitemIds) {
+        PlanItem item = resetSubitems(id, subitemIds);
+        return buildUpdateMessage(item);
     }
 
     private void sendToPlan(AggregateIngredient r, PlanItem aggItem, Double scale) {
@@ -215,6 +225,7 @@ public class PlanService {
         Plan plan = createPlan(name);
         Plan src = planRepo.getReferenceById(fromId);
         duplicateChildren(src, plan);
+        // todo: should duplicating a plan copy buckets and grants?
         return plan;
     }
 
@@ -245,25 +256,24 @@ public class PlanService {
         return planRepo.save(plan);
     }
 
-    public PlanMessage createItem(Object id, Long parentId, Long afterId, String name) {
+    public PlanItem createItem(Long parentId, Long afterId, String name) {
         PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
         PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         PlanItem item = itemRepo.save(new PlanItem(name).of(parent, after));
         itemService.autoRecognize(item);
         if (item.getId() == null) itemRepo.flush();
+        return item;
+    }
+
+    public PlanMessage createItemForMessage(Object id, Long parentId, Long afterId, String name) {
+        PlanItem item = createItem(parentId, afterId, name);
         PlanMessage m = buildCreationMessage(item);
         m.addNewId(item.getId(), id);
         return m;
     }
 
-    public PlanMessage createBucket(Long planId, Object bucketId, String name, LocalDate date) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = new PlanBucket();
-        bucket.setName(name);
-        bucket.setDate(date);
-        bucket.setPlan(plan);
-        bucket = bucketRepo.save(bucket);
-        if (bucket.getId() != null) bucketRepo.flush();
+    public PlanMessage createBucketForMessage(Long planId, Object bucketId, String name, LocalDate date) {
+        PlanBucket bucket = createBucket(planId, name, date);
         PlanMessage m = new PlanMessage();
         m.setId(bucket.getId());
         m.setType("create-bucket");
@@ -272,11 +282,27 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage updateBucket(Long planId, Long id, String name, LocalDate date) {
+    public PlanBucket createBucket(Long planId, String name, LocalDate date) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        PlanBucket bucket = new PlanBucket();
+        bucket.setName(name);
+        bucket.setDate(date);
+        bucket.setPlan(plan);
+        bucket = bucketRepo.save(bucket);
+        if (bucket.getId() != null) bucketRepo.flush();
+        return bucket;
+    }
+
+    public PlanBucket updateBucket(Long planId, Long id, String name, LocalDate date) {
         getPlanById(planId, AccessLevel.ADMINISTER); // for the authorization check
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         bucket.setName(name);
         bucket.setDate(date);
+        return bucket;
+    }
+
+    public PlanMessage updateBucketForMessage(Long planId, Long id, String name, LocalDate date) {
+        PlanBucket bucket = updateBucket(planId, id, name, date);
         PlanMessage m = new PlanMessage();
         m.setId(bucket.getId());
         m.setType("update-bucket");
@@ -284,32 +310,49 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage deleteBucket(Long planId, Long id) {
+    public PlanBucket deleteBucket(Long planId, Long id) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = bucketRepo.getReferenceById(id);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);
+        return bucket;
+    }
+
+    public PlanMessage deleteBucketForMessage(Long planId, Long id) {
+        PlanBucket bucket = deleteBucket(planId, id);
         PlanMessage m = new PlanMessage();
         m.setId(bucket.getId());
         m.setType("delete-bucket");
         return m;
     }
 
-    public PlanMessage renameItem(Long id, String name) {
+    public PlanItem renameItem(Long id, String name) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setName(name);
         if (!item.hasIngredient() || !(item.getIngredient() instanceof Recipe)) {
             itemService.updateAutoRecognition(item);
         }
-        return buildUpdateMessage(item);
+        return item;
     }
 
-    public PlanMessage assignItemBucket(Long id, Long bucketId) {
+    public PlanMessage renameItemForMessage(Long id, String name) {
+        return buildUpdateMessage(renameItem(id, name));
+    }
+
+    public PlanItem assignItemBucket(Long id, Long bucketId) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
-        item.setBucket(bucketId == null
-                               ? null
-                               : bucketRepo.getReferenceById(bucketId));
-        return buildUpdateMessage(item);
+        PlanBucket bucket = bucketId == null
+                ? null
+                : bucketRepo.getReferenceById(bucketId);
+        if (bucket != null && !item.getPlan().equals(bucket.getPlan())) {
+            throw new IllegalArgumentException("Cannot assign item to a bucket from a different plan.");
+        }
+        item.setBucket(bucket);
+        return item;
+    }
+
+    public PlanMessage assignItemBucketForMessage(Long id, Long bucketId) {
+        return buildUpdateMessage(assignItemBucket(id, bucketId));
     }
 
     private PlanMessage buildUpdateMessage(PlanItem item) {
@@ -320,27 +363,48 @@ public class PlanService {
         return m;
     }
 
-    public PlanMessage setItemStatus(Long id, PlanItemStatus status) {
-        if (PlanItemStatus.COMPLETED.equals(status) || PlanItemStatus.DELETED.equals(status)) {
-            return deleteItem(id);
+    public PlanItem setItemStatus(Long id, PlanItemStatus status) {
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        if (status.isForDelete()) {
+            item.moveToTrash();
+        }
+        item.setStatus(status);
+        return item;
+    }
+
+    public PlanMessage setItemStatusForMessage(Long id, PlanItemStatus status) {
+        if (status.isForDelete()) {
+            return deleteItemForMessage(id);
         }
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setStatus(status);
         return buildUpdateMessage(item);
     }
 
-    public PlanMessage deleteItem(Long id) {
+    public PlanItem deleteItemForParent(Long id) {
         val item = getPlanItemById(id, AccessLevel.CHANGE);
         if (item.hasParent()) {
+            val parent = item.getParent();
             item.moveToTrash();
+            return parent;
         } else {
-            // a plan
-            itemRepo.delete(item);
+            throw new IllegalArgumentException(String.format(
+                    "ID '%s' is a plan",
+                    id));
         }
+    }
+
+    public PlanMessage deleteItemForMessage(Long id) {
+        deleteItemForParent(id);
         val m = new PlanMessage();
         m.setId(id);
         m.setType("delete");
         return m;
+    }
+
+    public void deletePlan(Long id) {
+        val plan = getPlanById(id, AccessLevel.ADMINISTER);
+        planRepo.delete(plan);
     }
 
     public void severLibraryLinks(Recipe r) {

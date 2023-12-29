@@ -10,15 +10,16 @@ public class SlugUtils {
         if (name == null || name.isBlank()) return "empty";
         String slug = name.substring(0, 1).toLowerCase() +
                 name.substring(1)
+                        .replaceAll("\\Bn't\\b", "nt")
+                        .replaceAll("(\\w)'s\\b", "$1s")
                         .replaceAll("([A-Z0-9]+)", "-$1")
                         .replaceAll("[^a-zA-Z0-9]+", "-")
                         .toLowerCase();
         if (maxLength > 0 && slug.length() > maxLength) {
             slug = slug.substring(0, maxLength);
-            while (slug.endsWith("-")) {
-                slug = slug.substring(0, slug.length() - 1);
-            }
         }
+        slug = slug.replaceAll("-+", "-");
+        slug = slug.replaceAll("^-|-$", "");
         return slug;
     }
 

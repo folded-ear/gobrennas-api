@@ -158,7 +158,7 @@ public class PlanServiceTreeMutationTest {
     }
 
     private void mutate(PlanItem parent, PlanItem after, PlanItem... items) {
-        service.mutateTree(
+        service.mutateTreeForMessage(
                 Arrays.stream(items).map(PlanItem::getId).collect(Collectors.toList()),
                 parent.getId(),
                 after == null ? null : after.getId());

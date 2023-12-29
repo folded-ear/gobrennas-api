@@ -17,10 +17,10 @@ import com.brennaswitzer.cookbook.payload.AclInfo;
 import com.brennaswitzer.cookbook.payload.GrantInfo;
 import com.brennaswitzer.cookbook.payload.PlanItemCreate;
 import com.brennaswitzer.cookbook.payload.PlanItemInfo;
+import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
-import com.brennaswitzer.cookbook.util.SlugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,9 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
@@ -93,16 +91,11 @@ public class PlanController {
     }
 
     @GetMapping("/{id}/share")
-    public Object getShareInfoById(
+    public ShareInfo getShareInfoById(
             @PathVariable("id") Long id
     ) {
-        Plan plan = planService.getPlanById(id);
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", plan.getId());
-        result.put("slug", SlugUtils.toSlug(plan.getName()));
-        result.put("secret", shareHelper.getSecret(Plan.class,
-                                                   plan.getId()));
-        return result;
+        return shareHelper.getInfo(Plan.class,
+                                   planService.getPlanById(id));
     }
 
     @GetMapping({ "/{id}/self-and-descendants",
@@ -132,7 +125,7 @@ public class PlanController {
                 : String.format("ID mismatch on rename (%s on URL, %s in action)",
                                 id,
                                 action.getParentId());
-        return planService.mutateTree(action.getIds(), action.getParentId(), action.getAfterId());
+        return planService.mutateTreeForMessage(action.getIds(), action.getParentId(), action.getAfterId());
     }
 
     @PostMapping("/{id}/reorder-subitems")
@@ -143,7 +136,7 @@ public class PlanController {
                 : String.format("ID mismatch on reorder (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.resetSubitems(action.getId(), action.getSubitemIds());
+        return planService.resetSubitemsForMessage(action.getId(), action.getSubitemIds());
     }
 
     @PostMapping("/{id}")
@@ -155,7 +148,10 @@ public class PlanController {
                 : String.format("ID mismatch on create (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.createItem(action.getId(), action.getParentId(), action.getAfterId(), action.getName());
+        return planService.createItemForMessage(action.getId(),
+                                                action.getParentId(),
+                                                action.getAfterId(),
+                                                action.getName());
     }
 
     @PutMapping("/{id}/rename")
@@ -167,7 +163,7 @@ public class PlanController {
                 : String.format("ID mismatch on rename (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.renameItem(action.getId(), action.getName());
+        return planService.renameItemForMessage(action.getId(), action.getName());
     }
 
     @PostMapping("/{id}/assign-bucket")
@@ -178,7 +174,7 @@ public class PlanController {
                 : String.format("ID mismatch on assign bucket (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.assignItemBucket(action.getId(), action.getBucketId());
+        return planService.assignItemBucketForMessage(action.getId(), action.getBucketId());
     }
 
     @PutMapping("/{id}/status")
@@ -190,7 +186,7 @@ public class PlanController {
                 : String.format("ID mismatch on set status (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.setItemStatus(action.getId(), action.getStatus());
+        return planService.setItemStatusForMessage(action.getId(), action.getStatus());
     }
 
     @DeleteMapping("/{planId}")
@@ -198,7 +194,7 @@ public class PlanController {
     public void deletePlan(
             @PathVariable("planId") Long planId
     ) {
-        planService.deleteItem(planId);
+        planService.deletePlan(planId);
     }
 
     @DeleteMapping("/{planId}/{id}")
@@ -209,14 +205,14 @@ public class PlanController {
         if (!planId.equals(item.getPlan().getId())) {
             throw new IllegalArgumentException("Item belongs to a different plan");
         }
-        planService.deleteItem(id);
+        planService.deleteItemForParent(id);
     }
 
     @PostMapping("/{id}/buckets")
     public PlanMessage createBucket(
             @PathVariable("id") long planId,
             @RequestBody CreatePlanBucket action) {
-        return planService.createBucket(planId, action.getId(), action.getName(), action.getDate());
+        return planService.createBucketForMessage(planId, action.getId(), action.getName(), action.getDate());
     }
 
     @PutMapping("/{planId}/buckets/{id}")
@@ -228,14 +224,14 @@ public class PlanController {
                 : String.format("ID mismatch on update bucket (%s on URL, %s in action)",
                                 id,
                                 action.getId());
-        return planService.updateBucket(planId, action.getId(), action.getName(), action.getDate());
+        return planService.updateBucketForMessage(planId, action.getId(), action.getName(), action.getDate());
     }
 
     @DeleteMapping("/{planId}/buckets/{id}")
     public PlanMessage deleteBucket(
             @PathVariable("planId") long planId,
             @PathVariable("id") long id) {
-        return planService.deleteBucket(planId, id);
+        return planService.deleteBucketForMessage(planId, id);
     }
 
     // todo: this method is confused. :) it's both create and update?

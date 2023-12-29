@@ -36,6 +36,11 @@ public class GraphQLConfig {
     }
 
     @Bean
+    public GraphQLScalarType long_() {
+        return ExtendedScalars.GraphQLLong;
+    }
+
+    @Bean
     public GraphQLScalarType positiveInt() {
         return ExtendedScalars.PositiveInt;
     }
@@ -81,7 +86,8 @@ public class GraphQLConfig {
     ) {
         return new AsyncExecutionStrategy() {
             @Override
-            public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext, ExecutionStrategyParameters parameters) {
+            public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext,
+                                                              ExecutionStrategyParameters parameters) {
                 return txTmpl.execute(tx -> {
                     val result = super.execute(executionContext, parameters);
                     if (tx.isNewTransaction() && tx instanceof DefaultTransactionStatus) {
