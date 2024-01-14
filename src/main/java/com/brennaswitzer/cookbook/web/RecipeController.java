@@ -154,7 +154,7 @@ public class RecipeController {
         return ingredientMapper.recipeToInfo(recipe);
     }
 
-    @GetMapping("/share/{id}") // todo: this should be /{id}/share
+    @GetMapping({ "/{id}/share", "/share/{id}" })
     public Object getShareInfoById(
             @PathVariable("id") Long id
     ) {
@@ -163,8 +163,6 @@ public class RecipeController {
                                    recipeService.findRecipeById(id).get());
     }
 
-    // begin kludge (3 of 3)
-    @Autowired private EntityManager em;
     @GetMapping("/bulk-ingredients/{ids}")
     @SneakyThrows
     public Collection<IngredientInfo> getIngredientsInBulk(
@@ -180,6 +178,8 @@ public class RecipeController {
         return infos;
     }
 
+    // begin kludge (3 of 3)
+    @Autowired private EntityManager em;
     @GetMapping("/or-ingredient/{id}")
     public IngredientInfo getIngredientById(@PathVariable("id") Long id) {
         Ingredient i = em.find(Ingredient.class, id);
