@@ -3,7 +3,7 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.S3File;
+import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.Page;
@@ -106,10 +106,7 @@ public class RecipeController {
             recipe.getIngredients().forEach(itemService::autoRecognize);
         }
 
-        Recipe recipe1 = recipeService.createNewRecipe(recipe);
-        if (photo != null) {
-            setPhoto(photo, recipe1);
-        }
+        Recipe recipe1 = recipeService.createNewRecipe(recipe, Upload.of(photo));
 
         labelService.updateLabels(recipe1, info.getLabels());
 
@@ -127,11 +124,7 @@ public class RecipeController {
         Recipe recipe = info.asRecipe(em);
         // end kludge (2 of 3)
 
-        if (photo != null) {
-            setPhoto(photo, recipe);
-        }
-
-        Recipe recipe1 = recipeService.updateRecipe(recipe);
+        Recipe recipe1 = recipeService.updateRecipe(recipe, Upload.of(photo));
         labelService.updateLabels(recipe1, info.getLabels());
 
         return new ResponseEntity<>(ingredientMapper.recipeToInfo(recipe1), HttpStatus.OK);
@@ -141,9 +134,7 @@ public class RecipeController {
     @Transactional
     @ResponseBody
     public IngredientInfo setRecipePhoto(@PathVariable("id") Long id, @RequestParam MultipartFile photo) throws IOException {
-        //noinspection OptionalGetWithoutIsPresent
-        Recipe recipe = recipeService.findRecipeById(id).get();
-        setPhoto(photo, recipe);
+        Recipe recipe = recipeService.setRecipePhoto(id, Upload.of(photo));
         return ingredientMapper.recipeToInfo(recipeService.updateRecipe(recipe));
     }
 
@@ -215,7 +206,6 @@ public class RecipeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(@PathVariable Long id) {
-        removePhoto(getRecipe(id));
         recipeService.deleteRecipeById(id);
         return new ResponseEntity<>("Recipe was deleted", HttpStatus.OK);
     }
@@ -263,33 +253,6 @@ public class RecipeController {
 
     private IngredientInfo mapToInfo(String recipeData) throws IOException {
         return objectMapper.readValue(recipeData, IngredientInfo.class);
-    }
-
-    private void setPhoto(MultipartFile photo, Recipe recipe) throws IOException {
-        removePhoto(recipe);
-        String name = photo.getOriginalFilename();
-        if (name == null) {
-            name = "photo";
-        } else {
-            name = S3File.sanitizeFilename(name);
-        }
-        String objectKey = "recipe/" + recipe.getId() + "/" + name;
-        recipe.setPhoto(new S3File(
-                storageService.store(photo, objectKey),
-                photo.getContentType(),
-                photo.getSize()
-        ));
-    }
-
-    private void removePhoto(Recipe recipe) {
-        if (recipe.hasPhoto()) {
-            try {
-                storageService.remove(recipe.getPhoto().getObjectKey());
-            } catch (IOException ioe) {
-                throw new RuntimeException("Failed to remove photo", ioe);
-            }
-            recipe.clearPhoto();
-        }
     }
 
 }

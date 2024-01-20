@@ -2,10 +2,8 @@ package com.brennaswitzer.cookbook.services;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.brennaswitzer.cookbook.domain.Upload;
 import org.springframework.util.Assert;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 public class S3StorageService implements StorageService {
 
@@ -25,14 +23,11 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
-    public void init() {}
-
-    @Override
-    public String store(MultipartFile file, String filename) throws IOException {
-        Assert.notNull(file, "File is required.");
-        Assert.notNull(filename, "Filename is required.");
-        put(file, filename);
-        return filename;
+    public String store(Upload upload, String objectKey) {
+        Assert.notNull(upload, "upload is required.");
+        Assert.notNull(objectKey, "objectKey is required.");
+        put(upload, objectKey);
+        return objectKey;
     }
 
     @Override
@@ -41,16 +36,16 @@ public class S3StorageService implements StorageService {
         return "https://s3-" + region + ".amazonaws.com" + "/" + bucketName + "/" + objectKey;
     }
 
-    private void put(MultipartFile file, String objectKey) throws IOException {
+    private void put(Upload upload, String objectKey) {
         ObjectMetadata md = new ObjectMetadata();
-        md.setContentType(file.getContentType());
+        md.setContentType(upload.getContentType());
         // by fiat, S3-stored assets will never change w/in a single day. :)
         md.setCacheControl("public, max-age=86400, immutable");
-        md.setContentLength(file.getSize());
+        md.setContentLength(upload.getSize());
         client.putObject(
                 bucketName,
                 objectKey,
-                file.getInputStream(),
+                upload.getInputStream(),
                 md
         );
     }

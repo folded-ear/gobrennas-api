@@ -1,12 +1,16 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.S3File;
+import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,17 +32,42 @@ public class RecipeService {
     @Autowired
     private UserPrincipalAccess principalAccess;
 
+    @Autowired
+    private StorageService storageService;
+
     public Recipe createNewRecipe(Recipe recipe) {
+        return createNewRecipe(recipe, null);
+    }
+
+    public Recipe createNewRecipe(Recipe recipe, Upload photo) {
         recipe.setOwner(principalAccess.getUser());
+        setPhotoInternal(recipe, photo);
         return recipeRepository.save(recipe);
     }
 
     public Recipe updateRecipe(Recipe recipe) {
-        Recipe existing = recipeRepository.getReferenceById(recipe.getId());
-        if (!existing.getOwner().equals(principalAccess.getUser())) {
-            throw new RuntimeException("You can't update other people's recipes.");
-        }
+        return this.updateRecipe(recipe, null);
+    }
+
+    public Recipe updateRecipe(Recipe recipe, Upload photo) {
+        getMyRecipe(recipe.getId());
+        setPhotoInternal(recipe, photo);
         return recipeRepository.save(recipe);
+    }
+
+    public Recipe setRecipePhoto(Long id, Upload photo) {
+        Recipe recipe = getMyRecipe(id);
+        setPhotoInternal(recipe, photo);
+        return recipeRepository.save(recipe);
+    }
+
+    @NotNull
+    private Recipe getMyRecipe(Long id) {
+        Recipe recipe = recipeRepository.getReferenceById(id);
+        if (!recipe.getOwner().equals(principalAccess.getUser())) {
+            throw new AccessDeniedException("You can only modify your own recipes.");
+        }
+        return recipe;
     }
 
     public Optional<Recipe> findRecipeById(Long id) {
@@ -46,9 +75,33 @@ public class RecipeService {
     }
 
     public void deleteRecipeById(Long id) {
-        Recipe r = recipeRepository.getReferenceById(id);
-        planService.severLibraryLinks(r);
-        recipeRepository.delete(r);
+        Recipe recipe = getMyRecipe(id);
+        removePhotoInternal(recipe);
+        planService.severLibraryLinks(recipe);
+        recipeRepository.delete(recipe);
+    }
+
+    private void setPhotoInternal(Recipe recipe, Upload photo) {
+        removePhotoInternal(recipe);
+        if (photo == null) return;
+        String name = photo.getOriginalFilename();
+        if (name == null) {
+            name = "photo";
+        } else {
+            name = S3File.sanitizeFilename(name);
+        }
+        String objectKey = "recipe/" + recipe.getId() + "/" + name;
+        recipe.setPhoto(new S3File(
+                storageService.store(photo, objectKey),
+                photo.getContentType(),
+                photo.getSize()
+        ));
+    }
+
+    private void removePhotoInternal(Recipe recipe) {
+        if (!recipe.hasPhoto()) return;
+        storageService.remove(recipe.getPhoto().getObjectKey());
+        recipe.clearPhoto();
     }
 
     public void sendToPlan(Long recipeId, Long planId) {
