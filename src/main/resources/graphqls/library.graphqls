@@ -109,3 +109,37 @@ type UnitOfMeasure implements Node {
     id: ID!
     name: String!
 }
+
+extend type Mutation {
+    library: LibraryMutation
+}
+
+type LibraryMutation {
+    createRecipe(info: IngredientInfo!, photo: Upload, cookThis: Boolean): Recipe!
+    updateRecipe(id: ID!, info: IngredientInfo!, photo: Upload): Recipe!
+    deleteRecipe(id: ID!): Boolean!
+}
+
+input IngredientInfo {
+    type: String!
+    name: String!
+    storeOrder: Int
+    externalUrl: String
+    directions: String
+    ingredients: [IngredientRefInfo!]
+    labels: [String!]
+    yield: Int
+    calories: Int
+    totalTime: Int
+    photoFocus: [Float!]
+}
+
+input IngredientRefInfo {
+    raw: String!
+    quantity: Float
+    units: String
+    uomId: Long
+    ingredient: String
+    ingredientId: Long
+    preparation: String
+}

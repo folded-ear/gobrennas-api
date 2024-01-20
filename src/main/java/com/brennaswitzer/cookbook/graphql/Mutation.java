@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 public class Mutation implements GraphQLMutationResolver {
 
     @Autowired
+    public LibraryMutation library;
+
+    @Autowired
     public TimerMutation timer;
 
     @Autowired
