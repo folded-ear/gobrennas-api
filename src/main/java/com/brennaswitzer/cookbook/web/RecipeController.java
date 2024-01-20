@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("api/recipe")
@@ -258,9 +257,8 @@ public class RecipeController {
     }
 
     private Recipe getRecipe(Long id) {
-        Optional<Recipe> recipe = recipeService.findRecipeById(id);
-        recipe.orElseThrow(NoResultException::new);
-        return recipe.get();
+        return recipeService.findRecipeById(id)
+                .orElseThrow(NoResultException::new);
     }
 
     private IngredientInfo mapToInfo(String recipeData) throws IOException {
