@@ -96,7 +96,7 @@ type PlannerMutation {
     This operation cascades."""
     deleteItem(id: ID!): PlanItem
     """Deletes the given plan, and all its related data."""
-    deletePlan(id: ID!): Boolean
+    deletePlan(id: ID!): Boolean!
     """Move the given items under the given parent, in order, optionally after a
     specific item already under that parent. The parent's info is returned."""
     mutateTree(itemIds: [ID!]!, parentId: ID!, afterId: ID): PlanItem!

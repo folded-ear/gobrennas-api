@@ -8,6 +8,7 @@ import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.ResultPath;
+import graphql.kickstart.servlet.apollo.ApolloScalars;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
@@ -38,6 +39,11 @@ public class GraphQLConfig {
     @Bean
     public GraphQLScalarType long_() {
         return ExtendedScalars.GraphQLLong;
+    }
+
+    @Bean
+    public GraphQLScalarType upload() {
+        return ApolloScalars.Upload;
     }
 
     @Bean

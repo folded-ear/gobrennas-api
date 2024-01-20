@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
+@Getter
 public class S3File {
 
     private static final Pattern FILENAME_SANITIZER = Pattern.compile("[^a-zA-Z0-9.\\-]+");
@@ -18,16 +20,10 @@ public class S3File {
         return FILENAME_SANITIZER.matcher(filename).replaceAll("_");
     }
 
-    @Getter
-    @Setter
     private String objectKey;
 
-    @Getter
-    @Setter
     private String contentType;
 
-    @Getter
-    @Setter
     private Long size; // needs to be nullable for historical data
 
 }

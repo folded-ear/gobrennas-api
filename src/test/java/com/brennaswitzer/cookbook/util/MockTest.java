@@ -1,9 +1,13 @@
 package com.brennaswitzer.cookbook.util;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -50,7 +54,12 @@ public abstract class MockTest {
     private AutoCloseable closeable;
 
     @BeforeEach
-    public void setup() throws ReflectiveOperationException {
+    public void setup() {
+        quietly(this::setupInternal);
+    }
+
+    @SneakyThrows
+    private void setupInternal() {
         closeable = MockitoAnnotations.openMocks(this);
         if (cutField == null) {
             for (Field f : getClass().getDeclaredFields()) {
@@ -91,10 +100,26 @@ public abstract class MockTest {
     }
 
     @AfterEach
-    public void teardown() throws Exception {
+    public void teardown() {
+        quietly(this::teardownInternal);
+    }
+
+    @SneakyThrows
+    private void teardownInternal() {
         closeable.close();
         if (cutField != null) {
             ReflectionTestUtils.setField(this, cutField.getName(), null);
+        }
+    }
+
+    private void quietly(Runnable work) {
+        Logger logger = ((Logger) LoggerFactory.getLogger(ReflectionTestUtils.class));
+        Level level = logger.getLevel();
+        logger.setLevel(Level.INFO);
+        try {
+            work.run();
+        } finally {
+            logger.setLevel(level);
         }
     }
 

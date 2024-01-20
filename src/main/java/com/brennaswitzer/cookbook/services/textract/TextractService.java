@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.services.textract;
 
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.TextractJob;
+import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import com.brennaswitzer.cookbook.services.StorageService;
@@ -15,7 +16,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -50,13 +50,9 @@ public class TextractService {
             name = S3File.sanitizeFilename(name);
         }
         String objectKey;
-        try {
-            objectKey = storageService.store(
-                    photo,
-                    "textract/" + user.getId() + "/" + job.get_eqkey() + "/" + name);
-        } catch (IOException ioe) {
-            throw new RuntimeException("Failed to save photo", ioe);
-        }
+        objectKey = storageService.store(
+                Upload.of(photo),
+                "textract/" + user.getId() + "/" + job.get_eqkey() + "/" + name);
         job.setPhoto(new S3File(
                 objectKey,
                 photo.getContentType(),
@@ -81,11 +77,7 @@ public class TextractService {
 
     public void deleteJob(long id) {
         jobRepository.findById(id).map(j -> {
-            try {
-                storageService.remove(j.getPhoto().getObjectKey());
-            } catch (IOException ioe) {
-                throw new RuntimeException("Failed to remove photo", ioe);
-            }
+            storageService.remove(j.getPhoto().getObjectKey());
             jobRepository.delete(j);
             return j;
         });

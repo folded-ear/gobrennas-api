@@ -1,27 +1,15 @@
 package com.brennaswitzer.cookbook.services;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
+import com.brennaswitzer.cookbook.domain.Upload;
 
 public interface StorageService {
 
-    void init();
-
     /**
-     * I take a MultiportFile object and return a reference string after it was stored
-     * @return reference to stored file
-     */
-    default String store(MultipartFile file) throws IOException {
-        return store(file, file.getOriginalFilename());
-    }
-
-    /**
-     * I take a MultipartFile object and a string filename/key and write to storage
+     * I take a Upload object and a string filename/key and write to storage
      * @param filename String filename for storage
      * @return reference to the stored file
      */
-    String store(MultipartFile file, String filename) throws IOException;
+    String store(Upload upload, String filename);
 
     /**
      * I return a fully-qualified URL for the passed file reference.
@@ -34,6 +22,6 @@ public interface StorageService {
      * I remove the passed file reference from the store.
      * @param ref A reference to a stored file to remove.
      */
-    void remove(String ref) throws IOException;
+    void remove(String ref);
 
 }

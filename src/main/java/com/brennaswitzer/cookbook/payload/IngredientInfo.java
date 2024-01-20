@@ -52,19 +52,19 @@ public class IngredientInfo {
     @Getter
     @Setter
     private Integer totalTime;
-    @Getter @Setter
+    @Getter
+    @Setter
     private String photo;
-    @Getter @Setter
+    @Getter
+    @Setter
     private float[] photoFocus;
-    @Getter @Setter
+    @Setter
     private Boolean cookThis;
 
     public List<String> getLabels() {
-        if (labels == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_LIST;
-        }
-        return labels;
+        return labels == null
+                ? Collections.emptyList()
+                : labels;
     }
 
     public boolean isCookThis() {

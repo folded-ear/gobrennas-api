@@ -1,17 +1,14 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.Upload;
 import org.springframework.util.Assert;
-import org.springframework.web.multipart.MultipartFile;
 
 public class LocalStorageService implements StorageService {
 
     @Override
-    public void init() { }
-
-    @Override
-    public String store(MultipartFile file, String filename) {
-        Assert.notNull(file, "File is required.");
-        Assert.notNull(filename, "Filename is required.");
+    public String store(Upload upload, String filename) {
+        Assert.notNull(upload, "upload is required.");
+        Assert.notNull(filename, "filename is required.");
         return "images/pork_chops.jpg";
     }
 
