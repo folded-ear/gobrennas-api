@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.brennaswitzer.cookbook.domain.Upload;
+import lombok.SneakyThrows;
 import org.springframework.util.Assert;
 
 public class S3StorageService implements StorageService {
@@ -36,18 +37,16 @@ public class S3StorageService implements StorageService {
         return "https://s3-" + region + ".amazonaws.com" + "/" + bucketName + "/" + objectKey;
     }
 
+    @SneakyThrows
     private void put(Upload upload, String objectKey) {
         ObjectMetadata md = new ObjectMetadata();
         md.setContentType(upload.getContentType());
         // by fiat, S3-stored assets will never change w/in a single day. :)
         md.setCacheControl("public, max-age=86400, immutable");
         md.setContentLength(upload.getSize());
-        client.putObject(
-                bucketName,
-                objectKey,
-                upload.getInputStream(),
-                md
-        );
+        try (var is = upload.getInputStream()) {
+            client.putObject(bucketName, objectKey, is, md);
+        }
     }
 
     @Override
