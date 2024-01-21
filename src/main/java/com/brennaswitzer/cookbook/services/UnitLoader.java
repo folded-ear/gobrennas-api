@@ -18,11 +18,14 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -133,7 +136,11 @@ public class UnitLoader {
 
     @EventListener
     public void onStart(ApplicationStartedEvent ignored) {
-        loadUnits("units.yml");
+        try {
+            loadUnits("units.yml");
+        } catch (Exception e) {
+            log.error("Error loading units", e);
+        }
     }
 
     private Status getStatusFromSetting(AppSetting setting) {
@@ -163,13 +170,13 @@ public class UnitLoader {
     protected Collection<UnitOfMeasure> loadUnits(String resourceName,
                                                   InputStreamSource streamSource) {
         String sha1 = DigestUtils.sha1Hex(streamSource.getInputStream());
-        SettingAndStatus settingAndStatus = txTemplate.execute(tx -> {
+        SettingAndStatus settingAndStatus = inTxWithRetry(tx -> {
             SettingAndStatus ss = new SettingAndStatus(resourceName);
             ss.setCurrentSha1(sha1);
             return ss;
         });
         if (settingAndStatus.isLoadNeeded()) {
-            var units = txTemplate.execute(tx -> {
+            var units = inTxWithRetry(tx -> {
                 var us = loadUnitsInternal(streamSource);
                 settingAndStatus.complete();
                 return us;
@@ -179,6 +186,21 @@ public class UnitLoader {
         }
         log.info("skip loading units from '{}'", resourceName);
         return Collections.emptySet();
+    }
+
+    private <T> T inTxWithRetry(TransactionCallback<T> action) {
+        RuntimeException suppressed = null;
+        for (int i = 0; i < 2; i++) {
+            try {
+                return txTemplate.execute(action);
+            } catch (PersistenceException | TransactionException e) {
+                if (suppressed != null) {
+                    e.addSuppressed(suppressed);
+                }
+                suppressed = e;
+            }
+        }
+        throw suppressed;
     }
 
     @SneakyThrows
