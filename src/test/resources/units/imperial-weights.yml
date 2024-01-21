@@ -1,0 +1,8 @@
+name: oz
+pluralName: oz
+aliases: [ ounce, ounces ]
+---
+name: pound
+aliases: [ lbs, "#" ]
+conversions:
+  oz: 16
