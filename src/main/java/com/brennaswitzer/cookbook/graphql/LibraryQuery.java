@@ -11,6 +11,7 @@ import graphql.relay.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.NoResultException;
 import java.util.Optional;
 
 @SuppressWarnings("unused") // reflected by java-graphql
@@ -37,8 +38,9 @@ public class LibraryQuery {
         throw new UnsupportedOperationException("library.pantryItem is not supported.");
     }
 
-    public Optional<Recipe> getRecipeById(Long id) {
-        return recipeService.findRecipeById(id);
+    public Recipe getRecipeById(Long id) {
+        return recipeService.findRecipeById(id)
+                .orElseThrow(() -> new NoResultException("There is no recipe with id: " + id));
     }
 
 }
