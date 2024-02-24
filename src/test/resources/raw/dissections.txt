@@ -1,4 +1,4 @@
-raw|amount|astart|aend|unit|ustart|uend|name|nstart|nend
+raw|quantity|qstart|qend|unit|ustart|uend|name|nstart|nend
 1 ¾  pounds large or extra-large shrimp, shelled|1 ¾|0|3||||||
 1 cup flour|1|0|1||||||
 1 _cup_ flour|1|0|1|cup|2|7|||

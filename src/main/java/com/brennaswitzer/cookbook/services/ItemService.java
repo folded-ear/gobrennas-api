@@ -5,9 +5,10 @@ import com.brennaswitzer.cookbook.domain.MutableItem;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
+import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
-import com.brennaswitzer.cookbook.payload.RecognizedItem.Range;
-import com.brennaswitzer.cookbook.payload.RecognizedItem.Suggestion;
+import com.brennaswitzer.cookbook.payload.RecognizedRange;
+import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
@@ -50,14 +51,14 @@ public class ItemService {
         if (raw.trim().isEmpty()) return null;
         RecognizedItem item = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
-        RawIngredientDissection.Section secAmount = d.getQuantity();
-        if (secAmount != null) {
-            // there's an amount
-            item.withRange(new RecognizedItem.Range(
-                    secAmount.getStart(),
-                    secAmount.getEnd(),
-                    RecognizedItem.Type.AMOUNT
-            ).withValue(NumberUtils.parseNumber(secAmount.getText())));
+        RawIngredientDissection.Section secQuantity = d.getQuantity();
+        if (secQuantity != null) {
+            // there's a quantity
+            item.withRange(new RecognizedRange(
+                    secQuantity.getStart(),
+                    secQuantity.getEnd(),
+                    RecognizedRangeType.QUANTITY
+            ).withQuantity(NumberUtils.parseNumber(secQuantity.getText())));
         }
         RawIngredientDissection.Section secUnit = d.getUnits();
         if (secUnit != null) {
@@ -65,14 +66,13 @@ public class ItemService {
             Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                     entityManager,
                     secUnit.getText());
-            item.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedRange(
                     secUnit.getStart(),
                     secUnit.getEnd(),
                     ouom.isPresent()
-                            ? RecognizedItem.Type.UNIT
-                            : RecognizedItem.Type.NEW_UNIT,
-                    ouom.map(UnitOfMeasure::getId).orElse(null)
-            ));
+                            ? RecognizedRangeType.UNIT
+                            : RecognizedRangeType.NEW_UNIT
+            ).withId(ouom.map(UnitOfMeasure::getId).orElse(null)));
         }
         RawIngredientDissection.Section secName = d.getName();
         int idxExplicitItemStart = -1;
@@ -82,41 +82,40 @@ public class ItemService {
             Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
             idxExplicitItemStart = secName.getStart();
-            item.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedRange(
                     secName.getStart(),
                     secName.getEnd(),
                     oing.isPresent()
-                            ? RecognizedItem.Type.ITEM
-                            : RecognizedItem.Type.NEW_ITEM,
-                    oing.map(Ingredient::getId).orElse(null)
-            ));
+                            ? RecognizedRangeType.ITEM
+                            : RecognizedRangeType.NEW_ITEM
+            ).withId(oing.map(Ingredient::getId).orElse(null)));
         } else if (!raw.contains("\"")) {
             // no explicit name, so see if there's an implicit one
-            Optional<Range> matched = multiPass(item.unrecognizedWords(), raw);
+            Optional<RecognizedRange> matched = multiPass(item.unrecognizedWords(), raw);
             // TODO: Break out pieces and test for item service
             // This line means that when we have a match, we get no more suggestions, which is not the behavior we want
             // idxNameStart = matched.get().getStart();
             if (matched.isPresent()) {
-                Range r = matched.get();
+                RecognizedRange r = matched.get();
                 item.withRange(r);
                 idxImplicitItemStart = r.getStart();
             }
         }
-        if (secAmount != null && secUnit == null && !raw.contains("_")) {
-            // There's an amount, but no explicit unit, so see if there's an
+        if (secQuantity != null && secUnit == null && !raw.contains("_")) {
+            // There's a quantity, but no explicit unit, so see if there's an
             // implicit one. But only before the item, if one exists.
             int idxItemStart = Math.max(
                     idxExplicitItemStart,
                     idxImplicitItemStart);
-            Iterable<Range> wordRanges = idxItemStart < 0
+            Iterable<RecognizedRange> wordRanges = idxItemStart < 0
                     ? item.unrecognizedWords()
                     : item.unrecognizedWordsThrough(idxItemStart);
-            for (RecognizedItem.Range r : wordRanges) {
+            for (RecognizedRange r : wordRanges) {
                 Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                         entityManager,
                         raw.substring(r.getStart(), r.getEnd()));
                 if (ouom.isEmpty()) continue;
-                item.withRange(r.of(RecognizedItem.Type.UNIT).withValue(ouom.get().getId()));
+                item.withRange(r.of(RecognizedRangeType.UNIT).withId(ouom.get().getId()));
                 break;
             }
         }
@@ -161,14 +160,13 @@ public class ItemService {
                             while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
                                 len--;
                             }
-                            item.withSuggestion(new Suggestion(
+                            item.withSuggestion(new RecognitionSuggestion(
                                     i.getName(),
-                                    new RecognizedItem.Range(
+                                    new RecognizedRange(
                                             replaceStart - len,
                                             item.getCursor(),
-                                            RecognizedItem.Type.ITEM,
-                                            i.getId()
-                                    )
+                                            RecognizedRangeType.ITEM
+                                    ).withId(i.getId())
                             ));
                         });
             }
@@ -202,7 +200,7 @@ public class ItemService {
         q.setQuantity(quantity);
         if (dissection.hasUnits()) {
             q.setUnits(UnitOfMeasure.ensure(entityManager,
-                    EnglishUtils.canonicalize(dissection.getUnitsText())));
+                                            EnglishUtils.canonicalize(dissection.getUnitsText())));
         }
         it.setQuantity(q);
     }
@@ -213,11 +211,11 @@ public class ItemService {
         String original;
         @Getter
         String canonical;
-        Range range;
+        RecognizedRange range;
 
         public static Comparator<Phrase> BY_POSITION = Comparator.comparingInt(a -> a.range.getStart());
 
-        Phrase(Range range, String original) {
+        Phrase(RecognizedRange range, String original) {
             this.range = range;
             setOriginal(original);
         }
@@ -232,12 +230,12 @@ public class ItemService {
             this.canonical = sanitized;
         }
 
-        public Phrase of(RecognizedItem.Type type) {
+        public Phrase of(RecognizedRangeType type) {
             return new Phrase(range.of(type), original);
         }
 
-        public Phrase withValue(Object value) {
-            range.withValue(value);
+        public Phrase withId(Long id) {
+            range.withId(id);
             return this;
         }
 
@@ -252,9 +250,10 @@ public class ItemService {
             assert o != null;
             return Integer.compare(range.getEnd() - range.getStart(), o.range.getEnd() - o.range.getStart());
         }
+
     }
 
-    public Optional<Range> multiPass(Iterable<Range> ranges, String raw) {
+    public Optional<RecognizedRange> multiPass(Iterable<RecognizedRange> ranges, String raw) {
 
         List<Phrase> rs = StreamSupport
                 .stream(ranges.spliterator(), false)
@@ -273,8 +272,9 @@ public class ItemService {
 
         for (Phrase phrase : phrases) {
             for (Ingredient opt : options) {
-                Phrase match = phrase.of(RecognizedItem.Type.ITEM).withValue(opt.getId());
-                if (phrase.getCanonical().equals(opt.getName()) || phrase.getOriginal().equalsIgnoreCase(opt.getName())) {
+                Phrase match = phrase.of(RecognizedRangeType.ITEM).withId(opt.getId());
+                if (phrase.getCanonical().equals(opt.getName()) || phrase.getOriginal()
+                        .equalsIgnoreCase(opt.getName())) {
                     if (best == null) {
                         best = match;
                     } else {
@@ -309,4 +309,5 @@ public class ItemService {
         options.sort(Phrase.BY_POSITION);
         return options;
     }
+
 }

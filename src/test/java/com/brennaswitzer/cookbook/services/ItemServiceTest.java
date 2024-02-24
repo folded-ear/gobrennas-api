@@ -1,6 +1,9 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
+import com.brennaswitzer.cookbook.payload.RecognizedRange;
+import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.RecipeBox;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -53,10 +56,10 @@ public class ItemServiceTest {
         System.out.println(el);
 
         assertEquals(RAW, el.getRaw());
-        Iterator<RecognizedItem.Range> ri = el.getRanges().iterator();
-        assertEquals(new RecognizedItem.Range(0, 7, RecognizedItem.Type.AMOUNT), ri.next());
-        assertEquals(new RecognizedItem.Range(8, 11, RecognizedItem.Type.UNIT), ri.next());
-        assertEquals(new RecognizedItem.Range(24, 29, RecognizedItem.Type.ITEM), ri.next());
+        Iterator<RecognizedRange> ri = el.getRanges().iterator();
+        assertEquals(new RecognizedRange(0, 7, RecognizedRangeType.QUANTITY), ri.next());
+        assertEquals(new RecognizedRange(8, 11, RecognizedRangeType.UNIT), ri.next());
+        assertEquals(new RecognizedRange(24, 29, RecognizedRangeType.ITEM), ri.next());
         assertFalse(ri.hasNext());
     }
 
@@ -68,10 +71,10 @@ public class ItemServiceTest {
         final String RAW = "1 cup Italian seasoning";
         RecognizedItem el = service.recognizeItem(RAW);
 
-        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
-        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        assertEquals(new RecognizedItem.Range(6, 23, RecognizedItem.Type.ITEM), ing);
+        RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
+        assertEquals(new RecognizedRange(6, 23, RecognizedRangeType.ITEM), ing);
     }
 
     @Test
@@ -82,10 +85,10 @@ public class ItemServiceTest {
         final String RAW = "1 cup flour,";
         RecognizedItem el = service.recognizeItem(RAW);
 
-        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
-        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        assertEquals(new RecognizedItem.Range(6, 11, RecognizedItem.Type.ITEM), ing);
+        RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
+        assertEquals(new RecognizedRange(6, 11, RecognizedRangeType.ITEM), ing);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -99,19 +102,19 @@ public class ItemServiceTest {
 
         var q = recog.getRanges()
                 .stream()
-                .filter(r -> r.getType() == RecognizedItem.Type.AMOUNT)
+                .filter(r -> r.getType() == RecognizedRangeType.QUANTITY)
                 .findFirst()
                 .get();
         assertEquals("12", raw.substring(q.getStart(), q.getEnd()));
         var item = recog.getRanges()
                 .stream()
-                .filter(r -> r.getType() == RecognizedItem.Type.ITEM)
+                .filter(r -> r.getType() == RecognizedRangeType.ITEM)
                 .findFirst()
                 .get();
         assertEquals("flour", raw.substring(item.getStart(), item.getEnd()));
         var optUnit = recog.getRanges()
                 .stream()
-                .filter(r -> r.getType() == RecognizedItem.Type.UNIT)
+                .filter(r -> r.getType() == RecognizedRangeType.UNIT)
                 .findFirst();
         assertFalse(optUnit.isPresent());
     }
@@ -132,10 +135,10 @@ public class ItemServiceTest {
 
         System.out.println(el);
 
-        Iterator<RecognizedItem.Range> ri = el.getRanges().iterator();
-        assertEquals(new RecognizedItem.Range(0, 1, RecognizedItem.Type.AMOUNT), ri.next());
-        assertEquals(new RecognizedItem.Range(2, 5, RecognizedItem.Type.UNIT), ri.next());
-        assertEquals(new RecognizedItem.Range(6, 20, RecognizedItem.Type.ITEM), ri.next());
+        Iterator<RecognizedRange> ri = el.getRanges().iterator();
+        assertEquals(new RecognizedRange(0, 1, RecognizedRangeType.QUANTITY), ri.next());
+        assertEquals(new RecognizedRange(2, 5, RecognizedRangeType.UNIT), ri.next());
+        assertEquals(new RecognizedRange(6, 20, RecognizedRangeType.ITEM), ri.next());
         assertFalse(ri.hasNext());
     }
 
@@ -164,22 +167,22 @@ public class ItemServiceTest {
 
         // with no cursor; we're at the end
         RecognizedItem el = service.recognizeItem("1 gram f");
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("flour",
-                new RecognizedItem.Range(7, 8, RecognizedItem.Type.ITEM)), itr.next());
-        assertEquals(  new RecognizedItem.Suggestion("fresh tomatoes",
-                new RecognizedItem.Range(7, 8, RecognizedItem.Type.ITEM)), itr.next());
-        assertEquals(new RecognizedItem.Suggestion("Fried Chicken",
-                new RecognizedItem.Range(7, 8, RecognizedItem.Type.ITEM)), itr.next());
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("flour",
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("fresh tomatoes",
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("Fried Chicken",
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
         assertFalse(itr.hasNext());
 
         // cursor after the 'fr'
         el = service.recognizeItem("1 gram fr, dehydrated", 9);
         itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("fresh tomatoes",
-                new RecognizedItem.Range(7, 9, RecognizedItem.Type.ITEM)), itr.next());
-        assertEquals(new RecognizedItem.Suggestion("Fried Chicken",
-                new RecognizedItem.Range(7, 9, RecognizedItem.Type.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("fresh tomatoes",
+                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("Fried Chicken",
+                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -188,9 +191,9 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
         RecognizedItem el = service.recognizeItem("1 gram \"cru, dehydrated", 11);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 11, RecognizedItem.Type.ITEM)), itr.next());
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -199,9 +202,9 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
         RecognizedItem el = service.recognizeItem("1 gram \"crumbs", 11);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 11, RecognizedItem.Type.ITEM)), itr.next());
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -210,9 +213,9 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
         RecognizedItem el = service.recognizeItem("1 gram \"pizza cru, dehydrated", 17);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 17, RecognizedItem.Type.ITEM)), itr.next());
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 17, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -221,9 +224,9 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
         RecognizedItem el = service.recognizeItem("1 gram pizza cru, dehydrated", 16);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 16, RecognizedItem.Type.ITEM)), itr.next());
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 16, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -233,10 +236,10 @@ public class ItemServiceTest {
 
         final String RAW = "spanish apple cake";
         RecognizedItem el = service.recognizeItem(RAW);
-        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
-        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        assertEquals(new RecognizedItem.Range(0, 18, RecognizedItem.Type.ITEM), ing);
+        RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
+        assertEquals(new RecognizedRange(0, 18, RecognizedRangeType.ITEM), ing);
 
     }
 
