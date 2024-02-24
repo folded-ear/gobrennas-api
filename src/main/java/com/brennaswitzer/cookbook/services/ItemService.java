@@ -13,13 +13,13 @@ import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
 import lombok.Getter;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -119,59 +119,67 @@ public class ItemService {
                 break;
             }
         }
-        if (withSuggestions && idxExplicitItemStart < 0) { // there's no name, explicit or implicit
-            // based on cursor position, see if we can suggest any names
-            // start with looking backwards for a quote
-            int start = raw.lastIndexOf('"', item.getCursor());
-            val hasQuote = start >= 0;
-            boolean hasSpace = false;
-            if (start < 0) { // look backwards for a non-trailing space
-                int end = item.getCursor() - 1;
-                while (end > 0 && Character.isWhitespace(raw.charAt(end)))
-                    end--;
-                start = raw.lastIndexOf(' ', end);
-                hasSpace = true;
-            }
-            if (start < 0) { // whole prefix, i guess
-                start = 0;
-                hasSpace = false;
-            }
-            int replaceStart = hasSpace ? start + 1 : start;
-            String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
-                    .trim()
-                    .toLowerCase();
-            if (!search.isEmpty()) {
-                String singularSearch = EnglishUtils.unpluralize(search);
-                Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
-                String lcRawPrefix = raw.toLowerCase()
-                        .substring(0, item.getCursor() - search.length());
-                StreamSupport.stream(matches.spliterator(), false)
-                        .limit(10)
-                        .forEach(i -> {
-                            // this should probably check all locations the
-                            // search matches, not just the first...
-                            String lcName = i.getName().toLowerCase();
-                            int idx = lcName.indexOf(singularSearch);
-                            int len = RawUtils.lengthOfLongestSharedSuffix(
-                                    lcName.subSequence(0, idx),
-                                    lcRawPrefix
-                            );
-                            // no leading spaces in the replaced range
-                            while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
-                                len--;
-                            }
-                            item.withSuggestion(new RecognitionSuggestion(
-                                    i.getName(),
-                                    new RecognizedRange(
-                                            replaceStart - len,
-                                            item.getCursor(),
-                                            RecognizedRangeType.ITEM
-                                    ).withId(i.getId())
-                            ));
-                        });
-            }
+        if (withSuggestions && idxExplicitItemStart < 0) { // there's no explicit name
+            getSuggestions(item, 10).forEach(item::withSuggestion);
         }
         return item;
+    }
+
+    public List<RecognitionSuggestion> getSuggestions(RecognizedItem item,
+                                                      int count) {
+        String raw = item.getRaw();
+        // based on cursor position, see if we can suggest any names
+        // start with looking backwards for a quote
+        int start = raw.lastIndexOf('"', item.getCursor());
+        boolean hasQuote = start >= 0;
+        boolean hasSpace = false;
+        if (start < 0) { // look backwards for a non-trailing space
+            int end = item.getCursor() - 1;
+            while (end > 0 && Character.isWhitespace(raw.charAt(end)))
+                end--;
+            start = raw.lastIndexOf(' ', end);
+            hasSpace = true;
+        }
+        if (start < 0) { // whole prefix, i guess
+            start = 0;
+            hasSpace = false;
+        }
+        int replaceStart = hasSpace ? start + 1 : start;
+        String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
+                .trim()
+                .toLowerCase();
+        if (search.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String singularSearch = EnglishUtils.unpluralize(search);
+        Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
+        String lcRawPrefix = raw.toLowerCase()
+                .substring(0, item.getCursor() - search.length());
+        return StreamSupport.stream(matches.spliterator(), false)
+                .limit(count)
+                .map(i -> {
+                    // this should probably check all locations the
+                    // search matches, not just the first...
+                    String lcName = i.getName().toLowerCase();
+                    int idx = lcName.indexOf(singularSearch);
+                    int len = RawUtils.lengthOfLongestSharedSuffix(
+                            lcName.subSequence(0, idx),
+                            lcRawPrefix
+                    );
+                    // no leading spaces in the replaced range
+                    while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
+                        len--;
+                    }
+                    return new RecognitionSuggestion(
+                            i.getName(),
+                            new RecognizedRange(
+                                    replaceStart - len,
+                                    item.getCursor(),
+                                    RecognizedRangeType.ITEM
+                            ).withId(i.getId())
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     public void updateAutoRecognition(MutableItem it) {
