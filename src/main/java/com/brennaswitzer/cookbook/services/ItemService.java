@@ -36,16 +36,6 @@ public class ItemService {
     @Autowired
     private IngredientService ingredientService;
 
-    public RecognizedItem recognizeItem(String raw) {
-        if (raw == null) return null;
-        // if no cursor location is specified, assume it's at the end
-        return recognizeItem(raw, raw.length());
-    }
-
-    public RecognizedItem recognizeItem(String raw, int cursor) {
-        return recognizeItem(raw, cursor, true);
-    }
-
     public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions) {
         if (raw == null) return null;
         if (raw.trim().isEmpty()) return null;
@@ -194,7 +184,7 @@ public class ItemService {
         if (it == null) return;
         String raw = it.getRaw();
         if (raw == null || raw.trim().isEmpty()) return;
-        RecognizedItem recog = recognizeItem(raw);
+        RecognizedItem recog = recognizeItem(raw, raw.length(), false);
         if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection
                 .fromRecognizedItem(recog);

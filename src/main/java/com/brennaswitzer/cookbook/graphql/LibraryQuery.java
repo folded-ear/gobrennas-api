@@ -48,11 +48,11 @@ public class LibraryQuery {
     }
 
     public RecognizedItem recognizeItem(String raw, Integer cursor) {
-        if (cursor == null) {
-            cursor = raw.length();
-        }
         // never request suggestions, so the resolver can process 'count'
-        return itemService.recognizeItem(raw, cursor, false);
+        return itemService.recognizeItem(
+                raw,
+                cursor == null ? raw.length() : cursor,
+                false);
     }
 
 }

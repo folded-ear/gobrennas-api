@@ -39,11 +39,11 @@ public class ItemServiceTest {
 
     @Test
     public void whitespaces() {
-        service.recognizeItem("", 0);
-        service.recognizeItem("cat", 0);
-        service.recognizeItem("cat  ", 3);
-        service.recognizeItem(" cat", 2);
-        service.recognizeItem(" cat", 1);
+        recognizeItem("", 0);
+        recognizeItem("cat", 0);
+        recognizeItem("cat  ", 3);
+        recognizeItem(" cat", 2);
+        recognizeItem(" cat", 1);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "3 & 1/2 cup whole wheat flour";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
         System.out.println(el);
 
         assertEquals(RAW, el.getRaw());
@@ -69,7 +69,7 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "1 cup Italian seasoning";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
 
         Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
@@ -83,7 +83,7 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "1 cup flour,";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
 
         Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
@@ -121,8 +121,7 @@ public class ItemServiceTest {
 
     @Test
     public void recognizeItemMultipleWords() {
-        recognizeChickenThighs(raw ->
-                service.recognizeItem(raw));
+        recognizeChickenThighs(this::recognizeItem);
     }
 
     private void recognizeChickenThighs(Function<String, RecognizedItem> doRecognition) {
@@ -145,19 +144,19 @@ public class ItemServiceTest {
     @Test
     public void recognizeItemMultipleWordsWithCursorAtStart() {
         recognizeChickenThighs(raw ->
-                service.recognizeItem(raw, 0));
+                                       recognizeItem(raw, 0));
     }
 
     @Test
     public void recognizeItemMultipleWordsWithCursorBeforeSpace() {
         recognizeChickenThighs(raw ->
-                service.recognizeItem(raw, 13));
+                                       recognizeItem(raw, 13));
     }
 
     @Test
     public void recognizeItemMultipleWordsWithCursorAfterSpace() {
         recognizeChickenThighs(raw ->
-                service.recognizeItem(raw, 14));
+                                       recognizeItem(raw, 14));
     }
 
     @Test
@@ -165,8 +164,7 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
 
-        // with no cursor; we're at the end
-        RecognizedItem el = service.recognizeItem("1 gram f");
+        RecognizedItem el = recognizeItem("1 gram f");
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("flour",
                                                new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
@@ -177,7 +175,7 @@ public class ItemServiceTest {
         assertFalse(itr.hasNext());
 
         // cursor after the 'fr'
-        el = service.recognizeItem("1 gram fr, dehydrated", 9);
+        el = recognizeItem("1 gram fr, dehydrated", 9);
         itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("fresh tomatoes",
                                                new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
@@ -190,7 +188,7 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
-        RecognizedItem el = service.recognizeItem("1 gram \"cru, dehydrated", 11);
+        RecognizedItem el = recognizeItem("1 gram \"cru, dehydrated", 11);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
                                                new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
@@ -201,7 +199,7 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
-        RecognizedItem el = service.recognizeItem("1 gram \"crumbs", 11);
+        RecognizedItem el = recognizeItem("1 gram \"crumbs", 11);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
                                                new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
@@ -212,7 +210,7 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
-        RecognizedItem el = service.recognizeItem("1 gram \"pizza cru, dehydrated", 17);
+        RecognizedItem el = recognizeItem("1 gram \"pizza cru, dehydrated", 17);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
                                                new RecognizedRange(7, 17, RecognizedRangeType.ITEM)), itr.next());
@@ -223,7 +221,7 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
-        RecognizedItem el = service.recognizeItem("1 gram pizza cru, dehydrated", 16);
+        RecognizedItem el = recognizeItem("1 gram pizza cru, dehydrated", 16);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
                                                new RecognizedRange(7, 16, RecognizedRangeType.ITEM)), itr.next());
@@ -235,12 +233,23 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "spanish apple cake";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
         Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
         RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
         assertEquals(new RecognizedRange(0, 18, RecognizedRangeType.ITEM), ing);
 
     }
+
+    private RecognizedItem recognizeItem(String raw) {
+        if (raw == null) return null;
+        // if no cursor location is specified, assume it's at the end
+        return service.recognizeItem(raw, raw.length(), true);
+    }
+
+    private RecognizedItem recognizeItem(String raw, int cursor) {
+        return service.recognizeItem(raw, cursor, true);
+    }
+
 
 }

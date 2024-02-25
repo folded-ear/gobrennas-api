@@ -18,7 +18,7 @@ public class ItemController {
 
     @PostMapping("/recognize")
     public RecognizedItem recognizeItem(@RequestBody ItemToRecognize item) {
-        return service.recognizeItem(item.getRaw(), item.getCursor());
+        return service.recognizeItem(item.getRaw(), item.getCursor(), true);
     }
 
 }
