@@ -54,18 +54,10 @@ public class RecognizedRange {
         );
     }
 
-    @SuppressWarnings("RedundantIfStatement")
     public boolean overlaps(RecognizedRange r) {
-        // this wraps r
-        if (this.start <= r.start && this.end >= r.end) return true;
-        // this is inside r
-        if (this.start >= r.start && this.end <= r.end) return true;
-        // this spans r's start
-        if (this.start <= r.start && this.end >= r.start) return true;
-        // this spans r's end
-        if (this.start <= r.end && this.end >= r.end) return true;
-        // no overlap
-        return false;
+        boolean startsBeforeEnd = r.start < end;
+        boolean endsBeforeStart = r.end <= start;
+        return startsBeforeEnd ^ endsBeforeStart;
     }
 
     public RecognizedRange withQuantity(Double quantity) {
