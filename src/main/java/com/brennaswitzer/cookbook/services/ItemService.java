@@ -12,7 +12,9 @@ import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,8 +85,6 @@ public class ItemService {
             // no explicit name, so see if there's an implicit one
             Optional<RecognizedRange> matched = multiPass(item.unrecognizedWords(), raw);
             // TODO: Break out pieces and test for item service
-            // This line means that when we have a match, we get no more suggestions, which is not the behavior we want
-            // idxNameStart = matched.get().getStart();
             if (matched.isPresent()) {
                 RecognizedRange r = matched.get();
                 item.withRange(r);
@@ -203,15 +203,17 @@ public class ItemService {
         it.setQuantity(q);
     }
 
-    static class Phrase implements Comparable<Phrase> {
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    static class Phrase {
 
-        @Getter
         String original;
-        @Getter
         String canonical;
         RecognizedRange range;
 
         public static Comparator<Phrase> BY_POSITION = Comparator.comparingInt(a -> a.range.getStart());
+        public static Comparator<Phrase> BY_LENGTH = Comparator.comparingInt(a -> a.range.length());
 
         Phrase(RecognizedRange range, String original) {
             this.range = range;
@@ -244,11 +246,6 @@ public class ItemService {
             );
         }
 
-        public int compareTo(Phrase o) {
-            assert o != null;
-            return Integer.compare(range.getEnd() - range.getStart(), o.range.getEnd() - o.range.getStart());
-        }
-
     }
 
     public Optional<RecognizedRange> multiPass(Iterable<RecognizedRange> ranges, String raw) {
@@ -270,42 +267,40 @@ public class ItemService {
 
         for (Phrase phrase : phrases) {
             for (Ingredient opt : options) {
-                Phrase match = phrase.of(RecognizedRangeType.ITEM).withId(opt.getId());
-                if (phrase.getCanonical().equals(opt.getName()) || phrase.getOriginal()
-                        .equalsIgnoreCase(opt.getName())) {
-                    if (best == null) {
+                if (phrase.getCanonical().equals(opt.getName())
+                        || phrase.getOriginal().equalsIgnoreCase(opt.getName())) {
+                    Phrase match = phrase.of(RecognizedRangeType.ITEM)
+                            .withId(opt.getId());
+                    if (best == null || Phrase.BY_LENGTH.compare(match, best) > 0) {
+                        // longest phrase is best (char count, not word count),
+                        // and retain first of same-length phrases.
                         best = match;
-                    } else {
-                        if (phrase.compareTo(best) > 0) {
-                            best = match;
-                        } else if (phrase.compareTo(best) == 0) {
-                            // if the same number of words, which one happens first?
-                            if (phrases.indexOf(phrase) > phrases.indexOf(best)) {
-                                best = match;
-                            }
-                        }
                     }
                 }
             }
         }
 
-        return best == null ? Optional.empty() : Optional.of(best.range);
+        return Optional.ofNullable(best)
+                .map(Phrase::getRange);
     }
 
-    private List<Phrase> buildPhrases(List<Phrase> phrases) {
-        List<Phrase> options = new ArrayList<>(phrases);
+    private List<Phrase> buildPhrases(List<Phrase> words) {
+        // The phrases make a triangle, so allocate the whole array up front.
+        int capacity = words.size() * (words.size() + 1) / 2;
+        List<Phrase> phrases = new ArrayList<>(capacity);
 
-        for (int i = 0; i < phrases.size(); i++) {
-            for (int j = i + 1; j < phrases.size(); j++) {
-                Optional<Phrase> phrase = phrases
-                        .subList(i, j + 1)
+        // build in position order, instead of sorting later
+        for (int i = 0; i < words.size(); i++) {
+            phrases.add(words.get(i));
+            for (int j = i + 2; j <= words.size(); j++) {
+                words.subList(i, j)
                         .stream()
-                        .reduce(Phrase::merge);
-                phrase.ifPresent(options::add);
+                        .reduce(Phrase::merge)
+                        .ifPresent(phrases::add);
             }
         }
-        options.sort(Phrase.BY_POSITION);
-        return options;
+
+        return phrases;
     }
 
 }

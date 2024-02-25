@@ -36,11 +36,15 @@ public class RecognizedRange {
     }
 
     public RecognizedRange of(RecognizedRangeType type) {
-        return new RecognizedRange(
-                getStart(),
-                getEnd(),
-                type
-        );
+        return new RecognizedRange(start, end, type);
+    }
+
+    public String of(String raw) {
+        return raw.substring(start, end);
+    }
+
+    public int length() {
+        return end - start;
     }
 
     public RecognizedRange merge(RecognizedRange other) {

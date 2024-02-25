@@ -78,6 +78,37 @@ public class ItemServiceTest {
     }
 
     @Test
+    public void recognizeItemLongestPhraseWins() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "42 cup chicken thighs with italian seasoning";
+        RecognizedItem el = recognizeItem(RAW);
+
+        Iterator<RecognizedRange> itr = el.getRanges().iterator();
+        assertEquals("42", itr.next().of(RAW));
+        assertEquals("cup", itr.next().of(RAW));
+        assertEquals("italian seasoning", itr.next().of(RAW));
+        assertFalse(itr.hasNext());
+    }
+
+    @Test
+    public void recognizeItemFirstSameLengthPhraseWins() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "7 cup each pizza crust and pizza sauce, blended";
+        //                             |-- 11 ---|     |-- 11 ---|
+        RecognizedItem el = recognizeItem(RAW);
+
+        Iterator<RecognizedRange> itr = el.getRanges().iterator();
+        assertEquals("7", itr.next().of(RAW));
+        assertEquals("cup", itr.next().of(RAW));
+        assertEquals("pizza crust", itr.next().of(RAW));
+        assertFalse(itr.hasNext());
+    }
+
+    @Test
     public void recognizeItemPunctuation() {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
