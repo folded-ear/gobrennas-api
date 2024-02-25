@@ -5,20 +5,23 @@ import com.brennaswitzer.cookbook.domain.MutableItem;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
+import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
-import com.brennaswitzer.cookbook.payload.RecognizedItem.Range;
-import com.brennaswitzer.cookbook.payload.RecognizedItem.Suggestion;
+import com.brennaswitzer.cookbook.payload.RecognizedRange;
+import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.val;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -35,29 +38,19 @@ public class ItemService {
     @Autowired
     private IngredientService ingredientService;
 
-    public RecognizedItem recognizeItem(String raw) {
-        if (raw == null) return null;
-        // if no cursor location is specified, assume it's at the end
-        return recognizeItem(raw, raw.length());
-    }
-
-    public RecognizedItem recognizeItem(String raw, int cursor) {
-        return recognizeItem(raw, cursor, true);
-    }
-
     public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions) {
         if (raw == null) return null;
         if (raw.trim().isEmpty()) return null;
         RecognizedItem item = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
-        RawIngredientDissection.Section secAmount = d.getQuantity();
-        if (secAmount != null) {
-            // there's an amount
-            item.withRange(new RecognizedItem.Range(
-                    secAmount.getStart(),
-                    secAmount.getEnd(),
-                    RecognizedItem.Type.AMOUNT
-            ).withValue(NumberUtils.parseNumber(secAmount.getText())));
+        RawIngredientDissection.Section secQuantity = d.getQuantity();
+        if (secQuantity != null) {
+            // there's a quantity
+            item.withRange(new RecognizedRange(
+                    secQuantity.getStart(),
+                    secQuantity.getEnd(),
+                    RecognizedRangeType.QUANTITY
+            ).withQuantity(NumberUtils.parseNumber(secQuantity.getText())));
         }
         RawIngredientDissection.Section secUnit = d.getUnits();
         if (secUnit != null) {
@@ -65,14 +58,13 @@ public class ItemService {
             Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                     entityManager,
                     secUnit.getText());
-            item.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedRange(
                     secUnit.getStart(),
                     secUnit.getEnd(),
                     ouom.isPresent()
-                            ? RecognizedItem.Type.UNIT
-                            : RecognizedItem.Type.NEW_UNIT,
-                    ouom.map(UnitOfMeasure::getId).orElse(null)
-            ));
+                            ? RecognizedRangeType.UNIT
+                            : RecognizedRangeType.NEW_UNIT
+            ).withId(ouom.map(UnitOfMeasure::getId).orElse(null)));
         }
         RawIngredientDissection.Section secName = d.getName();
         int idxExplicitItemStart = -1;
@@ -82,98 +74,102 @@ public class ItemService {
             Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
             idxExplicitItemStart = secName.getStart();
-            item.withRange(new RecognizedItem.Range(
+            item.withRange(new RecognizedRange(
                     secName.getStart(),
                     secName.getEnd(),
                     oing.isPresent()
-                            ? RecognizedItem.Type.ITEM
-                            : RecognizedItem.Type.NEW_ITEM,
-                    oing.map(Ingredient::getId).orElse(null)
-            ));
+                            ? RecognizedRangeType.ITEM
+                            : RecognizedRangeType.NEW_ITEM
+            ).withId(oing.map(Ingredient::getId).orElse(null)));
         } else if (!raw.contains("\"")) {
             // no explicit name, so see if there's an implicit one
-            Optional<Range> matched = multiPass(item.unrecognizedWords(), raw);
+            Optional<RecognizedRange> matched = multiPass(item.unrecognizedWords(), raw);
             // TODO: Break out pieces and test for item service
-            // This line means that when we have a match, we get no more suggestions, which is not the behavior we want
-            // idxNameStart = matched.get().getStart();
             if (matched.isPresent()) {
-                Range r = matched.get();
+                RecognizedRange r = matched.get();
                 item.withRange(r);
                 idxImplicitItemStart = r.getStart();
             }
         }
-        if (secAmount != null && secUnit == null && !raw.contains("_")) {
-            // There's an amount, but no explicit unit, so see if there's an
+        if (secQuantity != null && secUnit == null && !raw.contains("_")) {
+            // There's a quantity, but no explicit unit, so see if there's an
             // implicit one. But only before the item, if one exists.
             int idxItemStart = Math.max(
                     idxExplicitItemStart,
                     idxImplicitItemStart);
-            Iterable<Range> wordRanges = idxItemStart < 0
+            Iterable<RecognizedRange> wordRanges = idxItemStart < 0
                     ? item.unrecognizedWords()
                     : item.unrecognizedWordsThrough(idxItemStart);
-            for (RecognizedItem.Range r : wordRanges) {
+            for (RecognizedRange r : wordRanges) {
                 Optional<UnitOfMeasure> ouom = UnitOfMeasure.find(
                         entityManager,
                         raw.substring(r.getStart(), r.getEnd()));
                 if (ouom.isEmpty()) continue;
-                item.withRange(r.of(RecognizedItem.Type.UNIT).withValue(ouom.get().getId()));
+                item.withRange(r.of(RecognizedRangeType.UNIT).withId(ouom.get().getId()));
                 break;
             }
         }
-        if (withSuggestions && idxExplicitItemStart < 0) { // there's no name, explicit or implicit
-            // based on cursor position, see if we can suggest any names
-            // start with looking backwards for a quote
-            int start = raw.lastIndexOf('"', item.getCursor());
-            val hasQuote = start >= 0;
-            boolean hasSpace = false;
-            if (start < 0) { // look backwards for a non-trailing space
-                int end = item.getCursor() - 1;
-                while (end > 0 && Character.isWhitespace(raw.charAt(end)))
-                    end--;
-                start = raw.lastIndexOf(' ', end);
-                hasSpace = true;
-            }
-            if (start < 0) { // whole prefix, i guess
-                start = 0;
-                hasSpace = false;
-            }
-            int replaceStart = hasSpace ? start + 1 : start;
-            String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
-                    .trim()
-                    .toLowerCase();
-            if (!search.isEmpty()) {
-                String singularSearch = EnglishUtils.unpluralize(search);
-                Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
-                String lcRawPrefix = raw.toLowerCase()
-                        .substring(0, item.getCursor() - search.length());
-                StreamSupport.stream(matches.spliterator(), false)
-                        .limit(10)
-                        .forEach(i -> {
-                            // this should probably check all locations the
-                            // search matches, not just the first...
-                            String lcName = i.getName().toLowerCase();
-                            int idx = lcName.indexOf(singularSearch);
-                            int len = RawUtils.lengthOfLongestSharedSuffix(
-                                    lcName.subSequence(0, idx),
-                                    lcRawPrefix
-                            );
-                            // no leading spaces in the replaced range
-                            while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
-                                len--;
-                            }
-                            item.withSuggestion(new Suggestion(
-                                    i.getName(),
-                                    new RecognizedItem.Range(
-                                            replaceStart - len,
-                                            item.getCursor(),
-                                            RecognizedItem.Type.ITEM,
-                                            i.getId()
-                                    )
-                            ));
-                        });
-            }
+        if (withSuggestions && idxExplicitItemStart < 0) { // there's no explicit name
+            getSuggestions(item, 10).forEach(item::withSuggestion);
         }
         return item;
+    }
+
+    public List<RecognitionSuggestion> getSuggestions(RecognizedItem item,
+                                                      int count) {
+        String raw = item.getRaw();
+        // based on cursor position, see if we can suggest any names
+        // start with looking backwards for a quote
+        int start = raw.lastIndexOf('"', item.getCursor());
+        boolean hasQuote = start >= 0;
+        boolean hasSpace = false;
+        if (start < 0) { // look backwards for a non-trailing space
+            int end = item.getCursor() - 1;
+            while (end > 0 && Character.isWhitespace(raw.charAt(end)))
+                end--;
+            start = raw.lastIndexOf(' ', end);
+            hasSpace = true;
+        }
+        if (start < 0) { // whole prefix, i guess
+            start = 0;
+            hasSpace = false;
+        }
+        int replaceStart = hasSpace ? start + 1 : start;
+        String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
+                .trim()
+                .toLowerCase();
+        if (search.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String singularSearch = EnglishUtils.unpluralize(search);
+        Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
+        String lcRawPrefix = raw.toLowerCase()
+                .substring(0, item.getCursor() - search.length());
+        return StreamSupport.stream(matches.spliterator(), false)
+                .limit(count)
+                .map(i -> {
+                    // this should probably check all locations the
+                    // search matches, not just the first...
+                    String lcName = i.getName().toLowerCase();
+                    int idx = lcName.indexOf(singularSearch);
+                    int len = RawUtils.lengthOfLongestSharedSuffix(
+                            lcName.subSequence(0, idx),
+                            lcRawPrefix
+                    );
+                    // no leading spaces in the replaced range
+                    while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
+                        len--;
+                    }
+                    return new RecognitionSuggestion(
+                            i.getName(),
+                            new RecognizedRange(
+                                    replaceStart - len,
+                                    item.getCursor(),
+                                    RecognizedRangeType.ITEM
+                            ).withId(i.getId())
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     public void updateAutoRecognition(MutableItem it) {
@@ -188,7 +184,7 @@ public class ItemService {
         if (it == null) return;
         String raw = it.getRaw();
         if (raw == null || raw.trim().isEmpty()) return;
-        RecognizedItem recog = recognizeItem(raw);
+        RecognizedItem recog = recognizeItem(raw, raw.length(), false);
         if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection
                 .fromRecognizedItem(recog);
@@ -202,22 +198,24 @@ public class ItemService {
         q.setQuantity(quantity);
         if (dissection.hasUnits()) {
             q.setUnits(UnitOfMeasure.ensure(entityManager,
-                    EnglishUtils.canonicalize(dissection.getUnitsText())));
+                                            EnglishUtils.canonicalize(dissection.getUnitsText())));
         }
         it.setQuantity(q);
     }
 
-    static class Phrase implements Comparable<Phrase> {
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    static class Phrase {
 
-        @Getter
         String original;
-        @Getter
         String canonical;
-        Range range;
+        RecognizedRange range;
 
         public static Comparator<Phrase> BY_POSITION = Comparator.comparingInt(a -> a.range.getStart());
+        public static Comparator<Phrase> BY_LENGTH = Comparator.comparingInt(a -> a.range.length());
 
-        Phrase(Range range, String original) {
+        Phrase(RecognizedRange range, String original) {
             this.range = range;
             setOriginal(original);
         }
@@ -232,12 +230,12 @@ public class ItemService {
             this.canonical = sanitized;
         }
 
-        public Phrase of(RecognizedItem.Type type) {
+        public Phrase of(RecognizedRangeType type) {
             return new Phrase(range.of(type), original);
         }
 
-        public Phrase withValue(Object value) {
-            range.withValue(value);
+        public Phrase withId(Long id) {
+            range.withId(id);
             return this;
         }
 
@@ -248,13 +246,9 @@ public class ItemService {
             );
         }
 
-        public int compareTo(Phrase o) {
-            assert o != null;
-            return Integer.compare(range.getEnd() - range.getStart(), o.range.getEnd() - o.range.getStart());
-        }
     }
 
-    public Optional<Range> multiPass(Iterable<Range> ranges, String raw) {
+    public Optional<RecognizedRange> multiPass(Iterable<RecognizedRange> ranges, String raw) {
 
         List<Phrase> rs = StreamSupport
                 .stream(ranges.spliterator(), false)
@@ -273,40 +267,40 @@ public class ItemService {
 
         for (Phrase phrase : phrases) {
             for (Ingredient opt : options) {
-                Phrase match = phrase.of(RecognizedItem.Type.ITEM).withValue(opt.getId());
-                if (phrase.getCanonical().equals(opt.getName()) || phrase.getOriginal().equalsIgnoreCase(opt.getName())) {
-                    if (best == null) {
+                if (phrase.getCanonical().equals(opt.getName())
+                        || phrase.getOriginal().equalsIgnoreCase(opt.getName())) {
+                    Phrase match = phrase.of(RecognizedRangeType.ITEM)
+                            .withId(opt.getId());
+                    if (best == null || Phrase.BY_LENGTH.compare(match, best) > 0) {
+                        // longest phrase is best (char count, not word count),
+                        // and retain first of same-length phrases.
                         best = match;
-                    } else {
-                        if (phrase.compareTo(best) > 0) {
-                            best = match;
-                        } else if (phrase.compareTo(best) == 0) {
-                            // if the same number of words, which one happens first?
-                            if (phrases.indexOf(phrase) > phrases.indexOf(best)) {
-                                best = match;
-                            }
-                        }
                     }
                 }
             }
         }
 
-        return best == null ? Optional.empty() : Optional.of(best.range);
+        return Optional.ofNullable(best)
+                .map(Phrase::getRange);
     }
 
-    private List<Phrase> buildPhrases(List<Phrase> phrases) {
-        List<Phrase> options = new ArrayList<>(phrases);
+    private List<Phrase> buildPhrases(List<Phrase> words) {
+        // The phrases make a triangle, so allocate the whole array up front.
+        int capacity = words.size() * (words.size() + 1) / 2;
+        List<Phrase> phrases = new ArrayList<>(capacity);
 
-        for (int i = 0; i < phrases.size(); i++) {
-            for (int j = i + 1; j < phrases.size(); j++) {
-                Optional<Phrase> phrase = phrases
-                        .subList(i, j + 1)
+        // build in position order, instead of sorting later
+        for (int i = 0; i < words.size(); i++) {
+            phrases.add(words.get(i));
+            for (int j = i + 2; j <= words.size(); j++) {
+                words.subList(i, j)
                         .stream()
-                        .reduce(Phrase::merge);
-                phrase.ifPresent(options::add);
+                        .reduce(Phrase::merge)
+                        .ifPresent(phrases::add);
             }
         }
-        options.sort(Phrase.BY_POSITION);
-        return options;
+
+        return phrases;
     }
+
 }

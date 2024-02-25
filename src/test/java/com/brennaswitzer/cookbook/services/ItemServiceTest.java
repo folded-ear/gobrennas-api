@@ -1,6 +1,9 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
+import com.brennaswitzer.cookbook.payload.RecognizedRange;
+import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.RecipeBox;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -36,11 +39,11 @@ public class ItemServiceTest {
 
     @Test
     public void whitespaces() {
-        service.recognizeItem("", 0);
-        service.recognizeItem("cat", 0);
-        service.recognizeItem("cat  ", 3);
-        service.recognizeItem(" cat", 2);
-        service.recognizeItem(" cat", 1);
+        recognizeItem("", 0);
+        recognizeItem("cat", 0);
+        recognizeItem("cat  ", 3);
+        recognizeItem(" cat", 2);
+        recognizeItem(" cat", 1);
     }
 
     @Test
@@ -49,14 +52,14 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "3 & 1/2 cup whole wheat flour";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
         System.out.println(el);
 
         assertEquals(RAW, el.getRaw());
-        Iterator<RecognizedItem.Range> ri = el.getRanges().iterator();
-        assertEquals(new RecognizedItem.Range(0, 7, RecognizedItem.Type.AMOUNT), ri.next());
-        assertEquals(new RecognizedItem.Range(8, 11, RecognizedItem.Type.UNIT), ri.next());
-        assertEquals(new RecognizedItem.Range(24, 29, RecognizedItem.Type.ITEM), ri.next());
+        Iterator<RecognizedRange> ri = el.getRanges().iterator();
+        assertEquals(new RecognizedRange(0, 7, RecognizedRangeType.QUANTITY), ri.next());
+        assertEquals(new RecognizedRange(8, 11, RecognizedRangeType.UNIT), ri.next());
+        assertEquals(new RecognizedRange(24, 29, RecognizedRangeType.ITEM), ri.next());
         assertFalse(ri.hasNext());
     }
 
@@ -66,12 +69,43 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "1 cup Italian seasoning";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
 
-        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
-        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        assertEquals(new RecognizedItem.Range(6, 23, RecognizedItem.Type.ITEM), ing);
+        RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
+        assertEquals(new RecognizedRange(6, 23, RecognizedRangeType.ITEM), ing);
+    }
+
+    @Test
+    public void recognizeItemLongestPhraseWins() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "42 cup chicken thighs with italian seasoning";
+        RecognizedItem el = recognizeItem(RAW);
+
+        Iterator<RecognizedRange> itr = el.getRanges().iterator();
+        assertEquals("42", itr.next().of(RAW));
+        assertEquals("cup", itr.next().of(RAW));
+        assertEquals("italian seasoning", itr.next().of(RAW));
+        assertFalse(itr.hasNext());
+    }
+
+    @Test
+    public void recognizeItemFirstSameLengthPhraseWins() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "7 cup each pizza crust and pizza sauce, blended";
+        //                             |-- 11 ---|     |-- 11 ---|
+        RecognizedItem el = recognizeItem(RAW);
+
+        Iterator<RecognizedRange> itr = el.getRanges().iterator();
+        assertEquals("7", itr.next().of(RAW));
+        assertEquals("cup", itr.next().of(RAW));
+        assertEquals("pizza crust", itr.next().of(RAW));
+        assertFalse(itr.hasNext());
     }
 
     @Test
@@ -80,12 +114,12 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "1 cup flour,";
-        RecognizedItem el = service.recognizeItem(RAW);
+        RecognizedItem el = recognizeItem(RAW);
 
-        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
-        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        assertEquals(new RecognizedItem.Range(6, 11, RecognizedItem.Type.ITEM), ing);
+        RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
+        assertEquals(new RecognizedRange(6, 11, RecognizedRangeType.ITEM), ing);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -99,27 +133,26 @@ public class ItemServiceTest {
 
         var q = recog.getRanges()
                 .stream()
-                .filter(r -> r.getType() == RecognizedItem.Type.AMOUNT)
+                .filter(r -> r.getType() == RecognizedRangeType.QUANTITY)
                 .findFirst()
                 .get();
         assertEquals("12", raw.substring(q.getStart(), q.getEnd()));
         var item = recog.getRanges()
                 .stream()
-                .filter(r -> r.getType() == RecognizedItem.Type.ITEM)
+                .filter(r -> r.getType() == RecognizedRangeType.ITEM)
                 .findFirst()
                 .get();
         assertEquals("flour", raw.substring(item.getStart(), item.getEnd()));
         var optUnit = recog.getRanges()
                 .stream()
-                .filter(r -> r.getType() == RecognizedItem.Type.UNIT)
+                .filter(r -> r.getType() == RecognizedRangeType.UNIT)
                 .findFirst();
         assertFalse(optUnit.isPresent());
     }
 
     @Test
     public void recognizeItemMultipleWords() {
-        recognizeChickenThighs(raw ->
-                service.recognizeItem(raw));
+        recognizeChickenThighs(this::recognizeItem);
     }
 
     private void recognizeChickenThighs(Function<String, RecognizedItem> doRecognition) {
@@ -132,29 +165,29 @@ public class ItemServiceTest {
 
         System.out.println(el);
 
-        Iterator<RecognizedItem.Range> ri = el.getRanges().iterator();
-        assertEquals(new RecognizedItem.Range(0, 1, RecognizedItem.Type.AMOUNT), ri.next());
-        assertEquals(new RecognizedItem.Range(2, 5, RecognizedItem.Type.UNIT), ri.next());
-        assertEquals(new RecognizedItem.Range(6, 20, RecognizedItem.Type.ITEM), ri.next());
+        Iterator<RecognizedRange> ri = el.getRanges().iterator();
+        assertEquals(new RecognizedRange(0, 1, RecognizedRangeType.QUANTITY), ri.next());
+        assertEquals(new RecognizedRange(2, 5, RecognizedRangeType.UNIT), ri.next());
+        assertEquals(new RecognizedRange(6, 20, RecognizedRangeType.ITEM), ri.next());
         assertFalse(ri.hasNext());
     }
 
     @Test
     public void recognizeItemMultipleWordsWithCursorAtStart() {
         recognizeChickenThighs(raw ->
-                service.recognizeItem(raw, 0));
+                                       recognizeItem(raw, 0));
     }
 
     @Test
     public void recognizeItemMultipleWordsWithCursorBeforeSpace() {
         recognizeChickenThighs(raw ->
-                service.recognizeItem(raw, 13));
+                                       recognizeItem(raw, 13));
     }
 
     @Test
     public void recognizeItemMultipleWordsWithCursorAfterSpace() {
         recognizeChickenThighs(raw ->
-                service.recognizeItem(raw, 14));
+                                       recognizeItem(raw, 14));
     }
 
     @Test
@@ -162,24 +195,23 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
 
-        // with no cursor; we're at the end
-        RecognizedItem el = service.recognizeItem("1 gram f");
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("flour",
-                new RecognizedItem.Range(7, 8, RecognizedItem.Type.ITEM)), itr.next());
-        assertEquals(  new RecognizedItem.Suggestion("fresh tomatoes",
-                new RecognizedItem.Range(7, 8, RecognizedItem.Type.ITEM)), itr.next());
-        assertEquals(new RecognizedItem.Suggestion("Fried Chicken",
-                new RecognizedItem.Range(7, 8, RecognizedItem.Type.ITEM)), itr.next());
+        RecognizedItem el = recognizeItem("1 gram f");
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("flour",
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("fresh tomatoes",
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("Fried Chicken",
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
         assertFalse(itr.hasNext());
 
         // cursor after the 'fr'
-        el = service.recognizeItem("1 gram fr, dehydrated", 9);
+        el = recognizeItem("1 gram fr, dehydrated", 9);
         itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("fresh tomatoes",
-                new RecognizedItem.Range(7, 9, RecognizedItem.Type.ITEM)), itr.next());
-        assertEquals(new RecognizedItem.Suggestion("Fried Chicken",
-                new RecognizedItem.Range(7, 9, RecognizedItem.Type.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("fresh tomatoes",
+                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
+        assertEquals(new RecognitionSuggestion("Fried Chicken",
+                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -187,10 +219,10 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
-        RecognizedItem el = service.recognizeItem("1 gram \"cru, dehydrated", 11);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 11, RecognizedItem.Type.ITEM)), itr.next());
+        RecognizedItem el = recognizeItem("1 gram \"cru, dehydrated", 11);
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -198,10 +230,10 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'cru'
-        RecognizedItem el = service.recognizeItem("1 gram \"crumbs", 11);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 11, RecognizedItem.Type.ITEM)), itr.next());
+        RecognizedItem el = recognizeItem("1 gram \"crumbs", 11);
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -209,10 +241,10 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
-        RecognizedItem el = service.recognizeItem("1 gram \"pizza cru, dehydrated", 17);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 17, RecognizedItem.Type.ITEM)), itr.next());
+        RecognizedItem el = recognizeItem("1 gram \"pizza cru, dehydrated", 17);
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 17, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -220,10 +252,10 @@ public class ItemServiceTest {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
         // cursor after the 'pizza cru'
-        RecognizedItem el = service.recognizeItem("1 gram pizza cru, dehydrated", 16);
-        Iterator<RecognizedItem.Suggestion> itr = el.getSuggestions().iterator();
-        assertEquals(new RecognizedItem.Suggestion("Pizza Crust",
-                new RecognizedItem.Range(7, 16, RecognizedItem.Type.ITEM)), itr.next());
+        RecognizedItem el = recognizeItem("1 gram pizza cru, dehydrated", 16);
+        Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
+        assertEquals(new RecognitionSuggestion("Pizza Crust",
+                                               new RecognizedRange(7, 16, RecognizedRangeType.ITEM)), itr.next());
     }
 
     @Test
@@ -232,12 +264,23 @@ public class ItemServiceTest {
         box.persist(entityManager, principalAccess.getUser());
 
         final String RAW = "spanish apple cake";
-        RecognizedItem el = service.recognizeItem(RAW);
-        Stream<RecognizedItem.Range> ri = el.getRanges().stream();
+        RecognizedItem el = recognizeItem(RAW);
+        Stream<RecognizedRange> ri = el.getRanges().stream();
         //noinspection OptionalGetWithoutIsPresent
-        RecognizedItem.Range ing = ri.filter(it -> it.getType() == RecognizedItem.Type.ITEM).findFirst().get();
-        assertEquals(new RecognizedItem.Range(0, 18, RecognizedItem.Type.ITEM), ing);
+        RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
+        assertEquals(new RecognizedRange(0, 18, RecognizedRangeType.ITEM), ing);
 
     }
+
+    private RecognizedItem recognizeItem(String raw) {
+        if (raw == null) return null;
+        // if no cursor location is specified, assume it's at the end
+        return service.recognizeItem(raw, raw.length(), true);
+    }
+
+    private RecognizedItem recognizeItem(String raw, int cursor) {
+        return service.recognizeItem(raw, cursor, true);
+    }
+
 
 }
