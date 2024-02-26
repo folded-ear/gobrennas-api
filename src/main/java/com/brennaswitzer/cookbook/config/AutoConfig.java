@@ -1,12 +1,5 @@
 package com.brennaswitzer.cookbook.config;
 
-import graphql.kickstart.autoconfigure.editor.graphiql.GraphiQLAutoConfiguration;
-import graphql.kickstart.autoconfigure.editor.playground.PlaygroundWebFluxAutoConfiguration;
-import graphql.kickstart.autoconfigure.editor.voyager.ReactiveVoyagerAutoConfiguration;
-import graphql.kickstart.autoconfigure.editor.voyager.VoyagerAutoConfiguration;
-import graphql.kickstart.autoconfigure.web.reactive.GraphQLSpringWebfluxAutoConfiguration;
-import graphql.kickstart.autoconfigure.web.reactive.MonoAutoConfiguration;
-import graphql.kickstart.autoconfigure.web.servlet.GraphQLInstrumentationAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
@@ -132,8 +125,6 @@ import org.springframework.context.annotation.Configuration;
         FlywayAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
         // these are Spring GraphQL, so we don't care
-        GraphQLInstrumentationAutoConfiguration.class,
-        GraphQLSpringWebfluxAutoConfiguration.class,
         GraphQlQueryByExampleAutoConfiguration.class,
         GraphQlQuerydslAutoConfiguration.class,
         GraphQlRSocketAutoConfiguration.class,
@@ -143,7 +134,6 @@ import org.springframework.context.annotation.Configuration;
         GraphQlWebFluxSecurityAutoConfiguration.class,
         GraphQlWebMvcAutoConfiguration.class,
         GraphQlWebMvcSecurityAutoConfiguration.class,
-        GraphiQLAutoConfiguration.class,
         GroovyTemplateAutoConfiguration.class,
         H2ConsoleAutoConfiguration.class,
         HazelcastAutoConfiguration.class,
@@ -169,7 +159,6 @@ import org.springframework.context.annotation.Configuration;
         MongoReactiveDataAutoConfiguration.class,
         MongoReactiveRepositoriesAutoConfiguration.class,
         MongoRepositoriesAutoConfiguration.class,
-        MonoAutoConfiguration.class,
         MustacheAutoConfiguration.class,
         Neo4jAutoConfiguration.class,
         Neo4jDataAutoConfiguration.class,
@@ -178,7 +167,6 @@ import org.springframework.context.annotation.Configuration;
         Neo4jRepositoriesAutoConfiguration.class,
         NettyAutoConfiguration.class,
         OAuth2ResourceServerAutoConfiguration.class,
-        PlaygroundWebFluxAutoConfiguration.class,
         ProjectInfoAutoConfiguration.class,
         QuartzAutoConfiguration.class,
         R2dbcAutoConfiguration.class,
@@ -197,7 +185,6 @@ import org.springframework.context.annotation.Configuration;
         ReactiveOAuth2ClientAutoConfiguration.class,
         ReactiveOAuth2ResourceServerAutoConfiguration.class,
         ReactiveUserDetailsServiceAutoConfiguration.class,
-        ReactiveVoyagerAutoConfiguration.class,
         ReactiveWebServerFactoryAutoConfiguration.class,
         RedisAutoConfiguration.class,
         RedisReactiveAutoConfiguration.class,
@@ -207,7 +194,6 @@ import org.springframework.context.annotation.Configuration;
         SendGridAutoConfiguration.class,
         SessionAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class,
-        VoyagerAutoConfiguration.class,
         WebFluxAutoConfiguration.class,
         WebServiceTemplateAutoConfiguration.class,
         WebServicesAutoConfiguration.class,
