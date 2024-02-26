@@ -21,7 +21,8 @@ public class InventoryTx extends BaseEntity {
     @ToString.Exclude
     private InventoryItem item;
 
-    @Column(name = "dtype")
+    @Column(name = "dtype",
+            columnDefinition = "int4")
     @Getter
     private TxType type;
 

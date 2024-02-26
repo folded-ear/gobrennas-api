@@ -18,6 +18,7 @@ public class AppSetting extends BaseEntity implements Named {
     @Column(updatable = false)
     private String name;
     @NotNull
+    @Column(columnDefinition = "int4")
     private DataType type;
     @Column(name = "value_str") // H2 doesn't allow a column named 'value'
     private String value;
