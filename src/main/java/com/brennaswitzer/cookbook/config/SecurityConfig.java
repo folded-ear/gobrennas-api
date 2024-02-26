@@ -11,18 +11,15 @@ import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationSuccessHan
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter.TOKEN_COOKIE_NAME;
-
 
 /**
  * OAuth2 Login Flow
@@ -47,12 +44,11 @@ import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilte
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(
+@EnableMethodSecurity(
         securedEnabled = true,
-        jsr250Enabled = true,
-        prePostEnabled = true
+        jsr250Enabled = true
 )
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
@@ -89,81 +85,49 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new HttpCookieOAuth2AuthorizationRequestRepository();
     }
 
-    @Override
-    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder
-                .userDetailsService(customUserDetailsService);
-    }
-
-    @Bean(BeanIds.AUTHENTICATION_MANAGER)
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        //@formatter:off
-        http
-            .cors()
-                .and()
-            .headers()
-                .frameOptions().sameOrigin()
-                .and()
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-            .csrf()
-                .disable()
-            .formLogin()
-                .disable()
-            .httpBasic()
-                .disable()
-            .exceptionHandling()
-                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-                .and()
-            .logout()
-                .logoutUrl("/oauth2/logout")
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.cors(Customizer.withDefaults());
+        http.headers(h -> h.frameOptions(fo -> fo.sameOrigin()));
+        http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.csrf(c -> c.disable());
+        http.formLogin(fl -> fl.disable());
+        http.httpBasic(hb -> hb.disable());
+        http.exceptionHandling(eh -> eh.authenticationEntryPoint(new RestAuthenticationEntryPoint()));
+        http.logout(l -> l.logoutUrl("/oauth2/logout")
                 .logoutSuccessUrl(appProperties.getPublicUrl())
                 .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
-                .permitAll()
-                .and()
-            .authorizeRequests()
-                .antMatchers("/",
-                    "/error",
-                    "/favicon.ico",
-                    "/shared/**/*",
-                    "/**/*.png",
-                    "/**/*.gif",
-                    "/**/*.svg",
-                    "/**/*.jpg",
-                    "/**/*.html",
-                    "/**/*.css",
-                    "/**/*.js")
-                    .permitAll()
-                .antMatchers("/api/**")
-                    .authenticated()
-                .anyRequest()
-                    .permitAll()
-                    .and()
-                .oauth2Login()
-                    .authorizationEndpoint()
-                        .baseUri("/oauth2/authorize")
-                        .authorizationRequestRepository(cookieAuthorizationRequestRepository())
-                        .and()
-                    .redirectionEndpoint()
-                        .baseUri("/oauth2/callback/*")
-                        .and()
-                    .userInfoEndpoint()
-                        .userService(customOAuth2UserService)
-                        .and()
-                    .successHandler(oAuth2AuthenticationSuccessHandler)
-                    .failureHandler(oAuth2AuthenticationFailureHandler);
-        //@formatter:on
+                .permitAll());
+        http.authorizeHttpRequests(r -> r.requestMatchers(
+                        "/",
+                        "/error",
+                        "/favicon.ico",
+                        "/shared/*/*",
+                        "/*/*.png",
+                        "/*/*.gif",
+                        "/*/*.svg",
+                        "/*/*.jpg",
+                        "/*/*.html",
+                        "/*/*.css",
+                        "/*/*.js"
+                ).permitAll()
+                .requestMatchers(
+                        "/api/**"
+                ).authenticated()
+                .anyRequest().permitAll());
+        http.oauth2Login(l -> l.authorizationEndpoint(
+                        ae -> ae.baseUri("/oauth2/authorize")
+                                .authorizationRequestRepository(cookieAuthorizationRequestRepository()))
+                .redirectionEndpoint(re -> re.baseUri("/oauth2/callback/*"))
+                .userInfoEndpoint(uie -> uie.userService(customOAuth2UserService))
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .failureHandler(oAuth2AuthenticationFailureHandler));
 
         // Add our custom Token based authentication filter
         http.addFilterBefore(cookieTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(headerTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
 }

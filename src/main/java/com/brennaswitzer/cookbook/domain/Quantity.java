@@ -1,12 +1,22 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.NumberUtils;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 
-import javax.persistence.*;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
 
 @Embeddable
 @Access(AccessType.FIELD)   // It is unclear why this is needed. The only JPA

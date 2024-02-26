@@ -9,14 +9,13 @@ import com.brennaswitzer.cookbook.repositories.IngredientRepository;
 import com.brennaswitzer.cookbook.repositories.InventoryItemRepository;
 import com.brennaswitzer.cookbook.repositories.InventoryTxRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
-
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 
 @Service
 @Transactional

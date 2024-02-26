@@ -1,9 +1,8 @@
 package com.brennaswitzer.cookbook.security;
 
 import com.brennaswitzer.cookbook.util.CookieUtils;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class CookieTokenAuthenticationFilter extends AbstractTokenAuthenticationFilter {
 

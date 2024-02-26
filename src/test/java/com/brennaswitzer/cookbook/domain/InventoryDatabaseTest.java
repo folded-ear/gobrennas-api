@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.util.RecipeBox;
 import com.brennaswitzer.cookbook.util.ResultSetPrinter;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
+import jakarta.persistence.EntityManager;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

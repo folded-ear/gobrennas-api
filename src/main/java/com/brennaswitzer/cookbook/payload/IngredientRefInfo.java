@@ -1,11 +1,14 @@
 package com.brennaswitzer.cookbook.payload;
 
-import com.brennaswitzer.cookbook.domain.*;
+import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.domain.Quantity;
+import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.EntityManager;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class IngredientRefInfo {

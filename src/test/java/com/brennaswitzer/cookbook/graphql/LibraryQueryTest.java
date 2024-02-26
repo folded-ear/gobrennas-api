@@ -6,10 +6,10 @@ import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.MockTestTarget;
+import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import javax.persistence.NoResultException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertSame;

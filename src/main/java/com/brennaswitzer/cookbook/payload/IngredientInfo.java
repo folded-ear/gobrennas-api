@@ -2,10 +2,10 @@ package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

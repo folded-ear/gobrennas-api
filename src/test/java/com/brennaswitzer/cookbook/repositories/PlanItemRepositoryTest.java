@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.function.Function;
 
 import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;

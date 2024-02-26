@@ -25,7 +25,6 @@ import org.springframework.boot.autoconfigure.data.couchbase.CouchbaseRepositori
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ReactiveElasticsearchRepositoriesAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ReactiveElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.ldap.LdapRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoReactiveDataAutoConfiguration;
@@ -59,7 +58,6 @@ import org.springframework.boot.autoconfigure.h2.H2ConsoleAutoConfiguration;
 import org.springframework.boot.autoconfigure.hateoas.HypermediaAutoConfiguration;
 import org.springframework.boot.autoconfigure.hazelcast.HazelcastAutoConfiguration;
 import org.springframework.boot.autoconfigure.hazelcast.HazelcastJpaDependencyAutoConfiguration;
-import org.springframework.boot.autoconfigure.influx.InfluxDbAutoConfiguration;
 import org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.JndiDataSourceAutoConfiguration;
@@ -78,7 +76,6 @@ import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
 import org.springframework.boot.autoconfigure.mail.MailSenderValidatorAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mustache.MustacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
 import org.springframework.boot.autoconfigure.netty.NettyAutoConfiguration;
@@ -98,7 +95,6 @@ import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyAu
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.autoconfigure.sendgrid.SendGridAutoConfiguration;
 import org.springframework.boot.autoconfigure.session.SessionAutoConfiguration;
-import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.ReactiveMultipartAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.ReactiveWebServerFactoryAutoConfiguration;
@@ -132,7 +128,6 @@ import org.springframework.context.annotation.Configuration;
         ElasticsearchRepositoriesAutoConfiguration.class,
         ElasticsearchRestClientAutoConfiguration.class,
         EmbeddedLdapAutoConfiguration.class,
-        EmbeddedMongoAutoConfiguration.class,
         ErrorWebFluxAutoConfiguration.class,
         FlywayAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
@@ -155,7 +150,6 @@ import org.springframework.context.annotation.Configuration;
         HazelcastJpaDependencyAutoConfiguration.class,
         HttpHandlerAutoConfiguration.class,
         HypermediaAutoConfiguration.class,
-        InfluxDbAutoConfiguration.class,
         IntegrationAutoConfiguration.class,
         JerseyAutoConfiguration.class,
         JmsAutoConfiguration.class,
@@ -199,7 +193,6 @@ import org.springframework.context.annotation.Configuration;
         RSocketStrategiesAutoConfiguration.class,
         RabbitAutoConfiguration.class,
         ReactiveElasticsearchRepositoriesAutoConfiguration.class,
-        ReactiveElasticsearchRestClientAutoConfiguration.class,
         ReactiveMultipartAutoConfiguration.class,
         ReactiveOAuth2ClientAutoConfiguration.class,
         ReactiveOAuth2ResourceServerAutoConfiguration.class,
@@ -213,7 +206,6 @@ import org.springframework.context.annotation.Configuration;
         Saml2RelyingPartyAutoConfiguration.class,
         SendGridAutoConfiguration.class,
         SessionAutoConfiguration.class,
-        SolrAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class,
         VoyagerAutoConfiguration.class,
         WebFluxAutoConfiguration.class,

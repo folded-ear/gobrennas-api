@@ -10,10 +10,9 @@ import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import graphql.relay.Connection;
+import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.persistence.NoResultException;
 
 @Component
 public class LibraryQuery {

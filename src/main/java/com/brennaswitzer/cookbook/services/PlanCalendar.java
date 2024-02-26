@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
+import jakarta.transaction.Transactional;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.FluentCalendar;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;

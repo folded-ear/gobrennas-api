@@ -2,10 +2,10 @@ package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.CompoundQuantity;
 import com.brennaswitzer.cookbook.domain.TxType;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.EntityManager;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.stream.Collectors;

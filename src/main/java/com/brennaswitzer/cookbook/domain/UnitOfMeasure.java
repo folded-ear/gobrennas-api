@@ -1,13 +1,25 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.EnglishUtils;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.MapKeyJoinColumn;
+import jakarta.persistence.NamedQuery;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.util.Assert;
 
-import javax.persistence.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity

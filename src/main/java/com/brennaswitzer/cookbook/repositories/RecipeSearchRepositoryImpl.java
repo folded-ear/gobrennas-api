@@ -3,12 +3,12 @@ package com.brennaswitzer.cookbook.repositories;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
-import org.hibernate.SynchronizeableQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import org.hibernate.query.SynchronizeableQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.util.List;
 
 import static java.util.Collections.singleton;

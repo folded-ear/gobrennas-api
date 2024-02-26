@@ -12,6 +12,7 @@ import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import jakarta.persistence.EntityManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

@@ -1,11 +1,12 @@
 package com.brennaswitzer.cookbook.domain;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyJoinColumn;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKeyJoinColumn;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

@@ -6,11 +6,10 @@ import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.Part;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.persistence.EntityManager;
-import javax.servlet.http.Part;
 
 @Component
 public class LibraryMutation {

@@ -1,9 +1,9 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.servlet.http.Part;
 import lombok.SneakyThrows;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 

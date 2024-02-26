@@ -1,9 +1,12 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.*;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {

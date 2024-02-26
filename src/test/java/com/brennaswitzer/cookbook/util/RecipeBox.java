@@ -1,8 +1,12 @@
 package com.brennaswitzer.cookbook.util;
 
-import com.brennaswitzer.cookbook.domain.*;
-
-import javax.persistence.EntityManager;
+import com.brennaswitzer.cookbook.domain.Label;
+import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.domain.Quantity;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
+import com.brennaswitzer.cookbook.domain.User;
+import jakarta.persistence.EntityManager;
 
 public class RecipeBox {
 

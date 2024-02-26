@@ -2,11 +2,10 @@ package com.brennaswitzer.cookbook.repositories.event;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PostUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
 
 @Component
 public class RecipeFulltextListener {
