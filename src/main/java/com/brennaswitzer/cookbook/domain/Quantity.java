@@ -5,6 +5,7 @@ import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,7 +62,7 @@ public class Quantity {
     @Setter
     private double quantity;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @Setter
     private UnitOfMeasure units;

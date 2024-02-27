@@ -11,6 +11,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
@@ -29,7 +30,7 @@ import java.util.List;
 public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     // this will gracefully store the same way as an @Embedded Acl will
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User owner;
 
     // these will gracefully emulate AccessControlled's owner property

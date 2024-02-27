@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.domain;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -16,7 +17,7 @@ import lombok.ToString;
 @ToString(includeFieldNames = false)
 public class InventoryTx extends BaseEntity {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @ToString.Exclude
     private InventoryItem item;

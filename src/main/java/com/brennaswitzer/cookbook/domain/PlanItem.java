@@ -5,6 +5,7 @@ import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.ManyToOne;
@@ -96,33 +97,39 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     @Setter
     private int position;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     private PlanItem parent;
 
-    @OneToMany(mappedBy = "parent", cascade = ALL)
+    @OneToMany(
+            mappedBy = "parent",
+            cascade = ALL)
     @BatchSize(size = 100)
     private Set<PlanItem> children;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Plan trashBin;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     private PlanItem aggregate;
 
-    @OneToMany(mappedBy = "aggregate", cascade = { PERSIST, MERGE, REFRESH, DETACH })
+    @OneToMany(
+            mappedBy = "aggregate",
+            cascade = { PERSIST, MERGE, REFRESH, DETACH })
     @BatchSize(size = 100)
     private Set<PlanItem> components;
 
-    @ManyToOne(cascade = MERGE)
+    @ManyToOne(
+            cascade = MERGE,
+            fetch = FetchType.LAZY)
     @Getter
     @Setter
     private Ingredient ingredient;
 
     @Getter
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private PlanBucket bucket;
 
     @Getter

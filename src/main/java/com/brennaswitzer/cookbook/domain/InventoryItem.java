@@ -17,14 +17,12 @@ import java.util.List;
 @Table(name = "inventory_item")
 public class InventoryItem extends BaseEntity {
 
-    @ManyToOne(
-            fetch = FetchType.LAZY
-    )
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @Setter
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @Setter
     private Ingredient ingredient;
@@ -41,9 +39,8 @@ public class InventoryItem extends BaseEntity {
     @OneToMany(
             orphanRemoval = true,
             mappedBy = "item",
-            cascade = {CascadeType.ALL},
-            fetch = FetchType.LAZY
-    )
+            cascade = { CascadeType.ALL },
+            fetch = FetchType.LAZY)
     @Getter
     private List<InventoryTx> transactions = new ArrayList<>();
 
@@ -52,9 +49,8 @@ public class InventoryItem extends BaseEntity {
      */
     @OneToOne(
             orphanRemoval = true,
-            cascade = {CascadeType.ALL},
-            optional = false
-    )
+            cascade = { CascadeType.ALL },
+            optional = false)
     @Getter
     private CompoundQuantity quantity = CompoundQuantity.zero();
 

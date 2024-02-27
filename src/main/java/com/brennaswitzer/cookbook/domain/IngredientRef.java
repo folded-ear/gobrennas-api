@@ -4,6 +4,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,12 +37,16 @@ public class IngredientRef implements MutableItem {
     @Setter
     private String preparation;
 
-    @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
+    @ManyToOne(
+            targetEntity = Ingredient.class,
+            cascade = { CascadeType.MERGE },
+            fetch = FetchType.LAZY)
     @Getter
     @Setter
     private Ingredient ingredient;
 
-    public IngredientRef() {}
+    public IngredientRef() {
+    }
 
     public IngredientRef(Ingredient ingredient) {
         this(null, ingredient, null);
@@ -77,9 +82,9 @@ public class IngredientRef implements MutableItem {
     public IngredientRef scale(Double scale) {
         if (!hasQuantity() || scale == 1) return this;
         return new IngredientRef(
-            getQuantity().times(scale),
-            getIngredient(),
-            getPreparation());
+                getQuantity().times(scale),
+                getIngredient(),
+                getPreparation());
     }
 
     public boolean hasPreparation() {
@@ -92,7 +97,7 @@ public class IngredientRef implements MutableItem {
     }
 
     public String toString(boolean includePrep) {
-        if (! hasIngredient()) return raw;
+        if (!hasIngredient()) return raw;
         StringBuilder sb = new StringBuilder();
         if (hasQuantity()) {
             sb.append(quantity).append(' ');

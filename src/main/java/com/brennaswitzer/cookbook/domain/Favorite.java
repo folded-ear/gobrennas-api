@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ public class Favorite extends BaseEntity implements Owned {
 
     @Getter
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User owner;
 
     @Getter
