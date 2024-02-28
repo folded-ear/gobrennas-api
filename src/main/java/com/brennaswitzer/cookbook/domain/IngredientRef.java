@@ -4,7 +4,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,10 +36,9 @@ public class IngredientRef implements MutableItem {
     @Setter
     private String preparation;
 
-    @ManyToOne(
+    @ManyToOne( // if LAZY, the proxy confuses graphql-java
             targetEntity = Ingredient.class,
-            cascade = { CascadeType.MERGE },
-            fetch = FetchType.LAZY)
+            cascade = { CascadeType.MERGE })
     @Getter
     @Setter
     private Ingredient ingredient;
