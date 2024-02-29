@@ -19,6 +19,8 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
+@Setter
+@Getter
 @Embeddable
 @Access(AccessType.FIELD)   // It is unclear why this is needed. The only JPA
 // annotation at field or prop level is on a field.
@@ -32,7 +34,7 @@ public class Quantity {
             if (b == null) return -1;
             if (a.hasUnits()) {
                 if (b.hasUnits()) {
-                    val c = UnitOfMeasure.BY_NAME.compare(a.units, b.units);
+                    val c = UnitOfMeasure.BY_NAME.compare(a.getUnits(), b.getUnits());
                     if (c != 0) return c;
                 } else {
                     return 1;
@@ -58,13 +60,9 @@ public class Quantity {
 
     @SuppressWarnings("DefaultAnnotationParam")
     @Column(nullable = true)
-    @Getter
-    @Setter
     private double quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @Getter
-    @Setter
     private UnitOfMeasure units;
 
     public Quantity() {

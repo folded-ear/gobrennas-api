@@ -148,9 +148,7 @@ public class CompoundQuantity implements Cloneable, Identified {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CompoundQuantity)) return false;
-
-        CompoundQuantity that = (CompoundQuantity) o;
+        if (!(o instanceof CompoundQuantity that)) return false;
 
         return Objects.equals(components, that.components);
     }

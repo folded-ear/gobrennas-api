@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.util.Comparator;
 
+@Setter
+@Getter
 @Entity
 @DiscriminatorValue("PantryItem")
 @JsonTypeName("PantryItem")
@@ -16,17 +18,16 @@ public class PantryItem extends Ingredient {
     public static final Comparator<PantryItem> BY_STORE_ORDER = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        if (a.storeOrder != b.storeOrder) return a.storeOrder - b.storeOrder;
+        int c = a.getStoreOrder() - b.getStoreOrder();
+        if (c != 0) {
+            return c;
+        }
         return a.getName().compareTo(b.getName());
     };
 
-    @Getter
-    @Setter
     private String aisle;
 
     // todo: make this user specific
-    @Getter
-    @Setter
     private int storeOrder = 999_999_999;
 
     public PantryItem() {}

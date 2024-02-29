@@ -41,7 +41,7 @@ public class UnitOfMeasure extends BaseEntity {
     public static final Comparator<UnitOfMeasure> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        return a.name.compareTo(b.name);
+        return a.getName().compareTo(b.getName());
     };
 
     public static Optional<UnitOfMeasure> find(EntityManager entityManager, String name) {
