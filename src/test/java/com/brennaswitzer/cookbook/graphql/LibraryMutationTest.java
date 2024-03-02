@@ -8,12 +8,12 @@ import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.MockTestTarget;
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.Part;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.Part;
 import java.util.ArrayList;
 import java.util.List;
 

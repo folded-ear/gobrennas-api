@@ -1,16 +1,17 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Embeddable;
-import javax.persistence.ManyToOne;
 import java.util.Objects;
 
 @Embeddable
 public class LabelRef {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @Setter
     private Label label;

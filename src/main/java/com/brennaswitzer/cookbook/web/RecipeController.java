@@ -16,6 +16,8 @@ import com.brennaswitzer.cookbook.services.indexing.IndexStats;
 import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,8 +38,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;

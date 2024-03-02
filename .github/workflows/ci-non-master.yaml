@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - master
+      - beta
   workflow_dispatch:
 
 jobs:
@@ -14,7 +15,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-      - run: mvn --batch-mode --update-snapshots verify
+      - run: ./mvnw --batch-mode --update-snapshots verify

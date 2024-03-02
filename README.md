@@ -6,7 +6,7 @@ Do you use food? Do you use software? Brenna's Food Software is for you!
 
 ## Build and Test
 
-You'll need Java 11 to build. A more specific version may be stipulated at some
+You'll need Java 17 to build. A more specific version may be stipulated at some
 point:
 
     ./mvnw package
@@ -17,7 +17,7 @@ However, you _did_ just run the full regression suite!
 
 ## Run (For Development)
 
-You'll need a recent-ish Postgres (let's say 10) database to run against. If
+You'll need a recent-ish Postgres (let's say ≥10) database to run against. If
 you're using a decent OS - or Mac w/ Docker Desktop; 🙄 - you'll have `docker`
 available, which is a great choice:
 

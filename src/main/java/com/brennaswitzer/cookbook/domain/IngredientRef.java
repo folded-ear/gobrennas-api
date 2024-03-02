@@ -1,13 +1,13 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.ManyToOne;
 import java.util.Comparator;
 
 @Embeddable
@@ -36,12 +36,15 @@ public class IngredientRef implements MutableItem {
     @Setter
     private String preparation;
 
-    @ManyToOne(targetEntity = Ingredient.class, cascade = {CascadeType.MERGE})
+    @ManyToOne( // if LAZY, the proxy confuses graphql-java
+            targetEntity = Ingredient.class,
+            cascade = { CascadeType.MERGE })
     @Getter
     @Setter
     private Ingredient ingredient;
 
-    public IngredientRef() {}
+    public IngredientRef() {
+    }
 
     public IngredientRef(Ingredient ingredient) {
         this(null, ingredient, null);
@@ -77,9 +80,9 @@ public class IngredientRef implements MutableItem {
     public IngredientRef scale(Double scale) {
         if (!hasQuantity() || scale == 1) return this;
         return new IngredientRef(
-            getQuantity().times(scale),
-            getIngredient(),
-            getPreparation());
+                getQuantity().times(scale),
+                getIngredient(),
+                getPreparation());
     }
 
     public boolean hasPreparation() {
@@ -92,7 +95,7 @@ public class IngredientRef implements MutableItem {
     }
 
     public String toString(boolean includePrep) {
-        if (! hasIngredient()) return raw;
+        if (!hasIngredient()) return raw;
         StringBuilder sb = new StringBuilder();
         if (hasQuantity()) {
             sb.append(quantity).append(' ');

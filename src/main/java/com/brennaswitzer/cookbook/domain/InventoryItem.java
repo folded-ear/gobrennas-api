@@ -1,9 +1,15 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,14 +17,12 @@ import java.util.List;
 @Table(name = "inventory_item")
 public class InventoryItem extends BaseEntity {
 
-    @ManyToOne(
-            fetch = FetchType.LAZY
-    )
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @Setter
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Getter
     @Setter
     private Ingredient ingredient;
@@ -35,9 +39,8 @@ public class InventoryItem extends BaseEntity {
     @OneToMany(
             orphanRemoval = true,
             mappedBy = "item",
-            cascade = {CascadeType.ALL},
-            fetch = FetchType.LAZY
-    )
+            cascade = { CascadeType.ALL },
+            fetch = FetchType.LAZY)
     @Getter
     private List<InventoryTx> transactions = new ArrayList<>();
 
@@ -46,9 +49,8 @@ public class InventoryItem extends BaseEntity {
      */
     @OneToOne(
             orphanRemoval = true,
-            cascade = {CascadeType.ALL},
-            optional = false
-    )
+            cascade = { CascadeType.ALL },
+            optional = false)
     @Getter
     private CompoundQuantity quantity = CompoundQuantity.zero();
 

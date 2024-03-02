@@ -1,13 +1,26 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.NumberUtils;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 
-import javax.persistence.*;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
 
+@Setter
+@Getter
 @Embeddable
 @Access(AccessType.FIELD)   // It is unclear why this is needed. The only JPA
 // annotation at field or prop level is on a field.
@@ -21,7 +34,7 @@ public class Quantity {
             if (b == null) return -1;
             if (a.hasUnits()) {
                 if (b.hasUnits()) {
-                    val c = UnitOfMeasure.BY_NAME.compare(a.units, b.units);
+                    val c = UnitOfMeasure.BY_NAME.compare(a.getUnits(), b.getUnits());
                     if (c != 0) return c;
                 } else {
                     return 1;
@@ -47,13 +60,9 @@ public class Quantity {
 
     @SuppressWarnings("DefaultAnnotationParam")
     @Column(nullable = true)
-    @Getter
-    @Setter
     private double quantity;
 
-    @ManyToOne
-    @Getter
-    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
     private UnitOfMeasure units;
 
     public Quantity() {

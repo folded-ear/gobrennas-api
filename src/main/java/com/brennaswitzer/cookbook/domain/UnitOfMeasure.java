@@ -1,49 +1,64 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.util.EnglishUtils;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.MapKeyJoinColumn;
+import jakarta.persistence.NamedQuery;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.util.Assert;
 
-import javax.persistence.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
-@NamedQuery(name = "UnitOfMeasure.byName", query = "select uom\n" +
-        "from UnitOfMeasure uom\n" +
-        "    left join uom.aliases a\n" +
-        "where uom.name = :name\n" +
-        "    or uom.pluralName = :name\n" +
-        "    or a = :name\n" +
-        "order by case :name when uom.name then 1\n" +
-        "when uom.pluralName then 2\n" +
-        "else 3\n" +
-        "end")
+@NamedQuery(
+        name = "UnitOfMeasure.byName",
+        query = """
+                select uom
+                from UnitOfMeasure uom
+                    left join uom.aliases a
+                where uom.name = :name
+                    or uom.pluralName = :name
+                    or a = :name
+                order by case :name when uom.name then 1
+                when uom.pluralName then 2
+                else 3
+                end""")
 public class UnitOfMeasure extends BaseEntity {
 
     public static final Comparator<UnitOfMeasure> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        return a.name.compareTo(b.name);
+        return a.getName().compareTo(b.getName());
     };
 
     public static Optional<UnitOfMeasure> find(EntityManager entityManager, String name) {
         if (name == null) return Optional.empty();
         name = EnglishUtils.unpluralize(name.trim());
         List<UnitOfMeasure> uoms = entityManager.createNamedQuery(
-                "UnitOfMeasure.byName",
-                UnitOfMeasure.class
-        )
+                        "UnitOfMeasure.byName",
+                        UnitOfMeasure.class
+                )
                 .setParameter("name", name)
                 .getResultList();
         if (!uoms.isEmpty()) return Optional.of(uoms.get(0));
         // fine. try lowercased
         uoms = entityManager.createNamedQuery(
-                "UnitOfMeasure.byName",
-                UnitOfMeasure.class
-        )
+                        "UnitOfMeasure.byName",
+                        UnitOfMeasure.class
+                )
                 .setParameter("name", name.toLowerCase())
                 .getResultList();
         if (!uoms.isEmpty()) return Optional.of(uoms.get(0));
@@ -79,7 +94,7 @@ public class UnitOfMeasure extends BaseEntity {
     @Column(name = "factor")
     private Map<UnitOfMeasure, Double> conversions = new HashMap<>();
 
-    private UnitOfMeasure() {
+    public UnitOfMeasure() {
     }
 
     public UnitOfMeasure(String name, String... aliases) {
@@ -155,4 +170,5 @@ public class UnitOfMeasure extends BaseEntity {
         addAlias(alias);
         return this;
     }
+
 }

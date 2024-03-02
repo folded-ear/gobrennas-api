@@ -1,11 +1,10 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
 
 @Embeddable
 @Getter

@@ -1,9 +1,8 @@
 package com.brennaswitzer.cookbook.payload;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.NotNull;
 
 @Setter
 @Getter

@@ -7,6 +7,8 @@ import com.brennaswitzer.cookbook.repositories.AppSettingRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 import lombok.Data;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -21,11 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -205,7 +206,8 @@ public class UnitLoader {
 
     @SneakyThrows
     private Collection<UnitOfMeasure> loadUnitsInternal(InputStreamSource streamSource) {
-        Yaml yaml = new Yaml(new Constructor(UomInfo.class));
+        Yaml yaml = new Yaml(new Constructor(UomInfo.class,
+                                             new LoaderOptions()));
         Iterable<?> infos = yaml.loadAll(streamSource.getInputStream());
         Map<String, UnitOfMeasure> unitMap = new HashMap<>();
         for (Object o : infos) {

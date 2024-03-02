@@ -1,11 +1,11 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -18,6 +18,7 @@ public class AppSetting extends BaseEntity implements Named {
     @Column(updatable = false)
     private String name;
     @NotNull
+    @Column(columnDefinition = "int4")
     private DataType type;
     @Column(name = "value_str") // H2 doesn't allow a column named 'value'
     private String value;

@@ -1,9 +1,8 @@
 package com.brennaswitzer.cookbook.security;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
-
-import javax.servlet.http.HttpServletRequest;
 
 public class HeaderTokenAuthenticationFilter extends AbstractTokenAuthenticationFilter {
 

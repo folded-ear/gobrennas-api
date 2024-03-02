@@ -1,13 +1,13 @@
 package com.brennaswitzer.cookbook.domain;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
 

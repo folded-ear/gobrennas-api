@@ -4,6 +4,9 @@ import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.exceptions.BadRequestException;
 import com.brennaswitzer.cookbook.security.TokenProvider;
 import com.brennaswitzer.cookbook.util.CookieUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -11,9 +14,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;

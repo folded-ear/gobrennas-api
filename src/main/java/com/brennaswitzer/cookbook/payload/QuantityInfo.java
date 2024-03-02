@@ -2,10 +2,9 @@ package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.EntityManager;
 
 @Getter
 @Setter
