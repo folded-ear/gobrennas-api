@@ -10,6 +10,10 @@ FROM eclipse-temurin:17-alpine
 COPY --from=build /app/dependencies/ ./
 COPY --from=build /app/spring-boot-loader/ ./
 COPY --from=build /app/snapshot-dependencies/ ./
+# A no-op COPY followed by another COPY loses a layer, so add
+# a "garbage" RUN, since we generally don't have snapshot deps.
+# See https://github.com/moby/moby/issues/37965
+RUN true
 COPY --from=build /app/application/ ./
 ENV PORT=80 \
     HOST=0.0.0.0
