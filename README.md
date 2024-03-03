@@ -17,14 +17,24 @@ However, you _did_ just run the full regression suite!
 
 ## Run (For Development)
 
-You'll need a recent-ish Postgres (let's say ≥10) database to run against. If
-you're using a decent OS - or Mac w/ Docker Desktop; 🙄 - you'll have `docker`
-available, which is a great choice:
+You'll need a Postgres 15 database to run against. If you're using a decent OS -
+or Mac w/ Docker Desktop; 🙄 - you'll have `docker` available, which is a great
+choice:
 
-    docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:10
+    docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=passwd postgres:15
 
 If you already have existing PG infrastructure, create a new database (unless
 you want to use your - still pristine - `postgres` database).
+
+> ### Upgrading from PG 10
+>
+> First, dump your current database:
+>
+>     pg_dump -h localhost -d postgres -U postgres --no-owner > gobrennas.sql
+>
+> Stop your Postgres 10 container/server, start up Postgres 15, and restore:
+>
+>     psql -h localhost -U postgres -v ON_ERROR_STOP=1 < gobrennas.sql
 
 To run:
 
