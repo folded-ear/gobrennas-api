@@ -1,13 +1,11 @@
 databaseChangeLog:
   - include:
       file: db/changelog/baseline.xml
-  - include:
-      file: db/changelog/foodinger-2020.sql
-  - include:
-      file: db/changelog/foodinger-2021.sql
-  - include:
-      file: db/changelog/foodinger-2022.sql
-  - include:
-      file: db/changelog/foodinger-2023.sql
-  - include:
-      file: db/changelog/foodinger-2024.sql
+#  - include:
+#      file: db/changelog/foodinger-2024.sql
+#
+# skeleton
+#--liquibase formatted sql
+#
+#--changeset barneyb:descriptive-name-of-change
+#select now();
