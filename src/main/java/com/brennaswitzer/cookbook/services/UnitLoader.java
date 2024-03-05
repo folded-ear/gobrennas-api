@@ -17,6 +17,7 @@ import lombok.val;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import java.util.Objects;
 
 @Service
 @Slf4j
+@Profile("!test")
 public class UnitLoader {
 
     static final String SETTING_NAME_PREFIX = "unit-loader:";

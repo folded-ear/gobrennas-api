@@ -1,26 +1,7 @@
 spring:
   datasource:
-    driverClassName: org.h2.Driver
-    # This used to have `;DB_CLOSE_ON_EXIT=false` tacked on the end, but it
-    # prevented test runs from cleaning exiting when multiple distinct contexts
-    # were created w/in a single execution. Not really sure why it does that.
-    # Also not really sure why multiple contexts are being created.
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password:
-  sql:
-    init:
-      platform: H2
-  jpa:
-    #    show-sql: true
-    hibernate:
-      ddl-auto: create-drop
-    generate-ddl: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-  liquibase:
-    enabled: false
+    # This is the PostgreSQL version we target. Keep it in sync.
+    url: jdbc:tc:postgresql:15.6:///postgres
 app:
   aws:
     access-key: oh-my-its-so-glergy

@@ -11,7 +11,6 @@ spring:
     allow-circular-references: true
     banner-mode: off
   datasource:
-    driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASS}
@@ -20,9 +19,6 @@ spring:
   sql:
     init:
       platform: postgres
-  h2:
-    console:
-      enabled: false
   jpa:
     show-sql: false
     hibernate:
