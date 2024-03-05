@@ -2,7 +2,7 @@
 FROM eclipse-temurin:17-alpine as build
 WORKDIR /app
 COPY . ./
-RUN ./mvnw --batch-mode verify
+RUN ./mvnw --batch-mode -Dtest-containers=disabled verify
 RUN java -Djarmode=layertools -jar target/cookbook-1.0.0-SNAPSHOT.jar extract
 
 # server environment

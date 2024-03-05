@@ -4,12 +4,9 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Iterator;
@@ -21,16 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
-@Transactional
 @WithAliceBobEve
 public class PlanRepositoryTest {
 
     @Autowired
     private PlanRepository repo;
-
-    @Autowired
-    private EntityManager entityManager;
 
     @Autowired
     private UserRepository userRepo;

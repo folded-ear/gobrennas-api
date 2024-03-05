@@ -10,8 +10,6 @@ import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.function.Function;
@@ -20,8 +18,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@SpringBootTest
-@Transactional
 @WithAliceBobEve
 public class ItemServiceTest {
 

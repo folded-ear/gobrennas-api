@@ -1,9 +1,9 @@
 package com.brennaswitzer.cookbook;
 
+import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@WithAliceBobEve(authentication = false)
 public class CookbookApplicationTests {
 
     @Test
