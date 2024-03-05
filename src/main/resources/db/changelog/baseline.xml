@@ -28,6 +28,8 @@
         from pg_constraint
         where contype = 'c'
 
+    7.  Manually convert auto-increment to use 'id_seq'.
+
     To sanity check
 
     1.  Change src/main/resources/liquibase.properties to this:
@@ -53,7 +55,17 @@
     3.  Run `mvn liquibase:diff` from the root directory. You should get a bunch
         of EQUAL and NONE lines. Anything else needs to be investigated.
 
-    4.  Once they match, run your new baseline on the _existing_ database, which
+    4.  Use pg_dump to create schema-only files of each database, and ensure
+        they match.
+
+        pg_dump -h localhost -U postgres -O -s postgres > schema-existing.sql \
+          && pg_dump -h localhost -U postgres -O -s new_database_for_baseline > schema-new-baseline.sql \
+          && rm schema.diff \
+          && diff schema-existing.sql schema-new-baseline.sql > schema.diff || true \
+          && wc -l schema.diff \
+          && head -n 30 schema.diff
+
+    5.  Once they match, run your new baseline on the _existing_ database, which
         should be a no-op. Use the diffing above to ensure it was.
     -->
 
@@ -72,7 +84,7 @@
             </not>
         </preConditions>
         <createTable tableName="app_setting">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_app_setting"/>
             </column>
             <column defaultValueComputed="now()" name="created_at" type="TIMESTAMP WITH TIME ZONE">
@@ -102,7 +114,7 @@
             </not>
         </preConditions>
         <createTable tableName="compound_quantity">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_compound_quantity"/>
             </column>
         </createTable>
@@ -114,7 +126,7 @@
             </not>
         </preConditions>
         <createTable tableName="favorite">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_favorite"/>
             </column>
             <column name="_eqkey" type="BIGINT">
@@ -148,7 +160,7 @@
             <column name="dtype" type="VARCHAR(31)">
                 <constraints nullable="false"/>
             </column>
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="ingredient_pkey"/>
             </column>
             <column name="name" type="VARCHAR(255)"/>
@@ -175,12 +187,7 @@
             </column>
             <column name="photo_focus_top" type="FLOAT4"/>
             <column name="photo_focus_left" type="FLOAT4"/>
-            <column name="recipe_fulltext" type="TSVECTOR"/>
         </createTable>
-        <createIndex indexName="idx_recipe_fulltext" tableName="ingredient">
-            <column name="recipe_fulltext"/>
-            <column name="owner_id"/>
-        </createIndex>
         <addUniqueConstraint columnNames="_eqkey" constraintName="uk_ingredient__eqkey" tableName="ingredient"/>
     </changeSet>
     <changeSet author="liquibase (barneyb)" id="1709518116553-6">
@@ -190,7 +197,7 @@
             </not>
         </preConditions>
         <createTable tableName="inventory_item">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_inventory_item"/>
             </column>
             <column name="_eqkey" type="BIGINT">
@@ -227,7 +234,7 @@
             </not>
         </preConditions>
         <createTable tableName="inventory_tx">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_inventory_tx"/>
             </column>
             <column name="dtype" type="INTEGER">
@@ -261,7 +268,7 @@
             </not>
         </preConditions>
         <createTable tableName="label">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_label"/>
             </column>
             <column name="name" type="VARCHAR">
@@ -277,7 +284,7 @@
             </not>
         </preConditions>
         <createTable tableName="plan_bucket">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_plan_bucket"/>
             </column>
             <column defaultValueComputed="now()" name="created_at" type="TIMESTAMP WITH TIME ZONE">
@@ -307,7 +314,7 @@
             </not>
         </preConditions>
         <createTable tableName="plan_item">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="task_pkey"/>
             </column>
             <column defaultValueComputed="now()" name="created_at" type="TIMESTAMP WITH TIME ZONE">
@@ -392,7 +399,7 @@
             </not>
         </preConditions>
         <createTable tableName="textract_job">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_textract_job"/>
             </column>
             <column defaultValueComputed="date_part('epoch'::text, clock_timestamp())" name="_eqkey" type="BIGINT">
@@ -428,7 +435,7 @@
             </not>
         </preConditions>
         <createTable tableName="timer">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="timer_pkey"/>
             </column>
             <column defaultValueComputed="now()" name="created_at" type="TIMESTAMP WITH TIME ZONE">
@@ -459,7 +466,7 @@
             </not>
         </preConditions>
         <createTable tableName="unit_of_measure">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_uom"/>
             </column>
             <column name="name" type="VARCHAR"/>
@@ -480,7 +487,7 @@
             </not>
         </preConditions>
         <createTable tableName="users">
-            <column autoIncrement="true" name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValue="nextval('public.id_seq'::regclass)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="users_pkey"/>
             </column>
             <column name="email" type="VARCHAR(255)"/>
@@ -697,12 +704,12 @@
             alter table plan_item
                 add constraint "chk_task_owner_id" CHECK (
                     CASE _type
-                        WHEN 'list'::text THEN owner_id IS NOT NULL
+                        WHEN 'plan'::text THEN owner_id IS NOT NULL
                         ELSE owner_id IS NULL
                     END),
                 add constraint "chk_task_parent_id" CHECK (
                     CASE _type
-                        WHEN 'list'::text THEN parent_id IS NULL
+                        WHEN 'plan'::text THEN parent_id IS NULL
                         ELSE parent_id IS NOT NULL
                     END);
         </sql>
@@ -710,6 +717,77 @@
             alter table timer
                 add constraint chk_timer_duration check ( duration > 0 ),
                 add constraint chk_timer_pause_duration check ( extra_time >= 0 );
+        </sql>
+    </changeSet>
+
+    <changeSet author="barneyb" id="1709518116553-fulltext-search">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*)
+                from pg_proc
+                where proname = 'recipe_fulltext_update'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE EXTENSION unaccent;
+            CREATE EXTENSION btree_gin;
+
+            CREATE TEXT SEARCH CONFIGURATION en (COPY = english);
+            ALTER TEXT SEARCH CONFIGURATION en
+                ALTER MAPPING FOR hword, hword_part, word
+                    WITH unaccent, english_stem;
+        </sql>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION recipe_fulltext_update(id BIGINT) RETURNS VOID AS
+            $$
+BEGIN
+    UPDATE ingredient
+    SET recipe_fulltext = SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.name, '')), 'A') ||
+                          SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                  (SELECT STRING_AGG(l.name, ' ' ORDER BY l.name)
+                                   FROM ingredient_labels il
+                                        JOIN label l ON l.id = il.label_id
+                                   WHERE il.ingredient_id = ingredient.id), '')), 'B') ||
+                          SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                  (SELECT STRING_AGG(
+                                                  CASE
+                                                      WHEN i.id IS NULL THEN raw
+                                                      ELSE COALESCE(i.name, '') || ' ' || COALESCE(preparation, '')
+                                                      END,
+                                                  CHR(10) ORDER BY _order)
+                                   FROM recipe_ingredients link
+                                        LEFT JOIN ingredient i ON link.ingredient_id = i.id
+                                   WHERE recipe_id = ingredient.id), '')), 'C') ||
+                          SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.directions, '')), 'D')
+    WHERE ingredient.id = recipe_fulltext_update.id
+      AND ingredient.dtype = 'Recipe';
+END
+$$ LANGUAGE plpgsql;
+        </sql>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION recipe_fulltext_update_handler() RETURNS TRIGGER AS
+            $$
+BEGIN
+    PERFORM recipe_fulltext_update(old_table.id)
+    FROM old_table;
+    RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+        </sql>
+        <sql>
+            ALTER TABLE ingredient
+                ADD recipe_fulltext tsvector NULL;
+
+            CREATE INDEX idx_recipe_fulltext ON ingredient
+                USING GIN (recipe_fulltext, owner_id)
+                WHERE dtype = 'Recipe';
+
+            CREATE TRIGGER recipe_fulltext_update_trigger
+                AFTER DELETE
+                ON recipe_fulltext_reindex_queue
+                REFERENCING OLD TABLE AS old_table
+                FOR EACH ROW
+            EXECUTE PROCEDURE recipe_fulltext_update_handler();
         </sql>
     </changeSet>
 </databaseChangeLog>
