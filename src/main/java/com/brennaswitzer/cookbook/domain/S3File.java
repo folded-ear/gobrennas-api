@@ -17,7 +17,17 @@ public class S3File {
 
     private static final Pattern FILENAME_SANITIZER = Pattern.compile("[^a-zA-Z0-9.\\-]+");
     public static String sanitizeFilename(String filename) {
+        // Opera supplies a full path, not just a filename
+        filename = lastSegment(filename, '/');
+        filename = lastSegment(filename, '\\');
         return FILENAME_SANITIZER.matcher(filename).replaceAll("_");
+    }
+
+    private static String lastSegment(String string, char delim) {
+        int idx = string.lastIndexOf(delim);
+        return idx < 0
+                ? string
+                : string.substring(idx + 1);
     }
 
     private String objectKey;
