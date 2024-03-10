@@ -41,8 +41,9 @@ public class RecipeService {
 
     public Recipe createNewRecipe(Recipe recipe, Upload photo) {
         recipe.setOwner(principalAccess.getUser());
-        setPhotoInternal(recipe, photo);
-        return recipeRepository.save(recipe);
+        recipe = recipeRepository.save(recipe);
+        if (photo != null) setPhotoInternal(recipe, photo);
+        return recipe;
     }
 
     public Recipe updateRecipe(Recipe recipe) {
@@ -51,7 +52,7 @@ public class RecipeService {
 
     public Recipe updateRecipe(Recipe recipe, Upload photo) {
         getMyRecipe(recipe.getId());
-        setPhotoInternal(recipe, photo);
+        if (photo != null) setPhotoInternal(recipe, photo);
         return recipeRepository.save(recipe);
     }
 
@@ -83,7 +84,6 @@ public class RecipeService {
 
     private void setPhotoInternal(Recipe recipe, Upload photo) {
         removePhotoInternal(recipe);
-        if (photo == null) return;
         String name = photo.getOriginalFilename();
         if (name == null) {
             name = "photo";
