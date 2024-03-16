@@ -41,6 +41,10 @@ public class LibraryMutation {
         return recipe;
     }
 
+    public Recipe setRecipePhoto(Long id, Part photo) {
+        return recipeService.setRecipePhoto(id, Upload.of(photo));
+    }
+
     public boolean deleteRecipe(Long id) {
         recipeService.deleteRecipeById(id);
         return true;
