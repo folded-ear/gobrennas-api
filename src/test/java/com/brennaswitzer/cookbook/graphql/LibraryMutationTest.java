@@ -20,6 +20,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.ArgumentMatchers.same;
@@ -104,6 +105,19 @@ class LibraryMutationTest extends MockTest {
         verify(info).setId(123L);
         verify(recipeService).updateRecipe(same(recipe), notNull());
         verify(labelService).updateLabels(same(recipe), same(labels));
+    }
+
+    @Test
+    void setRecipePhoto() {
+        var photo = mock(Part.class);
+        var recipe = mock(Recipe.class);
+        when(recipeService.setRecipePhoto(any(), any()))
+                .thenReturn(recipe);
+
+        var result = mutation.setRecipePhoto(123L, photo);
+
+        assertSame(recipe, result);
+        verify(recipeService).setRecipePhoto(eq(123L), notNull());
     }
 
     @Test

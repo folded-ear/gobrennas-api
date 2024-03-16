@@ -178,6 +178,7 @@ extend type Mutation {
 type LibraryMutation {
     createRecipe(info: IngredientInfo!, photo: Upload, cookThis: Boolean): Recipe!
     updateRecipe(id: ID!, info: IngredientInfo!, photo: Upload): Recipe!
+    setRecipePhoto(id: ID!, photo: Upload!): Recipe!
     deleteRecipe(id: ID!): Boolean!
 }
 
