@@ -9,14 +9,15 @@ public class PostgresFullTextQueryConverterTest {
 
     @ParameterizedTest
     @CsvSource(quoteCharacter = '#', // we want to process single quotes
-            value = {
-                    "chicken                   , chicken",
-                    "chicken thighs            , chicken | thighs",
-                    "'chicken thighs'          , chicken <-> thighs",
-                    "\"chicken thighs\"        , chicken <-> thighs",
-                    "celery \"chicken thighs\" , celery | chicken <-> thighs",
-                    "'a b' \"c d\" e 'f \"g    , a <-> b | c <-> d | e | f | g"
-        })
+            textBlock = """
+                    chicken                 , chicken:*
+                    'chicken'               , chicken
+                    chicken thighs          , chicken:* | thighs:*
+                    'chicken thighs'        , chicken <-> thighs
+                    "chicken thighs"        , chicken <-> thighs
+                    celery "chicken thighs" , celery:* | chicken <-> thighs
+                    'a b' "c d" e 'f "g     , a <-> b | c <-> d | e:* | f:* | g:*
+                    """)
     public void filterConversion(String input, String expected) {
         String actual = new PostgresFullTextQueryConverter()
                 .convert(input);

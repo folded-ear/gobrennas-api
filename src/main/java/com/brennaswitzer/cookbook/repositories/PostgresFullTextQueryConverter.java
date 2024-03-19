@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * I convert a user-entered search string into a string suitable for passing to
@@ -27,15 +28,15 @@ public class PostgresFullTextQueryConverter {
                 idxDelim = idxApostrophe;
             }
             if (idxDelim < 0) {
-                terms.addAll(toWords(filter, at));
+                terms.addAll(toWords(filter, at, filter.length(), true));
                 at = filter.length();
             } else {
-                terms.addAll(toWords(filter, at, idxDelim));
+                terms.addAll(toWords(filter, at, idxDelim, true));
                 at = idxDelim + 1;
                 idxDelim = filter.indexOf(delim, at);
                 if (idxDelim > 0) {
                     terms.add(String.join(" <-> ",
-                                          toWords(filter, at, idxDelim)));
+                                          toWords(filter, at, idxDelim, false)));
                     at = idxDelim + 1;
                 }
             }
@@ -43,16 +44,15 @@ public class PostgresFullTextQueryConverter {
         return String.join(" | ", terms);
     }
 
-    private List<String> toWords(String text, int start) {
-        return toWords(text, start, text.length());
-    }
-
-    private List<String> toWords(String text, int start, int end) {
-        return Arrays.stream(text.substring(start, end)
-                                     .trim()
-                                     .split("\\s+"))
-                .filter(Predicate.not(String::isBlank))
-                .collect(Collectors.toList());
+    private List<String> toWords(String text, int start, int end, boolean prefix) {
+        Stream<String> words = Arrays.stream(text.substring(start, end)
+                                                     .trim()
+                                                     .split("\\s+"))
+                .filter(Predicate.not(String::isBlank));
+        if (prefix) {
+            words = words.map(w -> w + ":*");
+        }
+        return words.collect(Collectors.toList());
     }
 
 }
