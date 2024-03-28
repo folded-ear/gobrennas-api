@@ -92,7 +92,7 @@ public class UnitOfMeasure extends BaseEntity {
     @ElementCollection
     @MapKeyJoinColumn(name = "target_id")
     @Column(name = "factor")
-    private Map<UnitOfMeasure, Double> conversions = new HashMap<>();
+    private Map<UnitOfMeasure, Double> conversions;
 
     public UnitOfMeasure() {
     }
@@ -123,37 +123,47 @@ public class UnitOfMeasure extends BaseEntity {
     }
 
     public Set<String> getAliases() {
-        if (aliases == null) {
-            //noinspection unchecked
-            return Collections.EMPTY_SET;
-        }
+        if (aliases == null) return Collections.emptySet();
         return Collections.unmodifiableSet(aliases);
     }
 
     public boolean hasConversion(UnitOfMeasure uom) {
+        if (conversions == null) return false;
         return conversions.containsKey(uom);
     }
 
     public Double getConversion(UnitOfMeasure uom) {
+        if (conversions == null) return null;
         return conversions.get(uom);
+    }
+
+    public Double addConversion(UnitOfMeasure uom, Number factor) {
+        Assert.notNull(factor, "UoM conversion factor's can't be null");
+        return addConversion(uom, factor.doubleValue());
     }
 
     public Double addConversion(UnitOfMeasure uom, int factor) {
         return addConversion(uom, (double) factor);
     }
 
-    public Double addConversion(UnitOfMeasure uom, Double factor) {
+    public Double addConversion(UnitOfMeasure uom, double factor) {
         Assert.notNull(uom, "Can't convert to the null UoM");
-        Assert.notNull(factor, "UoM conversion factor's can't be null");
-        uom.conversions.put(this, 1.0 / factor);
+        uom.addConversionInternal(this, 1.0 / factor);
+        return addConversionInternal(uom, factor);
+    }
+
+    private Double addConversionInternal(UnitOfMeasure uom, double factor) {
+        if (conversions == null) conversions = new HashMap<>();
         return conversions.put(uom, factor);
     }
 
     public Double removeConversion(UnitOfMeasure uom) {
+        if (conversions == null) return null;
         return conversions.remove(uom);
     }
 
     public Map<UnitOfMeasure, Double> getConversions() {
+        if (conversions == null) return Collections.emptyMap();
         return Collections.unmodifiableMap(conversions);
     }
 
