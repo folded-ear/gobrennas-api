@@ -16,3 +16,7 @@ create table pantry_item_synonyms
 create index idx_pantry_item_synonym
     on pantry_item_synonyms
         (synonym, pantry_item_id);
+
+--changeset barneyb:drop-ingredient-aisle
+alter table ingredient
+    drop aisle;
