@@ -92,6 +92,12 @@ public class PantryItem extends Ingredient {
         super.setName(name);
     }
 
+    @Override
+    public boolean answersToName(String name) {
+        return super.answersToName(name)
+                || hasSynonym(name);
+    }
+
     public boolean hasSynonym(String synonym) {
         if (synonyms == null) return false;
         if (synonym == null || synonym.isBlank()) return false;

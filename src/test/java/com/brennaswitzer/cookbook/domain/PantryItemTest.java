@@ -34,4 +34,18 @@ class PantryItemTest {
         assertTrue(it.hasSynonym("stilton")); // ignore case
     }
 
+    @Test
+    void answersToName() {
+        val it = new PantryItem("the curd-y stuff");
+        it.addSynonyms("cheese", "Cheez", "CHEEZE");
+
+        assertFalse(it.answersToName("curd-y stuff"));
+        assertTrue(it.answersToName("THE curd-y STUFF"));
+
+        assertTrue(it.answersToName("cheese"));
+        assertTrue(it.answersToName("cheeze"));
+        assertTrue(it.answersToName("CHEEZ"));
+        assertFalse(it.answersToName("cheese stick"));
+    }
+
 }

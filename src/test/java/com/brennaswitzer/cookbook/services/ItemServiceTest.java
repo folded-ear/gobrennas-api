@@ -57,6 +57,39 @@ public class ItemServiceTest {
     }
 
     @Test
+    public void recognizeImplicitSynonym() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "sea nacl, ground fine";
+        RecognizedItem el = recognizeItem(RAW);
+        System.out.println(el);
+
+        assertEquals(RAW, el.getRaw());
+        Iterator<RecognizedRange> ri = el.getRanges().iterator();
+        RecognizedRange saltRange = ri.next();
+        assertEquals(new RecognizedRange(4, 8, RecognizedRangeType.ITEM), saltRange);
+        assertEquals(box.salt.getId(), saltRange.getId());
+        assertFalse(ri.hasNext());
+    }
+
+    @Test
+    public void recognizeExplicitSynonym() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+
+        final String RAW = "sea \"nacl\", ground fine";
+        RecognizedItem el = recognizeItem(RAW);
+        System.out.println(el);
+
+        assertEquals(RAW, el.getRaw());
+        Iterator<RecognizedRange> ri = el.getRanges().iterator();
+        RecognizedRange saltRange = ri.next();
+        assertEquals(box.salt.getId(), saltRange.getId());
+        assertFalse(ri.hasNext());
+    }
+
+    @Test
     public void recognizeItemMultipleNoCase() {
         RecipeBox box = new RecipeBox();
         box.persist(entityManager, principalAccess.getUser());
@@ -262,7 +295,6 @@ public class ItemServiceTest {
         //noinspection OptionalGetWithoutIsPresent
         RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
         assertEquals(new RecognizedRange(0, 18, RecognizedRangeType.ITEM), ing);
-
     }
 
     private RecognizedItem recognizeItem(String raw) {
