@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +38,7 @@ public class IngredientService {
         return pantryItemRepository.save(new PantryItem(EnglishUtils.unpluralize(name)));
     }
 
-    public Iterable<Ingredient> findAllIngredientsByNameContaining(String name) {
+    public List<Ingredient> findAllIngredientsByNameContaining(String name) {
         String unpluralized = EnglishUtils.unpluralize(name);
         List<PantryItem> pantryItems = pantryItemRepository.findAllByNameIgnoreCaseContainingOrderById(unpluralized);
         List<Ingredient> result = new ArrayList<>(pantryItems);
@@ -77,7 +76,7 @@ public class IngredientService {
     public Iterable<Ingredient> findAllIngredientsByNamesContaining(List<String> names) {
         List<Ingredient> results = new ArrayList<>();
         for (String name : names) {
-            results.addAll((Collection<? extends Ingredient>) findAllIngredientsByNameContaining(name));
+            results.addAll(findAllIngredientsByNameContaining(name));
         }
         return results;
     }

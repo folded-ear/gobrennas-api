@@ -2,6 +2,7 @@ spring:
   datasource:
     # This is the PostgreSQL version we target. Keep it in sync.
     url: jdbc:tc:postgresql:15.6:///postgres
+#  jpa.show-sql: true
 app:
   aws:
     access-key: oh-my-its-so-glergy
