@@ -35,26 +35,22 @@ public class PantryItemService {
         //noinspection OptionalGetWithoutIsPresent
         PantryItem active = pantryItemRepository.findById(id).get();
         StreamSupport.stream(pantryItemRepository.findAll().spliterator(), false)
+                .filter(it -> it.getStoreOrder() > 0 || it.getId().equals(targetId))
+                .filter(it -> !it.getId().equals(active.getId()))
                 .sorted(PantryItem.BY_STORE_ORDER)
                 .forEachOrdered(it -> {
-                    if (it.getId().equals(active.getId())) return;
                     if (it.getId().equals(targetId)) {
                         if (after) {
-                            ensureStoreOrder(it, seq.incrementAndGet());
-                            ensureStoreOrder(active, seq.incrementAndGet());
+                            it.setStoreOrder(seq.incrementAndGet());
+                            active.setStoreOrder(seq.incrementAndGet());
                         } else {
-                            ensureStoreOrder(active, seq.incrementAndGet());
-                            ensureStoreOrder(it, seq.incrementAndGet());
+                            active.setStoreOrder(seq.incrementAndGet());
+                            it.setStoreOrder(seq.incrementAndGet());
                         }
                     } else {
-                        ensureStoreOrder(it, seq.incrementAndGet());
+                        it.setStoreOrder(seq.incrementAndGet());
                     }
                 });
-    }
-
-    private void ensureStoreOrder(PantryItem it, int order) {
-        if (it.getStoreOrder() == order) return;
-        it.setStoreOrder(order);
     }
 
 }

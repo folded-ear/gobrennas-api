@@ -17,7 +17,13 @@ public class RecipeBox {
             lbs;
 
     public final PantryItem
-            salt;
+            egg,
+            flour,
+            oil,
+            salt,
+            sugar,
+            water,
+            yeast;
 
     public final Label
             dinner,
@@ -38,13 +44,19 @@ public class RecipeBox {
         cup.addConversion(tbsp, 16);
         lbs = new UnitOfMeasure("lbs");
 
+        egg = new PantryItem("egg");
+        flour = new PantryItem("flour");
+        oil = new PantryItem("oil");
         salt = new PantryItem("salt");
+        sugar = new PantryItem("sugar");
+        water = new PantryItem("water");
+        yeast = new PantryItem("yeast");
 
         dinner = new Label("dinner");
         makeAhead = new Label("make ahead");
 
         friedChicken = new Recipe("Fried Chicken");
-        friedChicken.addIngredient(Quantity.count(2), new PantryItem("egg"), "shelled");
+        friedChicken.addIngredient(Quantity.count(2), egg, "shelled");
         friedChicken.addIngredient(new PantryItem("chicken"), "deboned");
         friedChicken.addIngredient(new PantryItem("chicken thigh"), "cut");
         friedChicken.addLabel(dinner);
@@ -58,11 +70,11 @@ public class RecipeBox {
 
         pizzaCrust = new Recipe("Pizza Crust");
         pizzaCrust.setDirections("knead it a lot!");
-        pizzaCrust.addIngredient(cup.quantity(2), new PantryItem("flour"));
-        pizzaCrust.addIngredient(cup.quantity(1), new PantryItem("water"));
-        pizzaCrust.addIngredient(new UnitOfMeasure("packet").quantity(1), new PantryItem("yeast"));
-        pizzaCrust.addIngredient(tbsp.quantity(1), new PantryItem("sugar"));
-        pizzaCrust.addIngredient(tbsp.quantity(1), new PantryItem("oil"));
+        pizzaCrust.addIngredient(cup.quantity(2), flour);
+        pizzaCrust.addIngredient(cup.quantity(1), water);
+        pizzaCrust.addIngredient(new UnitOfMeasure("packet").quantity(1), yeast);
+        pizzaCrust.addIngredient(tbsp.quantity(1), sugar);
+        pizzaCrust.addIngredient(tbsp.quantity(1), oil);
         pizzaCrust.addIngredient(tsp.quantity(0.5), salt);
         pizzaCrust.addLabel(makeAhead);
 

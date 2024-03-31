@@ -55,7 +55,7 @@ public class PantryItemController {
         Long id = action.getId();
         Long targetId = action.getTargetId();
         if (id == null || targetId == null || id.equals(targetId)) {
-            throw new IllegalArgumentException("Can only 'order to' for two different non-null ingredient IDs");
+            throw new IllegalArgumentException("Can only 'order to' for two distinct non-null ingredient IDs");
         }
         pantryItemService.orderForStore(id, targetId, action.isAfter());
     }
