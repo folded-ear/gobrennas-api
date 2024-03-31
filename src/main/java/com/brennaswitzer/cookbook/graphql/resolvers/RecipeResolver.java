@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.resolvers;
+package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.FavoriteType;
