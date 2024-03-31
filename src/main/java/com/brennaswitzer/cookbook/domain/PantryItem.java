@@ -34,8 +34,6 @@ public class PantryItem extends Ingredient {
         return a.getName().compareToIgnoreCase(b.getName());
     };
 
-    private String aisle;
-
     // todo: make this user specific
     private int storeOrder = 0;
 

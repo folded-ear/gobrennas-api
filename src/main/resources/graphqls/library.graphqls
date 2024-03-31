@@ -118,7 +118,6 @@ interface Ingredient implements Node {
 type PantryItem implements Node & Ingredient {
     id: ID!
     name: String!
-    aisle: String
     storeOrder: Int
     labels: [String!]
 }
