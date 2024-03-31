@@ -22,13 +22,13 @@ public class PantryItem extends Ingredient {
         if (c != 0) {
             return c;
         }
-        return a.getName().compareTo(b.getName());
+        return a.getName().compareToIgnoreCase(b.getName());
     };
 
     private String aisle;
 
     // todo: make this user specific
-    private int storeOrder = 999_999_999;
+    private int storeOrder = 0;
 
     public PantryItem() {}
 

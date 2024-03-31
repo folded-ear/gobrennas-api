@@ -1,5 +1,8 @@
 package com.brennaswitzer.cookbook.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum PlanItemStatus implements Identified {
 
     NEEDED(0L),
@@ -11,11 +14,6 @@ public enum PlanItemStatus implements Identified {
 
     PlanItemStatus(Long id) {
         this.id = id;
-    }
-
-    @Override
-    public Long getId() {
-        return id;
     }
 
     public boolean isForDelete() {
