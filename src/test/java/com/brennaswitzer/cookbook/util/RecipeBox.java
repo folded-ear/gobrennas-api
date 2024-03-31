@@ -47,7 +47,8 @@ public class RecipeBox {
         egg = new PantryItem("egg");
         flour = new PantryItem("flour");
         oil = new PantryItem("oil");
-        salt = new PantryItem("salt");
+        salt = new PantryItem("salt")
+                .withSynonym("nacl");
         sugar = new PantryItem("sugar");
         water = new PantryItem("water");
         yeast = new PantryItem("yeast");
