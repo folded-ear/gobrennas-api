@@ -17,7 +17,7 @@ type LibraryQuery {
         """The textual query to filter results by. Can include simple words, as
         well as quoted phrases.
         """
-        query: String = ""
+        query: String! = ""
         """How many recipes to return in the connection. If not specified, 10
         will be returned.
         """
@@ -28,12 +28,26 @@ type LibraryQuery {
         after: Cursor = null
     ): RecipeConnection!
 
-    """Please ignore; I exist because GraphQL defines the available types as
-    those reachable from fields. Since PantryItem is currently only used
-    polymorphically (e.g., by `Query`'s `node` field), it will not be included
-    in the available types without this dummy field.
+    """Search available pantry items.
     """
-    pantryItem: PantryItem
+    pantryItems(
+        """Textual query to filter items by. The exact query operation performed
+        is unspecified
+        """
+        query: String! = ""
+        """Field(s) to sort the result by. If omitted, the order will be stable,
+        but is not further specified.
+        """
+        sortBy: [String!]
+        """How many recipes to return in the connection. If not specified, 10
+        will be returned.
+        """
+        first: NonNegativeInt! = 10
+        """Cursor to find results after. This should be omitted to retrieve the
+        first page.
+        """
+        after: Cursor = null
+    ): PantryItemConnection!
 
     getRecipeById(id: ID!): Recipe
 
@@ -109,6 +123,16 @@ type RecipeConnectionEdge {
     cursor: Cursor!
 }
 
+type PantryItemConnection {
+    edges: [PantryItemConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
+type PantryItemConnectionEdge {
+    node: PantryItem!
+    cursor: Cursor!
+}
+
 interface Ingredient implements Node {
     id: ID!
     name: String!
@@ -120,6 +144,16 @@ type PantryItem implements Node & Ingredient {
     name: String!
     storeOrder: Int
     labels: [String!]
+    synonyms: [String!]
+    firstUse: DateTime!
+    """The number of recipes which use this pantry item. This field is expensive
+    to compute, and not currently cached.
+    """
+    useCount(
+        """The scope to search for recipes within.
+        """
+        scope: LibrarySearchScope! = EVERYONE
+    ): NonNegativeInt!
 }
 
 enum ChronoUnit {

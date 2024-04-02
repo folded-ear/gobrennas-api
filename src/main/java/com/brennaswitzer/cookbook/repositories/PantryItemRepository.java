@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import java.time.Instant;
 import java.util.List;
 
-public interface PantryItemRepository extends CrudRepository<PantryItem, Long> {
+public interface PantryItemRepository extends CrudRepository<PantryItem, Long>, PantryItemSearchRepository {
 
     @Query("""
             select item

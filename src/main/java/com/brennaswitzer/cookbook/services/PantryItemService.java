@@ -1,12 +1,17 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.domain.PantryItem_;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
+import com.brennaswitzer.cookbook.repositories.SearchResponse;
+import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
@@ -51,6 +56,22 @@ public class PantryItemService {
                         it.setStoreOrder(seq.incrementAndGet());
                     }
                 });
+    }
+
+    public SearchResponse<PantryItem> search(String filter,
+                                             List<String> sortBy,
+                                             int offset,
+                                             int limit) {
+        if (sortBy == null || sortBy.isEmpty()) {
+            sortBy = Collections.singletonList(PantryItem_.NAME);
+        }
+        return pantryItemRepository.search(
+                PantryItemSearchRequest.builder()
+                        .filter(filter)
+                        .sort(Sort.by(sortBy.toArray(String[]::new)))
+                        .offset(offset)
+                        .limit(limit)
+                        .build());
     }
 
 }
