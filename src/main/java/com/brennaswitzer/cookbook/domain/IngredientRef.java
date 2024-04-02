@@ -10,6 +10,8 @@ import lombok.Setter;
 
 import java.util.Comparator;
 
+@Getter
+@Setter
 @Embeddable
 @SuppressWarnings("JpaDataSourceORMInspection") // it's @Embeddable, and IntelliJ's too dumb
 public class IngredientRef implements MutableItem {
@@ -21,26 +23,18 @@ public class IngredientRef implements MutableItem {
     };
 
     @Column(name = "_order")
-    @Getter
-    @Setter
     private int _idx;
 
-    @Setter
     private String raw;
 
     @Embedded
-    @Setter
     private Quantity quantity;
 
-    @Getter
-    @Setter
     private String preparation;
 
     @ManyToOne( // if LAZY, the proxy confuses graphql-java
             targetEntity = Ingredient.class,
             cascade = { CascadeType.MERGE })
-    @Getter
-    @Setter
     private Ingredient ingredient;
 
     public IngredientRef() {
