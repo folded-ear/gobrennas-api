@@ -21,13 +21,9 @@ public class PantryItemResolver implements GraphQLResolver<PantryItem> {
 
     public Set<String> synonyms(PantryItem pantryItem) {
         Set<String> all = pantryItem.getSynonyms();
-        String name = pantryItem.getName();
-        if (all.contains(name)) {
-            // This is supposed to be true already, but it's enforced softly, to
-            // avoid unneeded data access. Since we have to load them, may as
-            // well clean it up too.
-            pantryItem.removeSynonym(name);
-        }
+        // This should be a no-op, but it's enforced softly to avoid unneeded
+        // data access. Since we're loading them anyway, clean it up for sure.
+        pantryItem.removeSynonym(pantryItem.getName());
         return all;
     }
 

@@ -34,9 +34,9 @@ public class LabelService {
     public void updateLabels(Labeled l, List<String> labels) {
         // loop through the array of strings and make a Label out of each of them
         // and then clear out whatever was in the Labeled and add all the new shit
-        if(labels.size() > 0) {
+        if (!labels.isEmpty()) {
             l.clearLabels();
-            for(String label : labels) {
+            for (String label : labels) {
                 addLabel(l, label);
             }
         }
@@ -47,4 +47,5 @@ public class LabelService {
         Optional<Label> l = labelRepository.findOneByNameIgnoreCase(name);
         return l.orElseGet(() -> labelRepository.save(new Label(name)));
     }
+
 }

@@ -72,7 +72,9 @@ public class PantryItem extends Ingredient {
         }
         var name = getName();
         if (name == null || name.isBlank()) return;
-        synonyms.remove(name);
+        if (!synonyms.remove(name)) {
+            synonyms.removeIf(name::equalsIgnoreCase);
+        }
     }
 
     /**
@@ -107,6 +109,7 @@ public class PantryItem extends Ingredient {
 
     public boolean addSynonym(String synonym) {
         Assert.notNull(synonym, "Null isn't a valid synonym");
+        if (hasSynonym(synonym)) return false;
         if (synonyms == null) synonyms = new HashSet<>();
         return synonyms.add(synonym);
     }
@@ -127,7 +130,8 @@ public class PantryItem extends Ingredient {
 
     public boolean removeSynonym(String synonym) {
         if (synonyms == null) return false;
-        return synonyms.remove(synonym);
+        return synonyms.remove(synonym)
+                || synonyms.removeIf(synonym::equalsIgnoreCase);
     }
 
     public Set<String> getSynonyms() {

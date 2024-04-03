@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import jakarta.transaction.Transactional;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,8 @@ public class PantryItemService {
 
     @Autowired
     private PantryItemRepository pantryItemRepository;
+    @Autowired
+    private LabelService labelService;
 
     public PantryItem saveOrUpdatePantryItem(PantryItem item) {
         return pantryItemRepository.save(item);
@@ -67,6 +70,47 @@ public class PantryItemService {
                         .offset(offset)
                         .limit(limit)
                         .build());
+    }
+
+    public PantryItem renameItem(Long id,
+                                 String name) {
+        var item = getItem(id);
+        item.setName(name);
+        return pantryItemRepository.save(item);
+    }
+
+    @NotNull
+    private PantryItem getItem(Long id) {
+        return pantryItemRepository.findById(id)
+                .orElseThrow();
+    }
+
+    public PantryItem addLabel(Long id,
+                               String label) {
+        var item = getItem(id);
+        labelService.addLabel(item, label);
+        return pantryItemRepository.save(item);
+    }
+
+    public PantryItem removeLabel(Long id,
+                                  String label) {
+        var item = getItem(id);
+        labelService.removeLabel(item, label);
+        return pantryItemRepository.save(item);
+    }
+
+    public PantryItem addSynonym(Long id,
+                                 String synonym) {
+        var item = getItem(id);
+        item.addSynonym(synonym);
+        return pantryItemRepository.save(item);
+    }
+
+    public PantryItem removeSynonym(Long id,
+                                    String synonym) {
+        var item = getItem(id);
+        item.removeSynonym(synonym);
+        return pantryItemRepository.save(item);
     }
 
 }

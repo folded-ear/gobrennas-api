@@ -67,3 +67,15 @@ type PantryItem implements Node & Ingredient {
         scope: LibrarySearchScope! = EVERYONE
     ): NonNegativeInt!
 }
+
+extend type Mutation {
+    pantry: PantryMutation
+}
+
+type PantryMutation {
+    renameItem(id: ID!, name: String!): PantryItem
+    addLabel(id: ID!, label: String!): PantryItem
+    removeLabel(id: ID!, label: String!): PantryItem
+    addSynonym(id: ID!, synonym: String!): PantryItem
+    removeSynonym(id: ID!, synonym: String!): PantryItem
+}
