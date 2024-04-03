@@ -29,6 +29,9 @@ public class Query implements GraphQLQueryResolver {
     public FavoriteQuery favorite;
 
     @Autowired
+    public PantryQuery pantry;
+
+    @Autowired
     public LibraryQuery library;
 
     @Autowired

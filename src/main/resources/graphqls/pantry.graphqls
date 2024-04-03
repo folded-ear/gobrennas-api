@@ -1,0 +1,60 @@
+extend type Query {
+    pantry: PantryQuery
+}
+
+type PantryQuery {
+    """Search available pantry items.
+    """
+    search(
+        """Textual query to filter items by. The exact query operation performed
+        is unspecified.
+        """
+        query: String
+        """Field(s) to sort the result by. If omitted, the order will be stable,
+        but is otherwise unspecified.
+        """
+        sortBy: [String!]
+        """How many items to return in the connection.
+        """
+        first: NonNegativeInt! = 25
+        """Cursor to find results after. This should be omitted to retrieve the
+        first page.
+        """
+        after: Cursor = null
+    ): PantryItemConnection!
+
+}
+
+type PantryItemConnection {
+    edges: [PantryItemConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
+type PantryItemConnectionEdge {
+    node: PantryItem!
+    cursor: Cursor!
+}
+
+type PantryItem implements Node & Ingredient {
+    id: ID!
+    name: String!
+    """The relative order this pantry item will be shown on the shopping view.
+    The absolute value has no semantic, and may change arbitrarily.
+    """
+    storeOrder: Int
+    """Other names this pantry item can be referred to as. E.g., an "apple" item
+    may have synonym "pomme".
+    """
+    synonyms: [String!]
+    labels: [String!]
+    """When this pantry item was first used.
+    """
+    firstUse: DateTime!
+    """The number of recipes which use this pantry item, including synonyms.
+    """
+    useCount(
+        """The scope to search for recipe usage within.
+        """
+        scope: LibrarySearchScope! = EVERYONE
+    ): NonNegativeInt!
+}
