@@ -37,9 +37,12 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
         }
         stmt.append("order by ");
         for (var sort : request.getSort()) {
-            stmt.append("item.")
-                    .append(sort.getProperty())
-                    .append(" ")
+            //noinspection SwitchStatementWithTooFewBranches
+            switch (sort.getProperty()) {
+                case "firstUse" -> stmt.identifier("item.createdAt");
+                default -> stmt.identifier("item." + sort.getProperty());
+            }
+            stmt.append(" ")
                     .append(sort.getDirection().toString())
                     .append(", ");
         }

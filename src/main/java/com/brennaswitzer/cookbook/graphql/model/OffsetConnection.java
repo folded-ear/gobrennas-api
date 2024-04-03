@@ -11,11 +11,10 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class OffsetConnection<T> implements Connection<T> {
 
-    @Getter
     private final List<Edge<T>> edges;
-    @Getter
     private final PageInfo pageInfo;
 
     public OffsetConnection(SearchResponse<T> rs) {
