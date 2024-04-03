@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
+import com.brennaswitzer.cookbook.domain.Label;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class PantryItemResolver implements GraphQLResolver<PantryItem> {
@@ -27,6 +29,13 @@ public class PantryItemResolver implements GraphQLResolver<PantryItem> {
             pantryItem.removeSynonym(name);
         }
         return all;
+    }
+
+    public Set<String> labels(PantryItem pantryItem) {
+        return pantryItem.getLabels()
+                .stream()
+                .map(Label::getName)
+                .collect(Collectors.toSet());
     }
 
     public long useCount(PantryItem pantryItem, LibrarySearchScope scope) {
