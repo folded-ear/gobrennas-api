@@ -26,6 +26,7 @@ public class RecipeBox {
             yeast;
 
     public final Label
+            bulk,
             dinner,
             makeAhead;
 
@@ -44,32 +45,38 @@ public class RecipeBox {
         cup.addConversion(tbsp, 16);
         lbs = new UnitOfMeasure("lbs");
 
-        egg = new PantryItem("egg");
-        flour = new PantryItem("flour");
-        oil = new PantryItem("oil");
-        salt = new PantryItem("salt")
-                .withSynonym("nacl");
-        sugar = new PantryItem("sugar");
-        water = new PantryItem("water");
-        yeast = new PantryItem("yeast");
-
+        bulk = new Label("bulk ing");
         dinner = new Label("dinner");
         makeAhead = new Label("make ahead");
 
-        friedChicken = new Recipe("Fried Chicken");
+        egg = new PantryItem("egg");
+        flour = new PantryItem("flour")
+                .withLabel(bulk)
+                .withLabel(makeAhead);
+        oil = new PantryItem("oil");
+        salt = new PantryItem("salt")
+                .withSynonym("nacl")
+                .withLabel(bulk);
+        sugar = new PantryItem("sugar");
+        water = new PantryItem("water")
+                .withSynonym("h2o");
+        yeast = new PantryItem("yeast");
+
+        friedChicken = new Recipe("Fried Chicken")
+                .withLabel(dinner);
         friedChicken.addIngredient(Quantity.count(2), egg, "shelled");
         friedChicken.addIngredient(new PantryItem("chicken"), "deboned");
         friedChicken.addIngredient(new PantryItem("chicken thigh"), "cut");
-        friedChicken.addLabel(dinner);
 
-        pizzaSauce = new Recipe("Pizza Sauce");
+        pizzaSauce = new Recipe("Pizza Sauce")
+                .withLabel(makeAhead);
         pizzaSauce.addIngredient(lbs.quantity(1), new PantryItem("fresh tomatoes"), "seeded and crushed");
         pizzaSauce.addIngredient(new UnitOfMeasure("(6 oz) can").quantity(1), new PantryItem("tomato paste"));
         pizzaSauce.addIngredient(new PantryItem("italian seasoning"));
         pizzaSauce.addIngredient(tsp.quantity(1), salt);
-        pizzaSauce.addLabel(makeAhead);
 
-        pizzaCrust = new Recipe("Pizza Crust");
+        pizzaCrust = new Recipe("Pizza Crust")
+                .withLabel(makeAhead);
         pizzaCrust.setDirections("knead it a lot!");
         pizzaCrust.addIngredient(cup.quantity(2), flour);
         pizzaCrust.addIngredient(cup.quantity(1), water);
@@ -77,19 +84,19 @@ public class RecipeBox {
         pizzaCrust.addIngredient(tbsp.quantity(1), sugar);
         pizzaCrust.addIngredient(tbsp.quantity(1), oil);
         pizzaCrust.addIngredient(tsp.quantity(0.5), salt);
-        pizzaCrust.addLabel(makeAhead);
 
-        pizza = new Recipe("Pizza");
+        pizza = new Recipe("Pizza")
+                .withLabel(dinner);
         pizza.addRawIngredient("pepperoni");
         pizza.addIngredient(new UnitOfMeasure("oz").quantity(8), pizzaSauce);
         pizza.addIngredient(Quantity.ONE, pizzaCrust);
-        pizza.addLabel(dinner);
 
         spanishAppleCake = new Recipe("Spanish Apple Cake");
         spanishAppleCake.addIngredient(cup.quantity(2), new PantryItem("apple"));
     }
 
     public void persist(EntityManager entityManager, User owner) {
+        entityManager.persist(bulk);
         entityManager.persist(dinner);
         entityManager.persist(makeAhead);
         persist(entityManager, owner, friedChicken);
@@ -97,6 +104,7 @@ public class RecipeBox {
         persist(entityManager, owner, pizzaCrust);
         persist(entityManager, owner, pizzaSauce);
         persist(entityManager, owner, spanishAppleCake);
+        entityManager.flush();
     }
 
     private void persist(EntityManager entityManager, User owner, Recipe recipe) {

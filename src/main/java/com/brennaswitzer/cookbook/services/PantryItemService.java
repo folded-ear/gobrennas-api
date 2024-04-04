@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
@@ -23,6 +24,8 @@ public class PantryItemService {
     private PantryItemRepository pantryItemRepository;
     @Autowired
     private LabelService labelService;
+    @Autowired
+    private PantryItemCombiner combiner;
 
     public PantryItem saveOrUpdatePantryItem(PantryItem item) {
         return pantryItemRepository.save(item);
@@ -111,6 +114,18 @@ public class PantryItemService {
         var item = getItem(id);
         item.removeSynonym(synonym);
         return pantryItemRepository.save(item);
+    }
+
+    public PantryItem combineItems(List<Long> ids) {
+        if (ids == null || ids.size() < 2) {
+            throw new IllegalArgumentException("Cannot combine fewer than two items");
+        }
+        // this is inefficient when more than two, but "don't care."
+        return ids.stream()
+                .map(pantryItemRepository::findById)
+                .map(Optional::orElseThrow)
+                .reduce(combiner::combineItems)
+                .orElseThrow();
     }
 
 }

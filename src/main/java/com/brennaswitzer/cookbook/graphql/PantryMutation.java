@@ -5,6 +5,8 @@ import com.brennaswitzer.cookbook.services.PantryItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @SuppressWarnings("unused")
 @Component
 public class PantryMutation {
@@ -35,6 +37,10 @@ public class PantryMutation {
     public PantryItem removeSynonym(Long id,
                                     String synonym) {
         return pantryItemService.removeSynonym(id, synonym);
+    }
+
+    public PantryItem combineItems(List<Long> ids) {
+        return pantryItemService.combineItems(ids);
     }
 
 }

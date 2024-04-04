@@ -78,4 +78,8 @@ type PantryMutation {
     removeLabel(id: ID!, label: String!): PantryItem
     addSynonym(id: ID!, synonym: String!): PantryItem
     removeSynonym(id: ID!, synonym: String!): PantryItem
+    """Combine two or more pantry items, and return the result, after unifying
+    synonyms, labels, and references.
+    """
+    combineItems(ids: [ID!]!): PantryItem
 }
