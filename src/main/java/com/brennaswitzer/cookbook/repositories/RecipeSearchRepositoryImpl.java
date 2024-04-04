@@ -105,11 +105,11 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     private long countUses(User owner, PantryItem pantryItem) {
         var q = new NamedParameterQuery(
                 """
-                        select count(distinct r.id)
-                        from Recipe r
-                            join r.ingredients ing
-                        where ing.ingredient.id = :id
-                        """, "id", pantryItem.getId());
+                select count(distinct r.id)
+                from Recipe r
+                    join r.ingredients ing
+                where ing.ingredient.id = :id
+                """, "id", pantryItem.getId());
         if (owner != null) {
             q.append("  and r.owner.id = :owner",
                      "owner",

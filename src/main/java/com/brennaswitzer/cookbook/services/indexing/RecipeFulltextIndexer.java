@@ -28,11 +28,12 @@ public class RecipeFulltextIndexer {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void reindexRecipeImmediately(ReindexRecipeEvent event) {
         NamedParameterQuery query = new NamedParameterQuery(
-            "DELETE\n" +
-                "FROM recipe_fulltext_reindex_queue\n" +
-                "WHERE id = :id",
-            "id",
-            event.getRecipeId());
+                """
+                DELETE
+                FROM recipe_fulltext_reindex_queue
+                WHERE id = :id""",
+                "id",
+                event.getRecipeId());
         int rowsAffected = jdbcTemplate.update(query.getStatement(),
                                                query.getParameters());
         if (rowsAffected == 0) {
@@ -54,19 +55,19 @@ public class RecipeFulltextIndexer {
     // not @Transactional; they're done imperatively within.
     public void reindexQueued() {
         NamedParameterQuery query = new NamedParameterQuery(
-            "DELETE\n" +
-                "FROM recipe_fulltext_reindex_queue\n" +
-                "WHERE id IN (SELECT id\n" +
-                "             FROM recipe_fulltext_reindex_queue\n" +
-                "             ORDER BY ts\n" +
-                "             LIMIT :batch_size)",
-            "batch_size",
-            BATCH_SIZE);
+                "DELETE\n" +
+                        "FROM recipe_fulltext_reindex_queue\n" +
+                        "WHERE id IN (SELECT id\n" +
+                        "             FROM recipe_fulltext_reindex_queue\n" +
+                        "             ORDER BY ts\n" +
+                        "             LIMIT :batch_size)",
+                "batch_size",
+                BATCH_SIZE);
         while (true) {
             @SuppressWarnings("DataFlowIssue") // box/unbox shenanigans
             int rowsAffected = txTemplate.execute(
-                tx -> jdbcTemplate.update(query.getStatement(),
-                                          query.getParameters()));
+                    tx -> jdbcTemplate.update(query.getStatement(),
+                                              query.getParameters()));
             if (rowsAffected < BATCH_SIZE) break;
         }
     }

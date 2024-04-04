@@ -24,11 +24,11 @@ public class PantryItemCombiner {
         // favorite.object_id // todo: UK violations?!
         update(new NamedParameterQuery(
                 """
-                        update favorite
-                        set object_id = :toKeep
-                        where object_type = 'PantryItem'
-                          and object_id = :other
-                        """,
+                update favorite
+                set object_id = :toKeep
+                where object_type = 'PantryItem'
+                  and object_id = :other
+                """,
                 idMap));
         // ingredient_labels.ingredient_id
         for (var lbl : other.getLabels()) {
@@ -37,10 +37,10 @@ public class PantryItemCombiner {
         // inventory_item.ingredient_id // todo: UK violations?!
         update(new NamedParameterQuery(
                 """
-                        update inventory_item
-                        set ingredient_id = :toKeep
-                        where ingredient_id = :other
-                        """,
+                update inventory_item
+                set ingredient_id = :toKeep
+                where ingredient_id = :other
+                """,
                 idMap));
         // pantry_item_synonyms.pantry_item_id
         toKeep.addSynonym(other.getName());
@@ -50,18 +50,18 @@ public class PantryItemCombiner {
         // plan_item.ingredient_id
         update(new NamedParameterQuery(
                 """
-                        update plan_item
-                        set ingredient_id = :toKeep
-                        where ingredient_id = :other
-                        """,
+                update plan_item
+                set ingredient_id = :toKeep
+                where ingredient_id = :other
+                """,
                 idMap));
         // recipe_ingredients.ingredient_id
         update(new NamedParameterQuery(
                 """
-                        update recipe_ingredients
-                        set ingredient_id = :toKeep
-                        where ingredient_id = :other
-                        """,
+                update recipe_ingredients
+                set ingredient_id = :toKeep
+                where ingredient_id = :other
+                """,
                 idMap));
         pantryItemRepository.delete(other);
         return toKeep;

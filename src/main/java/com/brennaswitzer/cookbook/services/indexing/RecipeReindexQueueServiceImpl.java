@@ -29,10 +29,12 @@ public class RecipeReindexQueueServiceImpl implements RecipeReindexQueueService 
     public IndexStats getIndexStats() {
         IndexStats.IndexStatsBuilder builder = IndexStats.builder();
         SqlRowSet rs = jdbcTemplate.queryForRowSet(
-                "SELECT COUNT(*)\n" +
-                        "     , COALESCE(CAST(EXTRACT(EPOCH FROM NOW() - MIN(ts)) AS BIGINT), -1)\n" +
-                        "     , COALESCE(CAST(EXTRACT(EPOCH FROM NOW() - MAX(ts)) AS BIGINT), -1)\n" +
-                        "FROM recipe_fulltext_reindex_queue\n",
+                """
+                SELECT COUNT(*)
+                     , COALESCE(CAST(EXTRACT(EPOCH FROM NOW() - MIN(ts)) AS BIGINT), -1)
+                     , COALESCE(CAST(EXTRACT(EPOCH FROM NOW() - MAX(ts)) AS BIGINT), -1)
+                FROM recipe_fulltext_reindex_queue
+                """,
                 Collections.emptyMap());
         rs.next();
         builder.queueSize(rs.getLong(1))
@@ -43,10 +45,12 @@ public class RecipeReindexQueueServiceImpl implements RecipeReindexQueueService 
                 q -> q.append("  AND recipe_fulltext IS NOT NULL\n")));
         builder.staleRecipeCount(countRecipes(
                 q -> q.append("  AND recipe_fulltext IS NOT NULL\n")
-                        .append("  AND EXISTS(SELECT *\n" +
-                                        "             FROM recipe_fulltext_reindex_queue\n" +
-                                        "             WHERE id = ingredient.id\n" +
-                                        "    )\n")));
+                        .append("""
+                                  AND EXISTS(SELECT *
+                                             FROM recipe_fulltext_reindex_queue
+                                             WHERE id = ingredient.id
+                                    )
+                                """)));
         return builder.build();
     }
 
@@ -58,9 +62,11 @@ public class RecipeReindexQueueServiceImpl implements RecipeReindexQueueService 
 
     private long countRecipes(Consumer<NamedParameterQuery> whereAction) {
         NamedParameterQuery query = new NamedParameterQuery(
-                "SELECT COUNT(*) count\n" +
-                        "FROM ingredient\n" +
-                        "WHERE dtype = 'Recipe'\n");
+                """
+                SELECT COUNT(*) count
+                FROM ingredient
+                WHERE dtype = 'Recipe'
+                """);
         whereAction.accept(query);
         SqlRowSet rs = jdbcTemplate.queryForRowSet(query.getStatement(),
                                                    query.getParameters());
@@ -81,22 +87,26 @@ public class RecipeReindexQueueServiceImpl implements RecipeReindexQueueService 
 
     public void enqueueRecipesWithIngredient(Ingredient ingredient) {
         enqueue(query -> query.append(
-            "SELECT recipe_id\n" +
-                "FROM recipe_ingredients\n" +
-                "WHERE ingredient_id = :id\n",
-            "id",
-            ingredient.getId()));
+                """
+                SELECT recipe_id
+                FROM recipe_ingredients
+                WHERE ingredient_id = :id
+                """,
+                "id",
+                ingredient.getId()));
     }
 
     public void enqueueRecipesWithLabel(Label label) {
         enqueue(query -> query.append(
-            "SELECT recipe.id\n" +
-                "FROM ingredient_labels link\n" +
-                "     JOIN ingredient recipe ON recipe.id = link.ingredient_id\n" +
-                "WHERE link.label_id = :id\n" +
-                "  AND recipe.dtype = 'Recipe'\n",
-            "id",
-            label.getId()));
+                """
+                SELECT recipe.id
+                FROM ingredient_labels link
+                     JOIN ingredient recipe ON recipe.id = link.ingredient_id
+                WHERE link.label_id = :id
+                  AND recipe.dtype = 'Recipe'
+                """,
+                "id",
+                label.getId()));
     }
 
     @SuppressWarnings("UnusedReturnValue")

@@ -18,22 +18,23 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
     public SearchResponse<PantryItem> search(PantryItemSearchRequest request) {
         var stmt = new NamedParameterQuery(
                 """
-                        select distinct item
-                        from PantryItem item
-                           left join item.synonyms syn
-                           left join item.labels.label lbl
-                        """);
+                select distinct item
+                from PantryItem item
+                   left join item.synonyms syn
+                   left join item.labels.label lbl
+                """);
         int i = 0;
         for (var word : EnglishUtils.canonicalize(request.getFilter())
                 .split(" ")) {
             if (word.isBlank()) continue;
             stmt.append(i == 0 ? "where" : "or");
             String p = "p" + (i++);
-            stmt.append(String.format("""
-                                              (upper(item.name) like upper('%%' || :%1$s || '%%') escape '\\'
-                                               or upper(syn) like upper('%%' || :%1$s || '%%') escape '\\'
-                                               or upper(lbl.name) like upper('%%' || :%1$s || '%%') escape '\\')
-                                              """, p), p, word);
+            stmt.append(String.format(
+                    """
+                    (upper(item.name) like upper('%%' || :%1$s || '%%') escape '\\'
+                     or upper(syn) like upper('%%' || :%1$s || '%%') escape '\\'
+                     or upper(lbl.name) like upper('%%' || :%1$s || '%%') escape '\\')
+                    """, p), p, word);
         }
         stmt.append("order by ");
         for (var sort : request.getSort()) {
