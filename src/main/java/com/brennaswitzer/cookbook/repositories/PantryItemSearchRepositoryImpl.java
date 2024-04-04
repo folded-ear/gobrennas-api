@@ -18,7 +18,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
     public SearchResponse<PantryItem> search(PantryItemSearchRequest request) {
         var stmt = new NamedParameterQuery(
                 """
-                        select item
+                        select distinct item
                         from PantryItem item
                            left join item.synonyms syn
                            left join item.labels.label lbl
