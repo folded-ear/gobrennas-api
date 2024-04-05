@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -62,6 +63,7 @@ public class PantryItemService {
                 });
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public SearchResponse<PantryItem> search(String filter,
                                              Sort sort,
                                              int offset,
@@ -75,6 +77,7 @@ public class PantryItemService {
                         .build());
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem renameItem(Long id,
                                  String name) {
         var item = getItem(id);
@@ -88,6 +91,7 @@ public class PantryItemService {
                 .orElseThrow();
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem addLabel(Long id,
                                String label) {
         var item = getItem(id);
@@ -95,6 +99,7 @@ public class PantryItemService {
         return pantryItemRepository.save(item);
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem removeLabel(Long id,
                                   String label) {
         var item = getItem(id);
@@ -102,6 +107,7 @@ public class PantryItemService {
         return pantryItemRepository.save(item);
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem addSynonym(Long id,
                                  String synonym) {
         var item = getItem(id);
@@ -109,6 +115,7 @@ public class PantryItemService {
         return pantryItemRepository.save(item);
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem removeSynonym(Long id,
                                     String synonym) {
         var item = getItem(id);
@@ -116,6 +123,7 @@ public class PantryItemService {
         return pantryItemRepository.save(item);
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem combineItems(List<Long> ids) {
         if (ids == null || ids.size() < 2) {
             throw new IllegalArgumentException("Cannot combine fewer than two items");
