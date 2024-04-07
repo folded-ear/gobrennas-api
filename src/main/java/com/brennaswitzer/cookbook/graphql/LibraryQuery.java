@@ -14,6 +14,8 @@ import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
+
 @Component
 public class LibraryQuery extends PagingQuery {
 
@@ -29,10 +31,11 @@ public class LibraryQuery extends PagingQuery {
     public Connection<Recipe> recipes(
             LibrarySearchScope scope,
             String query,
+            Set<Long> ingredientIds,
             int first,
             OffsetConnectionCursor after
     ) {
-        SearchResponse<Recipe> rs = recipeService.searchRecipes(scope, query, getOffset(after), first);
+        SearchResponse<Recipe> rs = recipeService.searchRecipes(scope, query, ingredientIds, getOffset(after), first);
         return new OffsetConnection<>(rs);
     }
 

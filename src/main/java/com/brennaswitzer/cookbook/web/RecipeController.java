@@ -8,6 +8,7 @@ import com.brennaswitzer.cookbook.mapper.IngredientMapper;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.Page;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
@@ -41,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -79,8 +81,9 @@ public class RecipeController {
             @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
     ) {
         SearchResponse<IngredientInfo> response = recipeService.searchRecipes(
-                        scope,
+                        LibrarySearchScope.valueOf(scope.toUpperCase()),
                         filter,
+                        Collections.emptySet(),
                         page * pageSize,
                         pageSize)
                 .map(ingredientMapper::recipeToInfo);
@@ -133,7 +136,7 @@ public class RecipeController {
     @PutMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     @ResponseBody
-    public IngredientInfo setRecipePhoto(@PathVariable("id") Long id, @RequestParam MultipartFile photo) throws IOException {
+    public IngredientInfo setRecipePhoto(@PathVariable("id") Long id, @RequestParam MultipartFile photo) {
         Recipe recipe = recipeService.setRecipePhoto(id, Upload.of(photo));
         return ingredientMapper.recipeToInfo(recipeService.updateRecipe(recipe));
     }
