@@ -16,7 +16,7 @@ public interface SearchRequest {
 
     @SuppressWarnings("unused")
     default boolean isSorted() {
-        return getSort().isSorted();
+        return getSort() != null && getSort().isSorted();
     }
 
 }

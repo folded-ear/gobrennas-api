@@ -14,4 +14,7 @@ public class PantryItemSearchRequest implements SearchRequest {
     int limit;
     Sort sort;
 
+    public boolean isFiltered() {
+        return filter != null && !filter.isBlank();
+    }
 }

@@ -94,6 +94,9 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
     @Override
     public long countTotalUses(PantryItem pantryItem) {
+        if (pantryItem.getUseCount() != null) {
+            return pantryItem.getUseCount();
+        }
         return countUses(null, pantryItem);
     }
 

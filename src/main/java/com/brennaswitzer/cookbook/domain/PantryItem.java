@@ -42,6 +42,8 @@ public class PantryItem extends Ingredient {
     @Setter(AccessLevel.PRIVATE)
     private Set<String> synonyms;
 
+    private transient Long useCount;
+
     public PantryItem() {
     }
 
