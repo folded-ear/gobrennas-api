@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.BaseEntity;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -133,6 +135,7 @@ public class PantryItemService {
         return ids.stream()
                 .map(pantryItemRepository::findById)
                 .map(Optional::orElseThrow)
+                .sorted(Comparator.comparing(BaseEntity::getCreatedAt))
                 .reduce(combiner::combineItems)
                 .orElseThrow();
     }
