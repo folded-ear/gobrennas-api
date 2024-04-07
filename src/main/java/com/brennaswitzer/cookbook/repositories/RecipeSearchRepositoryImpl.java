@@ -50,12 +50,14 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
                                                             Recipe.class);
 
-        builder.append("SELECT ing.*\n" +
-                               "FROM ingredient ing\n" +
-                               "     LEFT JOIN favorite fav\n" +
-                               "               ON fav.object_id = ing.id\n" +
-                               "                   AND fav.object_type = ing.dtype\n" +
-                               "                   AND fav.owner_id = :userId\n",
+        builder.append("""
+                       SELECT ing.*
+                       FROM ingredient ing
+                            LEFT JOIN favorite fav
+                                      ON fav.object_id = ing.id
+                                          AND fav.object_type = ing.dtype
+                                          AND fav.owner_id = :userId
+                       """,
                        "userId",
                        request.getUser().getId());
         if (request.isFiltered()) {
@@ -67,6 +69,16 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         if (request.isFiltered()) {
             builder.append("  AND ing.recipe_fulltext @@ query\n");
         }
+        if (request.isIngredientConstrained()) {
+            builder.append("""
+                             AND EXISTS (
+                                SELECT *
+                                FROM recipe_ingredients ref
+                                WHERE ref.recipe_id = ing.id
+                                  AND ref.ingredient_id in :ingredientId
+                             )
+                           """, "ingredientId", request.getIngredientIds());
+        }
         if (request.isOwnerConstrained()) {
             builder.append("  AND ing.owner_id in (:ownerIds)\n",
                            "ownerIds",
@@ -76,8 +88,10 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         if (request.isFiltered()) {
             builder.append("       , TS_RANK(recipe_fulltext, query) DESC\n");
         }
-        builder.append("       , LOWER(ing.name)\n" +
-                               "       , ing.id\n");
+        builder.append("""
+                              , LOWER(ing.name)
+                              , ing.id
+                       """);
         Query query = builder.build();
 
         query.setMaxResults(request.getLimit() + 1);

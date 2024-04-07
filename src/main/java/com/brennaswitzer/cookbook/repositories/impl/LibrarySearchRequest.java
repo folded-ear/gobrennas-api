@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.domain.Sort;
 
+import java.util.Set;
+
 @Value
 @Builder
 public class LibrarySearchRequest implements SearchRequest {
@@ -13,6 +15,7 @@ public class LibrarySearchRequest implements SearchRequest {
     LibrarySearchScope scope;
     User user;
     String filter;
+    Set<Long> ingredientIds;
     int offset;
     int limit;
     Sort sort;
@@ -23,6 +26,10 @@ public class LibrarySearchRequest implements SearchRequest {
 
     public boolean isOwnerConstrained() {
         return !LibrarySearchScope.EVERYONE.equals(scope);
+    }
+
+    public boolean isIngredientConstrained() {
+        return ingredientIds != null && !ingredientIds.isEmpty();
     }
 
 }

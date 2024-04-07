@@ -18,6 +18,9 @@ type LibraryQuery {
         well as quoted phrases.
         """
         query: String = ""
+        """Ingredient(s) matches must use.
+        """
+        ingredients: [ID!]! = []
         """How many recipes to return in the connection. If not specified, 10
         will be returned.
         """
