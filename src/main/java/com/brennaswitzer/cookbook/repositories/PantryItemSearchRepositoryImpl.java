@@ -8,6 +8,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepository {
 
@@ -67,34 +69,33 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
             }
         }
         stmt.append("item.id");
+        List<PantryItem> pantryItems;
         if (sortedByUseCount) {
-            TypedQuery<ItemAndUse> query = entityManager.createQuery(stmt.getStatement(),
-                                                                     ItemAndUse.class)
-                    .setMaxResults(request.getLimit() + 1);
-            if (request.isOffset()) {
-                query.setFirstResult(request.getOffset());
-            }
-            stmt.forEachParameter(query::setParameter);
-
-            return SearchResponse.of(request,
-                                     query.getResultList()
-                                             .stream()
-                                             .map(iau -> {
-                                                 iau.item().setUseCount(iau.useCount());
-                                                 return iau.item();
-                                             })
-                                             .toList());
+            pantryItems = query(request, stmt, ItemAndUse.class)
+                    .stream()
+                    .map(iau -> {
+                        iau.item().setUseCount(iau.useCount());
+                        return iau.item();
+                    })
+                    .toList();
         } else {
-            TypedQuery<PantryItem> query = entityManager.createQuery(stmt.getStatement(),
-                                                                     PantryItem.class)
-                    .setMaxResults(request.getLimit() + 1);
-            if (request.isOffset()) {
-                query.setFirstResult(request.getOffset());
-            }
-            stmt.forEachParameter(query::setParameter);
-
-            return SearchResponse.of(request, query.getResultList());
+            pantryItems = query(request, stmt, PantryItem.class);
         }
+        return SearchResponse.of(request, pantryItems);
+    }
+
+    private <T> List<T> query(SearchRequest request,
+                              NamedParameterQuery stmt,
+                              Class<T> resultClazz) {
+        TypedQuery<T> query = entityManager.createQuery(stmt.getStatement(),
+                                                        resultClazz)
+                .setMaxResults(request.getLimit() + 1);
+        if (request.isOffset()) {
+            query.setFirstResult(request.getOffset());
+        }
+        stmt.forEachParameter(query::setParameter);
+
+        return query.getResultList();
     }
 
 }
