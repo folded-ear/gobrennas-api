@@ -22,16 +22,17 @@ public class PantryQuery extends PagingQuery {
             String query,
             String sortBy,
             SortDir sortDir,
-            int first,
+            Integer first,
             OffsetConnectionCursor after
     ) {
-        Sort.Direction dir = SortDir.DESC.equals(sortDir)
+        Sort.Direction dir = SortDir.DESC == sortDir
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC;
         Sort sort = sortBy == null || sortBy.isBlank()
                 ? Sort.by(dir, PantryItem_.NAME, PantryItem_.ID)
                 : Sort.by(dir, sortBy);
-        SearchResponse<PantryItem> rs = pantryItemService.search(query, sort, getOffset(after), first);
+        int limit = first == null || first <= 0 ? 25 : first;
+        SearchResponse<PantryItem> rs = pantryItemService.search(query, sort, getOffset(after), limit);
         return new OffsetConnection<>(rs);
     }
 

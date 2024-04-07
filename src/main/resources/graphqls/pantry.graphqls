@@ -24,7 +24,7 @@ type PantryQuery {
         sortDir: SortDir = ASC
         """How many items to return in the connection.
         """
-        first: NonNegativeInt! = 25
+        first: NonNegativeInt = 25
         """Cursor to find results after. This should be omitted to retrieve the
         first page.
         """
