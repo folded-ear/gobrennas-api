@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -56,6 +57,17 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
         return recipe.hasPhoto()
                 ? recipe.getPhoto()
                 : null;
+    }
+
+    public List<IngredientRef> ingredients(Recipe recipe, Set<Long> ingredientIds) {
+        if (ingredientIds == null || ingredientIds.isEmpty()) {
+            return recipe.getIngredients();
+        }
+        return recipe.getIngredients()
+                .stream()
+                .filter(r -> r.hasIngredient()
+                             && ingredientIds.contains(r.getIngredient().getId()))
+                .toList();
     }
 
     public List<Recipe> subrecipes(Recipe recipe) {
