@@ -4,12 +4,12 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
-import jakarta.transaction.Transactional;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -64,6 +64,7 @@ public class PantryItemService {
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
+    @Transactional(readOnly = true) // GraphQL manages txns imperatively for OSIV
     public SearchResponse<PantryItem> search(String filter,
                                              Sort sort,
                                              int offset,

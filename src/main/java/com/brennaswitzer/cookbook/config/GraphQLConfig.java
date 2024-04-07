@@ -9,6 +9,7 @@ import graphql.execution.ExecutionStrategy;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.ResultPath;
 import graphql.kickstart.servlet.apollo.ApolloScalars;
+import graphql.language.OperationDefinition;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
@@ -85,15 +86,34 @@ public class GraphQLConfig {
      GraphQL client w/ a generic "silently rolled back" error. By manually
      propagating the rollback-only state, Spring doesn't do the "smart" check or
      raise an Exception, because it's now explicit.
+
+     The query/mutation fork is added, so Hibernate can optimize for read-only
+     transactions. Sort of an awkward place to put it, but can't use Spring's
+     annotations with imperative demarcation, so don't really have a choice.
     */
     @Bean
     ExecutionStrategy transactionalExecutionStrategy(
-            TransactionTemplate txTmpl
+            TransactionTemplate mutationTmpl
     ) {
+        // Making this a proper bean gave cyclic dependency errors for reasons
+        // I decided not to try and figure out. The warning is for IntelliJ's
+        // massive over-aggro application of @NotNull to places where library
+        // authors omitted it. In this case, Spring explicitly says the passed
+        // definition must be non-null, but leaves the manager nullable. But
+        // IntelliJ doesn't care about Spring's opinion, so have to suppress it.
+        @SuppressWarnings("DataFlowIssue")
+        TransactionTemplate queryTmpl = new TransactionTemplate(
+                mutationTmpl.getTransactionManager(),
+                mutationTmpl);
+        queryTmpl.setReadOnly(true);
         return new AsyncExecutionStrategy() {
             @Override
             public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext,
                                                               ExecutionStrategyParameters parameters) {
+                TransactionTemplate txTmpl = executionContext.getOperationDefinition()
+                        .getOperation() == OperationDefinition.Operation.QUERY
+                        ? queryTmpl
+                        : mutationTmpl;
                 return txTmpl.execute(tx -> {
                     val result = super.execute(executionContext, parameters);
                     if (tx.isNewTransaction() && tx instanceof DefaultTransactionStatus) {
