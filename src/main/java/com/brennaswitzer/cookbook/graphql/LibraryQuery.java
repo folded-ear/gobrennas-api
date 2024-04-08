@@ -14,6 +14,8 @@ import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
+
 @Component
 public class LibraryQuery {
 
@@ -26,13 +28,14 @@ public class LibraryQuery {
     public Connection<Recipe> recipes(
             LibrarySearchScope scope,
             String query,
+            Set<Long> ingredientIds,
             int first,
             OffsetConnectionCursor after
     ) {
         final int offset = after == null
                 ? 0
                 : after.getOffset() + 1;
-        SearchResponse<Recipe> rs = recipeService.searchRecipes(scope, query, offset, first);
+        SearchResponse<Recipe> rs = recipeService.searchRecipes(scope, query, ingredientIds, offset, first);
         return new OffsetConnection<>(rs);
     }
 

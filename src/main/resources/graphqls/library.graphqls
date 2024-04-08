@@ -18,6 +18,9 @@ type LibraryQuery {
         well as quoted phrases.
         """
         query: String = ""
+        """Ingredient(s) to include. Missing/empty means "all".
+        """
+        ingredients: [ID!]! = []
         """How many recipes to return in the connection. If not specified, 10
         will be returned.
         """
@@ -135,7 +138,11 @@ type Recipe implements Node & Owned & Ingredient {
     name: String!
     externalUrl: String
     directions: String
-    ingredients: [IngredientRef!]!
+    ingredients(
+        """Ingredient(s) to include. Missing/empty means "all".
+        """
+        ingredients: [ID!]! = []
+    ): [IngredientRef!]!
     """All subrecipes. Multiple layers of nested recipes are flattened, and the
     contextual recipe is not included.
     """

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -115,18 +116,10 @@ public class RecipeService {
                               scale);
     }
 
-    public SearchResponse<Recipe> searchRecipes(String scope,
-                                                String filter,
-                                                int offset,
-                                                int limit) {
-        return searchRecipes(LibrarySearchScope.valueOf(scope.toUpperCase()),
-                             filter,
-                             offset,
-                             limit);
-    }
 
     public SearchResponse<Recipe> searchRecipes(LibrarySearchScope scope,
                                                 String filter,
+                                                Set<Long> ingredientIds,
                                                 int offset,
                                                 int limit) {
         return recipeRepository.searchRecipes(
@@ -134,6 +127,7 @@ public class RecipeService {
                         .user(principalAccess.getUser())
                         .scope(scope)
                         .filter(filter)
+                        .ingredientIds(ingredientIds)
                         .offset(offset)
                         .limit(limit)
                         .build());
