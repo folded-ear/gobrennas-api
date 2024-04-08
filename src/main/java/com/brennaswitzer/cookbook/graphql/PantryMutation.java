@@ -43,4 +43,8 @@ public class PantryMutation {
         return pantryItemService.combineItems(ids);
     }
 
+    public boolean deleteItem(Long id) {
+        return pantryItemService.deleteItem(id);
+    }
+
 }

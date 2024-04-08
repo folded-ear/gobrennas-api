@@ -140,4 +140,10 @@ public class PantryItemService {
                 .orElseThrow();
     }
 
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public boolean deleteItem(Long id) {
+        pantryItemRepository.deleteById(id);
+        return true;
+    }
+
 }

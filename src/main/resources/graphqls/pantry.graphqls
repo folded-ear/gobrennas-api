@@ -82,4 +82,5 @@ type PantryMutation {
     synonyms, labels, and references.
     """
     combineItems(ids: [ID!]!): PantryItem
+    deleteItem(id: ID!): Boolean!
 }
