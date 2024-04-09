@@ -58,14 +58,10 @@ type PantryItem implements Node & Ingredient {
     """When this pantry item was first used.
     """
     firstUse: DateTime!
-    """The number of recipes using this pantry item, including synonyms. Cannot
-    be used to sort a search.
+    """The number of times this pantry item is used, including synonyms, in both
+    library recipes and on a plan.
     """
-    useCount(
-        """The scope to search for recipe usage within.
-        """
-        scope: LibrarySearchScope! = EVERYONE
-    ): NonNegativeInt!
+    useCount: NonNegativeInt!
 }
 
 extend type Mutation {

@@ -13,10 +13,41 @@ import java.util.List;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepository {
 
+    private static final String USE_COUNT_BY_ID =
+            """
+            (select count(distinct r.id)
+             from Recipe r
+                 join r.ingredients ref
+             where ref.ingredient.id = %1$s
+            ) +
+            (select count(*)
+             from PlanItem
+             where ingredient.id = %1$s
+            )
+            """;
+
     @Autowired
     private EntityManager entityManager;
 
     private record ItemAndUse(PantryItem item, Long useCount) {}
+
+    @Override
+    public long countTotalUses(PantryItem pantryItem) {
+        if (pantryItem.getUseCount() == null) {
+            pantryItem.setUseCount(countUses(pantryItem));
+        }
+        return pantryItem.getUseCount();
+    }
+
+    private long countUses(PantryItem pantryItem) {
+        var q = new NamedParameterQuery(
+                "select " + String.format(USE_COUNT_BY_ID, ":id"),
+                "id",
+                pantryItem.getId());
+        var query = entityManager.createQuery(q.getStatement());
+        q.forEachParameter(query::setParameter);
+        return (Long) query.getResultList().iterator().next();
+    }
 
     @Override
     public SearchResponse<PantryItem> search(PantryItemSearchRequest request) {
@@ -27,13 +58,10 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                                                       || "useCounts".equals(s.getProperty()));
         var stmt = new NamedParameterQuery("select distinct item\n");
         if (sortedByUseCount) {
-            stmt.append("""
-                                      , (select count(distinct r.id)
-                                         from Recipe r
-                                             join r.ingredients ref
-                                         where ref.ingredient = item
-                                        ) as use_count
-                        """);
+            stmt.append(String.format(
+                    """
+                         , %s as use_count
+                    """, String.format(USE_COUNT_BY_ID, "item.id")));
         }
         stmt.append("""
                     from PantryItem item
