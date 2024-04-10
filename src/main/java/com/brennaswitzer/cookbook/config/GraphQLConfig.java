@@ -9,11 +9,12 @@ import graphql.execution.ExecutionStrategy;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.ResultPath;
 import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
+import graphql.kickstart.execution.config.DefaultExecutionStrategyProvider;
+import graphql.kickstart.execution.config.ExecutionStrategyProvider;
 import graphql.kickstart.execution.context.DefaultGraphQLContext;
 import graphql.kickstart.execution.context.GraphQLKickstartContext;
 import graphql.kickstart.servlet.apollo.ApolloScalars;
 import graphql.kickstart.servlet.context.GraphQLServletContextBuilder;
-import graphql.language.OperationDefinition;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
@@ -130,6 +131,26 @@ public class GraphQLConfig {
         return dataLoaderRegistry;
     }
 
+    @Bean
+    public ExecutionStrategyProvider executionStrategyProvider(
+            TransactionTemplate mutationTmpl) {
+        // Making this a proper bean gave cyclic dependency errors for reasons
+        // I decided not to try and figure out. The warning is for IntelliJ's
+        // massive over-aggro application of @NotNull to places where library
+        // authors omitted it. In this case, Spring explicitly says the passed
+        // definition must be non-null, but leaves the manager nullable. But
+        // IntelliJ doesn't care about Spring's opinion, so have to suppress it.
+        @SuppressWarnings("DataFlowIssue")
+        TransactionTemplate queryTmpl = new TransactionTemplate(
+                mutationTmpl.getTransactionManager(),
+                mutationTmpl);
+        queryTmpl.setReadOnly(true);
+        return new DefaultExecutionStrategyProvider(
+                transactionalExecutionStrategy(queryTmpl),
+                transactionalExecutionStrategy(mutationTmpl),
+                null);
+    }
+
     /*
      This bean is taken from https://blog.akquinet.de/2020/04/16/part-2-graphql-with-spring-boot-jpa-and-kotlin/
      as a way to have "open session in view" behaviour across a GraphQL query.
@@ -145,34 +166,14 @@ public class GraphQLConfig {
      GraphQL client w/ a generic "silently rolled back" error. By manually
      propagating the rollback-only state, Spring doesn't do the "smart" check or
      raise an Exception, because it's now explicit.
-
-     The query/mutation fork is added, so Hibernate can optimize for read-only
-     transactions. Sort of an awkward place to put it, but can't use Spring's
-     annotations with imperative demarcation, so don't really have a choice.
     */
-    @Bean
-    ExecutionStrategy transactionalExecutionStrategy(
-            TransactionTemplate mutationTmpl
+    private ExecutionStrategy transactionalExecutionStrategy(
+            TransactionTemplate txTmpl
     ) {
-        // Making this a proper bean gave cyclic dependency errors for reasons
-        // I decided not to try and figure out. The warning is for IntelliJ's
-        // massive over-aggro application of @NotNull to places where library
-        // authors omitted it. In this case, Spring explicitly says the passed
-        // definition must be non-null, but leaves the manager nullable. But
-        // IntelliJ doesn't care about Spring's opinion, so have to suppress it.
-        @SuppressWarnings("DataFlowIssue")
-        TransactionTemplate queryTmpl = new TransactionTemplate(
-                mutationTmpl.getTransactionManager(),
-                mutationTmpl);
-        queryTmpl.setReadOnly(true);
         return new AsyncExecutionStrategy() {
             @Override
             public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext,
                                                               ExecutionStrategyParameters parameters) {
-                TransactionTemplate txTmpl = executionContext.getOperationDefinition()
-                        .getOperation() == OperationDefinition.Operation.QUERY
-                        ? queryTmpl
-                        : mutationTmpl;
                 return txTmpl.execute(tx -> {
                     val result = super.execute(executionContext, parameters);
                     if (tx.isNewTransaction() && tx instanceof DefaultTransactionStatus) {
