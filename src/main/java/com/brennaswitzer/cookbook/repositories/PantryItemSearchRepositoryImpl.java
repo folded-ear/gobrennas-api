@@ -8,7 +8,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepository {
@@ -29,24 +32,44 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
     @Autowired
     private EntityManager entityManager;
 
+    private record IdAndCount(Long id, Long count) {}
+
     private record ItemAndUse(PantryItem item, Long useCount) {}
 
     @Override
-    public long countTotalUses(PantryItem pantryItem) {
-        if (pantryItem.getUseCount() == null) {
-            pantryItem.setUseCount(countUses(pantryItem));
+    public Map<PantryItem, Long> countTotalUses(Collection<PantryItem> items) {
+        Map<PantryItem, Long> result = new HashMap<>();
+        Map<Long, PantryItem> toFetchById = new HashMap<>();
+        for (var it : items) {
+            if (result.containsKey(it)) continue;
+            if (it.getUseCount() == null) {
+                toFetchById.put(it.getId(), it);
+            } else {
+                result.put(it, it.getUseCount());
+            }
         }
-        return pantryItem.getUseCount();
-    }
-
-    private long countUses(PantryItem pantryItem) {
-        var q = new NamedParameterQuery(
-                "select " + String.format(USE_COUNT_BY_ID, ":id"),
-                "id",
-                pantryItem.getId());
-        var query = entityManager.createQuery(q.getStatement());
+        if (toFetchById.isEmpty()) return result;
+        NamedParameterQuery q = new NamedParameterQuery(
+                """
+                select id
+                """)
+                .append(String.format(
+                        """
+                             , %s as use_count
+                        """, String.format(USE_COUNT_BY_ID, "item.id")))
+                .append("""
+                        from PantryItem item
+                        where id in :ids
+                        """, "ids", toFetchById.keySet());
+        var query = entityManager.createQuery(q.getStatement(),
+                                              IdAndCount.class);
         q.forEachParameter(query::setParameter);
-        return (Long) query.getResultList().iterator().next();
+        query.getResultList().forEach(r -> {
+            PantryItem item = toFetchById.get(r.id());
+            item.setUseCount(r.count());
+            result.put(item, r.count());
+        });
+        return result;
     }
 
     @Override
