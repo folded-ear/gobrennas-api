@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("unused")
 @Component
@@ -29,6 +30,11 @@ public class PantryMutation {
         return pantryItemService.removeLabel(id, label);
     }
 
+    public PantryItem setLabels(Long id,
+                                Set<String> labels) {
+        return pantryItemService.setLabels(id, labels);
+    }
+
     public PantryItem addSynonym(Long id,
                                  String synonym) {
         return pantryItemService.addSynonym(id, synonym);
@@ -37,6 +43,11 @@ public class PantryMutation {
     public PantryItem removeSynonym(Long id,
                                     String synonym) {
         return pantryItemService.removeSynonym(id, synonym);
+    }
+
+    public PantryItem setSynonyms(Long id,
+                                  Set<String> synonyms) {
+        return pantryItemService.setSynonyms(id, synonyms);
     }
 
     public PantryItem combineItems(List<Long> ids) {

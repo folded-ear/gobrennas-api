@@ -6,7 +6,7 @@ import com.brennaswitzer.cookbook.repositories.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 @Service
@@ -31,14 +31,10 @@ public class LabelService {
         l.removeLabel(ensureLabel(label));
     }
 
-    public void updateLabels(Labeled l, List<String> labels) {
-        // loop through the array of strings and make a Label out of each of them
-        // and then clear out whatever was in the Labeled and add all the new shit
-        if (!labels.isEmpty()) {
-            l.clearLabels();
-            for (String label : labels) {
-                addLabel(l, label);
-            }
+    public void updateLabels(Labeled l, Collection<String> labels) {
+        l.clearLabels();
+        for (String label : labels) {
+            addLabel(l, label);
         }
     }
 

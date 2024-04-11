@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
@@ -111,6 +112,13 @@ public class PantryItemService {
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem setLabels(Long id, Set<String> labels) {
+        var item = getItem(id);
+        labelService.updateLabels(item, labels);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
     public PantryItem addSynonym(Long id,
                                  String synonym) {
         var item = getItem(id);
@@ -123,6 +131,14 @@ public class PantryItemService {
                                     String synonym) {
         var item = getItem(id);
         item.removeSynonym(synonym);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem setSynonyms(Long id, Set<String> synonyms) {
+        var item = getItem(id);
+        item.clearSynonyms();
+        synonyms.forEach(item::addSynonym);
         return pantryItemRepository.save(item);
     }
 

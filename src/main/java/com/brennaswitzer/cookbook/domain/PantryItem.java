@@ -143,6 +143,13 @@ public class PantryItem extends Ingredient {
         return Collections.unmodifiableSet(synonyms);
     }
 
+    public void clearSynonyms() {
+        if (synonyms == null) {
+            return;
+        }
+        synonyms.clear();
+    }
+
     @Override
     public String toString() {
         return getName();
