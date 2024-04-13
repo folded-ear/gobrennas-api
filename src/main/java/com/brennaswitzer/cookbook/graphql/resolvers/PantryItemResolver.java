@@ -9,25 +9,29 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Component
 public class PantryItemResolver implements GraphQLResolver<PantryItem> {
 
-    public Set<String> synonyms(PantryItem pantryItem) {
+    public List<String> synonyms(PantryItem pantryItem) {
         // This should be a no-op, but it's enforced softly to avoid unneeded
         // data access. Since we're loading them anyway, clean it up for sure.
         pantryItem.removeSynonym(pantryItem.getName());
-        return pantryItem.getSynonyms();
+        List<String> syns = new ArrayList<>(pantryItem.getSynonyms());
+        syns.sort(String::compareToIgnoreCase);
+        return syns;
     }
 
-    public Set<String> labels(PantryItem pantryItem) {
+    public List<String> labels(PantryItem pantryItem) {
         return pantryItem.getLabels()
                 .stream()
                 .map(Label::getName)
-                .collect(Collectors.toSet());
+                .sorted(String::compareToIgnoreCase)
+                .collect(Collectors.toList());
     }
 
     public CompletableFuture<Long> useCount(PantryItem pantryItem,
