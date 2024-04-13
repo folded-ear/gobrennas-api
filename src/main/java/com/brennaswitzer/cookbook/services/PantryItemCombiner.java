@@ -5,11 +5,13 @@ import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 @Service
+@PreAuthorize("hasRole('DEVELOPER')")
 public class PantryItemCombiner {
 
     @Autowired
