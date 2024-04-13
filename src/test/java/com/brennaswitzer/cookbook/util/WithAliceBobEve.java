@@ -17,4 +17,6 @@ public @interface WithAliceBobEve {
 
     boolean authentication() default true;
 
+    boolean developer() default false;
+
 }

@@ -31,7 +31,8 @@ public class RecipeFulltextIndexer {
                 """
                 DELETE
                 FROM recipe_fulltext_reindex_queue
-                WHERE id = :id""",
+                WHERE id = :id
+                """,
                 "id",
                 event.getRecipeId());
         int rowsAffected = jdbcTemplate.update(query.getStatement(),
@@ -55,12 +56,14 @@ public class RecipeFulltextIndexer {
     // not @Transactional; they're done imperatively within.
     public void reindexQueued() {
         NamedParameterQuery query = new NamedParameterQuery(
-                "DELETE\n" +
-                        "FROM recipe_fulltext_reindex_queue\n" +
-                        "WHERE id IN (SELECT id\n" +
-                        "             FROM recipe_fulltext_reindex_queue\n" +
-                        "             ORDER BY ts\n" +
-                        "             LIMIT :batch_size)",
+                """
+                DELETE
+                FROM recipe_fulltext_reindex_queue
+                WHERE id IN (SELECT id
+                             FROM recipe_fulltext_reindex_queue
+                             ORDER BY ts
+                             LIMIT :batch_size)
+                """,
                 "batch_size",
                 BATCH_SIZE);
         while (true) {

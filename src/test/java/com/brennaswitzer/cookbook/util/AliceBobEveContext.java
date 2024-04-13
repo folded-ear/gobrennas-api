@@ -32,7 +32,9 @@ public class AliceBobEveContext implements WithSecurityContextFactory<WithAliceB
         if (annotation.authentication()) {
             UserPrincipal principal = UserPrincipal.create(alice);
             Collection<GrantedAuthority> authorities = new ArrayList<>(principal.getAuthorities());
-            authorities.add(UserPrincipal.ROLE_DEVELOPER);
+            if (annotation.developer()) {
+                authorities.add(UserPrincipal.ROLE_DEVELOPER);
+            }
             Authentication auth = new UsernamePasswordAuthenticationToken(
                     principal,
                     "<HIDDEN>",

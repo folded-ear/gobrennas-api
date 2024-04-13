@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.repositories.PantryItemSearchRepository;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -42,6 +43,10 @@ public class PantryItem extends Ingredient {
     @Setter(AccessLevel.PRIVATE)
     private Set<String> synonyms;
 
+    /**
+     * I cache this item's use count, but don't use me directly. Instead, use
+     * {@link PantryItemSearchRepository#countTotalUses}.
+     */
     private transient Long useCount;
 
     public PantryItem() {
