@@ -4,13 +4,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({"SpringJavaAutowiredFieldsWarningInspection", "SqlResolve"})
+@SuppressWarnings({ "SpringJavaAutowiredFieldsWarningInspection", "SqlResolve" })
 @RestController
 @RequestMapping("api/_db")
 @PreAuthorize("hasRole('DEVELOPER')")
@@ -30,10 +34,12 @@ public class DbController {
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public Iterable<Map<String, Object>> getTables() {
-        return tmpl.queryForList("select table_name\n" +
-                "from information_schema.tables\n" +
-                "where table_schema = 'public'\n" +
-                "order by 1")
+        return tmpl.queryForList("""
+                                 select table_name
+                                 from information_schema.tables
+                                 where table_schema = 'public'
+                                 order by 1
+                                 """)
                 .stream()
                 .peek(it -> it.put("record_count", tmpl
                         .queryForObject("select count(*)\n" +

@@ -17,7 +17,7 @@ type LibraryQuery {
         """The textual query to filter results by. Can include simple words, as
         well as quoted phrases.
         """
-        query: String = ""
+        query: String! = ""
         """Ingredient(s) to include. Missing/empty means "all".
         """
         ingredients: [ID!]! = []
@@ -30,13 +30,6 @@ type LibraryQuery {
         """
         after: Cursor = null
     ): RecipeConnection!
-
-    """Please ignore; I exist because GraphQL defines the available types as
-    those reachable from fields. Since PantryItem is currently only used
-    polymorphically (e.g., by `Query`'s `node` field), it will not be included
-    in the available types without this dummy field.
-    """
-    pantryItem: PantryItem
 
     getRecipeById(id: ID!): Recipe
 
@@ -115,13 +108,6 @@ type RecipeConnectionEdge {
 interface Ingredient implements Node {
     id: ID!
     name: String!
-    labels: [String!]
-}
-
-type PantryItem implements Node & Ingredient {
-    id: ID!
-    name: String!
-    storeOrder: Int
     labels: [String!]
 }
 

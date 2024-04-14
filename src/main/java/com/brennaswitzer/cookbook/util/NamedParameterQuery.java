@@ -3,8 +3,11 @@ package com.brennaswitzer.cookbook.util;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 public class NamedParameterQuery {
+
+    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]+(\\.[a-zA-Z][a-zA-Z0-9_]+)*");
 
     private final StringBuilder statement = new StringBuilder();
 
@@ -52,6 +55,20 @@ public class NamedParameterQuery {
         append(query.getStatement());
         query.forEachParameter(this::addParam);
         return this;
+    }
+
+    /**
+     * I work like {@link #append(String)}, but will refuse any non-identifier
+     * value. When you MUST use dynamic SQL, this offers a modicum of safety
+     * against injection attacks.
+     */
+    public NamedParameterQuery identifier(String id) {
+        if (!IDENTIFIER.matcher(id).matches()) {
+            throw new IllegalArgumentException(String.format(
+                    "Non-identifier '%s' found!",
+                    id));
+        }
+        return append(id);
     }
 
     private void addParam(String paramName,

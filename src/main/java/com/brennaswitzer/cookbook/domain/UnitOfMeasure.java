@@ -35,7 +35,8 @@ import java.util.Set;
                 order by case :name when uom.name then 1
                 when uom.pluralName then 2
                 else 3
-                end""")
+                end
+                """)
 public class UnitOfMeasure extends BaseEntity {
 
     public static final Comparator<UnitOfMeasure> BY_NAME = (a, b) -> {

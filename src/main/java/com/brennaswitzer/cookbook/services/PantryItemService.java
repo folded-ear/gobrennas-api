@@ -1,13 +1,22 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.BaseEntity;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
-import jakarta.transaction.Transactional;
+import com.brennaswitzer.cookbook.repositories.SearchResponse;
+import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
@@ -17,6 +26,10 @@ public class PantryItemService {
 
     @Autowired
     private PantryItemRepository pantryItemRepository;
+    @Autowired
+    private LabelService labelService;
+    @Autowired
+    private PantryItemCombiner combiner;
 
     public PantryItem saveOrUpdatePantryItem(PantryItem item) {
         return pantryItemRepository.save(item);
@@ -51,6 +64,102 @@ public class PantryItemService {
                         it.setStoreOrder(seq.incrementAndGet());
                     }
                 });
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Transactional(readOnly = true) // GraphQL manages txns imperatively for OSIV
+    public SearchResponse<PantryItem> search(String filter,
+                                             Sort sort,
+                                             int offset,
+                                             int limit) {
+        return pantryItemRepository.search(
+                PantryItemSearchRequest.builder()
+                        .filter(filter)
+                        .sort(sort)
+                        .offset(offset)
+                        .limit(limit)
+                        .build());
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem renameItem(Long id,
+                                 String name) {
+        var item = getItem(id);
+        item.setName(name);
+        return pantryItemRepository.save(item);
+    }
+
+    @NotNull
+    private PantryItem getItem(Long id) {
+        return pantryItemRepository.findById(id)
+                .orElseThrow();
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem addLabel(Long id,
+                               String label) {
+        var item = getItem(id);
+        labelService.addLabel(item, label);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem removeLabel(Long id,
+                                  String label) {
+        var item = getItem(id);
+        labelService.removeLabel(item, label);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem setLabels(Long id, Set<String> labels) {
+        var item = getItem(id);
+        labelService.updateLabels(item, labels);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem addSynonym(Long id,
+                                 String synonym) {
+        var item = getItem(id);
+        item.addSynonym(synonym);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem removeSynonym(Long id,
+                                    String synonym) {
+        var item = getItem(id);
+        item.removeSynonym(synonym);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem setSynonyms(Long id, Set<String> synonyms) {
+        var item = getItem(id);
+        item.clearSynonyms();
+        synonyms.forEach(item::addSynonym);
+        return pantryItemRepository.save(item);
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public PantryItem combineItems(List<Long> ids) {
+        if (ids == null || ids.size() < 2) {
+            throw new IllegalArgumentException("Cannot combine fewer than two items");
+        }
+        // this is inefficient when more than two, but "don't care."
+        return ids.stream()
+                .map(pantryItemRepository::findById)
+                .map(Optional::orElseThrow)
+                .sorted(Comparator.comparing(BaseEntity::getCreatedAt))
+                .reduce(combiner::combineItems)
+                .orElseThrow();
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public boolean deleteItem(Long id) {
+        pantryItemRepository.deleteById(id);
+        return true;
     }
 
 }

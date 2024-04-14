@@ -55,9 +55,11 @@ class RecipeReindexQueueServiceImplTest {
         verify(jdbcTemplate)
             .update(sqlCaptor.capture(),
                     paramsCaptor.capture());
-        assertEquals("INSERT INTO recipe_fulltext_reindex_queue (id)\n" +
-                         "VALUES (:id)\n" +
-                         "ON CONFLICT DO NOTHING\n",
+        assertEquals("""
+                     INSERT INTO recipe_fulltext_reindex_queue (id)
+                     VALUES (:id)
+                     ON CONFLICT DO NOTHING
+                     """,
                      sqlCaptor.getValue());
         assertEquals(Map.of("id", id),
                      paramsCaptor.getValue());
@@ -77,11 +79,13 @@ class RecipeReindexQueueServiceImplTest {
         verify(jdbcTemplate)
             .update(sqlCaptor.capture(),
                     paramsCaptor.capture());
-        assertEquals("INSERT INTO recipe_fulltext_reindex_queue (id)\n" +
-                         "SELECT recipe_id\n" +
-                         "FROM recipe_ingredients\n" +
-                         "WHERE ingredient_id = :id\n" +
-                         "ON CONFLICT DO NOTHING\n",
+        assertEquals("""
+                     INSERT INTO recipe_fulltext_reindex_queue (id)
+                     SELECT recipe_id
+                     FROM recipe_ingredients
+                     WHERE ingredient_id = :id
+                     ON CONFLICT DO NOTHING
+                     """,
                      sqlCaptor.getValue());
         assertEquals(Map.of("id", id),
                      paramsCaptor.getValue());
@@ -100,13 +104,15 @@ class RecipeReindexQueueServiceImplTest {
         verify(jdbcTemplate)
             .update(sqlCaptor.capture(),
                     paramsCaptor.capture());
-        assertEquals("INSERT INTO recipe_fulltext_reindex_queue (id)\n" +
-                         "SELECT recipe.id\n" +
-                         "FROM ingredient_labels link\n" +
-                         "     JOIN ingredient recipe ON recipe.id = link.ingredient_id\n" +
-                         "WHERE link.label_id = :id\n" +
-                         "  AND recipe.dtype = 'Recipe'\n" +
-                         "ON CONFLICT DO NOTHING\n",
+        assertEquals("""
+                     INSERT INTO recipe_fulltext_reindex_queue (id)
+                     SELECT recipe.id
+                     FROM ingredient_labels link
+                          JOIN ingredient recipe ON recipe.id = link.ingredient_id
+                     WHERE link.label_id = :id
+                       AND recipe.dtype = 'Recipe'
+                     ON CONFLICT DO NOTHING
+                     """,
                      sqlCaptor.getValue());
         assertEquals(Map.of("id", id),
                      paramsCaptor.getValue());

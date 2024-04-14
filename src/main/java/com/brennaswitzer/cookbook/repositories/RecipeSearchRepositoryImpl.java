@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.repositories;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -22,14 +23,14 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
     @Autowired
     private PostgresFullTextQueryConverter queryConverter;
 
-    private static class NativeQueryBuilder extends NamedParameterQuery {
+    @Autowired
+    private UserPrincipalAccess principalAccess;
 
-        private final EntityManager entityManager;
+    private class NativeQueryBuilder extends NamedParameterQuery {
+
         private final Class<?> resultClass;
 
-        public NativeQueryBuilder(EntityManager entityManager,
-                                  Class<?> resultClass) {
-            this.entityManager = entityManager;
+        public NativeQueryBuilder(Class<?> resultClass) {
             this.resultClass = resultClass;
         }
 
@@ -47,8 +48,7 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
     @Override
     public SearchResponse<Recipe> searchRecipes(LibrarySearchRequest request) {
-        NativeQueryBuilder builder = new NativeQueryBuilder(entityManager,
-                                                            Recipe.class);
+        NativeQueryBuilder builder = new NativeQueryBuilder(Recipe.class);
 
         builder.append("""
                        SELECT ing.*

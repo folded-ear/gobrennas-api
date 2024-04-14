@@ -8,18 +8,35 @@ import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.ResultPath;
+import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
+import graphql.kickstart.execution.config.DefaultExecutionStrategyProvider;
+import graphql.kickstart.execution.config.ExecutionStrategyProvider;
+import graphql.kickstart.execution.context.DefaultGraphQLContext;
+import graphql.kickstart.execution.context.GraphQLKickstartContext;
 import graphql.kickstart.servlet.apollo.ApolloScalars;
+import graphql.kickstart.servlet.context.GraphQLServletContextBuilder;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.HandshakeRequest;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.dataloader.BatchLoader;
+import org.dataloader.DataLoaderFactory;
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Configuration
@@ -70,6 +87,70 @@ public class GraphQLConfig {
                 .build();
     }
 
+    @Bean
+    public GraphQLServletContextBuilder graphQLServletContextBuilder(DataLoaderRegistry dataLoadRegistry) {
+        return new GraphQLServletContextBuilder() {
+            @Override
+            public GraphQLKickstartContext build() {
+                return new DefaultGraphQLContext(dataLoadRegistry);
+            }
+
+            @Override
+            public GraphQLKickstartContext build(HttpServletRequest request, HttpServletResponse response) {
+                Map<Object, Object> map = new HashMap<>();
+                map.put(HttpServletRequest.class, request);
+                map.put(HttpServletResponse.class, response);
+                return new DefaultGraphQLContext(dataLoadRegistry, map);
+            }
+
+            @Override
+            public GraphQLKickstartContext build(Session session, HandshakeRequest handshakeRequest) {
+                Map<Object, Object> map = new HashMap<>();
+                map.put(Session.class, session);
+                map.put(HandshakeRequest.class, handshakeRequest);
+                return new DefaultGraphQLContext(dataLoadRegistry, map);
+            }
+        };
+    }
+
+    @Bean
+    public DataLoaderDispatcherInstrumentation dataLoaderDispatcherInstrumentation() {
+        return new DataLoaderDispatcherInstrumentation();
+    }
+
+    @Bean
+    public DataLoaderRegistry dataLoadRegistry(Collection<BatchLoader<?, ?>> batchLoaders) {
+        DataLoaderOptions dataLoaderOptions = new DataLoaderOptions()
+                .setCachingEnabled(false)
+                .setCachingExceptionsEnabled(false)
+                .setMaxBatchSize(10_000);
+        DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
+        batchLoaders.forEach(l -> dataLoaderRegistry.register(
+                l.getClass().getName(),
+                DataLoaderFactory.newDataLoader(l, dataLoaderOptions)));
+        return dataLoaderRegistry;
+    }
+
+    @Bean
+    public ExecutionStrategyProvider executionStrategyProvider(
+            TransactionTemplate mutationTmpl) {
+        // Making this a proper bean gave cyclic dependency errors for reasons
+        // I decided not to try and figure out. The warning is for IntelliJ's
+        // massive over-aggro application of @NotNull to places where library
+        // authors omitted it. In this case, Spring explicitly says the passed
+        // definition must be non-null, but leaves the manager nullable. But
+        // IntelliJ doesn't care about Spring's opinion, so have to suppress it.
+        @SuppressWarnings("DataFlowIssue")
+        TransactionTemplate queryTmpl = new TransactionTemplate(
+                mutationTmpl.getTransactionManager(),
+                mutationTmpl);
+        queryTmpl.setReadOnly(true);
+        return new DefaultExecutionStrategyProvider(
+                transactionalExecutionStrategy(queryTmpl),
+                transactionalExecutionStrategy(mutationTmpl),
+                null);
+    }
+
     /*
      This bean is taken from https://blog.akquinet.de/2020/04/16/part-2-graphql-with-spring-boot-jpa-and-kotlin/
      as a way to have "open session in view" behaviour across a GraphQL query.
@@ -86,8 +167,7 @@ public class GraphQLConfig {
      propagating the rollback-only state, Spring doesn't do the "smart" check or
      raise an Exception, because it's now explicit.
     */
-    @Bean
-    ExecutionStrategy transactionalExecutionStrategy(
+    private ExecutionStrategy transactionalExecutionStrategy(
             TransactionTemplate txTmpl
     ) {
         return new AsyncExecutionStrategy() {

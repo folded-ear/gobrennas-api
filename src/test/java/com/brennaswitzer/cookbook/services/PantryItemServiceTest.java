@@ -7,8 +7,12 @@ import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @WithAliceBobEve
 class PantryItemServiceTest {
@@ -50,6 +54,12 @@ class PantryItemServiceTest {
         assertEquals(2, flour.getStoreOrder());
         assertEquals(3, salt.getStoreOrder());
         assertEquals(1, yeast.getStoreOrder());
+    }
+
+    @Test
+    void combineItemsRequiresDeveloper() {
+        assertThrows(AccessDeniedException.class,
+                     () -> service.combineItems(List.of(1L, 2L, 3L)));
     }
 
 }

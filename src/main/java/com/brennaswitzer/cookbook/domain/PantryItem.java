@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.repositories.PantryItemSearchRepository;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -42,6 +43,12 @@ public class PantryItem extends Ingredient {
     @Setter(AccessLevel.PRIVATE)
     private Set<String> synonyms;
 
+    /**
+     * I cache this item's use count, but don't use me directly. Instead, use
+     * {@link PantryItemSearchRepository#countTotalUses}.
+     */
+    private transient Long useCount;
+
     public PantryItem() {
     }
 
@@ -72,7 +79,9 @@ public class PantryItem extends Ingredient {
         }
         var name = getName();
         if (name == null || name.isBlank()) return;
-        synonyms.remove(name);
+        if (!synonyms.remove(name)) {
+            synonyms.removeIf(name::equalsIgnoreCase);
+        }
     }
 
     /**
@@ -107,6 +116,7 @@ public class PantryItem extends Ingredient {
 
     public boolean addSynonym(String synonym) {
         Assert.notNull(synonym, "Null isn't a valid synonym");
+        if (hasSynonym(synonym)) return false;
         if (synonyms == null) synonyms = new HashSet<>();
         return synonyms.add(synonym);
     }
@@ -127,7 +137,8 @@ public class PantryItem extends Ingredient {
 
     public boolean removeSynonym(String synonym) {
         if (synonyms == null) return false;
-        return synonyms.remove(synonym);
+        return synonyms.remove(synonym)
+                || synonyms.removeIf(synonym::equalsIgnoreCase);
     }
 
     public Set<String> getSynonyms() {
@@ -135,6 +146,13 @@ public class PantryItem extends Ingredient {
             return Collections.emptySet();
         }
         return Collections.unmodifiableSet(synonyms);
+    }
+
+    public void clearSynonyms() {
+        if (synonyms == null) {
+            return;
+        }
+        synonyms.clear();
     }
 
     @Override

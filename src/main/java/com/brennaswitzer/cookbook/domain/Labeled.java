@@ -33,4 +33,10 @@ public interface Labeled {
         }
     }
 
+    default <T extends Labeled> T withLabel(Label label) {
+        addLabel(label);
+        //noinspection unchecked
+        return (T) this;
+    }
+
 }
