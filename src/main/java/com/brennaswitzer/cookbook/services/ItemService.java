@@ -152,10 +152,14 @@ public class ItemService {
                     // search matches, not just the first...
                     String lcName = i.getName().toLowerCase();
                     int idx = lcName.indexOf(singularSearch);
-                    int len = RawUtils.lengthOfLongestSharedSuffix(
-                            lcName.subSequence(0, idx),
-                            lcRawPrefix
-                    );
+                    int len;
+                    if (idx < 0) {
+                        len = 0;
+                    } else {
+                        len = RawUtils.lengthOfLongestSharedSuffix(
+                                lcName.subSequence(0, idx),
+                                lcRawPrefix);
+                    }
                     // no leading spaces in the replaced range
                     while (len > 0 && raw.charAt(replaceStart - len) == ' ') {
                         len--;
