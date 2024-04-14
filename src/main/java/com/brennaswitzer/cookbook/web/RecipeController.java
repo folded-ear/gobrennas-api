@@ -12,9 +12,8 @@ import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import com.brennaswitzer.cookbook.services.StorageService;
 import com.brennaswitzer.cookbook.services.indexing.IndexStats;
-import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
+import com.brennaswitzer.cookbook.services.indexing.IngredientReindexQueueService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -53,7 +52,7 @@ public class RecipeController {
     private RecipeService recipeService;
 
     @Autowired
-    private RecipeReindexQueueService recipeReindexQueueService;
+    private IngredientReindexQueueService ingredientReindexQueueService;
 
     @Autowired
     private LabelService labelService;
@@ -61,8 +60,6 @@ public class RecipeController {
     @Autowired
     private ItemService itemService;
 
-    @Autowired
-    private StorageService storageService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -246,7 +243,7 @@ public class RecipeController {
     @GetMapping("/_index_stats")
     @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     public IndexStats getIndexStats() {
-        return recipeReindexQueueService.getIndexStats();
+        return ingredientReindexQueueService.getIndexStats();
     }
 
     private Recipe getRecipe(Long id) {

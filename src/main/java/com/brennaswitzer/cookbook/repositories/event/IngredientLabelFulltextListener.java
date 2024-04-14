@@ -1,22 +1,22 @@
 package com.brennaswitzer.cookbook.repositories.event;
 
 import com.brennaswitzer.cookbook.domain.Label;
-import com.brennaswitzer.cookbook.services.indexing.RecipeReindexQueueService;
+import com.brennaswitzer.cookbook.services.indexing.IngredientReindexQueueService;
 import jakarta.persistence.PostUpdate;
 import jakarta.persistence.PreRemove;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RecipeLabelFulltextListener {
+public class IngredientLabelFulltextListener {
 
     @Autowired
-    private RecipeReindexQueueService service;
+    private IngredientReindexQueueService service;
 
     @PostUpdate
     @PreRemove
     public void onEvent(Label label) {
-        service.enqueueRecipesWithLabel(label);
+        service.enqueueIngredientsWithLabel(label);
     }
 
 }
