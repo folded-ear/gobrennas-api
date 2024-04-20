@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.Label;
 import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.graphql.loaders.PantryItemDuplicateCountBatchLoader;
 import com.brennaswitzer.cookbook.graphql.loaders.PantryItemUseCountBatchLoader;
 import graphql.kickstart.tools.GraphQLResolver;
 import graphql.schema.DataFetchingEnvironment;
@@ -37,6 +38,12 @@ public class PantryItemResolver implements GraphQLResolver<PantryItem> {
     public CompletableFuture<Long> useCount(PantryItem pantryItem,
                                             DataFetchingEnvironment env) {
         return env.<PantryItem, Long>getDataLoader(PantryItemUseCountBatchLoader.class.getName())
+                .load(pantryItem);
+    }
+
+    public CompletableFuture<Long> duplicateCount(PantryItem pantryItem,
+                                                  DataFetchingEnvironment env) {
+        return env.<PantryItem, Long>getDataLoader(PantryItemDuplicateCountBatchLoader.class.getName())
                 .load(pantryItem);
     }
 
