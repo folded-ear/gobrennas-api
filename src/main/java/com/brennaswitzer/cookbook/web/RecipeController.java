@@ -12,8 +12,6 @@ import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import com.brennaswitzer.cookbook.services.indexing.IndexStats;
-import com.brennaswitzer.cookbook.services.indexing.IngredientReindexQueueService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -23,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,9 +47,6 @@ public class RecipeController {
 
     @Autowired
     private RecipeService recipeService;
-
-    @Autowired
-    private IngredientReindexQueueService ingredientReindexQueueService;
 
     @Autowired
     private LabelService labelService;
@@ -238,12 +232,6 @@ public class RecipeController {
     ) {
         recipeService.sendToPlan(id, planId, scale);
         return true;
-    }
-
-    @GetMapping("/_index_stats")
-    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
-    public IndexStats getIndexStats() {
-        return ingredientReindexQueueService.getIndexStats();
     }
 
     private Recipe getRecipe(Long id) {
