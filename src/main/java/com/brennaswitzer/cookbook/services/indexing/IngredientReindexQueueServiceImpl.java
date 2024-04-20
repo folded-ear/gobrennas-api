@@ -5,7 +5,6 @@ import com.brennaswitzer.cookbook.domain.Label;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ import java.util.Collections;
 import java.util.function.Consumer;
 
 @Service
-@Profile("!test")
 public class IngredientReindexQueueServiceImpl implements IngredientReindexQueueService {
 
     @Autowired
@@ -73,7 +71,7 @@ public class IngredientReindexQueueServiceImpl implements IngredientReindexQueue
     }
 
     public void enqueueIngredient(Ingredient ingredient) {
-        // This isn't _required_, but  will avoid a double-reindex if the
+        // This isn't _required_, but will avoid a double-reindex if the
         // transactions resolve in the right order. If they don't, the scheduled
         // reindexer will pick it up.
         enqueue(query -> query.append(
