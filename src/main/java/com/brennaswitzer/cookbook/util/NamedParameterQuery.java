@@ -13,6 +13,8 @@ public class NamedParameterQuery {
 
     private final Map<String, Object> params = new HashMap<>();
 
+    private String statementString;
+
     public NamedParameterQuery() {
     }
 
@@ -33,6 +35,7 @@ public class NamedParameterQuery {
 
     public NamedParameterQuery append(String queryFragment) {
         this.statement.append(queryFragment);
+        this.statementString = null;
         return this;
     }
 
@@ -82,7 +85,12 @@ public class NamedParameterQuery {
     }
 
     public String getStatement() {
-        return statement.toString();
+        String stmt = statementString;
+        if (stmt == null) {
+            stmt = statement.toString();
+            statementString = stmt;
+        }
+        return stmt;
     }
 
     public Map<String, Object> getParameters() {

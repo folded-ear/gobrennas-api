@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.web;
 import com.brennaswitzer.cookbook.services.indexing.IndexStats;
 import com.brennaswitzer.cookbook.services.indexing.IngredientFulltextIndexer;
 import com.brennaswitzer.cookbook.services.indexing.IngredientReindexQueueService;
+import com.brennaswitzer.cookbook.services.indexing.ReindexIngredients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,6 +32,9 @@ public class DbController {
 
     @Autowired
     private IngredientFulltextIndexer ingredientFulltextIndexer;
+
+    @Autowired
+    private ReindexIngredients reindexIngredients;
 
     private static final Pattern RE_VALID_TABLE_NAME = Pattern.compile("^[a-zA-Z0-9_]+$");
 
@@ -88,7 +92,7 @@ public class DbController {
     @GetMapping("/ingredient-index/drain-queue")
     @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     public IndexStats reindex() {
-        ingredientFulltextIndexer.reindexQueued();
+        reindexIngredients.reindexQueued();
         return getIndexStats();
     }
 
