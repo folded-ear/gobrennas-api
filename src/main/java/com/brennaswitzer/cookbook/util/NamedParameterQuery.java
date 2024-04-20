@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class NamedParameterQuery {
 
-    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]+(\\.[a-zA-Z][a-zA-Z0-9_]+)*");
+    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*");
 
     private final StringBuilder statement = new StringBuilder();
 
@@ -72,6 +72,11 @@ public class NamedParameterQuery {
                     id));
         }
         return append(id);
+    }
+
+    public NamedParameterQuery bind(Object paramValue) {
+        String name = "p" + (params.size() + 1);
+        return append(":" + name, name, paramValue);
     }
 
     private void addParam(String paramName,
