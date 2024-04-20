@@ -109,3 +109,81 @@ CREATE INDEX idx_ingredient_fulltext ON ingredient
 --changeset barneyb:index-recipe-ingredients
 CREATE INDEX idx_recipe_ingredient ON recipe_ingredients
     (recipe_id, ingredient_id);
+
+--changeset barneyb:pantry-item-duplicate-storage
+CREATE TABLE pantry_item_duplicates
+(
+    pantry_item_id BIGINT  NOT NULL
+        CONSTRAINT fk_pantry_item_duplicates_item
+            REFERENCES ingredient
+            ON DELETE CASCADE,
+    duplicate_id   BIGINT  NOT NULL
+        CONSTRAINT fk_pantry_item_duplicates_duplicate
+            REFERENCES ingredient
+            ON DELETE CASCADE,
+    loose          BOOLEAN NOT NULL,
+    match_rank     REAL    NOT NULL,
+    CONSTRAINT pk_pantry_item_duplicates
+        PRIMARY KEY (pantry_item_id, duplicate_id)
+);
+
+CREATE INDEX idx_pantry_item_duplicates
+    ON pantry_item_duplicates
+        (pantry_item_id, duplicate_id, loose, match_rank);
+
+--changeset barneyb:rebuild_pantry_item_duplicates splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION rebuild_pantry_item_duplicates() RETURNS BIGINT AS
+$$
+DECLARE
+    tight_count BIGINT;
+    loose_count BIGINT;
+BEGIN
+    -- noinspection SqlWithoutWhere
+    DELETE -- truncate is faster, but non-transactional
+    FROM pantry_item_duplicates;
+
+    -- tight: name/synonyms as phrases
+    INSERT INTO pantry_item_duplicates
+    SELECT item.id
+         , dupe.id
+         , FALSE
+         , TS_RANK(dupe.fulltext, q_name) + COALESCE(TS_RANK(dupe.fulltext, q_syn), 0) rank
+    FROM ingredient item,
+         websearch_to_tsquery('en', '"' || REPLACE(item.name, '-', ' ') || '"') q_name,
+         websearch_to_tsquery('en',
+                              (SELECT REPLACE('"' || STRING_AGG(REPLACE(synonym, '-', ' '), ' ') || '"', ' ', ' OR ')
+                               FROM pantry_item_synonyms syn
+                               WHERE pantry_item_id = item.id)) q_syn,
+         ingredient dupe
+    WHERE item.dtype = 'PantryItem'
+      AND dupe.dtype = 'PantryItem'
+      AND dupe.id != item.id
+      AND (dupe.fulltext @@ q_name
+        OR (q_syn IS NOT NULL AND dupe.fulltext @@ q_syn));
+
+    GET DIAGNOSTICS tight_count = ROW_COUNT;
+
+    -- loose: each separate word
+    INSERT INTO pantry_item_duplicates
+    SELECT item.id
+         , dupe.id
+         , TRUE
+         , TS_RANK(dupe.fulltext, q_name) + COALESCE(TS_RANK(dupe.fulltext, q_syn), 0) rank
+    FROM ingredient item,
+         websearch_to_tsquery('en', REPLACE(REPLACE(item.name, '-', ' '), ' ', ' OR ')) q_name,
+         websearch_to_tsquery('en', (SELECT REPLACE(STRING_AGG(REPLACE(synonym, '-', ' '), ' '), ' ', ' OR ')
+                                     FROM pantry_item_synonyms syn
+                                     WHERE pantry_item_id = item.id)) q_syn,
+         ingredient dupe
+    WHERE item.dtype = 'PantryItem'
+      AND dupe.dtype = 'PantryItem'
+      AND dupe.id != item.id
+      AND (dupe.fulltext @@ q_name
+        OR (q_syn IS NOT NULL AND dupe.fulltext @@ q_syn))
+    ON CONFLICT DO NOTHING;
+
+    GET DIAGNOSTICS loose_count = ROW_COUNT;
+
+    RETURN tight_count + loose_count;
+END
+$$ LANGUAGE plpgsql;
