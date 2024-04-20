@@ -105,6 +105,21 @@ class PantryItemSearchRepositoryImplTest {
     }
 
     @Test
+    void sortByBothLazyCounts() {
+        SearchResponse<PantryItem> result = repo.search(
+                PantryItemSearchRequest.builder()
+                        .sort(Sort.by(Sort.Direction.DESC, "useCount", "duplicateCount"))
+                        .build());
+
+        PantryItem salt = extractItemByName(result, "salt");
+        // both count came through, since they _had_ to be retrieved
+        assertEquals(2, salt.getUseCount());
+        assertEquals(0, salt.getDuplicateCount());
+        assertEquals(2, repo.countTotalUses(salt));
+        assertEquals(0, repo.countDuplicates(salt));
+    }
+
+    @Test
     void filter() {
         SearchResponse<PantryItem> result = repo.search(
                 PantryItemSearchRequest.builder()

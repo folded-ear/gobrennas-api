@@ -48,15 +48,17 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
 
     private record IdAndCount(Long id, Long count) {}
 
-    // type shenanigans to allow Hibernate's reflective instantiation
-    private record ItemAndCounts(PantryItem item, Object useCount, Object dupeCount) {
+    // Type shenanigans to allow Hibernate's reflective instantiation. An empty
+    // string is used as semaphore for "no value" since the JDBC ResultSet won't
+    // type a null-valued column, and JPA doesn't have casts like SQL.
+    private record ItemAndCounts(PantryItem item, Long useCount, Long dupeCount) {
 
-        ItemAndCounts(PantryItem item, Integer useCount, Long dupeCount) {
-            this(item, (Object) useCount, dupeCount);
+        ItemAndCounts(PantryItem item, Long useCount, String ignoredDupeCount) {
+            this(item, useCount, (Long) null);
         }
 
-        ItemAndCounts(PantryItem item, Long useCount, Integer dupeCount) {
-            this(item, (Object) useCount, dupeCount);
+        ItemAndCounts(PantryItem item, String ignoredUseCount, Long dupeCount) {
+            this(item, (Long) null, dupeCount);
         }
 
     }
@@ -148,12 +150,12 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                     """
                          , %s as use_count
                     """,
-                    sortedByUseCount ? String.format(USE_COUNT_BY_ID, "item.id") : -1));
+                    sortedByUseCount ? String.format(USE_COUNT_BY_ID, "item.id") : "''"));
             stmt.append(String.format(
                     """
                          , %s as dupe_count
                     """,
-                    sortedByDuplicateCount ? String.format(DUPLICATE_COUNT_BY_ID, "item.id") : -1));
+                    sortedByDuplicateCount ? String.format(DUPLICATE_COUNT_BY_ID, "item.id") : "''"));
         }
         stmt.append("""
                     from PantryItem item
@@ -207,11 +209,11 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                     .stream()
                     .map(iac -> {
                         PantryItem item = iac.item();
-                        if (iac.useCount() instanceof Long c) {
-                            item.setUseCount(c);
+                        if (iac.useCount() != null) {
+                            item.setUseCount(iac.useCount());
                         }
-                        if (iac.dupeCount() instanceof Long c) {
-                            item.setDuplicateCount(c);
+                        if (iac.dupeCount() != null) {
+                            item.setDuplicateCount(iac.dupeCount());
                         }
                         return item;
                     })
