@@ -17,6 +17,7 @@ public class RecipeBox {
             lbs;
 
     public final PantryItem
+            chicken,
             egg,
             flour,
             oil,
@@ -49,6 +50,7 @@ public class RecipeBox {
         dinner = new Label("dinner");
         makeAhead = new Label("make ahead");
 
+        chicken = new PantryItem("chicken");
         egg = new PantryItem("egg");
         flour = new PantryItem("flour")
                 .withLabel(bulk)
@@ -65,7 +67,7 @@ public class RecipeBox {
         friedChicken = new Recipe("Fried Chicken")
                 .withLabel(dinner);
         friedChicken.addIngredient(Quantity.count(2), egg, "shelled");
-        friedChicken.addIngredient(new PantryItem("chicken"), "deboned");
+        friedChicken.addIngredient(chicken, "deboned");
         friedChicken.addIngredient(new PantryItem("chicken thigh"), "cut");
 
         pizzaSauce = new Recipe("Pizza Sauce")

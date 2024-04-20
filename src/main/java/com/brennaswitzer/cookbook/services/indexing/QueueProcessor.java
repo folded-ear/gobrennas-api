@@ -43,7 +43,7 @@ public abstract class QueueProcessor {
 
     protected abstract NamedParameterQuery selectAllIds();
 
-    protected final int drainQueue() {
+    public int drainQueue() {
         if (!lock.tryLock()) return 0;
         try {
             return drainQueueInternal();

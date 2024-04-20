@@ -7,7 +7,6 @@ import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,31 +66,8 @@ public class PantryItemService {
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
-    public SearchResponse<PantryItem> search(String filter,
-                                             Sort sort,
-                                             int offset,
-                                             int limit) {
-        return pantryItemRepository.search(
-                PantryItemSearchRequest.builder()
-                        .filter(filter)
-                        .sort(sort)
-                        .offset(offset)
-                        .limit(limit)
-                        .build());
-    }
-
-    @PreAuthorize("hasRole('DEVELOPER')")
-    public SearchResponse<PantryItem> duplicatesOf(long itemId,
-                                                   Sort sort,
-                                                   int offset,
-                                                   int limit) {
-        return pantryItemRepository.search(
-                PantryItemSearchRequest.builder()
-                        .duplicateOf(itemId)
-                        .sort(sort)
-                        .offset(offset)
-                        .limit(limit)
-                        .build());
+    public SearchResponse<PantryItem> search(PantryItemSearchRequest request) {
+        return pantryItemRepository.search(request);
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")

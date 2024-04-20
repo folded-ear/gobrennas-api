@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
+import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.SortDir;
 import com.brennaswitzer.cookbook.services.PantryItemService;
 import graphql.relay.Connection;
@@ -21,16 +22,20 @@ public class PantryQuery extends PagingQuery {
 
     public Connection<PantryItem> search(
             String query,
+            Long duplicateOf,
             String sortBy,
             SortDir sortDir,
             Integer first,
             OffsetConnectionCursor after
     ) {
         SearchResponse<PantryItem> rs = pantryItemService.search(
-                query,
-                getSort(sortBy, sortDir),
-                getOffset(after),
-                getLimit(first));
+                PantryItemSearchRequest.builder()
+                        .filter(query)
+                        .duplicateOf(duplicateOf)
+                        .sort(getSort(sortBy, sortDir))
+                        .offset(getOffset(after))
+                        .limit(getLimit(first))
+                        .build());
         return new OffsetConnection<>(rs);
     }
 
@@ -41,12 +46,7 @@ public class PantryQuery extends PagingQuery {
             Integer first,
             OffsetConnectionCursor after
     ) {
-        SearchResponse<PantryItem> rs = pantryItemService.duplicatesOf(
-                itemId,
-                getSort(sortBy, sortDir),
-                getOffset(after),
-                getLimit(first));
-        return new OffsetConnection<>(rs);
+        return search(null, itemId, sortBy, sortDir, first, after);
     }
 
     private Sort getSort(String sortBy, SortDir sortDir) {

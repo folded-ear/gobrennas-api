@@ -19,14 +19,14 @@ public class OffsetConnection<T> implements Connection<T> {
 
     public OffsetConnection(SearchResponse<T> rs) {
         int offset = rs.getOffset();
-        edges = new ArrayList<>(rs.getSize());
+        edges = new ArrayList<>(rs.size());
         int i = 0;
         for (T r : rs.getContent()) {
             edges.add(new DefaultEdge<>(r, new OffsetConnectionCursor(offset + i++)));
         }
         pageInfo = new DefaultPageInfo(
                 rs.isEmpty() ? null : new OffsetConnectionCursor(offset),
-                rs.isEmpty() ? null : new OffsetConnectionCursor(offset + rs.getSize() - 1),
+                rs.isEmpty() ? null : new OffsetConnectionCursor(offset + rs.size() - 1),
                 rs.hasPrevious(),
                 rs.hasNext());
     }
