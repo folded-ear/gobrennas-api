@@ -1,6 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.brennaswitzer.cookbook.repositories.event.RecipeLabelFulltextListener;
+import com.brennaswitzer.cookbook.repositories.event.IngredientLabelFulltextListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -13,20 +13,18 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+@Setter
+@Getter
 @Entity
-@EntityListeners(RecipeLabelFulltextListener.class)
+@EntityListeners(IngredientLabelFulltextListener.class)
 public class Label implements Identified {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_seq")
-    @Getter
-    @Setter
     private Long id;
 
     @NotNull
     @Column(unique = true)
-    @Getter
-    @Setter
     private String name;
 
     public Label() {}

@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.repositories.event.IngredientFulltextListener;
 import com.brennaswitzer.cookbook.repositories.event.RecipeIngredientFulltextListener;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -19,7 +20,9 @@ import java.util.Set;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
-@EntityListeners(RecipeIngredientFulltextListener.class)
+@EntityListeners({
+        IngredientFulltextListener.class,
+        RecipeIngredientFulltextListener.class })
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     property = "type"

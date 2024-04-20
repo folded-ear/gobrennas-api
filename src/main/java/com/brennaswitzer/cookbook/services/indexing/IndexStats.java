@@ -23,26 +23,26 @@ public class IndexStats {
     long queueMinAge;
 
     /**
-     * Total number of recipes.
+     * Total number of ingredients.
      */
-    long recipeCount;
+    long ingredientCount;
 
     /**
-     * Number of recipes that have been indexed.
+     * Number of ingredients that have been indexed.
      */
-    long indexedRecipeCount;
+    long indexedIngredientCount;
 
     /**
-     * Number of recipes with a stale index.
+     * Number of ingredients with a stale index.
      */
-    long staleRecipeCount;
+    long staleIngredientCount;
 
     /**
-     * Number of recipes that have not been indexed.
+     * Number of ingredients that have not been indexed.
      */
     @SuppressWarnings("unused") // Jackson uses it
-    public long getNonIndexedRecipeCount() {
-        return recipeCount - indexedRecipeCount;
+    public long getNonIndexedIngredientCount() {
+        return ingredientCount - indexedIngredientCount;
     }
 
 }

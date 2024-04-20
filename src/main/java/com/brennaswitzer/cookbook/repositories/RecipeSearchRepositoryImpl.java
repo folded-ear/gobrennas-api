@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.repositories;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -22,9 +21,6 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
 
     @Autowired
     private PostgresFullTextQueryConverter queryConverter;
-
-    @Autowired
-    private UserPrincipalAccess principalAccess;
 
     private class NativeQueryBuilder extends NamedParameterQuery {
 
@@ -67,7 +63,7 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         }
         builder.append("WHERE ing.dtype = 'Recipe'\n");
         if (request.isFiltered()) {
-            builder.append("  AND ing.recipe_fulltext @@ query\n");
+            builder.append("  AND ing.fulltext @@ query\n");
         }
         if (request.isIngredientConstrained()) {
             builder.append("""
@@ -86,10 +82,10 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         }
         builder.append("ORDER BY fav.id IS NULL\n");
         if (request.isFiltered()) {
-            builder.append("       , TS_RANK(recipe_fulltext, query) DESC\n");
+            builder.append("       , TS_RANK(fulltext, query) DESC\n");
         }
         builder.append("""
-                              , LOWER(ing.name)
+                              , UPPER(ing.name)
                               , ing.id
                        """);
         Query query = builder.build();

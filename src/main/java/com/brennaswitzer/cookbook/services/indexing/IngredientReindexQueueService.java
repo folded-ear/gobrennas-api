@@ -2,15 +2,14 @@ package com.brennaswitzer.cookbook.services.indexing;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Label;
-import com.brennaswitzer.cookbook.domain.Recipe;
 
-public interface RecipeReindexQueueService {
+public interface IngredientReindexQueueService {
 
     IndexStats getIndexStats();
 
-    void enqueueRecipe(Recipe recipe);
+    void enqueueIngredient(Ingredient ingredient);
 
     void enqueueRecipesWithIngredient(Ingredient ingredient);
 
-    void enqueueRecipesWithLabel(Label label);
+    void enqueueIngredientsWithLabel(Label label);
 }

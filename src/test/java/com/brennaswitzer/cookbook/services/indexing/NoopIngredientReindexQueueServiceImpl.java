@@ -2,11 +2,10 @@ package com.brennaswitzer.cookbook.services.indexing;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Label;
-import com.brennaswitzer.cookbook.domain.Recipe;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NoopRecipeReindexQueueServiceImpl implements RecipeReindexQueueService {
+public class NoopIngredientReindexQueueServiceImpl implements IngredientReindexQueueService {
 
     @Override
     public IndexStats getIndexStats() {
@@ -14,7 +13,7 @@ public class NoopRecipeReindexQueueServiceImpl implements RecipeReindexQueueServ
     }
 
     @Override
-    public void enqueueRecipe(Recipe recipe) {
+    public void enqueueIngredient(Ingredient ingredient) {
     }
 
     @Override
@@ -22,6 +21,6 @@ public class NoopRecipeReindexQueueServiceImpl implements RecipeReindexQueueServ
     }
 
     @Override
-    public void enqueueRecipesWithLabel(Label label) {
+    public void enqueueIngredientsWithLabel(Label label) {
     }
 }

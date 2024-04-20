@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.domain;
 
-import com.brennaswitzer.cookbook.repositories.event.RecipeFulltextListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.persistence.AttributeOverride;
@@ -10,7 +9,6 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
@@ -25,7 +23,6 @@ import java.util.List;
 
 @Entity
 @DiscriminatorValue("Recipe")
-@EntityListeners(RecipeFulltextListener.class)
 @JsonTypeName("Recipe")
 public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 

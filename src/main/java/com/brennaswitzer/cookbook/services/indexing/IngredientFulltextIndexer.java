@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services.indexing;
 
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
+import lombok.Synchronized;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,7 +15,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class RecipeFulltextIndexer {
+public class IngredientFulltextIndexer {
 
     public static final int BATCH_SIZE = 5;
 
@@ -26,15 +27,16 @@ public class RecipeFulltextIndexer {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void reindexRecipeImmediately(ReindexRecipeEvent event) {
+    @Synchronized
+    public void reindexIngredientImmediately(ReindexIngredientEvent event) {
         NamedParameterQuery query = new NamedParameterQuery(
                 """
                 DELETE
-                FROM recipe_fulltext_reindex_queue
+                FROM ingredient_fulltext_reindex_queue
                 WHERE id = :id
                 """,
                 "id",
-                event.getRecipeId());
+                event.ingredientId());
         int rowsAffected = jdbcTemplate.update(query.getStatement(),
                                                query.getParameters());
         if (rowsAffected == 0) {
@@ -42,9 +44,9 @@ public class RecipeFulltextIndexer {
             // end up being reindexed (as a no-op) in the future. If you're not
             // first, you're last!
             query = new NamedParameterQuery(
-                "select recipe_fulltext_update(:id)",
-                "id",
-                event.getRecipeId());
+                    "select ingredient_fulltext_update(:id)",
+                    "id",
+                    event.ingredientId());
             jdbcTemplate.query(query.getStatement(),
                                query.getParameters(),
                                rs -> {
@@ -53,14 +55,15 @@ public class RecipeFulltextIndexer {
     }
 
     @Scheduled(fixedDelay = 10, initialDelay = 1, timeUnit = TimeUnit.MINUTES)
+    @Synchronized
     // not @Transactional; they're done imperatively within.
     public void reindexQueued() {
         NamedParameterQuery query = new NamedParameterQuery(
                 """
                 DELETE
-                FROM recipe_fulltext_reindex_queue
+                FROM ingredient_fulltext_reindex_queue
                 WHERE id IN (SELECT id
-                             FROM recipe_fulltext_reindex_queue
+                             FROM ingredient_fulltext_reindex_queue
                              ORDER BY ts
                              LIMIT :batch_size)
                 """,
