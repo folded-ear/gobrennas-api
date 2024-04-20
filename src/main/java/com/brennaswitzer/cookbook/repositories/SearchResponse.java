@@ -12,7 +12,7 @@ public interface SearchResponse<R> {
 
     List<R> getContent();
 
-    default int getSize() {
+    default int size() {
         return getContent().size();
     }
 

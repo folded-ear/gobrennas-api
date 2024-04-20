@@ -15,6 +15,11 @@ type PantryQuery {
         is unspecified.
         """
         query: String
+        """ID of the item to retrieve auto-detected duplicates of. Exactly what
+        "duplicate" means is unspecified and subject to change, excepting that it
+        will remain consistent with results' "duplicateCount".
+        """
+        duplicateOf: ID
         """Field to sort the result by. If omitted, the sort will be stable, but
         is otherwise unspecified.
         """
@@ -30,10 +35,12 @@ type PantryQuery {
         """
         after: Cursor = null
     ): PantryItemConnection!
+    """Return auto-detected duplicates of a specific pantry item. Exactly what
+    "duplicate" means is unspecified and subject to change, excepting that it
+    will remain consistent with results' "duplicateCount".
+    """
     duplicates(
-        """Return auto-detected duplicates of the item with this ID. Exactly
-        what "duplicate" means is unspecified and subject to change, excepting
-        that it will remain consistent with results' "duplicateCount".
+        """ID of the item to retrieve duplicates of.
         """
         of: ID!
         """Field to sort the result by. If omitted, the sort will be stable, but
