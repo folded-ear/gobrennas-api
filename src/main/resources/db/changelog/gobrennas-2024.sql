@@ -105,3 +105,7 @@ EXECUTE PROCEDURE ingredient_fulltext_update_handler();
 --changeset barneyb:ingredient_fulltext_index
 CREATE INDEX idx_ingredient_fulltext ON ingredient
     USING GIN (fulltext, dtype, owner_id);
+
+--changeset barneyb:index-recipe-ingredients
+CREATE INDEX idx_recipe_ingredient ON recipe_ingredients
+    (recipe_id, ingredient_id);
