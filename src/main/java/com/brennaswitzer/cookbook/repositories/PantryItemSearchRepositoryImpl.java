@@ -73,7 +73,13 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
     }
 
     @Override
+    public Map<PantryItem, Long> countDuplicates(Collection<PantryItem> items) {
+        return Map.of(); // todo: implement
+    }
+
+    @Override
     public SearchResponse<PantryItem> search(PantryItemSearchRequest request) {
+        // todo: consider request.duplicateOf
         var sortedByUseCount = request.isSorted()
                                && request.getSort()
                                        .stream()

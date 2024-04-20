@@ -30,7 +30,27 @@ type PantryQuery {
         """
         after: Cursor = null
     ): PantryItemConnection!
-
+    duplicates(
+        """Return auto-detected duplicates of the item with this ID. Exactly
+        what "duplicate" means is unspecified and subject to change, excepting
+        that it will remain consistent with results' "duplicateCount".
+        """
+        of: ID!
+        """Field to sort the result by. If omitted, the sort will be stable, but
+        is otherwise unspecified.
+        """
+        sortBy: String
+        """Direction to sort the result, ascending by default.
+        """
+        sortDir: SortDir = ASC
+        """How many items to return in the connection.
+        """
+        first: NonNegativeInt = 25
+        """Cursor to find results after. This should be omitted to retrieve the
+        first page.
+        """
+        after: Cursor = null
+    ): PantryItemConnection!
 }
 
 type PantryItemConnection {
@@ -62,6 +82,11 @@ type PantryItem implements Node & Ingredient {
     library recipes and on a plan.
     """
     useCount: NonNegativeInt!
+    """The number of auto-detected duplicates of this pantry item. Exactly what
+    "duplicate" means is unspecified and subject to change, excepting that it
+    will remain consistent with the "duplicateOf" search field.
+    """
+    duplicateCount: NonNegativeInt!
 }
 
 extend type Mutation {

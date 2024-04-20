@@ -49,6 +49,12 @@ public class PantryItem extends Ingredient {
      */
     private transient Long useCount;
 
+    /**
+     * I cache this item's duplicate count, but don't use me directly. Instead,
+     * use {@link PantryItemSearchRepository#countDuplicates}.
+     */
+    private transient Long duplicateCount;
+
     public PantryItem() {
     }
 

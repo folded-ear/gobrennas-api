@@ -67,7 +67,6 @@ public class PantryItemService {
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
-    @Transactional(readOnly = true) // GraphQL manages txns imperatively for OSIV
     public SearchResponse<PantryItem> search(String filter,
                                              Sort sort,
                                              int offset,
@@ -75,6 +74,20 @@ public class PantryItemService {
         return pantryItemRepository.search(
                 PantryItemSearchRequest.builder()
                         .filter(filter)
+                        .sort(sort)
+                        .offset(offset)
+                        .limit(limit)
+                        .build());
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public SearchResponse<PantryItem> duplicatesOf(long itemId,
+                                                   Sort sort,
+                                                   int offset,
+                                                   int limit) {
+        return pantryItemRepository.search(
+                PantryItemSearchRequest.builder()
+                        .duplicateOf(itemId)
                         .sort(sort)
                         .offset(offset)
                         .limit(limit)
