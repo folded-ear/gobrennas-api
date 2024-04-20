@@ -5,8 +5,10 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
+import com.brennaswitzer.cookbook.services.indexing.PantryItemNeedsDuplicatesFound;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,8 @@ public class PantryItemService {
     private LabelService labelService;
     @Autowired
     private PantryItemCombiner combiner;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     public PantryItem saveOrUpdatePantryItem(PantryItem item) {
         return pantryItemRepository.save(item);
@@ -75,7 +79,9 @@ public class PantryItemService {
                                  String name) {
         var item = getItem(id);
         item.setName(name);
-        return pantryItemRepository.save(item);
+        item = pantryItemRepository.save(item);
+        needsDupesFound(item);
+        return item;
     }
 
     @NotNull
@@ -104,7 +110,9 @@ public class PantryItemService {
     public PantryItem setLabels(Long id, Set<String> labels) {
         var item = getItem(id);
         labelService.updateLabels(item, labels);
-        return pantryItemRepository.save(item);
+        item = pantryItemRepository.save(item);
+        needsDupesFound(item);
+        return item;
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
@@ -128,7 +136,9 @@ public class PantryItemService {
         var item = getItem(id);
         item.clearSynonyms();
         synonyms.forEach(item::addSynonym);
-        return pantryItemRepository.save(item);
+        item = pantryItemRepository.save(item);
+        needsDupesFound(item);
+        return item;
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
@@ -137,18 +147,24 @@ public class PantryItemService {
             throw new IllegalArgumentException("Cannot combine fewer than two items");
         }
         // this is inefficient when more than two, but "don't care."
-        return ids.stream()
+        PantryItem result = ids.stream()
                 .map(pantryItemRepository::findById)
                 .map(Optional::orElseThrow)
                 .sorted(Comparator.comparing(BaseEntity::getCreatedAt))
                 .reduce(combiner::combineItems)
                 .orElseThrow();
+        needsDupesFound(result);
+        return result;
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
     public boolean deleteItem(Long id) {
         pantryItemRepository.deleteById(id);
         return true;
+    }
+
+    private void needsDupesFound(PantryItem item) {
+        eventPublisher.publishEvent(new PantryItemNeedsDuplicatesFound(item));
     }
 
 }

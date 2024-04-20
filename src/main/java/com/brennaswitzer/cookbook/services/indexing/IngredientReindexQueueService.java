@@ -70,7 +70,7 @@ public class IngredientReindexQueueService {
                 "VALUES (:id)\n",
                 "id",
                 ingredient.getId()));
-        eventPublisher.publishEvent(new ReindexIngredientEvent(ingredient.getId()));
+        eventPublisher.publishEvent(new IngredientNeedsReindexing(ingredient));
     }
 
     public void enqueueRecipesWithIngredient(Ingredient ingredient) {
