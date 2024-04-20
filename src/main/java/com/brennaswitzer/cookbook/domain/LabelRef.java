@@ -8,12 +8,12 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+@Getter
+@Setter
 @Embeddable
 public class LabelRef {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @Getter
-    @Setter
     private Label label;
 
     public LabelRef() {

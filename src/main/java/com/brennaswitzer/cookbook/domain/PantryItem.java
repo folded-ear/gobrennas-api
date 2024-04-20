@@ -10,6 +10,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.collection.spi.PersistentSet;
 import org.springframework.util.Assert;
 
@@ -39,6 +40,7 @@ public class PantryItem extends Ingredient {
     private int storeOrder = 0;
 
     @ElementCollection
+    @BatchSize(size = 50)
     @Column(name = "synonym")
     @Setter(AccessLevel.PRIVATE)
     private Set<String> synonyms;
