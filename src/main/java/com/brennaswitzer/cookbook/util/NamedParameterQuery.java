@@ -7,11 +7,13 @@ import java.util.regex.Pattern;
 
 public class NamedParameterQuery {
 
-    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]+(\\.[a-zA-Z][a-zA-Z0-9_]+)*");
+    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*");
 
     private final StringBuilder statement = new StringBuilder();
 
     private final Map<String, Object> params = new HashMap<>();
+
+    private String statementString;
 
     public NamedParameterQuery() {
     }
@@ -33,6 +35,7 @@ public class NamedParameterQuery {
 
     public NamedParameterQuery append(String queryFragment) {
         this.statement.append(queryFragment);
+        this.statementString = null;
         return this;
     }
 
@@ -71,6 +74,11 @@ public class NamedParameterQuery {
         return append(id);
     }
 
+    public NamedParameterQuery bind(Object paramValue) {
+        String name = "p" + (params.size() + 1);
+        return append(":" + name, name, paramValue);
+    }
+
     private void addParam(String paramName,
                           Object paramValue) {
         if (params.containsKey(paramName)) {
@@ -82,7 +90,12 @@ public class NamedParameterQuery {
     }
 
     public String getStatement() {
-        return statement.toString();
+        String stmt = statementString;
+        if (stmt == null) {
+            stmt = statement.toString();
+            statementString = stmt;
+        }
+        return stmt;
     }
 
     public Map<String, Object> getParameters() {

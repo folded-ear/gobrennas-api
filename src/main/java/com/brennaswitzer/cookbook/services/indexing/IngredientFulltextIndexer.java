@@ -2,28 +2,21 @@ package com.brennaswitzer.cookbook.services.indexing;
 
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import lombok.Synchronized;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 public class IngredientFulltextIndexer {
-
-    public static final int BATCH_SIZE = 5;
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private TransactionTemplate txTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -51,30 +44,9 @@ public class IngredientFulltextIndexer {
                                query.getParameters(),
                                rs -> {
                                });
-        }
-    }
-
-    @Scheduled(fixedDelay = 10, initialDelay = 1, timeUnit = TimeUnit.MINUTES)
-    @Synchronized
-    // not @Transactional; they're done imperatively within.
-    public void reindexQueued() {
-        NamedParameterQuery query = new NamedParameterQuery(
-                """
-                DELETE
-                FROM ingredient_fulltext_reindex_queue
-                WHERE id IN (SELECT id
-                             FROM ingredient_fulltext_reindex_queue
-                             ORDER BY ts
-                             LIMIT :batch_size)
-                """,
-                "batch_size",
-                BATCH_SIZE);
-        while (true) {
-            @SuppressWarnings("DataFlowIssue") // box/unbox shenanigans
-            int rowsAffected = txTemplate.execute(
-                    tx -> jdbcTemplate.update(query.getStatement(),
-                                              query.getParameters()));
-            if (rowsAffected < BATCH_SIZE) break;
+            log.info("couldn't reindex ingredient {}, queued instead", event.ingredientId());
+        } else {
+            log.info("reindexed ingredient {} immediately", event.ingredientId());
         }
     }
 
