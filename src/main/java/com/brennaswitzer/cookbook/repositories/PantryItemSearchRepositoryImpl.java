@@ -8,16 +8,20 @@ import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+@Slf4j
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepository {
 
@@ -51,6 +55,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
     // Type shenanigans to allow Hibernate's reflective instantiation. An empty
     // string is used as semaphore for "no value" since the JDBC ResultSet won't
     // type a null-valued column, and JPA doesn't have casts like SQL.
+    @SuppressWarnings("unused")
     private record ItemAndCounts(PantryItem item, Long useCount, Long dupeCount) {
 
         ItemAndCounts(PantryItem item, Long useCount, String ignoredDupeCount) {
@@ -181,11 +186,13 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
         if (request.isDuplicateOf()) {
             stmt.append(request.isFiltered() ? "and " : "where ")
                     .append("""
-                            exists (from PantryItemDuplicate
-                                    where pantryItem.id = :dupeOf
-                                      and duplicate.id = item.id
-                                      and not loose
-                                   )
+                            (item.id = :dupeOf
+                             or exists (from PantryItemDuplicate
+                                        where pantryItem.id = :dupeOf
+                                          and duplicate.id = item.id
+                                          and not loose
+                                       )
+                            )
                             """, "dupeOf", request.getDuplicateOf());
         }
         stmt.append("order by ");
@@ -220,6 +227,21 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                     .toList();
         } else {
             pantryItems = query(request, stmt, PantryItem.class);
+        }
+        if (request.isDuplicateOf()) {
+            // If the target is in the page being returned, ensure it's first.
+            Iterator<PantryItem> itr = pantryItems.iterator();
+            for (int i = 0; itr.hasNext(); i++) {
+                PantryItem curr = itr.next();
+                if (request.getDuplicateOf().equals(curr.getId())) {
+                    // Make a new connection, in case Hibernate returns
+                    // something immutable.
+                    pantryItems = new ArrayList<>(pantryItems);
+                    pantryItems.add(0,
+                                    pantryItems.remove(i));
+                    break;
+                }
+            }
         }
         return SearchResponse.of(request, pantryItems);
     }

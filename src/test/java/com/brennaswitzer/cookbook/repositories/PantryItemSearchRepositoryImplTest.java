@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.domain.PantryItem_;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.services.indexing.RefreshPantryItemDuplicates;
 import com.brennaswitzer.cookbook.services.indexing.ReindexIngredients;
@@ -142,7 +143,8 @@ class PantryItemSearchRepositoryImplTest {
                         .duplicateOf(box.salt.getId())
                         .build());
 
-        assertEquals(0, result.size());
+        assertEquals(1, result.size());
+        assertEquals("salt", result.getContent().iterator().next().getName());
     }
 
     @Test
@@ -152,10 +154,22 @@ class PantryItemSearchRepositoryImplTest {
         SearchResponse<PantryItem> result = repo.search(
                 PantryItemSearchRequest.builder()
                         .duplicateOf(box.chicken.getId())
+                        .sort(Sort.by(Sort.Direction.DESC, PantryItem_.NAME))
                         .build());
 
-        assertEquals(1, result.size());
-        assertEquals("chicken thigh", result.getContent().iterator().next().getName());
+        assertEquals(2, result.size());
+        assertEquals(List.of("chicken", "chicken thigh"),
+                     result.getContent().stream().map(PantryItem::getName).toList());
+    }
+
+    @Test
+    void duplicatesOf_unknown() {
+        SearchResponse<PantryItem> result = repo.search(
+                PantryItemSearchRequest.builder()
+                        .duplicateOf(-99999L)
+                        .build());
+
+        assertEquals(0, result.size());
     }
 
     private PantryItem extractItemByName(SearchResponse<PantryItem> result, String name) {
