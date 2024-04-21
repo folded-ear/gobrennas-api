@@ -5,9 +5,10 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
-import com.brennaswitzer.cookbook.services.indexing.RefreshPantryItemDuplicates;
+import com.brennaswitzer.cookbook.services.indexing.PantryItemNeedsDuplicatesFound;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class PantryItemService {
     @Autowired
     private PantryItemCombiner combiner;
     @Autowired
-    private RefreshPantryItemDuplicates refreshDuplicates;
+    private ApplicationEventPublisher eventPublisher;
 
     public PantryItem saveOrUpdatePantryItem(PantryItem item) {
         return pantryItemRepository.save(item);
@@ -79,7 +80,7 @@ public class PantryItemService {
         var item = getItem(id);
         item.setName(name);
         item = pantryItemRepository.save(item);
-        refreshDuplicates.refresh(); // for now, at least
+        needsDupesFound(item);
         return item;
     }
 
@@ -110,7 +111,7 @@ public class PantryItemService {
         var item = getItem(id);
         labelService.updateLabels(item, labels);
         item = pantryItemRepository.save(item);
-        refreshDuplicates.refresh(); // for now, at least
+        needsDupesFound(item);
         return item;
     }
 
@@ -136,7 +137,7 @@ public class PantryItemService {
         item.clearSynonyms();
         synonyms.forEach(item::addSynonym);
         item = pantryItemRepository.save(item);
-        refreshDuplicates.refresh(); // for now, at least
+        needsDupesFound(item);
         return item;
     }
 
@@ -152,7 +153,7 @@ public class PantryItemService {
                 .sorted(Comparator.comparing(BaseEntity::getCreatedAt))
                 .reduce(combiner::combineItems)
                 .orElseThrow();
-        refreshDuplicates.refresh(); // for now, at least
+        needsDupesFound(result);
         return result;
     }
 
@@ -160,6 +161,10 @@ public class PantryItemService {
     public boolean deleteItem(Long id) {
         pantryItemRepository.deleteById(id);
         return true;
+    }
+
+    private void needsDupesFound(PantryItem item) {
+        eventPublisher.publishEvent(new PantryItemNeedsDuplicatesFound(item));
     }
 
 }

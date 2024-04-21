@@ -62,7 +62,7 @@ class IngredientReindexQueueServiceTest {
         assertEquals(Map.of("id", id),
                      paramsCaptor.getValue());
         verify(eventPublisher)
-                .publishEvent(argThat((ReindexIngredientEvent e) -> id.equals(e.ingredientId())));
+                .publishEvent(argThat((IngredientNeedsReindexing e) -> id.equals(e.id())));
     }
 
     @Test

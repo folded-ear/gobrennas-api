@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,8 +21,9 @@ public class IngredientFulltextIndexer {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Order(EventHandlerSlot.REINDEX)
     @Synchronized
-    public void reindexIngredientImmediately(ReindexIngredientEvent event) {
+    public void reindexIngredientImmediately(IngredientNeedsReindexing event) {
         NamedParameterQuery query = new NamedParameterQuery(
                 """
                 DELETE
@@ -29,7 +31,7 @@ public class IngredientFulltextIndexer {
                 WHERE id = :id
                 """,
                 "id",
-                event.ingredientId());
+                event.id());
         int rowsAffected = jdbcTemplate.update(query.getStatement(),
                                                query.getParameters());
         if (rowsAffected == 0) {
@@ -39,14 +41,14 @@ public class IngredientFulltextIndexer {
             query = new NamedParameterQuery(
                     "select q_ingredient_fulltext_handler(:id)",
                     "id",
-                    event.ingredientId());
+                    event.id());
             jdbcTemplate.query(query.getStatement(),
                                query.getParameters(),
                                rs -> {
                                });
-            log.info("couldn't reindex ingredient '{}', queued instead", event.ingredientId());
+            log.info("couldn't reindex ingredient '{}', queued instead", event.id());
         } else {
-            log.info("reindexed ingredient '{}' immediately", event.ingredientId());
+            log.info("reindexed ingredient '{}' immediately", event.id());
         }
     }
 

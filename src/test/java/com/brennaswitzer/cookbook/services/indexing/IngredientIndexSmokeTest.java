@@ -38,8 +38,8 @@ class IngredientIndexSmokeTest {
     @Test
     void oneShotReindex() {
         indexer.reindexIngredientImmediately(
-                new ReindexIngredientEvent(
-                        box.flour.getId()));
+                new IngredientNeedsReindexing(
+                        box.flour));
     }
 
     @Test
