@@ -12,41 +12,51 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class PantryQuery extends PagingQuery {
 
     private static final int DEFAULT_LIMIT = 25;
+    private static final String DUPLICATE_PREFIX = "duplicates:";
 
     @Autowired
     private PantryItemService pantryItemService;
 
     public Connection<PantryItem> search(
             String query,
-            Long duplicateOf,
             String sortBy,
             SortDir sortDir,
             Integer first,
             OffsetConnectionCursor after
     ) {
+        String[] rawTerms = query.split(" +");
+        List<String> filterTerms = new ArrayList<>(rawTerms.length);
+        Long duplicateOf = null;
+        for (var t : rawTerms) {
+            if (t.startsWith(DUPLICATE_PREFIX)) {
+                String id = t.substring(DUPLICATE_PREFIX.length());
+                try {
+                    duplicateOf = Long.valueOf(id);
+                } catch (NumberFormatException nfe) {
+                    throw new IllegalArgumentException(String.format(
+                            "Cannot parse '%s' as an item ID.",
+                            id));
+                }
+            } else {
+                filterTerms.add(t);
+            }
+        }
         SearchResponse<PantryItem> rs = pantryItemService.search(
                 PantryItemSearchRequest.builder()
-                        .filter(query)
+                        .filter(String.join(" ", filterTerms))
                         .duplicateOf(duplicateOf)
                         .sort(getSort(sortBy, sortDir))
                         .offset(getOffset(after))
                         .limit(getLimit(first))
                         .build());
         return new OffsetConnection<>(rs);
-    }
-
-    public Connection<PantryItem> duplicates(
-            Long itemId,
-            String sortBy,
-            SortDir sortDir,
-            Integer first,
-            OffsetConnectionCursor after
-    ) {
-        return search(null, itemId, sortBy, sortDir, first, after);
     }
 
     private Sort getSort(String sortBy, SortDir sortDir) {
