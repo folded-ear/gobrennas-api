@@ -187,3 +187,8 @@ BEGIN
     RETURN tight_count + loose_count;
 END
 $$ LANGUAGE plpgsql;
+
+--changeset barneyb:index-pantry-items-by-updated_at
+CREATE INDEX idx_pantry_item_updated_at
+    ON ingredient (updated_at)
+    WHERE dtype = 'PantryItem';
