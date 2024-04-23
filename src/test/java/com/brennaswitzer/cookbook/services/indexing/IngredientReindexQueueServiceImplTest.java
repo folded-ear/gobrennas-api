@@ -54,7 +54,7 @@ class IngredientReindexQueueServiceImplTest {
             .update(sqlCaptor.capture(),
                     paramsCaptor.capture());
         assertEquals("""
-                     INSERT INTO ingredient_fulltext_reindex_queue (id)
+                     INSERT INTO q_ingredient_fulltext (id)
                      VALUES (:id)
                      ON CONFLICT DO NOTHING
                      """,
@@ -78,7 +78,7 @@ class IngredientReindexQueueServiceImplTest {
             .update(sqlCaptor.capture(),
                     paramsCaptor.capture());
         assertEquals("""
-                     INSERT INTO ingredient_fulltext_reindex_queue (id)
+                     INSERT INTO q_ingredient_fulltext (id)
                      SELECT recipe_id
                      FROM recipe_ingredients
                      WHERE ingredient_id = :id
@@ -103,7 +103,7 @@ class IngredientReindexQueueServiceImplTest {
             .update(sqlCaptor.capture(),
                     paramsCaptor.capture());
         assertEquals("""
-                     INSERT INTO ingredient_fulltext_reindex_queue (id)
+                     INSERT INTO q_ingredient_fulltext (id)
                      SELECT ingredient.id
                      FROM ingredient_labels link
                           JOIN ingredient ON ingredient.id = link.ingredient_id

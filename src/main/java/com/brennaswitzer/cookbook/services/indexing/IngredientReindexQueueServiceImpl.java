@@ -30,7 +30,7 @@ public class IngredientReindexQueueServiceImpl implements IngredientReindexQueue
                 SELECT COUNT(*)
                      , COALESCE(CAST(EXTRACT(EPOCH FROM NOW() - MIN(ts)) AS BIGINT), -1)
                      , COALESCE(CAST(EXTRACT(EPOCH FROM NOW() - MAX(ts)) AS BIGINT), -1)
-                FROM ingredient_fulltext_reindex_queue
+                FROM q_ingredient_fulltext
                 """,
                 Collections.emptyMap());
         rs.next();
@@ -44,7 +44,7 @@ public class IngredientReindexQueueServiceImpl implements IngredientReindexQueue
                 q -> q.append("""
                               WHERE fulltext IS NOT NULL
                                 AND EXISTS(SELECT *
-                                           FROM ingredient_fulltext_reindex_queue
+                                           FROM q_ingredient_fulltext
                                            WHERE id = ingredient.id
                                   )
                               """)));
@@ -107,7 +107,7 @@ public class IngredientReindexQueueServiceImpl implements IngredientReindexQueue
     @SuppressWarnings("UnusedReturnValue")
     private int enqueue(Consumer<NamedParameterQuery> selectAction) {
         NamedParameterQuery query = new NamedParameterQuery(
-                "INSERT INTO ingredient_fulltext_reindex_queue (id)\n");
+                "INSERT INTO q_ingredient_fulltext (id)\n");
         selectAction.accept(query);
         query.append("ON CONFLICT DO NOTHING\n");
         return jdbcTemplate.update(query.getStatement(),

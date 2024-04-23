@@ -28,7 +28,7 @@ public class ReindexIngredients {
     public int enqueueAll() {
         var q = new NamedParameterQuery(
                 """
-                INSERT INTO ingredient_fulltext_reindex_queue
+                INSERT INTO q_ingredient_fulltext
                 SELECT id
                 FROM ingredient
                 ON CONFLICT DO NOTHING
@@ -47,9 +47,9 @@ public class ReindexIngredients {
         var q = new NamedParameterQuery(
                 """
                 DELETE
-                FROM ingredient_fulltext_reindex_queue
+                FROM q_ingredient_fulltext
                 WHERE id IN (SELECT id
-                             FROM ingredient_fulltext_reindex_queue
+                             FROM q_ingredient_fulltext
                              ORDER BY ts
                              LIMIT :batch_size)
                 """,

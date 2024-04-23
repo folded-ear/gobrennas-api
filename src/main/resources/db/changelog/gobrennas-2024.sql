@@ -207,3 +207,76 @@ CREATE INDEX idx_recipe_fulltext ON ingredient
 CREATE INDEX idx_pantry_item_fulltext ON ingredient
     USING GIN (fulltext, owner_id)
     WHERE dtype = 'PantryItem';
+
+--changeset barneyb:q_ingredient_fulltext_handler splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_ingredient_fulltext_handler(id BIGINT) RETURNS VOID AS
+$$
+BEGIN
+    UPDATE ingredient
+    SET fulltext = SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.name, '')), 'A') ||
+                   SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                           (SELECT STRING_AGG(l.name, ' ' ORDER BY l.name)
+                            FROM ingredient_labels il
+                                     JOIN label l ON l.id = il.label_id
+                            WHERE il.ingredient_id = ingredient.id), '')), 'B') ||
+                   CASE ingredient.dtype
+                       WHEN 'PantryItem' THEN
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                   (SELECT STRING_AGG(synonym, CHR(10) ORDER BY synonym)
+                                    FROM pantry_item_synonyms link
+                                    WHERE pantry_item_id = ingredient.id), '')), 'A')
+                       WHEN 'Recipe' THEN
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                   (SELECT STRING_AGG(
+                                                   CASE
+                                                       WHEN i.id IS NULL THEN COALESCE(raw, '')
+                                                       ELSE COALESCE(i.name, '') || ' ' || COALESCE(raw, '')
+                                                       END,
+                                                   CHR(10) ORDER BY _order)
+                                    FROM recipe_ingredients link
+                                             LEFT JOIN ingredient i ON link.ingredient_id = i.id
+                                    WHERE recipe_id = ingredient.id), '')), 'C') ||
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                   (SELECT STRING_AGG(DISTINCT synonym, CHR(10))
+                                    FROM recipe_ingredients link
+                                             JOIN pantry_item_synonyms syn ON link.ingredient_id = syn.pantry_item_id
+                                    WHERE recipe_id = ingredient.id), '')), 'C') ||
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.directions, '')), 'D')
+                       END
+    WHERE ingredient.id = q_ingredient_fulltext_handler.id;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:q_ingredient_fulltext_trig splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_ingredient_fulltext_trig() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM q_ingredient_fulltext_handler(old_table.id)
+    FROM old_table;
+    RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:queue-centric-schema-object-naming
+ALTER TABLE ingredient_fulltext_reindex_queue
+    RENAME CONSTRAINT pk_ingredient_reindex_queue
+        TO pk_q_ingredient_fulltext;
+ALTER TABLE ingredient_fulltext_reindex_queue
+    RENAME CONSTRAINT fk_ingredient_reindex_queue
+        TO fk_q_ingredient_fulltext;
+ALTER INDEX idx_ingredient_fulltext_reindex_queue_ts
+    RENAME TO idx_q_ingredient_fulltext_ts;
+DROP TRIGGER ingredient_fulltext_update_trigger
+    ON ingredient_fulltext_reindex_queue;
+DROP FUNCTION ingredient_fulltext_update_handler();
+DROP FUNCTION ingredient_fulltext_update(BIGINT);
+
+ALTER TABLE ingredient_fulltext_reindex_queue
+    RENAME TO q_ingredient_fulltext;
+
+CREATE TRIGGER q_trig_ingredient_fulltext
+    AFTER DELETE
+    ON q_ingredient_fulltext
+    REFERENCING OLD TABLE AS old_table
+    FOR EACH ROW
+EXECUTE PROCEDURE q_ingredient_fulltext_trig();
