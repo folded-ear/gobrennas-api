@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ReindexIngredients {
 
-    public static final int BATCH_SIZE = 5;
+    private static final int BATCH_SIZE = 5;
 
     @Autowired
     private TransactionTemplate txTemplate;

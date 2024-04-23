@@ -187,3 +187,23 @@ BEGIN
     RETURN tight_count + loose_count;
 END
 $$ LANGUAGE plpgsql;
+
+--changeset barneyb:index-pantry-items-by-updated_at
+CREATE INDEX idx_pantry_item_updated_at
+    ON ingredient (updated_at)
+    WHERE dtype = 'PantryItem';
+
+--changeset barneyb:index-plan-items-by-ingredient
+CREATE INDEX idx_plan_item_ingredient
+    ON plan_item (ingredient_id);
+
+--changeset barneyb:index-recipes-and-pantry-items-separately
+DROP INDEX idx_ingredient_fulltext;
+
+CREATE INDEX idx_recipe_fulltext ON ingredient
+    USING GIN (fulltext, owner_id)
+    WHERE dtype = 'Recipe';
+
+CREATE INDEX idx_pantry_item_fulltext ON ingredient
+    USING GIN (fulltext, owner_id)
+    WHERE dtype = 'PantryItem';
