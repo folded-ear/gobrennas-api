@@ -192,3 +192,7 @@ $$ LANGUAGE plpgsql;
 CREATE INDEX idx_pantry_item_updated_at
     ON ingredient (updated_at)
     WHERE dtype = 'PantryItem';
+
+--changeset barneyb:index-plan-items-by-ingredient
+CREATE INDEX idx_plan_item_ingredient
+    ON plan_item (ingredient_id);
