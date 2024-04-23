@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class IngredientInfo {
 
@@ -17,48 +19,20 @@ public class IngredientInfo {
     public static class Ref extends IngredientRefInfo {
     }
 
-    @Getter
-    @Setter
     private Long id;
-    @Getter
-    @Setter
     private String type;
-    @Getter
-    @Setter
     private String name;
-    @Getter
-    @Setter
     private Integer storeOrder;
-    @Getter
-    @Setter
     private String externalUrl;
-    @Getter
-    @Setter
     private String directions;
-    @Getter
-    @Setter
     private List<IngredientRefInfo> ingredients;
-    @Setter
     private List<String> labels;
-    @Getter
-    @Setter
     private Long ownerId;
-    @Getter
-    @Setter
     private Integer yield;
-    @Getter
-    @Setter
     private Integer calories;
-    @Getter
-    @Setter
     private Integer totalTime;
-    @Getter
-    @Setter
     private String photo;
-    @Getter
-    @Setter
     private float[] photoFocus;
-    @Setter
     private Boolean cookThis;
 
     public List<String> getLabels() {
@@ -74,7 +48,7 @@ public class IngredientInfo {
     public Recipe asRecipe(EntityManager em) {
         Recipe r = getId() == null
                 ? new Recipe()
-                : em.find(Recipe.class, getId());
+                : em.getReference(Recipe.class, getId());
         r.setName(getName());
         r.setExternalUrl(getExternalUrl());
         r.setDirections(getDirections());
