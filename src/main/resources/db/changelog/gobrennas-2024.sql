@@ -280,3 +280,98 @@ CREATE TRIGGER q_trig_ingredient_fulltext
     REFERENCING OLD TABLE AS old_table
     FOR EACH ROW
 EXECUTE PROCEDURE q_ingredient_fulltext_trig();
+
+--changeset barneyb:drop-old-duplicate-finder-function
+DROP FUNCTION rebuild_pantry_item_duplicates;
+
+--changeset barneyb:q_pantry_item_duplicates_handler splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_pantry_item_duplicates_handler(id BIGINT) RETURNS VOID AS
+$$
+BEGIN
+    DELETE
+    FROM pantry_item_duplicates
+    WHERE pantry_item_id = q_pantry_item_duplicates_handler.id;
+
+    -- tight: name/synonyms as phrases
+    INSERT INTO pantry_item_duplicates
+    SELECT item.id
+         , dupe.id
+         , FALSE
+         , TS_RANK(dupe.fulltext, q_name) + COALESCE(TS_RANK(dupe.fulltext, q_syn), 0) rank
+    FROM ingredient item,
+         websearch_to_tsquery('en', '"' || REPLACE(item.name, '"', ' ') || '"') q_name,
+         websearch_to_tsquery('en', (SELECT STRING_AGG('"' || REPLACE(synonym, '"', ' ') || '"', ' OR ')
+                                     FROM pantry_item_synonyms syn
+                                     WHERE pantry_item_id = item.id)) q_syn,
+         ingredient dupe
+    WHERE item.id = q_pantry_item_duplicates_handler.id
+      AND dupe.dtype = 'PantryItem'
+      AND dupe.id != item.id
+      AND dupe.fulltext @@ CASE
+                               WHEN q_syn IS NULL
+                                   THEN q_name
+                               ELSE q_name || q_syn
+        END;
+
+    -- loose: each separate word
+    INSERT INTO pantry_item_duplicates
+    SELECT item.id
+         , dupe.id
+         , TRUE
+         , TS_RANK(dupe.fulltext, q_name) + COALESCE(TS_RANK(dupe.fulltext, q_syn), 0) rank
+    FROM ingredient item,
+         websearch_to_tsquery('en', REPLACE(REPLACE(item.name, '-', ' '), ' ', ' OR ')) q_name,
+         websearch_to_tsquery('en', (SELECT REPLACE(STRING_AGG(REPLACE(synonym, '-', ' '), ' '), ' ', ' OR ')
+                                     FROM pantry_item_synonyms syn
+                                     WHERE pantry_item_id = item.id)) q_syn,
+         ingredient dupe
+    WHERE item.id = q_pantry_item_duplicates_handler.id
+      AND dupe.dtype = 'PantryItem'
+      AND dupe.id != item.id
+      AND dupe.fulltext @@ CASE
+                               WHEN q_syn IS NULL
+                                   THEN q_name
+                               ELSE q_name || q_syn
+        END
+    ON CONFLICT DO NOTHING;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:q_pantry_item_duplicates_trig splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_pantry_item_duplicates_trig() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM q_pantry_item_duplicates_handler(old_table.id)
+    FROM old_table;
+    RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:pantry-item-duplicates-queue
+CREATE TABLE q_pantry_item_duplicates
+(
+    id BIGINT                   NOT NULL,
+    ts TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CLOCK_TIMESTAMP(),
+    CONSTRAINT pk_q_pantry_item_duplicates
+        PRIMARY KEY (id),
+    CONSTRAINT fk_q_pantry_item_duplicates
+        FOREIGN KEY (id)
+            REFERENCES ingredient (id)
+            ON DELETE CASCADE
+);
+
+CREATE INDEX idx_q_pantry_item_duplicates
+    ON q_pantry_item_duplicates (ts);
+
+CREATE TRIGGER q_trig_pantry_item_duplicates
+    AFTER DELETE
+    ON q_pantry_item_duplicates
+    REFERENCING OLD TABLE AS old_table
+    FOR EACH ROW
+EXECUTE PROCEDURE q_pantry_item_duplicates_trig();
+
+INSERT INTO q_pantry_item_duplicates (id)
+SELECT id
+FROM ingredient
+WHERE dtype = 'PantryItem'
+ON CONFLICT DO NOTHING;
