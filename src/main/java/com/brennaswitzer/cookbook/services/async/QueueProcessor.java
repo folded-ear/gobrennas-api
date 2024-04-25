@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.services.indexing;
+package com.brennaswitzer.cookbook.services.async;
 
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import lombok.extern.slf4j.Slf4j;
