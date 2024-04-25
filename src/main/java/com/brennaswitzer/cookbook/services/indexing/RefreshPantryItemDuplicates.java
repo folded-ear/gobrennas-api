@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services.indexing;
 
+import com.brennaswitzer.cookbook.services.async.QueueProcessor;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
