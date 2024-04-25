@@ -25,20 +25,17 @@ public class IngredientIndexController {
     private ReindexIngredients reindexIngredients;
 
     @GetMapping("")
-    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     public IndexStats getIngredientIndexStats() {
         return ingredientReindexQueueService.getIndexStats();
     }
 
     @GetMapping("/enqueue-all")
-    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     public Map<String, Object> enqueueAll() {
         return withElapsedAndStats("enqueued",
                                    reindexIngredients::enqueueAll);
     }
 
     @GetMapping("/drain-queue")
-    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     public Map<String, Object> reindex() {
         return withElapsedAndStats("reindexed",
                                    reindexIngredients::reindexQueued);
