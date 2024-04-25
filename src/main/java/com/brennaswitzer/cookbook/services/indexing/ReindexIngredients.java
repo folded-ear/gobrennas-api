@@ -24,7 +24,7 @@ public class ReindexIngredients extends QueueProcessor {
                 """);
     }
 
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "${random.int[60]} */10 * * * *")
     @SuppressWarnings("ScheduledMethodInspection")
     public int reindexQueued() {
         int totalRows = drainQueue();
