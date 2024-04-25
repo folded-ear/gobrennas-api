@@ -19,7 +19,7 @@ public class EmptyTrashBins {
     @Autowired
     private PlanItemRepository planItemRepository;
 
-    @Scheduled(cron = "37 37 * * * *")
+    @Scheduled(cron = "${random.int[60]} ${random.int[60]} * * * *")
     public void emptyTrashBins() {
         val cutoff = Instant.now().minus(1, ChronoUnit.DAYS);
         val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
