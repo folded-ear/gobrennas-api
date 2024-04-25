@@ -24,10 +24,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class IngredientReindexQueueServiceImplTest {
+class IngredientReindexQueueServiceTest {
 
     @InjectMocks
-    private IngredientReindexQueueServiceImpl service;
+    private IngredientReindexQueueService service;
 
     @Mock
     private NamedParameterJdbcTemplate jdbcTemplate;

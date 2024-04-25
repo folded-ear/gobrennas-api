@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services.indexing;
 
+import com.brennaswitzer.cookbook.payload.QueueStats;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Value;
@@ -9,20 +10,7 @@ import lombok.Value;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class IndexStats {
 
-    /**
-     * Number of items on the reindexing queue.
-     */
-    long queueSize;
-
-    /**
-     * Maximum age in seconds of items on the reindexing queue, -1 if the queue is empty.
-     */
-    long queueMaxAge;
-
-    /**
-     * Minimum age in seconds of items on the reindexing queue, -1 if the queue is empty.
-     */
-    long queueMinAge;
+    QueueStats queueStats;
 
     /**
      * Total number of ingredients.

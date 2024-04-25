@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -20,7 +19,7 @@ public class EmptyTrashBins {
     @Autowired
     private PlanItemRepository planItemRepository;
 
-    @Scheduled(fixedDelay = 60, initialDelay = 1, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(cron = "37 37 * * * *")
     public void emptyTrashBins() {
         val cutoff = Instant.now().minus(1, ChronoUnit.DAYS);
         val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
