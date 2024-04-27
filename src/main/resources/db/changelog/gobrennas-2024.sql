@@ -207,3 +207,171 @@ CREATE INDEX idx_recipe_fulltext ON ingredient
 CREATE INDEX idx_pantry_item_fulltext ON ingredient
     USING GIN (fulltext, owner_id)
     WHERE dtype = 'PantryItem';
+
+--changeset barneyb:q_ingredient_fulltext_handler splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_ingredient_fulltext_handler(id BIGINT) RETURNS VOID AS
+$$
+BEGIN
+    UPDATE ingredient
+    SET fulltext = SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.name, '')), 'A') ||
+                   SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                           (SELECT STRING_AGG(l.name, ' ' ORDER BY l.name)
+                            FROM ingredient_labels il
+                                     JOIN label l ON l.id = il.label_id
+                            WHERE il.ingredient_id = ingredient.id), '')), 'B') ||
+                   CASE ingredient.dtype
+                       WHEN 'PantryItem' THEN
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                   (SELECT STRING_AGG(synonym, CHR(10) ORDER BY synonym)
+                                    FROM pantry_item_synonyms link
+                                    WHERE pantry_item_id = ingredient.id), '')), 'A')
+                       WHEN 'Recipe' THEN
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                   (SELECT STRING_AGG(
+                                                   CASE
+                                                       WHEN i.id IS NULL THEN COALESCE(raw, '')
+                                                       ELSE COALESCE(i.name, '') || ' ' || COALESCE(raw, '')
+                                                       END,
+                                                   CHR(10) ORDER BY _order)
+                                    FROM recipe_ingredients link
+                                             LEFT JOIN ingredient i ON link.ingredient_id = i.id
+                                    WHERE recipe_id = ingredient.id), '')), 'C') ||
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(
+                                   (SELECT STRING_AGG(DISTINCT synonym, CHR(10))
+                                    FROM recipe_ingredients link
+                                             JOIN pantry_item_synonyms syn ON link.ingredient_id = syn.pantry_item_id
+                                    WHERE recipe_id = ingredient.id), '')), 'C') ||
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.directions, '')), 'D')
+                       END
+    WHERE ingredient.id = q_ingredient_fulltext_handler.id;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:q_ingredient_fulltext_trig splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_ingredient_fulltext_trig() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM q_ingredient_fulltext_handler(old_table.id)
+    FROM old_table;
+    RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:queue-centric-schema-object-naming
+ALTER TABLE ingredient_fulltext_reindex_queue
+    RENAME CONSTRAINT pk_ingredient_reindex_queue
+        TO pk_q_ingredient_fulltext;
+ALTER TABLE ingredient_fulltext_reindex_queue
+    RENAME CONSTRAINT fk_ingredient_reindex_queue
+        TO fk_q_ingredient_fulltext;
+ALTER INDEX idx_ingredient_fulltext_reindex_queue_ts
+    RENAME TO idx_q_ingredient_fulltext_ts;
+DROP TRIGGER ingredient_fulltext_update_trigger
+    ON ingredient_fulltext_reindex_queue;
+DROP FUNCTION ingredient_fulltext_update_handler();
+DROP FUNCTION ingredient_fulltext_update(BIGINT);
+
+ALTER TABLE ingredient_fulltext_reindex_queue
+    RENAME TO q_ingredient_fulltext;
+
+CREATE TRIGGER q_trig_ingredient_fulltext
+    AFTER DELETE
+    ON q_ingredient_fulltext
+    REFERENCING OLD TABLE AS old_table
+    FOR EACH ROW
+EXECUTE PROCEDURE q_ingredient_fulltext_trig();
+
+--changeset barneyb:drop-old-duplicate-finder-function
+DROP FUNCTION rebuild_pantry_item_duplicates;
+
+--changeset barneyb:q_pantry_item_duplicates_handler splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_pantry_item_duplicates_handler(id BIGINT) RETURNS VOID AS
+$$
+BEGIN
+    DELETE
+    FROM pantry_item_duplicates
+    WHERE pantry_item_id = q_pantry_item_duplicates_handler.id;
+
+    -- tight: name/synonyms as phrases
+    INSERT INTO pantry_item_duplicates
+    SELECT item.id
+         , dupe.id
+         , FALSE
+         , TS_RANK(dupe.fulltext, q_name) + COALESCE(TS_RANK(dupe.fulltext, q_syn), 0) rank
+    FROM ingredient item,
+         websearch_to_tsquery('en', '"' || REPLACE(item.name, '"', ' ') || '"') q_name,
+         websearch_to_tsquery('en', (SELECT STRING_AGG('"' || REPLACE(synonym, '"', ' ') || '"', ' OR ')
+                                     FROM pantry_item_synonyms syn
+                                     WHERE pantry_item_id = item.id)) q_syn,
+         ingredient dupe
+    WHERE item.id = q_pantry_item_duplicates_handler.id
+      AND dupe.dtype = 'PantryItem'
+      AND dupe.id != item.id
+      AND dupe.fulltext @@ CASE
+                               WHEN q_syn IS NULL
+                                   THEN q_name
+                               ELSE q_name || q_syn
+        END;
+
+    -- loose: each separate word
+    INSERT INTO pantry_item_duplicates
+    SELECT item.id
+         , dupe.id
+         , TRUE
+         , TS_RANK(dupe.fulltext, q_name) + COALESCE(TS_RANK(dupe.fulltext, q_syn), 0) rank
+    FROM ingredient item,
+         websearch_to_tsquery('en', REPLACE(REPLACE(item.name, '-', ' '), ' ', ' OR ')) q_name,
+         websearch_to_tsquery('en', (SELECT REPLACE(STRING_AGG(REPLACE(synonym, '-', ' '), ' '), ' ', ' OR ')
+                                     FROM pantry_item_synonyms syn
+                                     WHERE pantry_item_id = item.id)) q_syn,
+         ingredient dupe
+    WHERE item.id = q_pantry_item_duplicates_handler.id
+      AND dupe.dtype = 'PantryItem'
+      AND dupe.id != item.id
+      AND dupe.fulltext @@ CASE
+                               WHEN q_syn IS NULL
+                                   THEN q_name
+                               ELSE q_name || q_syn
+        END
+    ON CONFLICT DO NOTHING;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:q_pantry_item_duplicates_trig splitStatements:false runOnChange:true
+CREATE OR REPLACE FUNCTION q_pantry_item_duplicates_trig() RETURNS TRIGGER AS
+$$
+BEGIN
+    PERFORM q_pantry_item_duplicates_handler(old_table.id)
+    FROM old_table;
+    RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+--changeset barneyb:pantry-item-duplicates-queue
+CREATE TABLE q_pantry_item_duplicates
+(
+    id BIGINT                   NOT NULL,
+    ts TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CLOCK_TIMESTAMP(),
+    CONSTRAINT pk_q_pantry_item_duplicates
+        PRIMARY KEY (id),
+    CONSTRAINT fk_q_pantry_item_duplicates
+        FOREIGN KEY (id)
+            REFERENCES ingredient (id)
+            ON DELETE CASCADE
+);
+
+CREATE INDEX idx_q_pantry_item_duplicates
+    ON q_pantry_item_duplicates (ts);
+
+CREATE TRIGGER q_trig_pantry_item_duplicates
+    AFTER DELETE
+    ON q_pantry_item_duplicates
+    REFERENCING OLD TABLE AS old_table
+    FOR EACH ROW
+EXECUTE PROCEDURE q_pantry_item_duplicates_trig();
+
+INSERT INTO q_pantry_item_duplicates (id)
+SELECT id
+FROM ingredient
+WHERE dtype = 'PantryItem'
+ON CONFLICT DO NOTHING;

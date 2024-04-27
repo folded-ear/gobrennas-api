@@ -31,3 +31,14 @@ logging:
   level:
     #    org.springframework: debug
     com.brennaswitzer: debug
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: beta
+app:
+  public-url: https://beta.gobrennas.com/
+  aws:
+    bucket-name: beta-foodinger

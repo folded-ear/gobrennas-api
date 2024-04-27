@@ -25,7 +25,7 @@ public class IngredientFulltextIndexer {
         NamedParameterQuery query = new NamedParameterQuery(
                 """
                 DELETE
-                FROM ingredient_fulltext_reindex_queue
+                FROM q_ingredient_fulltext
                 WHERE id = :id
                 """,
                 "id",
@@ -37,16 +37,16 @@ public class IngredientFulltextIndexer {
             // end up being reindexed (as a no-op) in the future. If you're not
             // first, you're last!
             query = new NamedParameterQuery(
-                    "select ingredient_fulltext_update(:id)",
+                    "select q_ingredient_fulltext_handler(:id)",
                     "id",
                     event.ingredientId());
             jdbcTemplate.query(query.getStatement(),
                                query.getParameters(),
                                rs -> {
                                });
-            log.info("couldn't reindex ingredient {}, queued instead", event.ingredientId());
+            log.info("couldn't reindex ingredient '{}', queued instead", event.ingredientId());
         } else {
-            log.info("reindexed ingredient {} immediately", event.ingredientId());
+            log.info("reindexed ingredient '{}' immediately", event.ingredientId());
         }
     }
 

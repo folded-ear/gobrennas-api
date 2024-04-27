@@ -36,7 +36,7 @@ class IngredientIndexSmokeTest {
     }
 
     @Test
-    void onShotReindex() {
+    void oneShotReindex() {
         indexer.reindexIngredientImmediately(
                 new ReindexIngredientEvent(
                         box.flour.getId()));
