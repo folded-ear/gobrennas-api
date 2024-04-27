@@ -10,6 +10,8 @@ public interface PantryItemSearchRepository {
 
     Map<PantryItem, Long> countTotalUses(Collection<PantryItem> items);
 
+    Map<PantryItem, Long> countDuplicates(Collection<PantryItem> items);
+
     SearchResponse<PantryItem> search(PantryItemSearchRequest request);
 
 }

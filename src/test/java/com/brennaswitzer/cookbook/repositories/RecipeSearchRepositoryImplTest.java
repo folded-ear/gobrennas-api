@@ -83,7 +83,7 @@ public class RecipeSearchRepositoryImplTest {
                 .setMaxResults(2 + 1);
         assertFalse(result.isFirst());
         assertFalse(result.isLast());
-        assertEquals(2, result.getSize());
+        assertEquals(2, result.size());
     }
 
     @Test

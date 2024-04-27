@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.services.indexing;
+package com.brennaswitzer.cookbook.services.async;
 
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ public abstract class QueueProcessor {
 
     protected abstract NamedParameterQuery selectAllIds();
 
-    protected final int drainQueue() {
+    public int drainQueue() {
         if (!lock.tryLock()) return 0;
         try {
             return drainQueueInternal();

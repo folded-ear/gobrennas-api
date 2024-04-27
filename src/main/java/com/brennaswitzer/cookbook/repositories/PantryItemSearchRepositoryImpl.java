@@ -1,18 +1,27 @@
 package com.brennaswitzer.cookbook.repositories;
 
+import com.brennaswitzer.cookbook.domain.Identified;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
+@Slf4j
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepository {
 
@@ -29,23 +38,56 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
             )
             """;
 
+    private static final String DUPLICATE_COUNT_BY_ID =
+            """
+            (select count(*)
+             from PantryItemDuplicate
+             where pantryItem.id = %1$s
+               and not loose
+            )
+            """;
+
     @Autowired
     private EntityManager entityManager;
 
     private record IdAndCount(Long id, Long count) {}
 
-    private record ItemAndUse(PantryItem item, Long useCount) {}
+    // Type shenanigans to allow Hibernate's reflective instantiation. An empty
+    // string is used as semaphore for "no value" since the JDBC ResultSet won't
+    // type a null-valued column, and JPA doesn't have casts like SQL.
+    @SuppressWarnings("unused")
+    private record ItemAndCounts(PantryItem item, Long useCount, Long dupeCount) {
 
-    @Override
-    public Map<PantryItem, Long> countTotalUses(Collection<PantryItem> items) {
-        Map<PantryItem, Long> result = new HashMap<>();
-        Map<Long, PantryItem> toFetchById = new HashMap<>();
+        ItemAndCounts(PantryItem item, Long useCount, String ignoredDupeCount) {
+            this(item, useCount, (Long) null);
+        }
+
+        ItemAndCounts(PantryItem item, String ignoredUseCount, Long dupeCount) {
+            this(item, (Long) null, dupeCount);
+        }
+
+    }
+
+    @VisibleForTesting
+    Long countTotalUses(PantryItem item) {
+        return countTotalUses(Collections.singleton(item))
+                .get(item);
+    }
+
+    private <T extends Identified> Map<T, Long> countSomething(
+            Collection<T> items,
+            Function<T, Long> getter,
+            BiConsumer<T, Long> setter,
+            String countExpression) {
+        Map<T, Long> result = new HashMap<>();
+        Map<Long, T> toFetchById = new HashMap<>();
         for (var it : items) {
             if (result.containsKey(it)) continue;
-            if (it.getUseCount() == null) {
+            Long value = getter.apply(it);
+            if (value == null) {
                 toFetchById.put(it.getId(), it);
             } else {
-                result.put(it, it.getUseCount());
+                result.put(it, value);
             }
         }
         if (toFetchById.isEmpty()) return result;
@@ -55,8 +97,8 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                 """)
                 .append(String.format(
                         """
-                             , %s as use_count
-                        """, String.format(USE_COUNT_BY_ID, "item.id")))
+                             , %s
+                        """, String.format(countExpression, "item.id")))
                 .append("""
                         from PantryItem item
                         where id in :ids
@@ -65,26 +107,60 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                                               IdAndCount.class);
         q.forEachParameter(query::setParameter);
         query.getResultList().forEach(r -> {
-            PantryItem item = toFetchById.get(r.id());
-            item.setUseCount(r.count());
+            T item = toFetchById.get(r.id());
+            setter.accept(item, r.count());
             result.put(item, r.count());
         });
         return result;
     }
 
     @Override
+    public Map<PantryItem, Long> countTotalUses(Collection<PantryItem> items) {
+        return countSomething(items,
+                              PantryItem::getUseCount,
+                              PantryItem::setUseCount,
+                              USE_COUNT_BY_ID);
+    }
+
+    @VisibleForTesting
+    Long countDuplicates(PantryItem item) {
+        return countDuplicates(Collections.singleton(item))
+                .get(item);
+    }
+
+    @Override
+    public Map<PantryItem, Long> countDuplicates(Collection<PantryItem> items) {
+        return countSomething(items,
+                              PantryItem::getDuplicateCount,
+                              PantryItem::setDuplicateCount,
+                              DUPLICATE_COUNT_BY_ID);
+    }
+
+    @Override
     public SearchResponse<PantryItem> search(PantryItemSearchRequest request) {
-        var sortedByUseCount = request.isSorted()
-                               && request.getSort()
-                                       .stream()
-                                       .anyMatch(s -> "useCount".equals(s.getProperty())
-                                                      || "useCounts".equals(s.getProperty()));
+        boolean sortedByUseCount = false;
+        boolean sortedByDuplicateCount = false;
+        if (request.isSorted()) {
+            for (var s : request.getSort()) {
+                switch (s.getProperty()) {
+                    case "useCount" -> sortedByUseCount = true;
+                    case "duplicateCount" -> sortedByDuplicateCount = true;
+                }
+            }
+        }
+        var sortedByACount = sortedByUseCount || sortedByDuplicateCount;
         var stmt = new NamedParameterQuery("select distinct item\n");
-        if (sortedByUseCount) {
+        if (sortedByACount) {
             stmt.append(String.format(
                     """
                          , %s as use_count
-                    """, String.format(USE_COUNT_BY_ID, "item.id")));
+                    """,
+                    sortedByUseCount ? String.format(USE_COUNT_BY_ID, "item.id") : "''"));
+            stmt.append(String.format(
+                    """
+                         , %s as dupe_count
+                    """,
+                    sortedByDuplicateCount ? String.format(DUPLICATE_COUNT_BY_ID, "item.id") : "''"));
         }
         stmt.append("""
                     from PantryItem item
@@ -96,7 +172,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
             for (var word : EnglishUtils.canonicalize(request.getFilter())
                     .split(" ")) {
                 if (word.isBlank()) continue;
-                stmt.append(i == 0 ? "where" : "or");
+                stmt.append(i == 0 ? "where (" : "or");
                 String p = "p" + (i++);
                 stmt.append(String.format(
                         """
@@ -105,13 +181,27 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                          or upper(lbl.name) like upper('%%' || :%1$s || '%%') escape '\\')
                         """, p), p, word);
             }
+            stmt.append(")\n");
+        }
+        if (request.isDuplicateOf()) {
+            stmt.append(request.isFiltered() ? "and " : "where ")
+                    .append("""
+                            (item.id = :dupeOf
+                             or exists (from PantryItemDuplicate
+                                        where pantryItem.id = :dupeOf
+                                          and duplicate.id = item.id
+                                          and not loose
+                                       )
+                            )
+                            """, "dupeOf", request.getDuplicateOf());
         }
         stmt.append("order by ");
         if (request.isSorted()) {
             for (var sort : request.getSort()) {
                 switch (sort.getProperty()) {
                     case "firstUse" -> stmt.identifier("item.createdAt");
-                    case "useCount", "useCounts" -> stmt.append("use_count");
+                    case "useCount" -> stmt.identifier("use_count");
+                    case "duplicateCount" -> stmt.identifier("dupe_count");
                     default -> stmt.identifier("item." + sort.getProperty());
                 }
                 stmt.append(" ")
@@ -121,16 +211,37 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
         }
         stmt.append("item.id");
         List<PantryItem> pantryItems;
-        if (sortedByUseCount) {
-            pantryItems = query(request, stmt, ItemAndUse.class)
+        if (sortedByACount) {
+            pantryItems = query(request, stmt, ItemAndCounts.class)
                     .stream()
-                    .map(iau -> {
-                        iau.item().setUseCount(iau.useCount());
-                        return iau.item();
+                    .map(iac -> {
+                        PantryItem item = iac.item();
+                        if (iac.useCount() != null) {
+                            item.setUseCount(iac.useCount());
+                        }
+                        if (iac.dupeCount() != null) {
+                            item.setDuplicateCount(iac.dupeCount());
+                        }
+                        return item;
                     })
                     .toList();
         } else {
             pantryItems = query(request, stmt, PantryItem.class);
+        }
+        if (request.isDuplicateOf()) {
+            // If the target is in the page being returned, ensure it's first.
+            Iterator<PantryItem> itr = pantryItems.iterator();
+            for (int i = 0; itr.hasNext(); i++) {
+                PantryItem curr = itr.next();
+                if (request.getDuplicateOf().equals(curr.getId())) {
+                    // Make a new connection, in case Hibernate returns
+                    // something immutable.
+                    pantryItems = new ArrayList<>(pantryItems);
+                    pantryItems.add(0,
+                                    pantryItems.remove(i));
+                    break;
+                }
+            }
         }
         return SearchResponse.of(request, pantryItems);
     }
