@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
-import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.FavoriteType;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
@@ -13,7 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -70,16 +70,15 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .toList();
     }
 
-    public List<Recipe> subrecipes(Recipe recipe) {
-        List<Recipe> result = new ArrayList<>();
+    public Collection<Recipe> subrecipes(Recipe recipe) {
+        Collection<Recipe> result = new LinkedHashSet<>();
         Queue<IngredientRef> queue = new LinkedList<>(recipe.getIngredients());
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
             Ingredient i = ir.getIngredient();
-            if (i instanceof Recipe) {
-                result.add((Recipe) i);
-                queue.addAll(((AggregateIngredient) i).getIngredients());
+            if (i instanceof Recipe r && result.add(r)) {
+                queue.addAll(r.getIngredients());
             }
         }
         return result;
