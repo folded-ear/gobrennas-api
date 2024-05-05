@@ -9,6 +9,10 @@ public interface UserPrincipalAccess {
         return getUserPrincipal().getId();
     }
 
+    default String getUsername() {
+        return getUserPrincipal().getUsername();
+    }
+
     UserPrincipal getUserPrincipal();
 
     default User getUser() {

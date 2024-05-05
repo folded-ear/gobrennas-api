@@ -379,3 +379,13 @@ ON CONFLICT DO NOTHING;
 --changeset barneyb:use-dtype-for-plan-items-discriminator
 alter table plan_item
     rename column _type to dtype;
+
+--changeset barneyb:envers-auditing-setup
+create sequence aud_seq start with 1 increment by 50;
+create table aud__revinfo
+(
+    rev          bigint not null default nextval('aud_seq'),
+    rev_tstmp    bigint not null default extract(epoch from now()) * 1000,
+    rev_username varchar,
+    primary key (rev)
+);
