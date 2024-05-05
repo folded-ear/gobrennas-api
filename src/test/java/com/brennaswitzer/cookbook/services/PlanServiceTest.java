@@ -8,6 +8,8 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.util.RecipeBox;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
+import java.util.List;
 
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.printTree;
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -37,6 +42,9 @@ class PlanServiceTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    UserPrincipalAccess principalAccess;
 
     @Autowired
     private UserRepository userRepo;
@@ -86,6 +94,39 @@ class PlanServiceTest {
         assertEquals("Vacation", v.getName());
         assertEquals(1, v.getPosition());
         assertEquals(0, v.getChildCount());
+    }
+
+    @Test
+    void duplicatePlan() {
+        var box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+        Plan groceries = service.createPlan("Groceries", alice);
+        service.addRecipe(groceries.getId(), box.pizza, 1.0);
+        entityManager.flush();
+        PlanItem pizza = groceries.getChildView().iterator().next();
+        List<Long> sauceIds = pizza.getChildView()
+                .stream()
+                .filter(it -> box.pizzaSauce.equals(it.getIngredient()))
+                .map(PlanItem::getId)
+                .toList();
+        assert sauceIds.size() == 1;
+        service.mutateTree(sauceIds, groceries.getId(), null);
+        List<Long> crustIds = pizza.getChildView()
+                .stream()
+                .filter(it -> box.pizzaCrust.equals(it.getIngredient()))
+                .map(PlanItem::getId)
+                .toList();
+        assert crustIds.size() == 1;
+        service.mutateTree(crustIds, groceries.getId(), pizza.getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        Plan dupe = service.duplicatePlan("Dupe", groceries.getId());
+
+        printTree("Plans", groceries, dupe);
+        // sort of a cheesy assertion, but c'est la vie
+        assertEquals(renderTree("Items", groceries.getOrderedChildView()),
+                     renderTree("Items", dupe.getOrderedChildView()));
     }
 
     @Test

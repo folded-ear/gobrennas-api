@@ -4,7 +4,7 @@ import com.brennaswitzer.cookbook.util.RecipeBox;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
-import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.printTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -190,7 +190,7 @@ public class PlanItemTest {
         PlanItem salad = new PlanItem("Salad").of(groceries);
         PlanItem lunch = new PlanItem("Lunch").of(groceries);
 
-        System.out.println(renderTree("Meals", groceries));
+        printTree("Meals", groceries);
 
         PlanItem meat = new PlanItem("meat").of(tacos);
         PlanItem tortillas = new PlanItem("tortillas").of(tacos);
@@ -207,7 +207,7 @@ public class PlanItemTest {
         PlanItem cheese2 = new PlanItem("cheese").of(lunch);
         PlanItem bread = new PlanItem("bread").of(lunch);
 
-        System.out.println(renderTree("Ingredients", groceries));
+        printTree("Ingredients", groceries);
 
         PlanItem costco = new PlanItem("Costco").of(groceries, null),
                 winco = new PlanItem("Winco").of(groceries, costco);
@@ -228,7 +228,7 @@ public class PlanItemTest {
         }
         bread.after(salsa);
 
-        System.out.println(renderTree("Shopping", groceries));
+        printTree("Shopping", groceries);
     }
 
     @Test
@@ -248,19 +248,19 @@ public class PlanItemTest {
         val c = new PlanItem("c");
         b.addChild(c);
 
-        System.out.println(renderTree("initial", plan));
+        printTree("initial", plan);
 
         b.moveToTrash();
-        System.out.println(renderTree("trash b", plan));
+        printTree("trash b", plan);
 
         a.moveToTrash();
-        System.out.println(renderTree("trash a", plan));
+        printTree("trash a", plan);
 
         b.restoreFromTrash();
-        System.out.println(renderTree("restore b", plan));
+        printTree("restore b", plan);
 
         a.restoreFromTrash();
-        System.out.println(renderTree("restore a", plan));
+        printTree("restore a", plan);
     }
 
 }
