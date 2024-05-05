@@ -375,3 +375,7 @@ SELECT id
 FROM ingredient
 WHERE dtype = 'PantryItem'
 ON CONFLICT DO NOTHING;
+
+--changeset barneyb:use-dtype-for-plan-items-discriminator
+alter table plan_item
+    rename column _type to dtype;
