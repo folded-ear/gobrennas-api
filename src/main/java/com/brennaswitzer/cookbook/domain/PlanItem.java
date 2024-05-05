@@ -40,7 +40,7 @@ import static jakarta.persistence.CascadeType.REFRESH;
 @SuppressWarnings("WeakerAccess")
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "_type")
+@DiscriminatorColumn
 @DiscriminatorValue("item")
 public class PlanItem extends BaseEntity implements Named, MutableItem {
 
