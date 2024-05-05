@@ -16,41 +16,45 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+@Setter
 @Entity
 @DiscriminatorValue("Recipe")
 @JsonTypeName("Recipe")
+@Audited
 public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     // this will gracefully store the same way as an @Embedded Acl will
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotAudited
     private User owner;
 
     // these will gracefully emulate AccessControlled's owner property
     @JsonIgnore // but hide it from the client :)
     public User getOwner() { return owner; }
-    public void setOwner(User owner) { this.owner = owner; }
 
     // end access control emulation
 
     @Getter
-    @Setter
+    @NotAudited
     private String externalUrl;
 
     @Getter
-    @Setter
+    @NotAudited
     private String directions;
 
     @Getter
-    @Setter
+    @NotAudited
     private Integer yield;
 
     @Getter
-    @Setter
+    @NotAudited
     private Integer calories;
 
     @Embedded
@@ -61,6 +65,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
             @AttributeOverride(name = "focusTop", column = @Column(name = "photo_focus_top")),
             @AttributeOverride(name = "focusLeft", column = @Column(name = "photo_focus_left"))
     })
+    @NotAudited
     private Photo photo;
     public Photo getPhoto() {
         return getPhoto(false);
@@ -71,9 +76,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         }
         return this.photo;
     }
-    public void setPhoto(Photo photo) {
-        this.photo = photo;
-    }
+
     public void setPhoto(S3File file) {
         getPhoto(true).setFile(file);
     }
@@ -90,11 +93,12 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
      * Time is stored in milliseconds
      */
     @Getter
-    @Setter
+    @NotAudited
     private Integer totalTime;
 
     @ElementCollection
     @OrderBy("_idx, raw")
+    @NotAudited
     private List<IngredientRef> ingredients;
 
     public Recipe() {
@@ -106,10 +110,6 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     public List<IngredientRef> getIngredients() {
         return this.ingredients;
-    }
-
-    public void setIngredients(List<IngredientRef> ingredients) {
-        this.ingredients = ingredients;
     }
 
     @Override

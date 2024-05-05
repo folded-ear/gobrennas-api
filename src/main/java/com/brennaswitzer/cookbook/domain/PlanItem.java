@@ -17,6 +17,7 @@ import lombok.Setter;
 import lombok.val;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,6 +74,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     @NotNull
     @Getter
     @Setter
+    @Audited
     private String name;
 
     @Getter
@@ -82,6 +84,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     @Column(name = "status_id")
     @Getter
     @Setter
+    @Audited
     private PlanItemStatus status = PlanItemStatus.NEEDED;
 
     @Embedded
@@ -125,11 +128,13 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
             fetch = FetchType.LAZY)
     @Getter
     @Setter
+    @Audited
     private Ingredient ingredient;
 
     @Getter
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
+    @Audited
     private PlanBucket bucket;
 
     @Getter

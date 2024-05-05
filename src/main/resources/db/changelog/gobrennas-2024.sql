@@ -389,3 +389,112 @@ create table aud__revinfo
     rev_username varchar,
     primary key (rev)
 );
+
+--changeset barneyb:add-auditing-for-planned-recipes-and-initialize-history
+create table aud_ingredient
+(
+    id           bigint  not null,
+    rev          bigint  not null,
+    revtype      smallint,
+    revend       bigint,
+    revend_tstmp bigint,
+    -- data columns
+    dtype        varchar not null,
+    name         varchar,
+    constraint pk_aud_ingredient primary key (id, rev),
+    constraint fk_aud_ingredient_rev
+        foreign key (rev)
+            references aud__revinfo
+            on delete cascade,
+    constraint fk_aud_ingredient_revend
+        foreign key (revend)
+            references aud__revinfo
+            on delete cascade
+);
+
+insert into aud__revinfo (rev_username)
+values ('system');
+
+insert into aud_ingredient
+select id
+     , (select max(rev) from aud__revinfo)
+     , 0 -- add
+     , null
+     , null
+     , dtype
+     , name
+from ingredient;
+
+create table aud_plan_bucket
+(
+    id           bigint not null,
+    rev          bigint not null,
+    revtype      smallint,
+    revend       bigint,
+    revend_tstmp bigint,
+    -- data columns
+    name         varchar,
+    date         date,
+    constraint pk_aud_plan_bucket primary key (id, rev),
+    constraint fk_aud_plan_bucket_rev
+        foreign key (rev)
+            references aud__revinfo
+            on delete cascade,
+    constraint fk_aud_plan_bucket_revend
+        foreign key (revend)
+            references aud__revinfo
+            on delete cascade
+);
+
+insert into aud__revinfo (rev_username)
+values ('system');
+
+insert into aud_plan_bucket
+select id
+     , (select max(rev) from aud__revinfo)
+     , 0 -- add
+     , null
+     , null
+     , name
+     , date
+from plan_bucket;
+
+create table aud_plan_item
+(
+    id            bigint  not null,
+    rev           bigint  not null,
+    revtype       smallint,
+    revend        bigint,
+    revend_tstmp  bigint,
+    -- data columns
+    dtype         varchar not null,
+    name          varchar,
+    status_id     bigint,
+    ingredient_id bigint,
+    bucket_id     bigint,
+    constraint pk_aud_plan_item primary key (id, rev),
+    constraint fk_aud_plan_item_rev
+        foreign key (rev)
+            references aud__revinfo
+            on delete cascade,
+    constraint fk_aud_plan_item_revend
+        foreign key (revend)
+            references aud__revinfo
+            on delete cascade
+);
+
+insert into aud__revinfo (rev_username)
+values ('system');
+
+insert into aud_plan_item
+select id
+     , (select max(rev) from aud__revinfo)
+     , 0 -- add
+     , null
+     , null
+     , dtype
+     , name
+     , status_id
+     , ingredient_id
+     , bucket_id
+from plan_item;
