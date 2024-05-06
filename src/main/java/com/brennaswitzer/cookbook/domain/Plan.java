@@ -24,11 +24,11 @@ public class Plan extends PlanItem implements AccessControlled {
     private Acl acl = new Acl();
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 100)
+    @BatchSize(size = 50)
     private Set<PlanBucket> buckets;
 
     @OneToMany(mappedBy = "trashBin", cascade = CascadeType.ALL)
-    @BatchSize(size = 100)
+    @BatchSize(size = 50)
     private Set<PlanItem> trashBinItems;
 
     public Plan() {
