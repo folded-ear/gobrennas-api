@@ -11,9 +11,11 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.envers.Audited;
@@ -96,20 +98,21 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @NotAudited
     private Integer totalTime;
 
+    @Getter
     @ElementCollection
     @OrderBy("_idx, raw")
     @NotAudited
     private List<IngredientRef> ingredients;
+
+    @Getter
+    @OneToMany(mappedBy = "recipe")
+    private Collection<PlannedRecipeHistory> planHistory;
 
     public Recipe() {
     }
 
     public Recipe(String name) {
         setName(name);
-    }
-
-    public List<IngredientRef> getIngredients() {
-        return this.ingredients;
     }
 
     @Override

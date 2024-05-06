@@ -21,7 +21,7 @@ public class EmptyTrashBins {
 
     @Scheduled(cron = "${random.int[60]} ${random.int[60]} * * * *")
     public void emptyTrashBins() {
-        val cutoff = Instant.now().minus(1, ChronoUnit.DAYS);
+        val cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
         val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
         log.info("Deleted {} old item(s) from the trash bin", n);
     }

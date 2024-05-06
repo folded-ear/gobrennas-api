@@ -2,11 +2,13 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
+import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
+import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
@@ -16,17 +18,21 @@ import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
+import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,6 +50,9 @@ public class PlanService {
 
     @Autowired
     protected PlanBucketRepository bucketRepo;
+
+    @Autowired
+    private PlannedRecipeHistoryRepository recipeHistoryRepo;
 
     @Autowired
     protected UserPrincipalAccess principalAccess;
@@ -230,6 +239,19 @@ public class PlanService {
     }
 
     private void duplicateChildren(PlanItem src, PlanItem dest) {
+        Map<PlanItem, PlanItem> srcToDest = new HashMap<>();
+        duplicateChildren(src, dest, srcToDest);
+        // When a component is moved out from under its aggregate, it may move
+        // earlier on the plan, so have to do these as a second pass.
+        srcToDest.forEach((s, d) -> {
+            if (s.isAggregated()) {
+                d.setAggregate(srcToDest.get(s.getAggregate()));
+            }
+        });
+    }
+
+    private void duplicateChildren(PlanItem src, PlanItem dest, Map<PlanItem, PlanItem> srcToDest) {
+        srcToDest.put(src, dest);
         if (!src.hasChildren()) return;
         for (PlanItem s : src.getOrderedChildView()) {
             PlanItem d = new PlanItem(
@@ -238,9 +260,10 @@ public class PlanService {
                     s.getIngredient(),
                     s.getPreparation()
             );
-            d.setStatus(s.getStatus()); // unclear if this is good?
+            d.setStatus(s.getStatus());
+            d.setNotes(s.getNotes());
             dest.addChild(d);
-            duplicateChildren(s, d);
+            duplicateChildren(s, d, srcToDest);
         }
     }
 
@@ -365,41 +388,51 @@ public class PlanService {
 
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
-        if (status.isForDelete()) {
+        item.setStatus(status);
+        if (item.getStatus().isForDelete()) {
+            recordRecipeHistories(item, item.getStatus());
             item.moveToTrash();
         }
-        item.setStatus(status);
         return item;
     }
 
-    public PlanMessage setItemStatusForMessage(Long id, PlanItemStatus status) {
-        if (status.isForDelete()) {
-            return deleteItemForMessage(id);
+    private void recordRecipeHistories(PlanItem item,
+                                       PlanItemStatus status) {
+        Ingredient ingredient = (Ingredient) Hibernate.unproxy(item.getIngredient());
+        if (ingredient instanceof Recipe r) {
+            var h = new PlannedRecipeHistory();
+            h.setRecipe(r);
+            h.setPlanItemId(item.getId());
+            h.setPlannedAt(item.getCreatedAt());
+            h.setStatus(status);
+            recipeHistoryRepo.save(h);
         }
-        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
-        item.setStatus(status);
+        if (item.hasChildren()) {
+            item.getChildView()
+                    .forEach(it -> recordRecipeHistories(it, status));
+        }
+    }
+
+    public PlanMessage setItemStatusForMessage(Long id, PlanItemStatus status) {
+        PlanItem item = setItemStatus(id, status);
+        if (item.getStatus().isForDelete()) {
+            val m = new PlanMessage();
+            m.setId(id);
+            m.setType("delete");
+            return m;
+        }
         return buildUpdateMessage(item);
     }
 
     public PlanItem deleteItemForParent(Long id) {
-        val item = getPlanItemById(id, AccessLevel.CHANGE);
+        val item = setItemStatus(id, PlanItemStatus.DELETED);
         if (item.hasParent()) {
-            val parent = item.getParent();
-            item.moveToTrash();
-            return parent;
+            return item.getParent();
         } else {
             throw new IllegalArgumentException(String.format(
                     "ID '%s' is a plan",
                     id));
         }
-    }
-
-    public PlanMessage deleteItemForMessage(Long id) {
-        deleteItemForParent(id);
-        val m = new PlanMessage();
-        m.setId(id);
-        m.setType("delete");
-        return m;
     }
 
     public void deletePlan(Long id) {

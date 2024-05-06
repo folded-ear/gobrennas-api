@@ -380,6 +380,27 @@ ON CONFLICT DO NOTHING;
 alter table plan_item
     rename column _type to dtype;
 
+--changeset barneyb:planned-recipe-history
+create table planned_recipe_history
+(
+    id           bigint                   not null default nextval('id_seq'),
+    _eqkey       bigint                   not null default date_part('epoch'::text, clock_timestamp()),
+    created_at   timestamp with time zone not null,
+    updated_at   timestamp with time zone not null,
+    recipe_id    bigint                   not null,
+    plan_item_id bigint                   not null,
+    planned_at   timestamp with time zone not null,
+    status_id    bigint                   not null,
+    constraint pk_planned_recipe_history primary key (id),
+    constraint fk_planned_recipe_history_recipe
+        foreign key (recipe_id)
+            references ingredient (id)
+            on delete cascade
+);
+
+create index idx_planned_recipe_history_recipe
+    on planned_recipe_history (recipe_id);
+
 --changeset barneyb:envers-auditing-setup
 create sequence aud_seq start with 1 increment by 50;
 create table aud__revinfo
