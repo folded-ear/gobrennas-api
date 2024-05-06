@@ -5,10 +5,11 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.history.RevisionRepository;
 
 import java.time.Instant;
 
-public interface PlanItemRepository extends BaseEntityRepository<PlanItem> {
+public interface PlanItemRepository extends BaseEntityRepository<PlanItem>, RevisionRepository<PlanItem, Long, Long> {
 
     int countByStatusNot(PlanItemStatus status);
 

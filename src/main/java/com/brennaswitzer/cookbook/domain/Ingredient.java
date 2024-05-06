@@ -13,6 +13,7 @@ import jakarta.persistence.InheritanceType;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.envers.Audited;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ public abstract class Ingredient extends BaseEntity implements Named, Labeled {
 
     @Getter
     @Setter
+    @Audited
     private String name;
 
     @ElementCollection

@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.collection.spi.PersistentSet;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.springframework.util.Assert;
 
 import java.util.Collections;
@@ -24,6 +26,7 @@ import java.util.Set;
 @Entity
 @DiscriminatorValue("PantryItem")
 @JsonTypeName("PantryItem")
+@Audited
 public class PantryItem extends Ingredient {
 
     public static final Comparator<PantryItem> BY_STORE_ORDER = (a, b) -> {
@@ -37,12 +40,14 @@ public class PantryItem extends Ingredient {
     };
 
     // todo: make this user specific
+    @NotAudited
     private int storeOrder = 0;
 
     @ElementCollection
     @BatchSize(size = 50)
     @Column(name = "synonym")
     @Setter(AccessLevel.PRIVATE)
+    @NotAudited
     private Set<String> synonyms;
 
     /**

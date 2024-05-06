@@ -11,6 +11,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -19,29 +20,23 @@ import java.util.Collection;
 @Table(name = "plan_bucket", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "plan_id", "name" })
 })
+@Getter
+@Setter
 public class PlanBucket extends BaseEntity {
 
     @NotNull
-    @Getter
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     private Plan plan;
 
-    @Getter
-    @Setter
+    @Audited
     private String name;
 
-    @Getter
-    @Setter
+    @Audited
     private LocalDate date;
 
-    @Getter
-    @Setter
     @OneToMany(mappedBy = "bucket")
     private Collection<PlanItem> items;
 
-    @Getter
-    @Setter
     @Column(name = "mod_count")
     private int modCount;
 
