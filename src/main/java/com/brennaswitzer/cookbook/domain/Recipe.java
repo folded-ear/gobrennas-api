@@ -15,7 +15,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.envers.Audited;
@@ -106,6 +105,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Getter
     @OneToMany(mappedBy = "recipe")
+    @NotAudited
     private Collection<PlannedRecipeHistory> planHistory;
 
     public Recipe() {
