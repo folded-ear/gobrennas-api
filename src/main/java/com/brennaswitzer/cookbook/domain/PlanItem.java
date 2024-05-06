@@ -303,6 +303,10 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
         this.aggregate = agg;
     }
 
+    public boolean isAggregated() {
+        return this.aggregate != null;
+    }
+
     public boolean hasParent() {
         return getParent() != null;
     }

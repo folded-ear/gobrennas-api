@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.function.Function;
 
-import static com.brennaswitzer.cookbook.util.PlanTestUtils.renderTree;
+import static com.brennaswitzer.cookbook.util.PlanTestUtils.printTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -71,23 +71,23 @@ public class PlanItemRepositoryTest {
         };
 
         plan = fetch.apply(plan.getId());
-        System.out.println(renderTree("initial", plan));
+        printTree("initial", plan);
 
         fetch.apply(b.getId()).moveToTrash();
         plan = fetch.apply(plan.getId());
-        System.out.println(renderTree("trash b", plan));
+        printTree("trash b", plan);
 
         fetch.apply(a.getId()).moveToTrash();
         plan = fetch.apply(plan.getId());
-        System.out.println(renderTree("trash a", plan));
+        printTree("trash a", plan);
 
         fetch.apply(b.getId()).restoreFromTrash();
         plan = fetch.apply(plan.getId());
-        System.out.println(renderTree("restore b", plan));
+        printTree("restore b", plan);
 
         fetch.apply(a.getId()).restoreFromTrash();
         plan = fetch.apply(plan.getId());
-        System.out.println(renderTree("restore a", plan));
+        printTree("restore a", plan);
     }
 
 }
