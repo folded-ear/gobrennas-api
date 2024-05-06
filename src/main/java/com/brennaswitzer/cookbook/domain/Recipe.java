@@ -29,13 +29,13 @@ import java.util.List;
 public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     // this will gracefully store the same way as an @Embedded Acl will
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     private User owner;
 
     // these will gracefully emulate AccessControlled's owner property
     @JsonIgnore // but hide it from the client :)
     public User getOwner() { return owner; }
-    public void setOwner(User owner) { this.owner = owner; }
 
     // end access control emulation
 

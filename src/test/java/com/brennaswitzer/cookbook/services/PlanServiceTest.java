@@ -240,7 +240,9 @@ class PlanServiceTest {
         // crust got deleted
         var h = byRecipe.get(box.pizzaCrust);
         assertEquals(crust.getId(), h.getPlanItemId());
+        assertEquals(alice, h.getOwner());
         assertNotNull(h.getPlannedAt());
+        assertNotNull(h.getDoneAt());
         assertEquals(PlanItemStatus.DELETED, h.getStatus());
         // pizza got completed
         h = byRecipe.get(box.pizza);

@@ -402,8 +402,10 @@ public class PlanService {
         if (ingredient instanceof Recipe r) {
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
+            h.setOwner(principalAccess.getUser());
             h.setPlanItemId(item.getId());
             h.setPlannedAt(item.getCreatedAt());
+            h.setDoneAt(Instant.now());
             h.setStatus(status);
             recipeHistoryRepo.save(h);
         }
