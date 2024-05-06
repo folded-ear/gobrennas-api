@@ -4,10 +4,14 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
+import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
+import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.util.RecipeBox;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,7 +42,13 @@ class PlanServiceTest {
     private PlanRepository planRepo;
 
     @Autowired
+    private PlannedRecipeHistoryRepository recipeHistoryRepo;
+
+    @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    UserPrincipalAccess principalAccess;
 
     @Autowired
     private UserRepository userRepo;
@@ -152,6 +164,60 @@ class PlanServiceTest {
         entityManager.clear();
 
         assertEquals(0, itemRepo.count());
+    }
+
+    @Test
+    void statusChangeEvents() {
+        assert 0 == recipeHistoryRepo.count(); // sanity
+        var box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+        Plan groceries = service.createPlan("This Week", alice);
+        service.addRecipe(groceries.getId(), box.pizza, 1.0);
+        entityManager.flush();
+        PlanItem pizza = groceries.getChildView().iterator().next();
+        PlanItem sauce = null, crust = null;
+        for (var it : pizza.getChildView()) {
+            if (box.pizzaSauce.equals(it.getIngredient())) {
+                sauce = it;
+                // mark tomatoes acquired
+                service.setItemStatusForMessage(it.getChildView().iterator().next().getId(),
+                                                PlanItemStatus.ACQUIRED);
+                entityManager.flush();
+            } else if (box.pizzaCrust.equals(it.getIngredient())) {
+                crust = it;
+                // delete crust
+                service.deleteItemForParent(it.getId());
+                entityManager.flush();
+            }
+        }
+        assert sauce != null;
+        assert crust != null;
+        // mark pizza (and implicitly, sauce) completed
+        service.setItemStatus(pizza.getId(),
+                              PlanItemStatus.COMPLETED);
+        entityManager.flush();
+
+        var byRecipe = recipeHistoryRepo.findAll()
+                .stream()
+                .collect(Collectors.toMap(PlannedRecipeHistory::getRecipe,
+                                          Function.identity()));
+        // crust got deleted
+        var h = byRecipe.get(box.pizzaCrust);
+        assertEquals(crust.getId(), h.getPlanItemId());
+        assertNotNull(h.getPlannedAt());
+        assertEquals(PlanItemStatus.DELETED, h.getStatus());
+        // pizza got completed
+        h = byRecipe.get(box.pizza);
+        assertEquals(pizza.getId(), h.getPlanItemId());
+        assertNotNull(h.getPlannedAt());
+        assertEquals(PlanItemStatus.COMPLETED, h.getStatus());
+        // sauce got (implicitly) completed
+        h = byRecipe.get(box.pizzaSauce);
+        assertEquals(sauce.getId(), h.getPlanItemId());
+        assertNotNull(h.getPlannedAt());
+        assertEquals(PlanItemStatus.COMPLETED, h.getStatus());
+        // ignore tomatoes - not a recipe
+        assertEquals(3, recipeHistoryRepo.count());
     }
 
 }

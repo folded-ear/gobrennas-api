@@ -259,7 +259,9 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     public void moveToTrash() {
         this.trashBin = getPlan();
         this.trashBin.getTrashBinItems().add(this);
-        this.status = PlanItemStatus.DELETED;
+        if (!this.status.isForDelete()) {
+            this.status = PlanItemStatus.DELETED;
+        }
         getParent().markDirty();
     }
 

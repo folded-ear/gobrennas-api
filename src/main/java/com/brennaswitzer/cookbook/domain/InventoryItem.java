@@ -39,8 +39,7 @@ public class InventoryItem extends BaseEntity {
     @OneToMany(
             orphanRemoval = true,
             mappedBy = "item",
-            cascade = { CascadeType.ALL },
-            fetch = FetchType.LAZY)
+            cascade = { CascadeType.ALL })
     @Getter
     private List<InventoryTx> transactions = new ArrayList<>();
 
