@@ -25,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -230,6 +232,19 @@ public class PlanService {
     }
 
     private void duplicateChildren(PlanItem src, PlanItem dest) {
+        Map<PlanItem, PlanItem> srcToDest = new HashMap<>();
+        duplicateChildren(src, dest, srcToDest);
+        // When a component is moved out from under its aggregate, it may move
+        // earlier on the plan, so have to do these as a second pass.
+        srcToDest.forEach((s, d) -> {
+            if (s.isAggregated()) {
+                d.setAggregate(srcToDest.get(s.getAggregate()));
+            }
+        });
+    }
+
+    private void duplicateChildren(PlanItem src, PlanItem dest, Map<PlanItem, PlanItem> srcToDest) {
+        srcToDest.put(src, dest);
         if (!src.hasChildren()) return;
         for (PlanItem s : src.getOrderedChildView()) {
             PlanItem d = new PlanItem(
@@ -238,9 +253,10 @@ public class PlanService {
                     s.getIngredient(),
                     s.getPreparation()
             );
-            d.setStatus(s.getStatus()); // unclear if this is good?
+            d.setStatus(s.getStatus());
+            d.setNotes(s.getNotes());
             dest.addChild(d);
-            duplicateChildren(s, d);
+            duplicateChildren(s, d, srcToDest);
         }
     }
 
