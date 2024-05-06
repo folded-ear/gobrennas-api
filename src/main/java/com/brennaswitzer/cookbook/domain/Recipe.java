@@ -17,6 +17,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -102,6 +103,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
 
     @Getter
     @OneToMany(mappedBy = "recipe")
+    @BatchSize(size = 50)
     private Collection<PlannedRecipeHistory> planHistory;
 
     public Recipe() {
