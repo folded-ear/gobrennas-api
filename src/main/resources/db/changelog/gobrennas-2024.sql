@@ -375,3 +375,28 @@ SELECT id
 FROM ingredient
 WHERE dtype = 'PantryItem'
 ON CONFLICT DO NOTHING;
+
+--changeset barneyb:use-dtype-for-plan-items-discriminator
+alter table plan_item
+    rename column _type to dtype;
+
+--changeset barneyb:planned-recipe-history
+create table planned_recipe_history
+(
+    id           bigint                   not null default nextval('id_seq'),
+    _eqkey       bigint                   not null default date_part('epoch'::text, clock_timestamp()),
+    created_at   timestamp with time zone not null,
+    updated_at   timestamp with time zone not null,
+    recipe_id    bigint                   not null,
+    plan_item_id bigint                   not null,
+    planned_at   timestamp with time zone not null,
+    status_id    bigint                   not null,
+    constraint pk_planned_recipe_history primary key (id),
+    constraint fk_planned_recipe_history_recipe
+        foreign key (recipe_id)
+            references ingredient (id)
+            on delete cascade
+);
+
+create index idx_planned_recipe_history_recipe
+    on planned_recipe_history (recipe_id);

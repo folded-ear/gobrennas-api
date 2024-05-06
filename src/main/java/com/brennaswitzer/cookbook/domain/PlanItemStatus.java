@@ -7,16 +7,19 @@ public enum PlanItemStatus implements Identified {
 
     NEEDED(0L),
     ACQUIRED(50L),
-    COMPLETED(100L),
-    DELETED(-1L);
+    COMPLETED(100L, true),
+    DELETED(-1L, true);
 
     private final Long id;
+    private final boolean forDelete;
 
     PlanItemStatus(Long id) {
-        this.id = id;
+        this(id, false);
     }
 
-    public boolean isForDelete() {
-        return COMPLETED.equals(this) || DELETED.equals(this);
+    PlanItemStatus(Long id, boolean forDelete) {
+        this.id = id;
+        this.forDelete = forDelete;
     }
+
 }

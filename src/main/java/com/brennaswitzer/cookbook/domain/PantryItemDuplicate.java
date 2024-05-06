@@ -18,11 +18,11 @@ public class PantryItemDuplicate {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    PantryItem pantryItem;
+    private PantryItem pantryItem;
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    PantryItem duplicate;
-    boolean loose;
-    float matchRank;
+    private PantryItem duplicate;
+    private boolean loose;
+    private float matchRank;
 
 }

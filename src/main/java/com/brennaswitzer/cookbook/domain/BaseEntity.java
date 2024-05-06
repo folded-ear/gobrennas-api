@@ -34,21 +34,18 @@ public abstract class BaseEntity implements Identified {
     private final Long _eqkey = IdUtils.next(getClass());
 
     @NotNull
-    @Column(name = "created_at")
     @Getter
     @Setter
     private Instant createdAt;
 
     @NotNull
     @Version
-    @Column(name = "updated_at")
     @Getter
     private Instant updatedAt;
 
     @PrePersist
     protected void onPrePersist() {
-        Instant now = Instant.now();
-        setCreatedAt(now);
+        setCreatedAt(Instant.now());
     }
 
     /**

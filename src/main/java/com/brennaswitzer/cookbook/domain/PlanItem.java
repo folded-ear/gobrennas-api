@@ -40,7 +40,7 @@ import static jakarta.persistence.CascadeType.REFRESH;
 @SuppressWarnings("WeakerAccess")
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "_type")
+@DiscriminatorColumn
 @DiscriminatorValue("item")
 public class PlanItem extends BaseEntity implements Named, MutableItem {
 
@@ -259,7 +259,9 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     public void moveToTrash() {
         this.trashBin = getPlan();
         this.trashBin.getTrashBinItems().add(this);
-        this.status = PlanItemStatus.DELETED;
+        if (!this.status.isForDelete()) {
+            this.status = PlanItemStatus.DELETED;
+        }
         getParent().markDirty();
     }
 
