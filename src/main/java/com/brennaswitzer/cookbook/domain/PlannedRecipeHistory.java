@@ -54,4 +54,8 @@ public class PlannedRecipeHistory extends BaseEntity implements Owned {
 
     private String notes;
 
+    public boolean isRated() {
+        return rating != null;
+    }
+
 }

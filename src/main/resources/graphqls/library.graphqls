@@ -178,15 +178,31 @@ type UnitOfMeasure implements Node {
     id: ID!
     name: String!
 }
+enum Rating {
+    ONE_STAR
+    TWO_STARS
+    THREE_STARS
+    FOUR_STARS
+    FIVE_STARS
+}
 
 type PlannedRecipeHistory implements Node {
     id: ID!
+    """The recipe this history item is for.
+    """
+    recipe: Recipe!
+    """The user who owns this history item, which may or may not be the recipe's
+    owner.
+    """
+    owner: User!
     status: PlanItemStatus!
     plannedAt: DateTime!
     plannedDate: Date!
     doneAt: DateTime!
     doneDate: Date!
-    recipe: Recipe!
+    rating: Rating
+    ratingInt: PositiveInt
+    notes: String
 }
 
 extend type Mutation {

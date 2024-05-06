@@ -29,4 +29,10 @@ public class PlannedRecipeHistoryResolver implements GraphQLResolver<PlannedReci
                 .atOffset(ZoneOffset.UTC);
     }
 
+    public Long ratingInt(PlannedRecipeHistory history) {
+        return history.isRated()
+                ? history.getRating().getId()
+                : null;
+    }
+
 }
