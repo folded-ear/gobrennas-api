@@ -4,6 +4,8 @@ import com.brennaswitzer.cookbook.domain.FavoriteType;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Photo;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
+import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
@@ -18,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
@@ -82,6 +85,32 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
             }
         }
         return result;
+    }
+
+    public int plannedCount(Recipe recipe, PlanItemStatus status) {
+        if (status == null) {
+            // don't materialize the collection if we don't need to.
+            return recipe.getPlanHistory().size();
+        }
+        return (int) recipe.getPlanHistory()
+                .stream()
+                .filter(ofStatus(status))
+                .count();
+    }
+
+    public List<PlannedRecipeHistory> plannedHistory(Recipe recipe, PlanItemStatus status, int last) {
+        return recipe.getPlanHistory()
+                .stream()
+                .sorted(PlannedRecipeHistory.BY_RECENT)
+                .filter(ofStatus(status))
+                .limit(last)
+                .toList();
+    }
+
+    private Predicate<PlannedRecipeHistory> ofStatus(PlanItemStatus status) {
+        return status == null
+                ? it -> true
+                : it -> status == it.getStatus();
     }
 
 }

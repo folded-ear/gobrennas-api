@@ -400,3 +400,25 @@ create table planned_recipe_history
 
 create index idx_planned_recipe_history_recipe
     on planned_recipe_history (recipe_id);
+
+--changeset barneyb:expand-planned-recipe-history
+alter table planned_recipe_history
+    add owner_id bigint,
+    add done_at  timestamp with time zone,
+    add rating   bigint,
+    add notes    text,
+    add constraint chk_planned_recipe_history_rating check (rating is null or rating between 1 and 5),
+    add constraint fk_planned_recipe_history_owner foreign key (owner_id) references users (id);
+
+update planned_recipe_history h
+set owner_id = coalesce((select owner_id
+                         from plan_item
+                         where id = h.plan_item_id),
+                        r.owner_id),
+    done_at  = h.created_at
+from ingredient r
+where r.id = h.recipe_id;
+
+alter table planned_recipe_history
+    alter owner_id set not null,
+    alter done_at set not null;

@@ -104,7 +104,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     @OneToMany(
             mappedBy = "parent",
             cascade = ALL)
-    @BatchSize(size = 100)
+    @BatchSize(size = 50)
     private Set<PlanItem> children;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -117,7 +117,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     @OneToMany(
             mappedBy = "aggregate",
             cascade = { PERSIST, MERGE, REFRESH, DETACH })
-    @BatchSize(size = 100)
+    @BatchSize(size = 50)
     private Set<PlanItem> components;
 
     @ManyToOne(

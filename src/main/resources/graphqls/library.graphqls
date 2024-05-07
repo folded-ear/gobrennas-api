@@ -136,9 +136,25 @@ type Recipe implements Node & Owned & Ingredient {
     labels: [String!]
     yield: Int
     calories: Int
-    totalTime(unit: ChronoUnit = MINUTES): Int
+    totalTime(
+        unit: ChronoUnit = MINUTES
+    ): Int
     photo: Photo
     favorite: Boolean!
+    """Number of times this recipe has been sent to any plan, optionally
+    filtered by the result status (only COMPLETED and DELETED make sense).
+    """
+    plannedCount(
+        status: PlanItemStatus = null
+    ): Int!
+    """History of this recipe being planned, in reverse-chronological order,
+    optionally filtered by the result status (only COMPLETED and DELETED make
+    sense). By default, only the five most recent records will be returned.
+    """
+    plannedHistory(
+        status: PlanItemStatus = null,
+        last: NonNegativeInt = 5
+    ): [PlannedRecipeHistory!]!
 }
 
 type Photo {
@@ -161,6 +177,32 @@ type Quantity {
 type UnitOfMeasure implements Node {
     id: ID!
     name: String!
+}
+enum Rating {
+    ONE_STAR
+    TWO_STARS
+    THREE_STARS
+    FOUR_STARS
+    FIVE_STARS
+}
+
+type PlannedRecipeHistory implements Node {
+    id: ID!
+    """The recipe this history item is for.
+    """
+    recipe: Recipe!
+    """The user who owns this history item, which may or may not be the recipe's
+    owner.
+    """
+    owner: User!
+    status: PlanItemStatus!
+    plannedAt: DateTime!
+    plannedDate: Date!
+    doneAt: DateTime!
+    doneDate: Date!
+    rating: Rating
+    ratingInt: PositiveInt
+    notes: String
 }
 
 extend type Mutation {
