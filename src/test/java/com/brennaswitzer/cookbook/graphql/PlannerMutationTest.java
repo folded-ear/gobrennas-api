@@ -15,10 +15,9 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PlannerMutationTest extends MockTest {
@@ -86,37 +85,40 @@ class PlannerMutationTest extends MockTest {
     void deleteBucket() {
         long planId = 123L;
         long bucketId = 456L;
-        Plan plan = mock(Plan.class);
         PlanBucket bucket = mock(PlanBucket.class);
-        when(bucket.getPlan()).thenReturn(plan);
+        when(bucket.getId()).thenReturn(bucketId);
         when(planService.deleteBucket(planId, bucketId))
                 .thenReturn(bucket);
 
-        Plan result = mutation.deleteBucket(planId, bucketId);
+        var result = mutation.deleteBucket(planId, bucketId);
 
-        assertSame(plan, result);
+        assertEquals(Long.valueOf(456L), result.getId());
     }
 
     @Test
     void deleteItem() {
         long itemId = 123L;
-        PlanItem parent = mock(PlanItem.class);
-        when(planService.deleteItemForParent(itemId))
-                .thenReturn(parent);
+        PlanItem item = mock(PlanItem.class);
+        when(item.getId()).thenReturn(itemId);
+        when(planService.deleteItem(itemId))
+                .thenReturn(item);
 
-        PlanItem result = mutation.deleteItem(itemId);
+        var result = mutation.deleteItem(itemId);
 
-        assertSame(parent, result);
+        assertEquals(Long.valueOf(itemId), result.getId());
     }
 
     @Test
     void deletePlan() {
         long planId = 123L;
+        Plan plan = mock(Plan.class);
+        when(plan.getId()).thenReturn(planId);
+        when(planService.deletePlan(planId))
+                .thenReturn(plan);
 
-        boolean result = mutation.deletePlan(planId);
+        var result = mutation.deletePlan(planId);
 
-        assertTrue(result);
-        verify(planService).deletePlan(planId);
+        assertEquals(Long.valueOf(planId), result.getId());
     }
 
     @Test
@@ -200,14 +202,14 @@ class PlannerMutationTest extends MockTest {
     }
 
     @Test
-    void removeGrant() {
+    void revokeGrant() {
         long planId = 123L;
         long userId = 456L;
         Plan plan = mock(Plan.class);
-        when(planService.deleteGrantFromPlan(planId, userId))
+        when(planService.revokeGrantFromPlan(planId, userId))
                 .thenReturn(plan);
 
-        Plan result = mutation.deleteGrant(planId, userId);
+        Plan result = mutation.revokeGrant(planId, userId);
 
         assertSame(plan, result);
     }

@@ -2,7 +2,10 @@ package com.brennaswitzer.cookbook.domain;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AclTest {
 
@@ -28,7 +31,7 @@ public class AclTest {
         assertEquals(AccessLevel.VIEW, acl.getGrant(bob));
         assertNull(acl.getGrant(eve));
 
-        acl.deleteGrant(bob);
+        acl.revokeGrant(bob);
         assertNull(acl.getGrant(bob));
     }
 
@@ -65,7 +68,7 @@ public class AclTest {
         acl.setOwner(alice);
 
         assertThrows(UnsupportedOperationException.class, () ->
-                acl.deleteGrant(alice));
+                acl.revokeGrant(alice));
     }
 
     @Test

@@ -158,9 +158,10 @@ public class PantryItemService {
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
-    public boolean deleteItem(Long id) {
+    public PantryItem deleteItem(Long id) {
+        var it = pantryItemRepository.getReferenceById(id);
         pantryItemRepository.deleteById(id);
-        return true;
+        return it;
     }
 
     private void needsDupesFound(PantryItem item) {

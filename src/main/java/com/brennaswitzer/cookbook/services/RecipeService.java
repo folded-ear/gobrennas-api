@@ -76,11 +76,12 @@ public class RecipeService {
         return recipeRepository.findById(id);
     }
 
-    public void deleteRecipeById(Long id) {
+    public Recipe deleteRecipeById(Long id) {
         Recipe recipe = getMyRecipe(id);
         removePhotoInternal(recipe);
         planService.severLibraryLinks(recipe);
         recipeRepository.delete(recipe);
+        return recipe;
     }
 
     private void setPhotoInternal(Recipe recipe, Upload photo) {

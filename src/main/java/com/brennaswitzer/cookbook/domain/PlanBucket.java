@@ -19,7 +19,7 @@ import java.util.Collection;
 @Table(name = "plan_bucket", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "plan_id", "name" })
 })
-public class PlanBucket extends BaseEntity {
+public class PlanBucket extends BaseEntity implements Named {
 
     @NotNull
     @Getter

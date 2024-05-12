@@ -92,5 +92,5 @@ type PantryMutation {
     combineItems(ids: [ID!]!): PantryItem
     """Delete a pantry item, which MUST be unreferenced.
     """
-    deleteItem(id: ID!): Boolean!
+    deleteItem(id: ID!): Deletion!
 }

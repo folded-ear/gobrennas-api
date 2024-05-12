@@ -427,7 +427,7 @@ public class PlanService {
     }
 
     public PlanItem deleteItemForParent(Long id) {
-        val item = setItemStatus(id, PlanItemStatus.DELETED);
+        val item = deleteItem(id);
         if (item.hasParent()) {
             return item.getParent();
         } else {
@@ -437,9 +437,14 @@ public class PlanService {
         }
     }
 
-    public void deletePlan(Long id) {
+    public PlanItem deleteItem(Long id) {
+        return setItemStatus(id, PlanItemStatus.DELETED);
+    }
+
+    public Plan deletePlan(Long id) {
         val plan = getPlanById(id, AccessLevel.ADMINISTER);
         planRepo.delete(plan);
+        return plan;
     }
 
     public void severLibraryLinks(Recipe r) {
@@ -455,10 +460,9 @@ public class PlanService {
         return plan;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    public Plan deleteGrantFromPlan(Long planId, Long userId) {
+    public Plan revokeGrantFromPlan(Long planId, Long userId) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        plan.getAcl().deleteGrant(userRepo.getById(userId));
+        plan.getAcl().revokeGrant(userRepo.getById(userId));
         return plan;
     }
 

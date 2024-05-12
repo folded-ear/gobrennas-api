@@ -249,11 +249,11 @@ public class PlanController {
 
     @DeleteMapping("/{id}/acl/grants/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteGrant(
+    public void revokeGrant(
             @PathVariable("id") Long id,
             @PathVariable("userId") Long userId
     ) {
-        planService.deleteGrantFromPlan(id, userId);
+        planService.revokeGrantFromPlan(id, userId);
     }
 
 }

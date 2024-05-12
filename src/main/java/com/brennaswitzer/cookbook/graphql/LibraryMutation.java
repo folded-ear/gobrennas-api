@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.Upload;
+import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
@@ -45,9 +46,8 @@ public class LibraryMutation {
         return recipeService.setRecipePhoto(id, Upload.of(photo));
     }
 
-    public boolean deleteRecipe(Long id) {
-        recipeService.deleteRecipeById(id);
-        return true;
+    public Deletion deleteRecipe(Long id) {
+        return Deletion.of(recipeService.deleteRecipeById(id));
     }
 
 }

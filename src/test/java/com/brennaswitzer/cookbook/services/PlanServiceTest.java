@@ -153,7 +153,7 @@ class PlanServiceTest {
         entityManager.clear();
         groceries = service.getPlanById(groceries.getId());
 
-        service.deleteGrantFromPlan(groceries.getId(), bob.getId());
+        service.revokeGrantFromPlan(groceries.getId(), bob.getId());
         assertNull(groceries.getAcl().getGrant(bob));
 
         entityManager.flush();

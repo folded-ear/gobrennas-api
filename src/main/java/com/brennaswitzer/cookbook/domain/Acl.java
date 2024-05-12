@@ -63,7 +63,7 @@ public class Acl {
         return grants.put(user, level);
     }
 
-    public AccessLevel deleteGrant(User user) {
+    public AccessLevel revokeGrant(User user) {
         if (user == null) throw new IllegalArgumentException("You can't revoke access from the null user.");
         if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) return null;
