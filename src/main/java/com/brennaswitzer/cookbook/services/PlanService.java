@@ -426,17 +426,6 @@ public class PlanService {
         return buildUpdateMessage(item);
     }
 
-    public PlanItem deleteItemForParent(Long id) {
-        val item = deleteItem(id);
-        if (item.hasParent()) {
-            return item.getParent();
-        } else {
-            throw new IllegalArgumentException(String.format(
-                    "ID '%s' is a plan",
-                    id));
-        }
-    }
-
     public PlanItem deleteItem(Long id) {
         return setItemStatus(id, PlanItemStatus.DELETED);
     }

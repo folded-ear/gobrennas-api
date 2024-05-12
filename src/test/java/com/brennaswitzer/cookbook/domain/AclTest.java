@@ -31,7 +31,7 @@ public class AclTest {
         assertEquals(AccessLevel.VIEW, acl.getGrant(bob));
         assertNull(acl.getGrant(eve));
 
-        acl.revokeGrant(bob);
+        assertEquals(AccessLevel.VIEW, acl.revokeGrant(bob));
         assertNull(acl.getGrant(bob));
     }
 

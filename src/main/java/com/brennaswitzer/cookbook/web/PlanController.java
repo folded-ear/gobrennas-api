@@ -205,7 +205,7 @@ public class PlanController {
         if (!planId.equals(item.getPlan().getId())) {
             throw new IllegalArgumentException("Item belongs to a different plan");
         }
-        planService.deleteItemForParent(id);
+        planService.deleteItem(id);
     }
 
     @PostMapping("/{id}/buckets")

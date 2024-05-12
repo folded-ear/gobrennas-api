@@ -188,7 +188,7 @@ class PlanServiceTest {
 
         assertEquals(4, itemRepo.count());
 
-        service.deleteItemForParent(oj.getId());
+        service.deleteItem(oj.getId());
         itemRepo.flush();
         entityManager.clear();
 
@@ -222,7 +222,7 @@ class PlanServiceTest {
             } else if (box.pizzaCrust.equals(it.getIngredient())) {
                 crust = it;
                 // delete crust
-                service.deleteItemForParent(it.getId());
+                service.deleteItem(it.getId());
                 entityManager.flush();
             }
         }
