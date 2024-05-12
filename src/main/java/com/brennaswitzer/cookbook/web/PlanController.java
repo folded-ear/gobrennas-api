@@ -205,7 +205,7 @@ public class PlanController {
         if (!planId.equals(item.getPlan().getId())) {
             throw new IllegalArgumentException("Item belongs to a different plan");
         }
-        planService.deleteItemForParent(id);
+        planService.deleteItem(id);
     }
 
     @PostMapping("/{id}/buckets")
@@ -249,11 +249,11 @@ public class PlanController {
 
     @DeleteMapping("/{id}/acl/grants/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteGrant(
+    public void revokeGrant(
             @PathVariable("id") Long id,
             @PathVariable("userId") Long userId
     ) {
-        planService.deleteGrantFromPlan(id, userId);
+        planService.revokeGrantFromPlan(id, userId);
     }
 
 }

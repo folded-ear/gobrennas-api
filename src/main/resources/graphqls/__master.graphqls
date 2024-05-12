@@ -47,3 +47,8 @@ type ShareInfo {
     slug: String!
     secret: String!
 }
+
+type Deletion {
+    id: ID!
+    name: String
+}

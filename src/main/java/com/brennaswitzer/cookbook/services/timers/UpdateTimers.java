@@ -47,15 +47,11 @@ public class UpdateTimers {
         return t;
     }
 
-    public boolean deleteTimer(Long id) {
-        val optionalTimer = repo.findById(id);
-        if (optionalTimer.isEmpty()) {
-            return false;
-        }
-        val t = optionalTimer.get();
+    public Timer deleteTimer(Long id) {
+        val t = repo.getReferenceById(id);
         t.ensurePermitted(principalAccess.getUser(), AccessLevel.CHANGE);
         repo.delete(t);
-        return true;
+        return t;
     }
 
 }

@@ -17,8 +17,8 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -122,9 +122,19 @@ class LibraryMutationTest extends MockTest {
 
     @Test
     void deleteRecipe() {
-        assertTrue(mutation.deleteRecipe(123L));
+        when(recipeService.deleteRecipeById(any()))
+                .thenAnswer(iom -> {
+                    long id = iom.getArgument(0);
+                    var r = mock(Recipe.class);
+                    when(r.getId()).thenReturn(id);
+                    when(r.getName()).thenReturn("Recipe " + id);
+                    return r;
+                });
 
-        verify(recipeService).deleteRecipeById(123L);
+        var d = mutation.deleteRecipe(123L);
+
+        assertEquals(Long.valueOf(123L), d.getId());
+        assertEquals("Recipe 123", d.getName());
     }
 
 }

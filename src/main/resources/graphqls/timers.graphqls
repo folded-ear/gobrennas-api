@@ -28,7 +28,7 @@ type TimerMutation {
     """Ensure the specified timer has been deleted, regardless of its status or
     existence, returning whether any action was taken.
     """
-    delete(id: ID!): Boolean!
+    delete(id: ID!): Deletion!
 }
 
 """Represents a pause-able timer of user-specified length.

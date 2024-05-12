@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.services.PantryItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,8 +55,8 @@ public class PantryMutation {
         return pantryItemService.combineItems(ids);
     }
 
-    public boolean deleteItem(Long id) {
-        return pantryItemService.deleteItem(id);
+    public Deletion deleteItem(Long id) {
+        return Deletion.of(pantryItemService.deleteItem(id));
     }
 
 }

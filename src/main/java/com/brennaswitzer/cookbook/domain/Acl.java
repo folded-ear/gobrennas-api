@@ -6,6 +6,7 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapKeyJoinColumn;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.Set;
 @Embeddable
 public class Acl {
 
+    @Getter
     @NotNull
     @ManyToOne
     private User owner;
@@ -25,10 +27,6 @@ public class Acl {
     @MapKeyJoinColumn(name = "user_id")
     @Column(name = "level_id")
     private Map<User, AccessLevel> grants;
-
-    public User getOwner() {
-        return owner;
-    }
 
     public void setOwner(User owner) {
         this.owner = owner;
@@ -63,7 +61,7 @@ public class Acl {
         return grants.put(user, level);
     }
 
-    public AccessLevel deleteGrant(User user) {
+    public AccessLevel revokeGrant(User user) {
         if (user == null) throw new IllegalArgumentException("You can't revoke access from the null user.");
         if (user.equals(owner)) throw new UnsupportedOperationException();
         if (grants == null) return null;

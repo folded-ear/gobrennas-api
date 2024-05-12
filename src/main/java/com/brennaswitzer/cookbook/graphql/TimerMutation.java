@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Timer;
+import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.services.timers.UpdateTimers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,8 +29,9 @@ public class TimerMutation {
         return update.addTime(id, duration);
     }
 
-    public boolean delete(Long id) {
-        return update.deleteTimer(id);
+    public Deletion delete(Long id) {
+        return new Deletion(update.deleteTimer(id).getId(),
+                            "Unnamed Timer");
     }
 
 }

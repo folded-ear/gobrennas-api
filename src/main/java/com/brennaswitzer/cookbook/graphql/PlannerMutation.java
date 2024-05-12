@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
+import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,17 +35,16 @@ public class PlannerMutation {
         return planService.createPlan(name);
     }
 
-    public Plan deleteBucket(Long planId, Long bucketId) {
-        return planService.deleteBucket(planId, bucketId).getPlan();
+    public Deletion deleteBucket(Long planId, Long bucketId) {
+        return Deletion.of(planService.deleteBucket(planId, bucketId));
     }
 
-    public PlanItem deleteItem(Long id) {
-        return planService.deleteItemForParent(id);
+    public Deletion deleteItem(Long id) {
+        return Deletion.of(planService.deleteItem(id));
     }
 
-    public boolean deletePlan(Long id) {
-        planService.deletePlan(id);
-        return true;
+    public Deletion deletePlan(Long id) {
+        return Deletion.of(planService.deletePlan(id));
     }
 
     public Plan duplicatePlan(String name, Long sourcePlanId) {
@@ -75,8 +75,8 @@ public class PlannerMutation {
         return planService.setItemStatus(id, status);
     }
 
-    public Plan deleteGrant(Long planId, Long userId) {
-        return planService.deleteGrantFromPlan(planId, userId);
+    public Plan revokeGrant(Long planId, Long userId) {
+        return planService.revokeGrantFromPlan(planId, userId);
     }
 
 }
