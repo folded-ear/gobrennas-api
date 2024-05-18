@@ -42,6 +42,7 @@ type PlanItem implements Node & CorePlanItem {
     name: String!
     quantity: Quantity
     preparation: String
+    ingredient: Ingredient
     notes: String
     plan: Plan!
     parent: PlanItem
