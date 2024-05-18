@@ -54,7 +54,6 @@ public class RecipeController {
     @Autowired
     private ItemService itemService;
 
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -186,10 +185,10 @@ public class RecipeController {
         // just reflect it. Screw. That. Poop.
         IngredientInfo info;
 
-        if (i instanceof Recipe) {
-            info = ingredientMapper.recipeToInfo((Recipe) i);
-        } else if (i instanceof PantryItem) {
-            info = ingredientMapper.pantryItemToInfo((PantryItem) i);
+        if (i instanceof Recipe r) {
+            info = ingredientMapper.recipeToInfo(r);
+        } else if (i instanceof PantryItem pi) {
+            info = ingredientMapper.pantryItemToInfo(pi);
         } else {
             info = ingredientMapper.ingredientToInfo(i);
         }

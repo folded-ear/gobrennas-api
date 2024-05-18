@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.UserInfo;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.util.ShareHelper;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
@@ -48,27 +49,27 @@ public class SharedRecipeController {
             throw new AuthorizationServiceException("Bad secret");
         }
         Map<String, Object> result = new HashMap<>();
-        Recipe r = repo.getOne(id);
-        Queue<IngredientRef> queue = new LinkedList<>(r.getIngredients());
+        Recipe recipe = repo.getReferenceById(id);
+        Queue<IngredientRef> queue = new LinkedList<>(recipe.getIngredients());
         List<IngredientInfo> ings = new ArrayList<>();
-        ings.add(ingredientMapper.recipeToInfo(r));
+        ings.add(ingredientMapper.recipeToInfo(recipe));
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
-            Ingredient i = ir.getIngredient();
-            if (i instanceof Recipe) {
-                ings.add(ingredientMapper.recipeToInfo((Recipe) i));
-            } else if (i instanceof PantryItem) {
-                ings.add(ingredientMapper.pantryItemToInfo((PantryItem) i));
+            Object ing = Hibernate.unproxy(ir.getIngredient());
+            if (ing instanceof Recipe r) {
+                ings.add(ingredientMapper.recipeToInfo(r));
+            } else if (ing instanceof PantryItem pi) {
+                ings.add(ingredientMapper.pantryItemToInfo(pi));
             } else {
-                ings.add(ingredientMapper.ingredientToInfo(i));
+                ings.add(ingredientMapper.ingredientToInfo((Ingredient) ing));
             }
-            if (i instanceof AggregateIngredient) {
-                queue.addAll(((AggregateIngredient) i).getIngredients());
+            if (ing instanceof AggregateIngredient agg) {
+                queue.addAll(agg.getIngredients());
             }
         }
         result.put("ingredients", ings);
-        result.put("owner", UserInfo.fromUser(r.getOwner()));
+        result.put("owner", UserInfo.fromUser(recipe.getOwner()));
         return result;
     }
 
