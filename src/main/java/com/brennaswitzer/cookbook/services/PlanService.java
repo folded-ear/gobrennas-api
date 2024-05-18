@@ -190,22 +190,23 @@ public class PlanService {
         if (scale == null || scale <= 0) { // nonsense!
             scale = 1d;
         }
-        boolean isAggregate = ref.getIngredient() instanceof AggregateIngredient;
+        Ingredient ingredient = (Ingredient) Hibernate.unproxy(ref.getIngredient());
+        boolean isAggregate = ingredient instanceof AggregateIngredient;
         if (ref.hasQuantity()) {
             ref = ref.scale(scale);
         }
         PlanItem t = new PlanItem(
                 isAggregate
-                        ? ref.getIngredient().getName()
+                        ? ingredient.getName()
                         : ref.getRaw(),
                 ref.getQuantity(),
-                ref.getIngredient(),
+                ingredient,
                 ref.getPreparation());
         aggItem.addAggregateComponent(t);
         if (isAggregate) {
             // Subrecipes DO NOT get scaled; there's not a quantifiable
             // relationship to multiply across.
-            sendToPlan((AggregateIngredient) ref.getIngredient(), t, 1d);
+            sendToPlan((AggregateIngredient) ingredient, t, 1d);
         }
     }
 
@@ -352,7 +353,7 @@ public class PlanService {
     public PlanItem renameItem(Long id, String name) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setName(name);
-        if (!item.hasIngredient() || !(item.getIngredient() instanceof Recipe)) {
+        if (!item.hasIngredient() || !(Hibernate.unproxy(item.getIngredient()) instanceof Recipe)) {
             itemService.updateAutoRecognition(item);
         }
         return item;
@@ -398,8 +399,7 @@ public class PlanService {
 
     private void recordRecipeHistories(PlanItem item,
                                        PlanItemStatus status) {
-        Ingredient ingredient = (Ingredient) Hibernate.unproxy(item.getIngredient());
-        if (ingredient instanceof Recipe r) {
+        if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
             h.setOwner(principalAccess.getUser());

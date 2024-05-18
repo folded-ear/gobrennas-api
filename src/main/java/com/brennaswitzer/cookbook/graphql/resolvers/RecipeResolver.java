@@ -1,7 +1,6 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.FavoriteType;
-import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
@@ -10,6 +9,7 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
 import graphql.kickstart.tools.GraphQLResolver;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -79,8 +79,8 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
-            Ingredient i = ir.getIngredient();
-            if (i instanceof Recipe r && result.add(r)) {
+            Object ing = Hibernate.unproxy(ir.getIngredient());
+            if (ing instanceof Recipe r && result.add(r)) {
                 queue.addAll(r.getIngredients());
             }
         }

@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import graphql.kickstart.tools.GraphQLQueryResolver;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,10 +46,10 @@ public class Query implements GraphQLQueryResolver {
                 .map(r -> r.findById(id))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(it -> !(it instanceof AccessControlled) ||
-                        ((AccessControlled) it).isPermitted(
-                                userPrincipalAccess.getUser(),
-                                AccessLevel.VIEW))
+                .map(Hibernate::unproxy)
+                .filter(it -> !(it instanceof AccessControlled ac) ||
+                              ac.isPermitted(userPrincipalAccess.getUser(),
+                                             AccessLevel.VIEW))
                 .findFirst()
                 .orElse(null);
     }
