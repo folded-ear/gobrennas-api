@@ -13,42 +13,43 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
+import static com.brennaswitzer.cookbook.util.IdUtils.toStringIdList;
 
 @SuppressWarnings("WeakerAccess")
 public class PlanItemInfo {
 
     public static PlanItemInfo fromPlanItem(PlanItem item) {
         PlanItemInfo info = new PlanItemInfo();
-        info.id = item.getId();
+        info.id = item.getId().toString();
         info.name = item.getName();
         if (item.hasNotes()) {
             info.notes = item.getNotes();
         }
         info.status = item.getStatus();
         if (item.isChild()) {
-            info.parentId = item.getParent().getId();
+            info.parentId = item.getParent().getId().toString();
         }
         if (item.hasChildren()) {
-            info.subtaskIds = toIdList(item.getOrderedChildView());
+            info.subtaskIds = toStringIdList(item.getOrderedChildView());
         }
         if (item.isComponent()) {
-            info.aggregateId = item.getAggregate().getId();
+            info.aggregateId = item.getAggregate().getId().toString();
         }
         if (item.hasComponents()) {
-            info.componentIds = toIdList(item.getOrderedComponentsView());
+            info.componentIds = toStringIdList(item.getOrderedComponentsView());
         }
         if (item.hasIngredient()) {
-            info.ingredientId = item.getIngredient().getId();
+            info.ingredientId = item.getIngredient().getId().toString();
             Quantity q = item.getQuantity();
             info.quantity = q.getQuantity();
             if (q.hasUnits()) {
-                info.uomId = q.getUnits().getId();
+                info.uomId = q.getUnits().getId().toString();
                 info.units = q.getUnits().getName();
             }
             info.preparation = item.getPreparation();
         }
         if (item.hasBucket()) {
-            info.bucketId = item.getBucket().getId();
+            info.bucketId = item.getBucket().getId().toString();
         }
         return info;
     }
@@ -78,7 +79,7 @@ public class PlanItemInfo {
 
     @Getter
     @Setter
-    private Long id;
+    private String id;
 
     @Getter
     @Setter
@@ -94,11 +95,11 @@ public class PlanItemInfo {
 
     @Getter
     @Setter
-    private Long parentId;
+    private String parentId;
 
     @Getter
     @Setter
-    private Long aggregateId;
+    private String aggregateId;
 
     @Getter
     @Setter
@@ -113,12 +114,12 @@ public class PlanItemInfo {
     @Getter
     @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private long[] subtaskIds;
+    private String[] subtaskIds;
 
     @Getter
     @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private long[] componentIds;
+    private String[] componentIds;
 
     @Getter
     @Setter
@@ -130,15 +131,15 @@ public class PlanItemInfo {
 
     @Getter
     @Setter
-    private Long uomId;
+    private String uomId;
 
     @Getter
     @Setter
-    private Long ingredientId;
+    private String ingredientId;
 
     @Getter
     @Setter
-    private Long bucketId;
+    private String bucketId;
 
     @Getter
     @Setter

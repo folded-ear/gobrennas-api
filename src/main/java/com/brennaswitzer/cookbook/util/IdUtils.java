@@ -28,4 +28,13 @@ public final class IdUtils {
         return result;
     }
 
+    public static String[] toStringIdList(Collection<? extends Identified> items) {
+        String[] result = new String[items.size()];
+        int i = 0;
+        for (Identified it : items) {
+            result[i++] = it.getId().toString();
+        }
+        return result;
+    }
+
 }
