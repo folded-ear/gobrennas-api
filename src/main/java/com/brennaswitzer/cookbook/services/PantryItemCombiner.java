@@ -36,14 +36,6 @@ public class PantryItemCombiner {
         for (var lbl : other.getLabels()) {
             toKeep.addLabel(lbl);
         }
-        // inventory_item.ingredient_id // todo: UK violations?!
-        update(new NamedParameterQuery(
-                """
-                update inventory_item
-                set ingredient_id = :toKeep
-                where ingredient_id = :other
-                """,
-                idMap));
         // pantry_item_synonyms.pantry_item_id
         toKeep.addSynonym(other.getName());
         for (var syn : other.getSynonyms()) {
