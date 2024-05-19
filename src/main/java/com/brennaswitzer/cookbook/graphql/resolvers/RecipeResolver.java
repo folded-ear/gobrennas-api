@@ -1,14 +1,15 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
-import com.brennaswitzer.cookbook.domain.FavoriteType;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.graphql.loaders.RecipeIsFavoriteBatchLoader;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
 import graphql.kickstart.tools.GraphQLResolver;
+import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -49,11 +51,10 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .collect(toList());
     }
 
-    public boolean favorite(Recipe recipe) {
-        return fetchFavorites.byObject(
-                        FavoriteType.RECIPE.getKey(),
-                        recipe.getId())
-                .isPresent();
+    public CompletableFuture<Boolean> favorite(Recipe recipe,
+                                               DataFetchingEnvironment env) {
+        return env.<Recipe, Boolean>getDataLoader(RecipeIsFavoriteBatchLoader.class.getName())
+                .load(recipe);
     }
 
     public Photo photo(Recipe recipe) {

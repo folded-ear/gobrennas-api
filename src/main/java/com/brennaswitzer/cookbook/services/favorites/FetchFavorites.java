@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,12 @@ public class FetchFavorites {
         return repo.findByOwnerAndObjectTypeAndObjectId(principalAccess.getUser(),
                                                         objectType,
                                                         objectId);
+    }
+
+    public Iterable<Favorite> byObjects(String objectType, Collection<Long> objectIds) {
+        return repo.findByOwnerAndObjectTypeAndObjectIdIn(principalAccess.getUser(),
+                                                          objectType,
+                                                          objectIds);
     }
 
 }
