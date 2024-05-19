@@ -422,3 +422,7 @@ where r.id = h.recipe_id;
 alter table planned_recipe_history
     alter owner_id set not null,
     alter done_at set not null;
+
+--changeset barneyb:remove-timers
+drop table timer_grants;
+drop table timer;

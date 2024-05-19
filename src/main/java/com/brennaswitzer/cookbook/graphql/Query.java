@@ -24,9 +24,6 @@ public class Query implements GraphQLQueryResolver {
     private UserPrincipalAccess userPrincipalAccess;
 
     @Autowired
-    public TimerQuery timer;
-
-    @Autowired
     public FavoriteQuery favorite;
 
     @Autowired
