@@ -14,9 +14,6 @@ public class Mutation implements GraphQLMutationResolver {
     public LibraryMutation library;
 
     @Autowired
-    public TimerMutation timer;
-
-    @Autowired
     public FavoriteMutation favorite;
 
     @Autowired
