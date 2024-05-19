@@ -47,4 +47,8 @@ public class User extends BaseEntity {
     public String toString() {
         return super.toString() + "(" + email + ")";
     }
+
+    public boolean isOwnerOf(Owned owned) {
+        return equals(owned.getOwner());
+    }
 }
