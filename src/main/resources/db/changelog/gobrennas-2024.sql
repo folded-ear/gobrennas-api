@@ -426,3 +426,7 @@ alter table planned_recipe_history
 --changeset barneyb:remove-timers
 drop table timer_grants;
 drop table timer;
+
+--changeset barneyb:remove-inventory
+drop table inventory_tx;
+drop table inventory_item;
