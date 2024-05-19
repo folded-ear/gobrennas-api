@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.repositories.FavoriteRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.google.common.annotations.VisibleForTesting;
 import org.dataloader.BatchLoader;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,8 +30,10 @@ public class RecipeIsFavoriteBatchLoader implements BatchLoader<Recipe, Boolean>
     @Override
     public CompletionStage<List<Boolean>> load(List<Recipe> recipes) {
         // Graphql will complete the future on a thread from its own pool,
-        // outside Spring's context, so retrieve the owner synchronously.
-        User owner = principalAccess.getUser();
+        // outside Spring's context, so retrieve the owner synchronously. It'll
+        // also be outside the Hibernate session, so eagerly load it. The owners
+        // of the Recipes should already have been loaded.
+        User owner = (User) Hibernate.unproxy(principalAccess.getUser());
         return CompletableFuture.supplyAsync(() -> loadInternal(owner, recipes));
     }
 
