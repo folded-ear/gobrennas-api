@@ -70,13 +70,26 @@ class PlannerMutationTest extends MockTest {
     }
 
     @Test
-    void createPlan() {
+    void createPlan_blank() {
         String name = "cheese party";
         Plan plan = mock(Plan.class);
         when(planService.createPlan(name))
                 .thenReturn(plan);
 
-        Plan result = mutation.createPlan(name);
+        Plan result = mutation.createPlan(name, null);
+
+        assertSame(plan, result);
+    }
+
+    @Test
+    void createPlan_from() {
+        String name = "cheese party";
+        long sourcePlanId = 456L;
+        Plan plan = mock(Plan.class);
+        when(planService.duplicatePlan(name, sourcePlanId))
+                .thenReturn(plan);
+
+        Plan result = mutation.createPlan(name, sourcePlanId);
 
         assertSame(plan, result);
     }

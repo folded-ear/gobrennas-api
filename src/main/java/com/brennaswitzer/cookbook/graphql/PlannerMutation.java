@@ -31,8 +31,10 @@ public class PlannerMutation {
         return planService.createItem(parentId, afterId, name);
     }
 
-    public Plan createPlan(String name) {
-        return planService.createPlan(name);
+    public Plan createPlan(String name, Long sourcePlanId) {
+        return sourcePlanId == null
+                ? planService.createPlan(name)
+                : duplicatePlan(name, sourcePlanId);
     }
 
     public Deletion deleteBucket(Long planId, Long bucketId) {
