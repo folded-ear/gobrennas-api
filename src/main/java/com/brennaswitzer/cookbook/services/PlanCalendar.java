@@ -95,12 +95,18 @@ public class PlanCalendar {
     }
 
     private Summary getEventSummary(PlanItem item) {
-        String name = item.getName();
+        StringBuilder sb = new StringBuilder();
+        switch (item.getStatus()) {
+            case COMPLETED -> sb.append("✔ ");
+            case DELETED -> sb.append("✘ ");
+        }
+        sb.append(item.getName());
         PlanBucket bucket = item.getBucket();
         if (bucket.isNamed()) {
-            name += " - " + bucket.getName();
+            sb.append(" - ")
+                    .append(bucket.getName());
         }
-        return new Summary(name);
+        return new Summary(sb.toString());
     }
 
     @NotNull
