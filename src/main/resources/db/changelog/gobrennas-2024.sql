@@ -434,3 +434,8 @@ drop table inventory_item;
 --changeset barneyb:remove-compound-quantity
 drop table compound_quantity_components;
 drop table compound_quantity;
+
+--changeset barneyb:remove--on-stage-label
+delete
+from label
+where name = '--on-stage'
