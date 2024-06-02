@@ -22,6 +22,7 @@ function getUrlParts(scripts) {
         .filter(el => el.id === "foodinger-import-bookmarklet");
 
     const { appRoot, apiRoot, querystring } = getUrlParts(scripts);
+
     const authHeaders = {
         "Authorization": `Bearer ${querystring.token || "garbage"}`,
     };
@@ -37,6 +38,7 @@ function getUrlParts(scripts) {
             store.mode = "stale";
             render();
         });
+
     const sendToFoodinger = () => {
         fetchImage().then(result => {
             let recipeData = new FormData();
@@ -65,7 +67,7 @@ function getUrlParts(scripts) {
                 },
                 body: recipeData,
             })
-                .then(r => {
+              .then(r => {
                     if (r.status === 401) {
                         store.mode = "stale";
                         render();
@@ -136,6 +138,7 @@ function getUrlParts(scripts) {
         store.photoURL = e.target.src;
         tearDownGrab();
     };
+
     const setUpGrab = (target, style) => {
         store.mode = "grab";
         store.grabTarget = target;
@@ -143,6 +146,7 @@ function getUrlParts(scripts) {
         document.addEventListener("selectionchange", grabSelectHandler);
         render();
     };
+
     const setUpFind = (target, style) => {
         store.mode = "find";
         store.grabTarget = target;
@@ -153,6 +157,7 @@ function getUrlParts(scripts) {
         );
         render();
     };
+
     const tearDownGrab = () => {
         store.grabTarget = null;
         store.grabStyle = null;
@@ -165,6 +170,7 @@ function getUrlParts(scripts) {
         store.mode = "form";
         render();
     };
+
     const grabSelectedNode =
         () => {
             const sel = document.getSelection();
@@ -485,11 +491,11 @@ function getUrlParts(scripts) {
         () => {
             if (!store.url.includes("cooking.nytimes.com")) return;
             const r = document.querySelector("main .recipe");
-            store.title = grabString(r.querySelector("[class*=contenttitle]"));
+            store.title = grabString(r.querySelector("[class*=title-display]"));
             store.ingredients = grabList(r.querySelector(
                 "[class^=ingredients_ingredients] ul"));
             store.directions = grabList(r.querySelector(
-                "[class^=preparation_steps]"));
+                "[class^=preparation_stepList]"));
             findImage(r.querySelector("[class^=recipeheaderimage] img"));
             store.photo = null;
             return true;
