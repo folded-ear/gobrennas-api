@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -73,8 +74,8 @@ public class PlannerMutation {
         return planService.setGrantOnPlan(planId, userId, accessLevel);
     }
 
-    public PlanItem setStatus(Long id, PlanItemStatus status) {
-        return planService.setItemStatus(id, status);
+    public PlanItem setStatus(Long id, PlanItemStatus status, Instant doneAt) {
+        return planService.setItemStatus(id, status, doneAt);
     }
 
     public Plan revokeGrant(Long planId, Long userId) {

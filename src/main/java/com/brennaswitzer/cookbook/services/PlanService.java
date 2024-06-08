@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -388,30 +389,36 @@ public class PlanService {
     }
 
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
+        return setItemStatus(id, status, null);
+    }
+
+    public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setStatus(status);
         if (item.getStatus().isForDelete()) {
-            recordRecipeHistories(item, item.getStatus());
+            recordRecipeHistories(item, item.getStatus(), doneAt);
             item.moveToTrash();
         }
         return item;
     }
 
     private void recordRecipeHistories(PlanItem item,
-                                       PlanItemStatus status) {
+                                       PlanItemStatus status,
+                                       Instant doneAtOrNull) {
+        Instant doneAt = doneAtOrNull == null ? Instant.now() : doneAtOrNull;
         if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
             h.setOwner(principalAccess.getUser());
             h.setPlanItemId(item.getId());
             h.setPlannedAt(item.getCreatedAt());
-            h.setDoneAt(Instant.now());
+            h.setDoneAt(doneAt);
             h.setStatus(status);
             recipeHistoryRepo.save(h);
         }
         if (item.hasChildren()) {
             item.getChildView()
-                    .forEach(it -> recordRecipeHistories(it, status));
+                    .forEach(it -> recordRecipeHistories(it, status, doneAt));
         }
     }
 

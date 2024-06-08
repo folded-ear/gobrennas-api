@@ -246,14 +246,18 @@ class PlanServiceTest {
         assertEquals(PlanItemStatus.DELETED, h.getStatus());
         // pizza got completed
         h = byRecipe.get(box.pizza);
+        var pizzaHistory = byRecipe.get(box.pizza);
         assertEquals(pizza.getId(), h.getPlanItemId());
         assertNotNull(h.getPlannedAt());
         assertEquals(PlanItemStatus.COMPLETED, h.getStatus());
         // sauce got (implicitly) completed
         h = byRecipe.get(box.pizzaSauce);
+        var sauceHistory = byRecipe.get(box.pizzaSauce);
         assertEquals(sauce.getId(), h.getPlanItemId());
         assertNotNull(h.getPlannedAt());
         assertEquals(PlanItemStatus.COMPLETED, h.getStatus());
+        assertEquals(pizzaHistory.getDoneAt(), sauceHistory.getDoneAt());
+
         // ignore tomatoes - not a recipe
         assertEquals(3, recipeHistoryRepo.count());
     }

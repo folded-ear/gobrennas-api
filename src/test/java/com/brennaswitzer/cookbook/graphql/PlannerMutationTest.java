@@ -11,7 +11,9 @@ import com.brennaswitzer.cookbook.util.MockTestTarget;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -206,10 +208,11 @@ class PlannerMutationTest extends MockTest {
         long id = 123L;
         PlanItemStatus status = PlanItemStatus.ACQUIRED;
         PlanItem item = mock(PlanItem.class);
-        when(planService.setItemStatus(id, status))
+        Instant date = Instant.now().minus(3, ChronoUnit.DAYS);
+        when(planService.setItemStatus(id, status, date))
                 .thenReturn(item);
 
-        PlanItem result = mutation.setStatus(id, status);
+        PlanItem result = mutation.setStatus(id, status, date);
 
         assertSame(item, result);
     }
@@ -241,5 +244,4 @@ class PlannerMutationTest extends MockTest {
 
         assertSame(mock, bucket);
     }
-
 }
