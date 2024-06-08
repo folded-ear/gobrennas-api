@@ -206,10 +206,24 @@ class PlannerMutationTest extends MockTest {
         long id = 123L;
         PlanItemStatus status = PlanItemStatus.ACQUIRED;
         PlanItem item = mock(PlanItem.class);
+        LocalDate date = LocalDate.of(2024, 6, 4);
+        when(planService.setItemStatus(id, status, date))
+                .thenReturn(item);
+
+        PlanItem result = mutation.setStatus(id, status, date);
+
+        assertSame(item, result);
+    }
+
+    @Test
+    void setStatusNullDone() {
+        long id = 123L;
+        PlanItemStatus status = PlanItemStatus.ACQUIRED;
+        PlanItem item = mock(PlanItem.class);
         when(planService.setItemStatus(id, status))
                 .thenReturn(item);
 
-        PlanItem result = mutation.setStatus(id, status);
+        PlanItem result = mutation.setStatus(id, status, null);
 
         assertSame(item, result);
     }

@@ -111,7 +111,7 @@ type PlannerMutation {
     setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!
     """Sets the status of the given item. This will always return the updated
     item, though it may immediately moved to the trash (in the background)."""
-    setStatus(id: ID!, status: PlanItemStatus!): PlanItem!
+    setStatus(id: ID!, status: PlanItemStatus!, doneAt: Date): PlanItem!
     """Update a bucket w/in a plan, by setting or clearing its name and date."""
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
 }

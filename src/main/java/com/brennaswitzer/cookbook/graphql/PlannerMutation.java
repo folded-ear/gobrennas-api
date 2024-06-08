@@ -73,8 +73,9 @@ public class PlannerMutation {
         return planService.setGrantOnPlan(planId, userId, accessLevel);
     }
 
-    public PlanItem setStatus(Long id, PlanItemStatus status) {
-        return planService.setItemStatus(id, status);
+    public PlanItem setStatus(Long id, PlanItemStatus status, LocalDate doneAt) {
+        if (doneAt == null) return planService.setItemStatus(id, status);
+        return planService.setItemStatus(id, status, doneAt);
     }
 
     public Plan revokeGrant(Long planId, Long userId) {
