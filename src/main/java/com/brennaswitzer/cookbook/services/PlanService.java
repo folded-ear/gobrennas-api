@@ -389,8 +389,7 @@ public class PlanService {
     }
 
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
-        Instant now = Instant.now();
-        return setItemStatus(id, status, now);
+        return setItemStatus(id, status, null);
     }
 
     public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
@@ -405,7 +404,8 @@ public class PlanService {
 
     private void recordRecipeHistories(PlanItem item,
                                        PlanItemStatus status,
-                                       Instant doneAt) {
+                                       Instant doneAtOrNull) {
+        Instant doneAt = doneAtOrNull == null ? Instant.now() : doneAtOrNull;
         if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);

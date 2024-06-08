@@ -75,7 +75,6 @@ public class PlannerMutation {
     }
 
     public PlanItem setStatus(Long id, PlanItemStatus status, Instant doneAt) {
-        if (doneAt == null) return planService.setItemStatus(id, status);
         return planService.setItemStatus(id, status, doneAt);
     }
 
