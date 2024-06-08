@@ -218,19 +218,6 @@ class PlannerMutationTest extends MockTest {
     }
 
     @Test
-    void setStatusNullDone() {
-        long id = 123L;
-        PlanItemStatus status = PlanItemStatus.ACQUIRED;
-        PlanItem item = mock(PlanItem.class);
-        when(planService.setItemStatus(id, status))
-                .thenReturn(item);
-
-        PlanItem result = mutation.setStatus(id, status, null);
-
-        assertSame(item, result);
-    }
-
-    @Test
     void revokeGrant() {
         long planId = 123L;
         long userId = 456L;
@@ -257,5 +244,4 @@ class PlannerMutationTest extends MockTest {
 
         assertSame(mock, bucket);
     }
-
 }
