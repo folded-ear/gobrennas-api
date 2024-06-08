@@ -389,11 +389,11 @@ public class PlanService {
     }
 
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
-        LocalDate now = LocalDate.now();
+        Instant now = Instant.now();
         return setItemStatus(id, status, now);
     }
 
-    public PlanItem setItemStatus(Long id, PlanItemStatus status, LocalDate doneAt) {
+    public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setStatus(status);
         if (item.getStatus().isForDelete()) {
@@ -405,14 +405,14 @@ public class PlanService {
 
     private void recordRecipeHistories(PlanItem item,
                                        PlanItemStatus status,
-                                       LocalDate doneAt) {
+                                       Instant doneAt) {
         if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
             h.setOwner(principalAccess.getUser());
             h.setPlanItemId(item.getId());
             h.setPlannedAt(item.getCreatedAt());
-            h.setDoneAt(doneAt.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            h.setDoneAt(doneAt);
             h.setStatus(status);
             recipeHistoryRepo.save(h);
         }
