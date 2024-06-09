@@ -14,4 +14,15 @@ public enum Rating implements Identified {
     FIVE_STARS(5L);
 
     private final Long id;
+
+    public static Rating fromId(Long id) {
+        return switch (id == null ? 0 : id.intValue()) {
+            case 1 -> ONE_STAR;
+            case 2 -> TWO_STARS;
+            case 3 -> THREE_STARS;
+            case 4 -> FOUR_STARS;
+            case 5 -> FIVE_STARS;
+            default -> throw new IllegalArgumentException("Invalid numeric rating: " + id);
+        };
+    }
 }

@@ -214,6 +214,15 @@ type LibraryMutation {
     updateRecipe(id: ID!, info: IngredientInfo!, photo: Upload): Recipe!
     setRecipePhoto(id: ID!, photo: Upload!): Recipe!
     deleteRecipe(id: ID!): Deletion!
+    history(recipeId: ID!): RecipeHistoryMutation
+}
+
+type RecipeHistoryMutation {
+    recipeId: ID!
+    """Set/update the rating on this history item. Either rating OR ratingInt
+    should be supplied, not both.
+    """
+    setRating(id: ID!, rating: Rating, ratingInt: PositiveInt): PlannedRecipeHistory!
 }
 
 input IngredientInfo {

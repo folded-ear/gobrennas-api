@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 public class LibraryMutation {
 
     @Autowired
+    private RecipeHistoryMutation history;
+
+    @Autowired
     private RecipeService recipeService;
     @Autowired
     private ItemService itemService;
@@ -48,6 +51,10 @@ public class LibraryMutation {
 
     public Deletion deleteRecipe(Long id) {
         return Deletion.of(recipeService.deleteRecipeById(id));
+    }
+
+    public RecipeHistoryMutation history(Long recipeId) {
+        return history;
     }
 
 }
