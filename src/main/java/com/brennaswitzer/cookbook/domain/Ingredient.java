@@ -11,8 +11,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.springframework.util.Assert;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -41,7 +41,6 @@ public abstract class Ingredient extends BaseEntity implements Named, Labeled {
     };
 
     @Getter
-    @Setter
     private String name;
 
     @ElementCollection
@@ -52,6 +51,11 @@ public abstract class Ingredient extends BaseEntity implements Named, Labeled {
 
     Ingredient(String name) {
         setName(name);
+    }
+
+    public void setName(String name) {
+        Assert.hasText(name, "Null/empty isn't a valid name");
+        this.name = name.trim();
     }
 
     public Set<Label> getLabels() {
@@ -73,6 +77,5 @@ public abstract class Ingredient extends BaseEntity implements Named, Labeled {
     public void clearLabels() {
         this.labels.clear();
     }
-
 
 }

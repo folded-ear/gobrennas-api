@@ -100,6 +100,7 @@ public class PantryItem extends Ingredient {
      */
     @Override
     public void setName(String name) {
+        name = name.trim();
         var oldName = getName();
         if (oldName != null && !oldName.equalsIgnoreCase(name) && !oldName.isBlank()) {
             addSynonym(oldName);
@@ -116,6 +117,7 @@ public class PantryItem extends Ingredient {
     public boolean hasSynonym(String synonym) {
         if (synonyms == null) return false;
         if (synonym == null || synonym.isBlank()) return false;
+        synonym = synonym.trim();
         if (synonyms.contains(synonym)) return true;
         for (var syn : synonyms)
             if (synonym.equalsIgnoreCase(syn)) return true;
@@ -123,7 +125,8 @@ public class PantryItem extends Ingredient {
     }
 
     public boolean addSynonym(String synonym) {
-        Assert.notNull(synonym, "Null isn't a valid synonym");
+        Assert.hasText(synonym, "Null/empty isn't a valid synonym");
+        synonym = synonym.trim();
         if (hasSynonym(synonym)) return false;
         if (synonyms == null) synonyms = new HashSet<>();
         return synonyms.add(synonym);
@@ -145,6 +148,7 @@ public class PantryItem extends Ingredient {
 
     public boolean removeSynonym(String synonym) {
         if (synonyms == null) return false;
+        synonym = synonym.trim();
         return synonyms.remove(synonym)
                 || synonyms.removeIf(synonym::equalsIgnoreCase);
     }
