@@ -439,3 +439,21 @@ drop table compound_quantity;
 delete
 from label
 where name = '--on-stage'
+
+--changeset barneyb:trim-ingredient-names
+update ingredient
+set name = btrim(name)
+where name like ' %'
+   or name like '% ';
+
+update pantry_item_synonyms
+set synonym = btrim(synonym)
+where synonym like ' %'
+   or synonym like '% ';
+
+delete
+from pantry_item_synonyms s
+where exists (select *
+              from ingredient
+              where id = s.pantry_item_id
+                and name = s.synonym);
