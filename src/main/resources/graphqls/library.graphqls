@@ -197,9 +197,7 @@ type PlannedRecipeHistory implements Node {
     owner: User!
     status: PlanItemStatus!
     plannedAt: DateTime!
-    plannedDate: Date!
     doneAt: DateTime!
-    doneDate: Date!
     rating: Rating
     ratingInt: PositiveInt
     notes: String
