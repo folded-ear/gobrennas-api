@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Comparator;
@@ -114,7 +114,7 @@ public class PlanCalendar {
         java.util.Date dt = java.util.Date.from(
                 item.getBucket()
                         .getDate()
-                        .atStartOfDay(ZoneId.systemDefault())
+                        .atStartOfDay(ZoneOffset.UTC)
                         .toInstant());
         return new DtStart(new Date(dt));
     }
