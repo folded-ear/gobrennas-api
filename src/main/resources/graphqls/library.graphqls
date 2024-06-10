@@ -221,6 +221,9 @@ type RecipeHistoryMutation {
     should be supplied, not both.
     """
     setRating(id: ID!, rating: Rating, ratingInt: PositiveInt): PlannedRecipeHistory!
+    """Set/update the notes on this history item.
+    """
+    setNotes(id: ID!, notes: String!): PlannedRecipeHistory!
 }
 
 input IngredientInfo {
