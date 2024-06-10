@@ -30,16 +30,20 @@ public class SharedPlanController {
     private PlanCalendar planCalendar;
 
     @GetMapping(
-            value = "/{slug}/{secret}/{id}.ics")
+            value = "/{slug}/{secret}/{id}.{ext:ics|txt}")
     public void getPlanCalendar(
             @PathVariable("secret") String secret,
             @PathVariable("id") Long id,
+            @PathVariable("ext") String ext,
             HttpServletResponse response) throws IOException {
         if (!helper.isSecretValid(Plan.class, id, secret)) {
             throw new AuthorizationServiceException("Bad secret");
         }
         response.setCharacterEncoding("UTF-8");
-        response.addHeader(HttpHeaders.CONTENT_TYPE, "text/calendar");
+        response.addHeader(HttpHeaders.CONTENT_TYPE, switch (ext) {
+            case "txt" -> "text/plain";
+            default -> "text/calendar";
+        });
         new CalendarOutputter(calendarProperties.isValidate())
                 .output(planCalendar.getCalendar(id),
                         response.getWriter());
