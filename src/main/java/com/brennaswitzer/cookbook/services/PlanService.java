@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +63,9 @@ public class PlanService {
 
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private DiffService diffService;
 
     public Iterable<Plan> getPlans(User owner) {
         return getPlans(owner.getId());
@@ -414,9 +417,25 @@ public class PlanService {
             h.setPlannedAt(item.getCreatedAt());
             h.setDoneAt(doneAt);
             h.setStatus(status);
+            var recipeLines = new ArrayList<String>();
+            recipeLines.add(r.getName());
+            recipeLines.add("");
+            r.getIngredients()
+                    .forEach(ir -> recipeLines.add(ir.getRaw()));
+            var planLines = new ArrayList<String>();
+            planLines.add(item.getName());
+            planLines.add("");
+            item.getOrderedChildView()
+                    .forEach(it -> {
+                        planLines.add(it.getName());
+                        recordRecipeHistories(it, status, doneAt);
+                    });
+            var diff = diffService.diffLinesToPatch(recipeLines, planLines);
+            if (!diff.isBlank()) {
+                h.setNotes("```diff\n" + diff + "\n```\n");
+            }
             recipeHistoryRepo.save(h);
-        }
-        if (item.hasChildren()) {
+        } else if (item.hasChildren()) {
             item.getChildView()
                     .forEach(it -> recordRecipeHistories(it, status, doneAt));
         }
