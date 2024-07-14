@@ -91,6 +91,8 @@ type PlannerMutation {
     duplicatePlan(name: String!, sourcePlanId: ID!): Plan!
     """Delete a bucket from a plan."""
     deleteBucket(planId: ID!, bucketId: ID!): Deletion!
+    """Delete multiple buckets from a single plan."""
+    deleteBuckets(planId: ID!, bucketIds: [ID!]!): [Deletion!]!
     """Revokes the grant for a user w/in a plan, if one exists."""
     revokeGrant(planId: ID!, userId: ID!): Plan!
     """Deletes an item from a plan. This operation cascades."""
