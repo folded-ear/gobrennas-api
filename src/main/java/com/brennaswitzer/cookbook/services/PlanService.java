@@ -23,6 +23,7 @@ import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
 import org.hibernate.Hibernate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -338,12 +339,23 @@ public class PlanService {
         return m;
     }
 
-    public PlanBucket deleteBucket(Long planId, Long id) {
+    public PlanBucket deleteBucket(Long planId, Long bucketId) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = bucketRepo.getReferenceById(id);
+        return deleteBucketInternal(plan, bucketId);
+    }
+
+    private @NotNull PlanBucket deleteBucketInternal(Plan plan, Long bucketId) {
+        PlanBucket bucket = bucketRepo.getReferenceById(bucketId);
         plan.getBuckets().remove(bucket);
         bucketRepo.delete(bucket);
         return bucket;
+    }
+
+    public List<PlanBucket> deleteBuckets(Long planId, List<Long> bucketIds) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        return bucketIds.stream()
+                .map(id -> deleteBucketInternal(plan, id))
+                .toList();
     }
 
     public PlanMessage deleteBucketForMessage(Long planId, Long id) {

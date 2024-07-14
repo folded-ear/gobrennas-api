@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -40,6 +41,16 @@ public class PlannerMutation {
 
     public Deletion deleteBucket(Long planId, Long bucketId) {
         return Deletion.of(planService.deleteBucket(planId, bucketId));
+    }
+
+    public List<Deletion> deleteBuckets(Long planId, List<Long> bucketIds) {
+        if (bucketIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return planService.deleteBuckets(planId, bucketIds)
+                .stream()
+                .map(Deletion::of)
+                .toList();
     }
 
     public Deletion deleteItem(Long id) {
