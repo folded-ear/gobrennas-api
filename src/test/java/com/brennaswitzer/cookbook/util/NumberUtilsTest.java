@@ -11,6 +11,7 @@ public class NumberUtilsTest {
 
     @Test
     public void parseDecimal() {
+        assertEquals(0, parseNumber("0"), 0.001);
         assertEquals(1, parseNumber("1"), 0.001);
         assertEquals(1, parseNumber("1.0"), 0.001);
         assertEquals(0.1, parseNumber("0.1"), 0.001);
@@ -58,6 +59,8 @@ public class NumberUtilsTest {
         assertEquals(0.5, parseNumber("one half"), 0.001);
         assertEquals(2.5, parseNumber("two & one half"), 0.001);
         assertEquals(2.5, parseNumber("two and one half"), 0.001);
+        assertEquals(0.0, parseNumber("zero"), 0.001);
+        assertEquals(0.5, parseNumber("zero & one half"), 0.001);
     }
 
     @Test
@@ -68,6 +71,7 @@ public class NumberUtilsTest {
         assertNull(parseNumber("glergypants"));
         assertNull(parseNumber("1-3"));
         assertNull(parseNumber("1.2.3"));
+        assertNull(parseNumber("01"));
         //noinspection ConstantConditions
         assertEquals(1.2, parseNumber("1.2.3", true), 0.001);
     }
