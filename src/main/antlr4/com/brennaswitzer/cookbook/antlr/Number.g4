@@ -100,6 +100,9 @@ name returns [double val]
             case "half"     :
                 $val = 0.5;
                 break;
+            case "zero"     :
+                $val = 0.0;
+                break;
             case "one"      :
                 $val = 1.0;
                 break;
@@ -180,7 +183,8 @@ DIGIT
     ;
 
 INTEGER
-    :   NON_ZERO_DIGIT DIGIT*
+    :   ZERO
+    |   NON_ZERO_DIGIT DIGIT*
     ;
 
 DECIMAL
@@ -193,6 +197,7 @@ NAME
     :   'a half'
     |   'one half'
     |   'half'
+    |   'zero'
     |   'one'
     |   'two'
     |   'three'
