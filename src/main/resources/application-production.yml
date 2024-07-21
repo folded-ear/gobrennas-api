@@ -25,7 +25,7 @@ app:
   # where 'index.html' lives from the UA's perspective
   public-url: https://gobrennas.com/
   aws:
-    bucket-name: foodinger
+    bucket-name: ${AWS_S3_BUCKET_NAME:foodinger}
 
 logging:
   level:
@@ -41,4 +41,4 @@ spring:
 app:
   public-url: https://beta.gobrennas.com/
   aws:
-    bucket-name: beta-foodinger
+    bucket-name: ${AWS_S3_BUCKET_NAME:beta-foodinger}
