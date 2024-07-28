@@ -176,11 +176,16 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
-    public void updateAutoRecognition(MutableItem it) {
+    public void clearAutoRecognition(MutableItem it) {
         if (it == null) return;
         it.setIngredient(null);
         it.setQuantity(null);
         it.setPreparation(null);
+    }
+
+    public void updateAutoRecognition(MutableItem it) {
+        if (it == null) return;
+        clearAutoRecognition(it);
         autoRecognize(it);
     }
 
