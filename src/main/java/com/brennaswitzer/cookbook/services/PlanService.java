@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
+import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
@@ -217,6 +218,7 @@ public class PlanService {
 
     public void addRecipe(Long planId, Recipe r, Double scale) {
         PlanItem recipeItem = new PlanItem(r.getName(), r);
+        recipeItem.setQuantity(Quantity.count(scale));
         Plan plan = getPlanById(planId, AccessLevel.CHANGE);
         plan.addChild(recipeItem);
         sendToPlan(r, recipeItem, scale);
@@ -430,6 +432,7 @@ public class PlanService {
                                        Instant doneAtOrNull) {
         Instant doneAt = doneAtOrNull == null ? Instant.now() : doneAtOrNull;
         if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
+            double scale = item.getQuantity().getQuantity();
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
             h.setOwner(principalAccess.getUser());
@@ -441,7 +444,12 @@ public class PlanService {
             recipeLines.add(r.getName());
             recipeLines.add("");
             r.getIngredients()
-                    .forEach(ir -> recipeLines.add(ir.getRaw()));
+                    .forEach(ir -> {
+                        if (scale > 0 && scale != 1) {
+                            ir = ir.scale(scale);
+                        }
+                        recipeLines.add(ir.getRaw());
+                    });
             var planLines = new ArrayList<String>();
             planLines.add(item.getName());
             planLines.add("");
