@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
+import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
@@ -217,6 +218,7 @@ public class PlanService {
 
     public void addRecipe(Long planId, Recipe r, Double scale) {
         PlanItem recipeItem = new PlanItem(r.getName(), r);
+        recipeItem.setQuantity(Quantity.count(scale));
         Plan plan = getPlanById(planId, AccessLevel.CHANGE);
         plan.addChild(recipeItem);
         sendToPlan(r, recipeItem, scale);
