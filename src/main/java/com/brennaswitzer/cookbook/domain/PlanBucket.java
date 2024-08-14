@@ -9,39 +9,39 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.Collection;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "plan_bucket", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "plan_id", "name" })
 })
 public class PlanBucket extends BaseEntity implements Named {
 
+    /**
+     * Annotated {@code @NotNull} as it's never <em>valid</em> for a bucket's
+     * plan to be {@code null}, even though the field may briefly be {@code
+     * null} after being removed from its (former) plan, but before orphan
+     * removal at session flush.
+     */
     @NotNull
-    @Getter
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
+    @Setter(AccessLevel.NONE)
     private Plan plan;
 
-    @Getter
-    @Setter
     private String name;
 
-    @Getter
-    @Setter
     private LocalDate date;
 
-    @Getter
-    @Setter
     @OneToMany(mappedBy = "bucket")
     private Collection<PlanItem> items;
 
-    @Getter
-    @Setter
     @Column(name = "mod_count")
     private int modCount;
 
@@ -62,12 +62,30 @@ public class PlanBucket extends BaseEntity implements Named {
         setModCount(getModCount() + 1);
     }
 
+    @SuppressWarnings("unused")
     public boolean isDated() {
         return date != null;
     }
 
     public boolean isNamed() {
         return name != null && !name.isBlank();
+    }
+
+    public void setPlan(Plan plan) {
+        if (this.plan != null) {
+            this.plan.getBuckets().remove(this);
+            this.plan.markDirty(); // for change detection
+        }
+        this.plan = plan;
+        if (this.plan != null) {
+            this.plan.getBuckets().add(this);
+            this.plan.markDirty(); // for change detection
+        }
+    }
+
+    public PlanBucket of(Plan plan) {
+        setPlan(plan);
+        return this;
     }
 
 }

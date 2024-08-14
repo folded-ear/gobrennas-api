@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
+import com.brennaswitzer.cookbook.domain.BaseEntity;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Plan;
@@ -37,8 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Service
@@ -144,12 +144,22 @@ public class PlanService {
 
     public List<PlanItem> getTreeDeltasById(Long planId, Instant cutoff) {
         val plan = getPlanById(planId, AccessLevel.VIEW);
-        return Stream.concat(
-                        getTreeById(plan).stream(),
-                        plan.getTrashBinItems().stream()
-                )
-                .filter(t -> t.getUpdatedAt().isAfter(cutoff))
-                .collect(Collectors.toList());
+        List<PlanItem> result = new ArrayList<>();
+        Predicate<BaseEntity> filter = it -> it.getUpdatedAt().isAfter(cutoff);
+        // plan or any descendants
+        getTreeById(plan).stream()
+                .filter(filter)
+                .forEach(result::add);
+        // anything in the trash (deleted or completed)
+        plan.getTrashBinItems().stream()
+                .filter(filter)
+                .forEach(result::add);
+        // bucket changes count as the plan itself
+        if (!filter.test(plan) && plan.getBuckets()
+                .stream()
+                .anyMatch(filter))
+            result.add(plan);
+        return result;
     }
 
     public PlanItem mutateTree(List<Long> ids, Long parentId, Long afterId) {
@@ -344,21 +354,20 @@ public class PlanService {
     }
 
     public PlanBucket deleteBucket(Long planId, Long bucketId) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        return deleteBucketInternal(plan, bucketId);
+        getPlanById(planId, AccessLevel.ADMINISTER);
+        return deleteBucketInternal(bucketId);
     }
 
-    private @NotNull PlanBucket deleteBucketInternal(Plan plan, Long bucketId) {
+    private @NotNull PlanBucket deleteBucketInternal(Long bucketId) {
         PlanBucket bucket = bucketRepo.getReferenceById(bucketId);
-        plan.getBuckets().remove(bucket);
-        bucketRepo.delete(bucket);
+        bucket.setPlan(null);
         return bucket;
     }
 
     public List<PlanBucket> deleteBuckets(Long planId, List<Long> bucketIds) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        getPlanById(planId, AccessLevel.ADMINISTER);
         return bucketIds.stream()
-                .map(id -> deleteBucketInternal(plan, id))
+                .map(this::deleteBucketInternal)
                 .toList();
     }
 
