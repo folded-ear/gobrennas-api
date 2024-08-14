@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithAliceBobEve
-class PlanServiceTest {
+class PlanServiceDbTest {
 
     @Autowired
     private PlanService service;
