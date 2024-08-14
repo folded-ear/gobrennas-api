@@ -103,8 +103,8 @@ public class PlanController {
     public List<PlanItemInfo> getDescendants(
             @PathVariable("id") Long id
     ) {
-        return PlanItemInfo.fromPlanItems(planService
-                                                  .getTreeById(id));
+        return PlanItemInfo.fromPlanItems(
+                planService.getTreeById(id));
     }
 
     @GetMapping("/{id}/all-since")
@@ -112,8 +112,10 @@ public class PlanController {
             @PathVariable("id") Long id,
             @RequestParam Long cutoff
     ) {
-        return PlanItemInfo.fromPlanItems(planService
-                                                  .getTreeDeltasById(id, Instant.ofEpochMilli(cutoff)));
+        return PlanItemInfo.fromPlanItems(
+                planService.getTreeDeltasById(
+                        id,
+                        Instant.ofEpochMilli(cutoff)));
     }
 
     @PostMapping("/{id}/mutate-tree")
