@@ -15,6 +15,8 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.Collection;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "plan_bucket", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "plan_id", "name" })
@@ -22,26 +24,16 @@ import java.util.Collection;
 public class PlanBucket extends BaseEntity implements Named {
 
     @NotNull
-    @Getter
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     private Plan plan;
 
-    @Getter
-    @Setter
     private String name;
 
-    @Getter
-    @Setter
     private LocalDate date;
 
-    @Getter
-    @Setter
     @OneToMany(mappedBy = "bucket")
     private Collection<PlanItem> items;
 
-    @Getter
-    @Setter
     @Column(name = "mod_count")
     private int modCount;
 
