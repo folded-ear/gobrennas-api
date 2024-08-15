@@ -32,6 +32,14 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    public String copy(String source, String dest) {
+        Assert.notNull(source, "source is required.");
+        Assert.notNull(dest, "dest is required.");
+        client.copyObject(bucketName, source, bucketName, dest);
+        return dest;
+    }
+
+    @Override
     public String load(String objectKey) {
         Assert.notNull(objectKey, "objectKey is required");
         return "https://s3-" + region + ".amazonaws.com" + "/" + bucketName + "/" + objectKey;

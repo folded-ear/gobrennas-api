@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.Upload;
@@ -44,6 +45,18 @@ public class RecipeService {
         recipe.setOwner(principalAccess.getUser());
         recipe = recipeRepository.save(recipe);
         if (photo != null) setPhotoInternal(recipe, photo);
+        return recipe;
+    }
+
+    public Recipe createNewRecipeFrom(Long sourceRecipeId, Recipe recipe, Upload photo) {
+        var source = recipeRepository.getReferenceById(sourceRecipeId);
+        recipe.setOwner(principalAccess.getUser());
+        recipe = recipeRepository.save(recipe);
+        if (photo != null) {
+            setPhotoInternal(recipe, photo);
+        } else if (source.hasPhoto()) {
+            copyPhoto(source, recipe);
+        }
         return recipe;
     }
 
@@ -92,22 +105,37 @@ public class RecipeService {
         } else {
             name = S3File.sanitizeFilename(name);
         }
-        String objectKey = "recipe/" + recipe.getId() + "/" + name;
         recipe.setPhoto(new S3File(
-                storageService.store(photo, objectKey),
+                storageService.store(photo,
+                                     buildObjectKey(recipe, name)),
                 photo.getContentType(),
                 photo.getSize()
         ));
+    }
+
+    private void copyPhoto(Recipe source, Recipe dest) {
+        removePhotoInternal(dest);
+        if (!source.hasPhoto()) return; // silly caller
+        Photo photo = source.getPhoto();
+        dest.setPhoto(new S3File(
+                storageService.copy(photo.getObjectKey(),
+                                    buildObjectKey(dest, photo.getFilename())),
+                photo.getContentType(),
+                photo.getSize()
+        ));
+        if (photo.hasFocus()) {
+            dest.getPhoto().setFocusArray(photo.getFocusArray());
+        }
+    }
+
+    private String buildObjectKey(Recipe recipe, String name) {
+        return "recipe/" + recipe.getId() + "/" + name;
     }
 
     private void removePhotoInternal(Recipe recipe) {
         if (!recipe.hasPhoto()) return;
         storageService.remove(recipe.getPhoto().getObjectKey());
         recipe.clearPhoto();
-    }
-
-    public void sendToPlan(Long recipeId, Long planId) {
-        sendToPlan(recipeId, planId, 1d);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
