@@ -82,7 +82,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     }
     public void clearPhoto() {
         if (hasPhoto()) {
-            photo.clearFile();
+            photo.clear();
         }
     }
     public boolean hasPhoto() {

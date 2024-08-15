@@ -14,9 +14,6 @@ public class Photo {
 
     @Embedded
     private S3File file;
-    public void clearFile() {
-        file = null;
-    }
     public boolean hasFile() {
         return file != null;
     }
@@ -56,6 +53,12 @@ public class Photo {
 
     public Long getSize() {
         return file.getSize();
+    }
+
+    public void clear() {
+        file = null;
+        focusLeft = null;
+        focusTop = null;
     }
 
 }
