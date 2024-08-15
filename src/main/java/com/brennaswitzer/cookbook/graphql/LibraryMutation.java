@@ -37,6 +37,13 @@ public class LibraryMutation {
         return recipe;
     }
 
+    public Recipe createRecipeFrom(Long sourceRecipeId, IngredientInfo info, Part photo) {
+        Recipe recipe = info.asRecipe(entityManager);
+        recipe = recipeService.createNewRecipeFrom(sourceRecipeId, recipe, Upload.of(photo));
+        labelService.updateLabels(recipe, info.getLabels());
+        return recipe;
+    }
+
     public Recipe updateRecipe(Long id, IngredientInfo info, Part photo) {
         info.setId(id);
         Recipe recipe = info.asRecipe(entityManager);

@@ -89,6 +89,24 @@ class LibraryMutationTest extends MockTest {
     }
 
     @Test
+    void createRecipeFrom() {
+        var recipe = mock(Recipe.class);
+        List<String> labels = new ArrayList<>();
+        var info = mock(IngredientInfo.class);
+        when(info.getLabels()).thenReturn(labels);
+        when(info.asRecipe(any())).thenReturn(recipe);
+        when(recipeService.createNewRecipeFrom(any(), any(), any()))
+                .thenAnswer(iom -> iom.getArgument(1));
+
+        var result = mutation.createRecipeFrom(123L, info, null);
+
+        assertSame(recipe, result);
+        verify(info).asRecipe(entityManager);
+        verify(recipeService).createNewRecipeFrom(eq(123L), same(recipe), isNull());
+        verify(labelService).updateLabels(same(recipe), same(labels));
+    }
+
+    @Test
     void updateRecipe() {
         var recipe = mock(Recipe.class);
         List<String> labels = new ArrayList<>();

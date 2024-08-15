@@ -36,4 +36,8 @@ public class S3File {
 
     private Long size; // needs to be nullable for historical data
 
+    public String getFilename() {
+        return lastSegment(objectKey, '/');
+    }
+
 }

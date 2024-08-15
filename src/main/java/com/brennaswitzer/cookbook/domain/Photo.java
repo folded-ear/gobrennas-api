@@ -47,6 +47,10 @@ public class Photo {
         return file.getObjectKey();
     }
 
+    public String getFilename() {
+        return file.getFilename();
+    }
+
     public String getContentType() {
         return file.getContentType();
     }
