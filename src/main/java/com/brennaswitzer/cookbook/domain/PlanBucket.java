@@ -74,6 +74,7 @@ public class PlanBucket extends BaseEntity implements Named {
     public void setPlan(Plan plan) {
         if (this.plan != null) {
             this.plan.getBuckets().remove(this);
+            this.items.forEach(it -> it.setBucket(null));
             this.plan.markDirty(); // for change detection
         }
         this.plan = plan;
