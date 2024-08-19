@@ -256,6 +256,10 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
         this.parent = parent;
     }
 
+    public boolean isRecognitionDisallowed() {
+        return getName().startsWith("!");
+    }
+
     public void moveToTrash() {
         this.trashBin = getPlan();
         this.trashBin.getTrashBinItems().add(this);

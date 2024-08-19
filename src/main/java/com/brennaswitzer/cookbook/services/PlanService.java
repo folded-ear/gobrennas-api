@@ -301,7 +301,7 @@ public class PlanService {
         PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
         PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         PlanItem item = itemRepo.save(new PlanItem(name).of(parent, after));
-        if (!isRecognitionDisallowed(item)) {
+        if (!item.isRecognitionDisallowed()) {
             itemService.autoRecognize(item);
         }
         if (item.getId() == null) itemRepo.flush();
@@ -382,16 +382,12 @@ public class PlanService {
     public PlanItem renameItem(Long id, String name) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setName(name);
-        if (isRecognitionDisallowed(item)) {
+        if (item.isRecognitionDisallowed()) {
             itemService.clearAutoRecognition(item);
         } else if (!item.hasIngredient() || !(Hibernate.unproxy(item.getIngredient()) instanceof Recipe)) {
             itemService.updateAutoRecognition(item);
         }
         return item;
-    }
-
-    private boolean isRecognitionDisallowed(PlanItem item) {
-        return item.getName().startsWith("!");
     }
 
     public PlanMessage renameItemForMessage(Long id, String name) {
