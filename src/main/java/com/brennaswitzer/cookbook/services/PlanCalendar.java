@@ -90,8 +90,14 @@ public class PlanCalendar {
                 appProperties.getPublicUrl(),
                 plan.getId(),
                 item.getId(),
-                item.getName(),
+                getDisplayName(item),
                 plan.getName()));
+    }
+
+    private String getDisplayName(PlanItem item) {
+        return item.isRecognitionDisallowed()
+                ? item.getName().substring(1)
+                : item.getName();
     }
 
     private Summary getEventSummary(PlanItem item) {
@@ -100,11 +106,7 @@ public class PlanCalendar {
             case COMPLETED -> sb.append("✔ ");
             case DELETED -> sb.append("✘ ");
         }
-        if (item.isRecognitionDisallowed()) {
-            sb.append(item.getName().substring(1));
-        } else {
-            sb.append(item.getName());
-        }
+        sb.append(getDisplayName(item));
         PlanBucket bucket = item.getBucket();
         if (bucket.isNamed()) {
             sb.append(" - ")
