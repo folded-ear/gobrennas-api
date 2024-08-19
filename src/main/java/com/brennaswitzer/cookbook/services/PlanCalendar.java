@@ -100,7 +100,11 @@ public class PlanCalendar {
             case COMPLETED -> sb.append("✔ ");
             case DELETED -> sb.append("✘ ");
         }
-        sb.append(item.getName());
+        if (item.isRecognitionDisallowed()) {
+            sb.append(item.getName().substring(1));
+        } else {
+            sb.append(item.getName());
+        }
         PlanBucket bucket = item.getBucket();
         if (bucket.isNamed()) {
             sb.append(" - ")
