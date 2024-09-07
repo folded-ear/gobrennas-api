@@ -457,3 +457,7 @@ where exists (select *
               from ingredient
               where id = s.pantry_item_id
                 and name = s.synonym);
+
+--changeset barneyb:index-cook-history-owner-status
+CREATE INDEX idx_planned_recipe_history_owner_status
+    ON planned_recipe_history (owner_id, status_id);

@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.Upload;
+import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
@@ -15,8 +16,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -36,6 +40,9 @@ public class RecipeService {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired
+    private PlannedRecipeHistoryRepository historyRepository;
 
     public Recipe createNewRecipe(Recipe recipe) {
         return createNewRecipe(recipe, null);
@@ -160,6 +167,26 @@ public class RecipeService {
                         .offset(offset)
                         .limit(limit)
                         .build());
+    }
+
+    public SearchResponse<Recipe> suggestRecipes(int offset, int limit) {
+        LibrarySearchRequest req = LibrarySearchRequest.builder()
+                .user(principalAccess.getUser())
+                .offset(offset)
+                .limit(limit)
+                .build();
+        List<Long> ids = historyRepository.getRecipeSuggestions(
+                req.getUser().getId(),
+                req.getOffset(),
+                req.getLimit() + 1); // one extra (for SearchResponse)
+        var byId = recipeRepository.findByIdIn(ids).stream()
+                .collect(Collectors.toMap(
+                        Recipe::getId,
+                        Function.identity()));
+        List<Recipe> recipes = ids.stream()
+                .map(byId::get)
+                .toList();
+        return SearchResponse.of(req, recipes);
     }
 
 }
