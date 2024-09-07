@@ -3,11 +3,11 @@ package com.brennaswitzer.cookbook.graphql;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
+import com.brennaswitzer.cookbook.graphql.model.SuggestionRequest;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.ItemService;
-import com.brennaswitzer.cookbook.services.PantryItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import graphql.relay.Connection;
 import jakarta.persistence.NoResultException;
@@ -21,9 +21,6 @@ public class LibraryQuery extends PagingQuery {
 
     @Autowired
     private RecipeService recipeService;
-
-    @Autowired
-    private PantryItemService pantryItemService;
 
     @Autowired
     private ItemService itemService;
@@ -50,6 +47,13 @@ public class LibraryQuery extends PagingQuery {
                 raw,
                 cursor == null ? raw.length() : cursor,
                 false);
+    }
+
+    public Connection<Recipe> suggestRecipesToCook(SuggestionRequest req) {
+        if (req == null) req = new SuggestionRequest();
+        SearchResponse<Recipe> rs = recipeService.suggestRecipes(getOffset(req.getAfter()),
+                                                                 req.getFirst());
+        return new OffsetConnection<>(rs);
     }
 
 }

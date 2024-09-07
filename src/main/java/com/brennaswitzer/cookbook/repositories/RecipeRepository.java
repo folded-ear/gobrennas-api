@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,8 @@ public interface RecipeRepository extends BaseEntityRepository<Recipe>, RecipeSe
     List<Recipe> findByOwnerAndNameIgnoreCaseOrderById(User owner, String name);
 
     List<Recipe> findAllByOwnerAndNameIgnoreCaseContainingOrderById(User owner, String name);
+
+    List<Recipe> findByIdIn(Collection<Long> ids);
 
     @Override
     Optional<Recipe> findById(Long aLong);

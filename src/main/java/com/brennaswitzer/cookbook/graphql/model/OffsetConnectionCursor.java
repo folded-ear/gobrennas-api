@@ -30,18 +30,33 @@ public class OffsetConnectionCursor implements ConnectionCursor {
 
     String value;
 
+    // for Jackson conversion
+    @SuppressWarnings("unused")
+    private OffsetConnectionCursor(int offset, String value) {
+        this.offset = offset;
+        this.value = value;
+        if (decode(value) != offset) {
+            throw new IllegalArgumentException(String.format(
+                    "Inconsistent %d and '%s' cursor values",
+                    offset,
+                    value));
+        }
+    }
+
     public OffsetConnectionCursor(String value) {
         this(decode(value));
         if (!Objects.equals(value, this.value)) {
-            throw new IllegalArgumentException(String.format("Invalid '%s' cursor value",
-                                                             value));
+            throw new IllegalArgumentException(String.format(
+                    "Invalid '%s' cursor value",
+                    value));
         }
     }
 
     public OffsetConnectionCursor(int offset) {
         if (offset < 0) {
-            throw new IllegalArgumentException(String.format("Offsets cannot be negative, but '%d' is",
-                                                             offset));
+            throw new IllegalArgumentException(String.format(
+                    "Offsets cannot be negative, but '%d' is",
+                    offset));
         }
         this.offset = offset;
         this.value = encode(offset);
