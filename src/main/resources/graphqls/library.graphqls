@@ -31,7 +31,10 @@ type LibraryQuery {
         after: Cursor = null
     ): RecipeConnection!
 
-    suggestRecipesToCook(req: SuggestionRequest): RecipeConnection!
+    suggestRecipesToCook(
+        first: NonNegativeInt! = 5
+        after: Cursor = null
+    ): RecipeConnection!
 
     getRecipeById(id: ID!): Recipe
 
@@ -48,11 +51,6 @@ type LibraryQuery {
         """
         cursor: NonNegativeInt
     ): RecognizedItem
-}
-
-input SuggestionRequest {
-    first: NonNegativeInt! = 5
-    after: Cursor = null
 }
 
 """The result of recognizing a raw ingredient ref item.
