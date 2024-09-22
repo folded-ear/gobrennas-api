@@ -3,9 +3,9 @@ package com.brennaswitzer.cookbook.repositories;
 import com.brennaswitzer.cookbook.domain.Favorite;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface FavoriteRepository extends BaseEntityRepository<Favorite> {
@@ -21,7 +21,7 @@ public interface FavoriteRepository extends BaseEntityRepository<Favorite> {
 
     Iterable<Favorite> findByOwnerIdAndObjectTypeAndObjectIdIn(Long ownerId,
                                                                String objectType,
-                                                               Collection<Long> objectIds);
+                                                               Set<Long> objectIds);
 
     int deleteByOwnerIdAndObjectTypeAndObjectId(Long ownerId,
                                                 String objectType,
