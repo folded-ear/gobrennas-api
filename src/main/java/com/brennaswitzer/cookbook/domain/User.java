@@ -8,31 +8,23 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "email")
 })
 public class User extends BaseEntity {
 
-    @Getter
-    @Setter
     private String name;
 
-    @Getter
-    @Setter
     private String email;
 
-    @Getter
-    @Setter
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
-    @Getter
-    @Setter
     private AuthProvider provider;
 
-    @Getter
-    @Setter
     private String providerId;
 
     public User() {
@@ -48,7 +40,7 @@ public class User extends BaseEntity {
         return super.toString() + "(" + email + ")";
     }
 
-    public boolean isOwnerOf(Owned owned) {
-        return equals(owned.getOwner());
+    public boolean owns(Owned owned) {
+        return owned.isOwner(this);
     }
 }

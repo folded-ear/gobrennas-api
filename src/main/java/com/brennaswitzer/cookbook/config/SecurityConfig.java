@@ -102,6 +102,7 @@ public class SecurityConfig {
                         "/",
                         "/error",
                         "/favicon.ico",
+                        "/favicon.svg",
                         "/shared/*/*",
                         "/*/*.png",
                         "/*/*.gif",

@@ -1,31 +1,30 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Favorite;
-import com.brennaswitzer.cookbook.domain.User;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface FavoriteRepository extends BaseEntityRepository<Favorite> {
 
-    List<Favorite> findByOwner(User owner);
+    List<Favorite> findByOwnerId(Long ownerId);
 
-    List<Favorite> findByOwnerAndObjectType(User owner,
-                                            String objectType);
+    List<Favorite> findByOwnerIdAndObjectType(Long ownerId,
+                                              String objectType);
 
-    Optional<Favorite> findByOwnerAndObjectTypeAndObjectId(User owner,
-                                                           String objectType,
-                                                           Long objectId);
-
-    Iterable<Favorite> findByOwnerAndObjectTypeAndObjectIdIn(User owner,
+    Optional<Favorite> findByOwnerIdAndObjectTypeAndObjectId(Long ownerId,
                                                              String objectType,
-                                                             Collection<Long> objectIds);
+                                                             Long objectId);
 
-    int deleteByOwnerAndObjectTypeAndObjectId(User owner,
-                                              String objectType,
-                                              Long objectId);
+    Iterable<Favorite> findByOwnerIdAndObjectTypeAndObjectIdIn(Long ownerId,
+                                                               String objectType,
+                                                               Set<Long> objectIds);
+
+    int deleteByOwnerIdAndObjectTypeAndObjectId(Long ownerId,
+                                                String objectType,
+                                                Long objectId);
 
 }

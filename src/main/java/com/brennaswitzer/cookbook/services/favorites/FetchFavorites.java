@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -22,22 +22,22 @@ public class FetchFavorites {
     private UserPrincipalAccess principalAccess;
 
     public List<Favorite> all() {
-        return repo.findByOwner(principalAccess.getUser());
+        return repo.findByOwnerId(principalAccess.getId());
     }
 
     public List<Favorite> byType(String objectType) {
-        return repo.findByOwnerAndObjectType(principalAccess.getUser(),
+        return repo.findByOwnerIdAndObjectType(principalAccess.getId(),
                                              objectType);
     }
 
     public Optional<Favorite> byObject(String objectType, Long objectId) {
-        return repo.findByOwnerAndObjectTypeAndObjectId(principalAccess.getUser(),
+        return repo.findByOwnerIdAndObjectTypeAndObjectId(principalAccess.getId(),
                                                         objectType,
                                                         objectId);
     }
 
-    public Iterable<Favorite> byObjects(String objectType, Collection<Long> objectIds) {
-        return repo.findByOwnerAndObjectTypeAndObjectIdIn(principalAccess.getUser(),
+    public Iterable<Favorite> byObjects(String objectType, Set<Long> objectIds) {
+        return repo.findByOwnerIdAndObjectTypeAndObjectIdIn(principalAccess.getId(),
                                                           objectType,
                                                           objectIds);
     }

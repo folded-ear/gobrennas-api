@@ -1,6 +1,8 @@
 package com.brennaswitzer.cookbook.config;
 
 import com.brennaswitzer.cookbook.graphql.support.OffsetConnectionCursorCoercing;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
+import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import graphql.execution.AsyncExecutionStrategy;
@@ -88,7 +90,9 @@ public class GraphQLConfig {
     }
 
     @Bean
-    public GraphQLServletContextBuilder graphQLServletContextBuilder(DataLoaderRegistry dataLoadRegistry) {
+    public GraphQLServletContextBuilder graphQLServletContextBuilder(
+            DataLoaderRegistry dataLoadRegistry,
+            UserPrincipalAccess principalAccess) {
         return new GraphQLServletContextBuilder() {
             @Override
             public GraphQLKickstartContext build() {
@@ -100,15 +104,19 @@ public class GraphQLConfig {
                 Map<Object, Object> map = new HashMap<>();
                 map.put(HttpServletRequest.class, request);
                 map.put(HttpServletResponse.class, response);
+                // Building the context happens on the main HTTP thread, so
+                // Spring Security's holder will always be available. Query
+                // execution may become asynchronous, rendering Spring's context
+                // unavailable. So grab the Principal now - though not the User
+                // object - so it's available to resolvers, without creating any
+                // mandates about transaction/session demarcation.
+                map.put(UserPrincipal.class, principalAccess.getUserPrincipal());
                 return new DefaultGraphQLContext(dataLoadRegistry, map);
             }
 
             @Override
             public GraphQLKickstartContext build(Session session, HandshakeRequest handshakeRequest) {
-                Map<Object, Object> map = new HashMap<>();
-                map.put(Session.class, session);
-                map.put(HandshakeRequest.class, handshakeRequest);
-                return new DefaultGraphQLContext(dataLoadRegistry, map);
+                throw new UnsupportedOperationException("GoBrenna's doesn't yet speak websockets. Again.");
             }
         };
     }

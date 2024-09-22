@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" width="24" height="24" viewBox="0 0 24 24">
+    <defs>
+        <font id="StintUltraCondensed-Regular" horiz-adv-x="936">
+            <font-face font-family="Stint Ultra Condensed" font-weight="400" font-stretch="ultra-condensed"
+                       units-per-em="2048" panose-1="2 6 5 8 4 6 4 2 2 6" ascent="1638" descent="-410" x-height="952"
+                       cap-height="1374" bbox="-186 -483 1456 1829" underline-thickness="102" underline-position="-205"
+                       unicode-range="U+0020-FB02"/>
+            <missing-glyph horiz-adv-x="512"/>
+            <glyph unicode="F" horiz-adv-x="655"
+                   d="M502 963v299h-230v-500h234v-113h-234v-536h150v-113h-397v113h122v1149h-122v112h585v-411h-108z"/>
+            <glyph glyph-name="B" unicode="B" horiz-adv-x="754"
+                   d="M33 1374h375q23 0 50.5 -4.5t54.5 -18t52 -37.5t44 -62.5t30.5 -93.5t11.5 -130q0 -67 -9.5 -116.5t-28 -85t-45.5 -58.5t-62 -35q94 -14 140 -106t46 -248q0 -120 -23 -194t-60.5 -115.5t-85.5 -55.5t-99 -14h-391v113h114v1149h-114v112zM561 381q0 78 -10 133t-29 90 t-45 51.5t-57 16.5h-148v-559h152q33 0 58.5 14.5t43 47t26.5 83.5t9 123zM535 1026q0 44 -6 86.5t-20.5 75.5t-39 53.5t-61.5 20.5h-136v-480h136q35 0 59.5 19.5t39.5 53t21.5 78t6.5 93.5z"/>
+            <glyph glyph-name="S" unicode="S" horiz-adv-x="666"
+                   d="M49 0v453h109v-162q0 -61 15.5 -101t39 -64t51 -34t51.5 -10q34 0 65 14t55 44.5t38 79.5t14 120q0 68 -18 117.5t-48 87t-68 66.5t-78 58.5t-78 61.5t-68 75.5t-48 102t-18 138.5q0 97 23 164t59 109t79.5 60.5t84.5 18.5q21 0 43.5 -5t44 -15t40.5 -25.5t34 -36.5v57 h109v-411h-109v153q0 51 -13.5 84.5t-33 53.5t-41.5 28t-39 8q-31 0 -58.5 -14t-48 -43.5t-32.5 -74.5t-12 -107t18.5 -107.5t48 -81t68 -65.5t78 -60t78 -64.5t68 -79.5t48 -104.5t18.5 -140.5q0 -115 -26 -188t-65 -114.5t-85 -57t-86 -15.5q-126 0 -198 97v-70h-109z"/>
+        </font>
+        <style type="text/css"><![CDATA[
+            @font-face {
+                font-family: "Stint Ultra Condensed";
+                src: url('#StintUltraCondensed-Regular');
+            }
+            text {
+                font-family: "Stint Ultra Condensed";
+            }
+           ]]></style>
+    </defs>
+    <rect x="0" y="0" width="24" height="24" fill="#F57F17"/>
+    <g transform="translate(4.5, 4.5) scale(0.625)" fill="white">
+        <g transform="translate(12, 22) scale(0.016, 0.015) rotate(180)">
+            <path d="M33 1374h375q23 0 50.5 -4.5t54.5 -18t52 -37.5t44 -62.5t30.5 -93.5t11.5 -130q0 -67 -9.5 -116.5t-28 -85t-45.5 -58.5t-62 -35q94 -14 140 -106t46 -248q0 -120 -23 -194t-60.5 -115.5t-85.5 -55.5t-99 -14h-391v113h114v1149h-114v112zM561 381q0 78 -10 133t-29 90 t-45 51.5t-57 16.5h-148v-559h152q33 0 58.5 14.5t43 47t26.5 83.5t9 123zM535 1026q0 44 -6 86.5t-20.5 75.5t-39 53.5t-61.5 20.5h-136v-480h136q35 0 59.5 19.5t39.5 53t21.5 78t6.5 93.5z"
+                  fill="#d3b8ae"/>
+            <g transform="scale(-1,1)">
+                <path d="M502 963v299h-230v-500h234v-113h-234v-536h150v-113h-397v113h122v1149h-122v112h585v-411h-108z"/>
+            </g>
+        </g>
+    </g>
+</svg>
