@@ -3,9 +3,11 @@ package com.brennaswitzer.cookbook.graphql;
 import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import com.brennaswitzer.cookbook.repositories.UserRepository;
 import graphql.kickstart.tools.GraphQLQueryResolver;
+import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +23,7 @@ public class Query implements GraphQLQueryResolver {
     private List<BaseEntityRepository<?>> repositories;
 
     @Autowired
-    private UserPrincipalAccess userPrincipalAccess;
+    private UserRepository userRepo;
 
     @Autowired
     public FavoriteQuery favorite;
@@ -38,21 +40,22 @@ public class Query implements GraphQLQueryResolver {
     @Autowired
     public PlannerQuery planner;
 
-    Object getNode(Long id) {
+    Object getNode(Long id,
+                   DataFetchingEnvironment env) {
         return repositories.stream()
                 .map(r -> r.findById(id))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Hibernate::unproxy)
                 .filter(it -> !(it instanceof AccessControlled ac) ||
-                              ac.isPermitted(userPrincipalAccess.getUser(),
+                              ac.isPermitted(getCurrentUser(env),
                                              AccessLevel.VIEW))
                 .findFirst()
                 .orElse(null);
     }
 
-    User getCurrentUser() {
-        return userPrincipalAccess.getUser();
+    User getCurrentUser(DataFetchingEnvironment env) {
+        return userRepo.getById(PrincipalUtil.from(env).getId());
     }
 
 }

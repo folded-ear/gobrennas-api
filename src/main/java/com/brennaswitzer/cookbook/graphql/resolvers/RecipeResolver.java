@@ -8,8 +8,8 @@ import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.loaders.IsFavorite;
 import com.brennaswitzer.cookbook.graphql.loaders.IsFavoriteBatchLoader;
+import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
-import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
 import graphql.kickstart.tools.GraphQLResolver;
 import graphql.schema.DataFetchingEnvironment;
@@ -56,12 +56,10 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
 
     public CompletableFuture<Boolean> favorite(Recipe recipe,
                                                DataFetchingEnvironment env) {
-        // Spring Security's principal is copied to the GraphQL context when it
-        // is safe. It's not safe to interrogate Spring here, though it does
-        // work in some situations.
-        UserPrincipal up = env.getGraphQlContext().get(UserPrincipal.class);
         return env.<IsFavorite, Boolean>getDataLoader(IsFavoriteBatchLoader.class.getName())
-                .load(new IsFavorite(up.getId(), FavoriteType.RECIPE, recipe.getId()));
+                .load(new IsFavorite(PrincipalUtil.from(env).getId(),
+                                     FavoriteType.RECIPE,
+                                     recipe.getId()));
     }
 
     public Photo photo(Recipe recipe) {
