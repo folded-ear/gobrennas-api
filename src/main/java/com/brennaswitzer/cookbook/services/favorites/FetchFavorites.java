@@ -22,22 +22,22 @@ public class FetchFavorites {
     private UserPrincipalAccess principalAccess;
 
     public List<Favorite> all() {
-        return repo.findByOwner(principalAccess.getUser());
+        return repo.findByOwnerId(principalAccess.getId());
     }
 
     public List<Favorite> byType(String objectType) {
-        return repo.findByOwnerAndObjectType(principalAccess.getUser(),
+        return repo.findByOwnerIdAndObjectType(principalAccess.getId(),
                                              objectType);
     }
 
     public Optional<Favorite> byObject(String objectType, Long objectId) {
-        return repo.findByOwnerAndObjectTypeAndObjectId(principalAccess.getUser(),
+        return repo.findByOwnerIdAndObjectTypeAndObjectId(principalAccess.getId(),
                                                         objectType,
                                                         objectId);
     }
 
     public Iterable<Favorite> byObjects(String objectType, Collection<Long> objectIds) {
-        return repo.findByOwnerAndObjectTypeAndObjectIdIn(principalAccess.getUser(),
+        return repo.findByOwnerIdAndObjectTypeAndObjectIdIn(principalAccess.getId(),
                                                           objectType,
                                                           objectIds);
     }
