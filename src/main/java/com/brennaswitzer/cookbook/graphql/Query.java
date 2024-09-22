@@ -3,9 +3,9 @@ package com.brennaswitzer.cookbook.graphql;
 import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
-import com.brennaswitzer.cookbook.security.UserPrincipal;
 import graphql.kickstart.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
@@ -55,8 +55,7 @@ public class Query implements GraphQLQueryResolver {
     }
 
     User getCurrentUser(DataFetchingEnvironment env) {
-        UserPrincipal principal = env.getGraphQlContext().get(UserPrincipal.class);
-        return userRepo.getById(principal.getId());
+        return userRepo.getById(PrincipalUtil.from(env).getId());
     }
 
 }

@@ -104,13 +104,13 @@ public class GraphQLConfig {
                 Map<Object, Object> map = new HashMap<>();
                 map.put(HttpServletRequest.class, request);
                 map.put(HttpServletResponse.class, response);
-                // Building the context happens on the main HTTP thread, so
-                // Spring Security's holder will always be available. Query
-                // execution may become asynchronous, rendering Spring's context
-                // unavailable. So grab the Principal now - though not the User
-                // object - so it's available to resolvers, without creating any
-                // mandates about transaction/session demarcation.
-                map.put(UserPrincipal.class, principalAccess.getUserPrincipal());
+                // Spring Security's holder will always be available at this
+                // point in execution. Get the Principal - if it exists - now,
+                // so it's available to resolvers. They can decide if its
+                // required or not, as well as inflate to a full User (so they
+                // deal with session and transaction demarcation).
+                principalAccess.findUserPrincipal()
+                        .ifPresent(p -> map.put(UserPrincipal.class, p));
                 return new DefaultGraphQLContext(dataLoadRegistry, map);
             }
 

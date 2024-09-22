@@ -3,13 +3,20 @@ package com.brennaswitzer.cookbook.util;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 
+import java.util.Optional;
+
 public interface UserPrincipalAccess {
 
     default Long getId() {
         return getUserPrincipal().getId();
     }
 
-    UserPrincipal getUserPrincipal();
+    Optional<UserPrincipal> findUserPrincipal();
+
+    default UserPrincipal getUserPrincipal() {
+        return findUserPrincipal()
+                .orElseThrow(NoUserPrincipalException::new);
+    }
 
     default User getUser() {
         throw new UnsupportedOperationException();
