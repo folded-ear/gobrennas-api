@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.security;
 
 import com.brennaswitzer.cookbook.domain.User;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +27,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     }
     // end "framework"
 
+    @Getter
     private final Long id;
+    @Getter
     private final String email;
     private final Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
@@ -54,14 +57,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         UserPrincipal userPrincipal = UserPrincipal.create(user);
         userPrincipal.setAttributes(attributes);
         return userPrincipal;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     @Override
