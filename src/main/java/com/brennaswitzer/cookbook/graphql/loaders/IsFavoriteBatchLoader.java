@@ -9,42 +9,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toMap;
 
 @Component
-public class IsFavoriteBatchLoader implements BatchLoader<IsFavorite, Boolean> {
+public class IsFavoriteBatchLoader implements BatchLoader<FavKey, Boolean> {
 
     @Autowired
     private FavoriteRepository repo;
 
     private record OwnerType(long ownerId, FavoriteType favType) {
 
-        public static OwnerType of(IsFavorite key) {
+        public static OwnerType of(FavKey key) {
             return new OwnerType(key.ownerId(), key.favType());
-        }
-
-        public static OwnerType of(Favorite fav) {
-            return new OwnerType(fav.getOwner().getId(), FavoriteType.parse(fav.getObjectType()));
         }
 
     }
 
     @Override
-    public CompletionStage<List<Boolean>> load(List<IsFavorite> keys) {
+    public CompletionStage<List<Boolean>> load(List<FavKey> keys) {
         return CompletableFuture.supplyAsync(() -> loadInternal(keys));
     }
 
     @VisibleForTesting
-    List<Boolean> loadInternal(List<IsFavorite> keys) {
-        var favIdsByOwnerType = keys.stream()
+    List<Boolean> loadInternal(List<FavKey> keys) {
+        var favsByOwnerType = keys.stream()
                 .collect(groupingBy(OwnerType::of,
-                                    mapping(IsFavorite::objectId,
+                                    mapping(FavKey::objectId,
                                             Collectors.toSet())))
                 .entrySet()
                 .stream()
@@ -53,14 +50,10 @@ public class IsFavoriteBatchLoader implements BatchLoader<IsFavorite, Boolean> {
                         e.getKey().favType().getKey(),
                         e.getValue()))
                 .<Favorite>mapMulti(Iterable::forEach)
-                .collect(groupingBy(OwnerType::of,
-                                    mapping(Favorite::getObjectId,
-                                            Collectors.toSet())));
+                .collect(toMap(FavKey::from,
+                               Function.identity()));
         return keys.stream()
-                .map(k -> favIdsByOwnerType.getOrDefault(
-                                OwnerType.of(k),
-                                Set.of())
-                        .contains(k.objectId()))
+                .map(favsByOwnerType::containsKey)
                 .toList();
     }
 

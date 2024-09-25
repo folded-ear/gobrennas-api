@@ -12,10 +12,6 @@ public interface UserRepository extends BaseEntityRepository<User> {
 
     User getByName(String name);
 
-    Boolean existsByEmail(String email);
-
-    User getById(Long id);
-
     // kludge for FriendController's pretend implementation
     List<User> findByIdNot(Long idToExclude);
 

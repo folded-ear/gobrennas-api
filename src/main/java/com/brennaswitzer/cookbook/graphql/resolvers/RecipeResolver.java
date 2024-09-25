@@ -6,11 +6,10 @@ import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.graphql.loaders.IsFavorite;
+import com.brennaswitzer.cookbook.graphql.loaders.FavKey;
 import com.brennaswitzer.cookbook.graphql.loaders.IsFavoriteBatchLoader;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
-import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
 import graphql.kickstart.tools.GraphQLResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
@@ -34,9 +33,6 @@ import static java.util.stream.Collectors.toList;
 public class RecipeResolver implements GraphQLResolver<Recipe> {
 
     @Autowired
-    private FetchFavorites fetchFavorites;
-
-    @Autowired
     private LabelMapper labelMapper;
 
     public Integer totalTime(Recipe recipe, ChronoUnit unit) {
@@ -56,10 +52,10 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
 
     public CompletableFuture<Boolean> favorite(Recipe recipe,
                                                DataFetchingEnvironment env) {
-        return env.<IsFavorite, Boolean>getDataLoader(IsFavoriteBatchLoader.class.getName())
-                .load(new IsFavorite(PrincipalUtil.from(env).getId(),
-                                     FavoriteType.RECIPE,
-                                     recipe.getId()));
+        return env.<FavKey, Boolean>getDataLoader(IsFavoriteBatchLoader.class.getName())
+                .load(new FavKey(PrincipalUtil.from(env).getId(),
+                                 FavoriteType.RECIPE,
+                                 recipe.getId()));
     }
 
     public Photo photo(Recipe recipe) {
