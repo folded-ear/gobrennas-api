@@ -31,8 +31,8 @@ public class UserPrincipalAccessImpl implements UserPrincipalAccess {
     }
 
     @Override
-    public User getUser() {
-        return userRepo.getById(getId());
+    public User getUser(UserPrincipal principal) {
+        return userRepo.getReferenceById(principal.getId());
     }
 
 }

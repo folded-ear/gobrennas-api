@@ -20,11 +20,11 @@ extend type Mutation {
 
 type FavoriteMutation {
     """Add the specified object to the current user's favorites, if not already
-    present, and returns the favorite.
+    present, and return the favorite.
     """
     markFavorite(objectType: String!, objectId: ID!): Favorite!
     """Remove the specified object from the current user's favorites, and return
-    whether any action was required to ensure this.
+    whether any action was taken to ensure this.
     """
     removeFavorite(objectType: String!, objectId: ID!): Boolean!
 }

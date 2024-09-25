@@ -15,6 +15,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -36,13 +37,15 @@ class IsFavoriteBatchLoaderTest {
         when(favTwo.getOwner()).thenReturn(user);
         when(favTwo.getObjectType()).thenReturn(FavoriteType.RECIPE.getKey());
         when(favTwo.getObjectId()).thenReturn(2L);
-        when(repo.findByOwnerIdAndObjectTypeAndObjectIdIn(any(), any(), any()))
+        when(repo.findByOwnerIdAndObjectTypeAndObjectIdIn(eq(123L), any(), any()))
+                .thenReturn(List.of());
+        when(repo.findByOwnerIdAndObjectTypeAndObjectIdIn(eq(456L), any(), any()))
                 .thenReturn(List.of(favTwo));
 
         List<Boolean> result = loader.loadInternal(List.of(
-                new IsFavorite(123L, FavoriteType.RECIPE, 1L),
-                new IsFavorite(456L, FavoriteType.RECIPE, 2L),
-                new IsFavorite(123L, FavoriteType.RECIPE, 3L)));
+                new FavKey(123L, FavoriteType.RECIPE, 1L),
+                new FavKey(456L, FavoriteType.RECIPE, 2L),
+                new FavKey(123L, FavoriteType.RECIPE, 3L)));
 
         assertEquals(List.of(false, true, false), result);
         verify(repo).findByOwnerIdAndObjectTypeAndObjectIdIn(

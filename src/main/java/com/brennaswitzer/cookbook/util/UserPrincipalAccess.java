@@ -19,6 +19,10 @@ public interface UserPrincipalAccess {
     }
 
     default User getUser() {
+        return getUser(getUserPrincipal());
+    }
+
+    default User getUser(UserPrincipal principal) {
         throw new UnsupportedOperationException();
     }
 
