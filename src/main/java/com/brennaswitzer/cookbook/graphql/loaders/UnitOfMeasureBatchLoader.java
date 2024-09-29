@@ -16,6 +16,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
+
 @Component
 public class UnitOfMeasureBatchLoader implements BatchLoader<Long, UnitOfMeasure> {
 
@@ -29,7 +31,7 @@ public class UnitOfMeasureBatchLoader implements BatchLoader<Long, UnitOfMeasure
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             Map<Long, UnitOfMeasure> byId;
-            if (nonNullIds.isEmpty()) byId = Map.of();
+            if (nonNullIds.isEmpty()) byId = emptyMap();
             else byId = repo.findAllById(nonNullIds)
                     .stream()
                     .collect(Collectors.toMap(Identified::getId,
