@@ -1,22 +1,28 @@
 interface Owned {
-    """The user who owns this object.
-    """
+    """The user who owns this object."""
     owner: User!
 }
 
 interface AccessControlled implements Owned {
     owner: User!
-    """The ACL describing grants of access, by the other, to other users.
+    """The object's ACL, which includes its owner and any grants of access.
+    """
+    acl: Acl!
+    grants: [AccessControlEntry!]!
+}
+
+type Acl implements Owned {
+    owner: User!
+    """Users granted access, by the owner. This is conceptually map, so a given
+    user (the key) uniquely identifies their access level (the value).
     """
     grants: [AccessControlEntry!]!
 }
 
 type AccessControlEntry {
-    """The user who has been granted access to an AccessControlled object.
-    """
+    """The user who has been granted access to an AccessControlled object."""
     user: User
-    """The level of access the user has been granted.
-    """
+    """The level of access the user has been granted."""
     level: AccessLevel
 }
 

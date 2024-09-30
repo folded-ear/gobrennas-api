@@ -27,6 +27,7 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     """A plan's plan is always itself."""
     plan: Plan!
     share: ShareInfo
+    acl: Acl!
     grants: [AccessControlEntry!]!
     childCount: NonNegativeInt!
     children: [PlanItem!]!
