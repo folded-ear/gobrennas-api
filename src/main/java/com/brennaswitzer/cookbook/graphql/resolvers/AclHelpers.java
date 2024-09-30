@@ -1,19 +1,25 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.AccessControlled;
+import com.brennaswitzer.cookbook.domain.Acl;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 class AclHelpers {
 
+    @NotNull
     static List<AccessControlEntry> getGrants(AccessControlled obj) {
-        return obj.getAcl()
-                .getGrants()
+        return getGrants(obj.getAcl());
+    }
+
+    @NotNull
+    static List<AccessControlEntry> getGrants(Acl acl) {
+        return acl.getGrants()
                 .entrySet()
                 .stream()
                 .map(entry -> new AccessControlEntry(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
 }
