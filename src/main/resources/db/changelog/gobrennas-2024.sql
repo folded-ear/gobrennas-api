@@ -461,3 +461,7 @@ where exists (select *
 --changeset barneyb:index-cook-history-owner-status
 CREATE INDEX idx_planned_recipe_history_owner_status
     ON planned_recipe_history (owner_id, status_id);
+
+--changeset barneyb:plan-color
+ALTER TABLE plan_item
+    ADD color VARCHAR;

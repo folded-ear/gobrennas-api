@@ -81,6 +81,10 @@ public class PlannerMutation {
         return planService.updateBucket(planId, bucketId, name, date);
     }
 
+    public Plan setColor(Long planId, String color) {
+        return planService.setColor(planId, color);
+    }
+
     public Plan setGrant(Long planId, Long userId, AccessLevel accessLevel) {
         return planService.setGrantOnPlan(planId, userId, accessLevel);
     }

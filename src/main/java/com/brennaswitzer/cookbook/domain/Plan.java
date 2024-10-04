@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +31,8 @@ public class Plan extends PlanItem implements AccessControlled {
     @OneToMany(mappedBy = "trashBin", cascade = CascadeType.ALL)
     @BatchSize(size = 50)
     private Set<PlanItem> trashBinItems;
+
+    private String color;
 
     public Plan() {
     }
@@ -81,6 +84,35 @@ public class Plan extends PlanItem implements AccessControlled {
 
     public User getOwner() {
         return getAcl().getOwner();
+    }
+
+    public String getColor() {
+        if (color == null) {
+            // generated at http://medialab.github.io/iwanthue/
+            color = switch ((int) (get_eqkey() % 16)) {
+                case 0 -> "#cb4771";
+                case 1 -> "#caa29e";
+                case 2 -> "#783b32";
+                case 3 -> "#d14f32";
+                case 4 -> "#c9954c";
+                case 5 -> "#cbd152";
+                case 6 -> "#56713c";
+                case 7 -> "#6dce55";
+                case 8 -> "#8dd4aa";
+                case 9 -> "#77adc2";
+                case 10 -> "#6a7dc8";
+                case 11 -> "#3b3a41";
+                case 12 -> "#7145ca";
+                case 13 -> "#552b6b";
+                case 14 -> "#c583bd";
+                default -> "#cc4ac0";
+            };
+        }
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = StringUtils.hasText(color) ? color : null;
     }
 
 }

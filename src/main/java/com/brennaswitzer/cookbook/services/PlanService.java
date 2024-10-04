@@ -514,4 +514,10 @@ public class PlanService {
         return plan;
     }
 
+    public Plan setColor(Long planId, String color) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        plan.setColor(color);
+        return plan;
+    }
+
 }
