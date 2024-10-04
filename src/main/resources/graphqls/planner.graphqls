@@ -24,6 +24,10 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     id: ID!
     owner: User!
     name: String!
+    """The color associated with the plan, expressed as a number sign and six
+    hex digits (e.g., '#F57F17').
+    """
+    color: String!
     """A plan's plan is always itself."""
     plan: Plan!
     share: ShareInfo
@@ -110,8 +114,10 @@ type PlannerMutation {
     an item under a different parent is included in the list, it will be moved
     under this item."""
     reorderSubitems(parentId:ID!, itemIds: [ID!]!): PlanItem
+    """Set the plan's color (e.g., '#F57F17'), or reset it with a null or empty string."""
+    setColor(planId: ID!, color: String): Plan!
     """Set the access level granted to a user w/in a plan."""
-    setGrant(planId: ID!, userId: ID!, accessLevel:AccessLevel): Plan!
+    setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel): Plan!
     """Sets the status of the given item. This will always return the updated
     item, though it may immediately moved to the trash (in the background)."""
     setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!

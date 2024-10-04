@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -12,9 +13,13 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PlanServiceMockedTest extends MockTest {
@@ -120,6 +125,34 @@ public class PlanServiceMockedTest extends MockTest {
         var result = service.getTreeDeltasById(groceries.getId(), cutoff);
 
         assertEquals(List.of(groceries), result);
+    }
+
+    @Test
+    void setColor() {
+        var plan = mock(Plan.class);
+        doReturn(plan).when(service).getPlanById(any(), any());
+
+        service.setColor(123L, "#F57F17");
+        service.setColor(123L, "#f57f17");
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.setColor(123L, " #F57F17"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.setColor(123L, "#f57f17 "));
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.setColor(123L, "#F00"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.setColor(123L, "red"));
+        service.setColor(123L, "");
+        service.setColor(123L, null);
+
+        var inOrder = inOrder(plan);
+        inOrder.verify(plan).setColor("#F57F17");
+        inOrder.verify(plan).setColor("#f57f17");
+        inOrder.verify(plan).setColor("");
+        inOrder.verify(plan).setColor(null);
+        inOrder.verifyNoMoreInteractions();
+        verify(service, times(4))
+                .getPlanById(123L, AccessLevel.ADMINISTER);
     }
 
 }

@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,11 +40,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Service
 @Transactional
 public class PlanService {
+
+    private static final Pattern RE_COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
 
     @Autowired
     protected PlanItemRepository itemRepo;
@@ -78,7 +82,7 @@ public class PlanService {
     }
 
     public Iterable<Plan> getPlans(Long userId) {
-        User user = userRepo.getById(userId);
+        User user = userRepo.getReferenceById(userId);
         List<Plan> result = new LinkedList<>();
         planRepo.findAccessibleLists(userId)
                 .forEach(l -> {
@@ -290,7 +294,7 @@ public class PlanService {
     }
 
     public Plan createPlan(String name, Long ownerId) {
-        User user = userRepo.getById(ownerId);
+        User user = userRepo.getReferenceById(ownerId);
         Plan plan = new Plan(name);
         plan.setOwner(user);
         plan.setPosition(1 + planRepo.getMaxPosition(user));
@@ -504,13 +508,24 @@ public class PlanService {
 
     public Plan setGrantOnPlan(Long planId, Long userId, AccessLevel level) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        plan.getAcl().setGrant(userRepo.getById(userId), level);
+        plan.getAcl().setGrant(userRepo.getReferenceById(userId), level);
         return plan;
     }
 
     public Plan revokeGrantFromPlan(Long planId, Long userId) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        plan.getAcl().revokeGrant(userRepo.getById(userId));
+        plan.getAcl().revokeGrant(userRepo.getReferenceById(userId));
+        return plan;
+    }
+
+    public Plan setColor(Long planId, String color) {
+        if (StringUtils.hasText(color) && !RE_COLOR.matcher(color).matches()) {
+            throw new IllegalArgumentException(String.format(
+                    "Color '%s' is invalid. Use six hash-prefix digits (e.g., '#f57f17').",
+                    color));
+        }
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        plan.setColor(color);
         return plan;
     }
 

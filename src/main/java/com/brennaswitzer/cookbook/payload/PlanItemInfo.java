@@ -14,6 +14,8 @@ import java.util.stream.StreamSupport;
 
 import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
 
+@Setter
+@Getter
 @SuppressWarnings("WeakerAccess")
 public class PlanItemInfo {
 
@@ -56,6 +58,7 @@ public class PlanItemInfo {
     public static PlanItemInfo fromPlan(Plan plan) {
         PlanItemInfo info = fromPlanItem(plan);
         info.acl = AclInfo.fromAcl(plan.getAcl());
+        info.color = plan.getColor();
         if (plan.hasBuckets()) {
             info.buckets = plan.getBuckets().stream()
                     .map(PlanBucketInfo::from)
@@ -76,76 +79,49 @@ public class PlanItemInfo {
                 .collect(Collectors.toList());
     }
 
-    @Getter
-    @Setter
     private Long id;
 
-    @Getter
-    @Setter
     private String name;
 
-    @Getter
-    @Setter
     private String notes;
 
-    @Getter
-    @Setter
     private PlanItemStatus status;
 
-    @Getter
-    @Setter
     private Long parentId;
 
-    @Getter
-    @Setter
     private Long aggregateId;
 
-    @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private AclInfo acl;
 
-    @Getter
-    @Setter
+    /*
+     The use of NON_EMPTY here is a complete kludge, so when a PlanItem-typed
+     Plan is serialized, it won't carry a null color. The client's synchronizer
+     ends up getting such plans due to Hibernate's non-polymorphic proxies over
+     the PlanItem hierarchy. It's a mess.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String color;
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<PlanBucketInfo> buckets;
 
-    @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private long[] subtaskIds;
 
-    @Getter
-    @Setter
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private long[] componentIds;
 
-    @Getter
-    @Setter
     private Double quantity;
 
-    @Getter
-    @Setter
     private String units;
 
-    @Getter
-    @Setter
     private Long uomId;
 
-    @Getter
-    @Setter
     private Long ingredientId;
 
-    @Getter
-    @Setter
     private Long bucketId;
 
-    @Getter
-    @Setter
     private String preparation;
-
-    public boolean hasSubtasks() {
-        return subtaskIds != null && subtaskIds.length > 0;
-    }
 
 }
