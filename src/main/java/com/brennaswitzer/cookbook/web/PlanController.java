@@ -59,7 +59,7 @@ public class PlanController {
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public List<PlanItemInfo> getPlans() {
-        return PlanItemInfo.fromPlans(planService.getPlans());
+        return PlanItemInfo.from(planService.getPlans());
     }
 
     @PostMapping("")
@@ -70,7 +70,7 @@ public class PlanController {
                 ? planService.duplicatePlan(info.getName(),
                                             info.getFromId())
                 : planService.createPlan(info.getName());
-        return PlanItemInfo.fromPlan(plan);
+        return PlanItemInfo.from(plan);
     }
 
     @GetMapping("/{id}")
@@ -78,7 +78,7 @@ public class PlanController {
     public PlanItemInfo getPlanItem(
             @PathVariable("id") Long id
     ) {
-        return PlanItemInfo.fromPlanItem(planService.getPlanItemById(id));
+        return PlanItemInfo.from(planService.getPlanItemById(id));
     }
 
     @GetMapping("/{id}/acl")
@@ -103,7 +103,7 @@ public class PlanController {
     public List<PlanItemInfo> getDescendants(
             @PathVariable("id") Long id
     ) {
-        return PlanItemInfo.fromPlanItems(
+        return PlanItemInfo.from(
                 planService.getTreeById(id));
     }
 
@@ -112,7 +112,7 @@ public class PlanController {
             @PathVariable("id") Long id,
             @RequestParam Long cutoff
     ) {
-        return PlanItemInfo.fromPlanItems(
+        return PlanItemInfo.from(
                 planService.getTreeDeltasById(
                         id,
                         Instant.ofEpochMilli(cutoff)));
@@ -245,7 +245,7 @@ public class PlanController {
     ) {
         Plan plan = planService.setGrantOnPlan(id, grant.getUserId(), grant.getAccessLevel());
         Acl acl = plan.getAcl();
-        User user = userRepo.getById(grant.getUserId());
+        User user = userRepo.getReferenceById(grant.getUserId());
         return GrantInfo.fromGrant(user, acl.getGrant(user));
     }
 

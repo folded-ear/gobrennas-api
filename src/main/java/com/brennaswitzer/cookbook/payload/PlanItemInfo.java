@@ -7,10 +7,11 @@ import com.brennaswitzer.cookbook.domain.Quantity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
 
@@ -19,7 +20,8 @@ import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
 @SuppressWarnings("WeakerAccess")
 public class PlanItemInfo {
 
-    public static PlanItemInfo fromPlanItem(PlanItem item) {
+    public static PlanItemInfo from(PlanItem item) {
+        item = (PlanItem) Hibernate.unproxy(item);
         PlanItemInfo info = new PlanItemInfo();
         info.id = item.getId();
         info.name = item.getName();
@@ -52,31 +54,22 @@ public class PlanItemInfo {
         if (item.hasBucket()) {
             info.bucketId = item.getBucket().getId();
         }
-        return info;
-    }
-
-    public static PlanItemInfo fromPlan(Plan plan) {
-        PlanItemInfo info = fromPlanItem(plan);
-        info.acl = AclInfo.fromAcl(plan.getAcl());
-        info.color = plan.getColor();
-        if (plan.hasBuckets()) {
-            info.buckets = plan.getBuckets().stream()
-                    .map(PlanBucketInfo::from)
-                    .collect(Collectors.toList());
+        if (item instanceof Plan plan) {
+            info.acl = AclInfo.fromAcl(plan.getAcl());
+            info.color = plan.getColor();
+            if (plan.hasBuckets()) {
+                info.buckets = plan.getBuckets().stream()
+                        .map(PlanBucketInfo::from)
+                        .collect(Collectors.toList());
+            }
         }
         return info;
     }
 
-    public static List<PlanItemInfo> fromPlanItems(Iterable<PlanItem> items) {
-        return StreamSupport.stream(items.spliterator(), false)
-                .map(PlanItemInfo::fromPlanItem)
-                .collect(Collectors.toList());
-    }
-
-    public static List<PlanItemInfo> fromPlans(Iterable<Plan> plans) {
-        return StreamSupport.stream(plans.spliterator(), false)
-                .map(PlanItemInfo::fromPlan)
-                .collect(Collectors.toList());
+    public static List<PlanItemInfo> from(Iterable<? extends PlanItem> items) {
+        List<PlanItemInfo> result = new ArrayList<>();
+        for (var it : items) result.add(from(it));
+        return result;
     }
 
     private Long id;
@@ -94,13 +87,6 @@ public class PlanItemInfo {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private AclInfo acl;
 
-    /*
-     The use of NON_EMPTY here is a complete kludge, so when a PlanItem-typed
-     Plan is serialized, it won't carry a null color. The client's synchronizer
-     ends up getting such plans due to Hibernate's non-polymorphic proxies over
-     the PlanItem hierarchy. It's a mess.
-     */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String color;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

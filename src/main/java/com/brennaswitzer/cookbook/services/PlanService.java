@@ -244,7 +244,7 @@ public class PlanService {
         m.setId(parent.getId());
         m.setType("create");
         List<PlanItem> tree = getTreeById(parent);
-        m.setInfo(PlanItemInfo.fromPlanItems(tree));
+        m.setInfo(PlanItemInfo.from(tree));
         return m;
     }
 
@@ -418,7 +418,7 @@ public class PlanService {
         PlanMessage m = new PlanMessage();
         m.setId(item.getId());
         m.setType("update");
-        m.setInfo(PlanItemInfo.fromPlanItem(item));
+        m.setInfo(PlanItemInfo.from(item));
         return m;
     }
 
