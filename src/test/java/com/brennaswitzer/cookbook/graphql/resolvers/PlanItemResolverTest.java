@@ -34,7 +34,7 @@ class PlanItemResolverTest extends MockTest {
         when(plan.getParent()).thenReturn(null);
         when(plan.getPlan()).thenReturn(plan);
 
-        PlanItem p = resolver.parent(plan);
+        var p = resolver.parent(plan);
 
         assertNull(p, "Plan don't have parents");
     }
@@ -46,7 +46,7 @@ class PlanItemResolverTest extends MockTest {
         when(item.getParent()).thenReturn(plan);
         when(item.getPlan()).thenReturn(plan);
 
-        PlanItem p = resolver.parent(item);
+        var p = resolver.parent(item);
 
         assertSame(plan, p);
     }

@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.CorePlanItem;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -69,7 +70,7 @@ public class PlannerMutation {
         return planService.mutateTree(itemIds, parentId, afterId);
     }
 
-    public PlanItem rename(Long id, String name) {
+    public CorePlanItem rename(Long id, String name) {
         return planService.renameItem(id, name);
     }
 

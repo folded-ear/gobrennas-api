@@ -1,8 +1,11 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
+import com.brennaswitzer.cookbook.domain.CorePlanItem;
+import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.services.PlanService;
 import graphql.kickstart.tools.GraphQLResolver;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +19,11 @@ public class PlanItemResolver implements GraphQLResolver<PlanItem> {
     @Autowired
     private PlanService planService;
 
-    public PlanItem parent(PlanItem item) {
+    public Ingredient getIngredient(PlanItem item) {
+        return Hibernate.unproxy(item.getIngredient(), Ingredient.class);
+    }
+
+    public CorePlanItem parent(PlanItem item) {
         return item.getParent();
     }
 

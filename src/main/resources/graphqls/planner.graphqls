@@ -4,10 +4,12 @@ extend type Query {
 
 type PlannerQuery {
     plans: [Plan]!
+    plan(id: ID!): Plan!
     planItem(id: ID!): PlanItem!
     """Retrieve all items on the given plan which have been updated since the
-    passed cutoff (expressed in milliseconds since the UNIX epoch)."""
-    updatedSince(planId: ID!, cutoff: Long): [PlanItem!]!
+    passed cutoff (expressed in milliseconds since the UNIX epoch). May include
+    the plan itself!"""
+    updatedSince(planId: ID!, cutoff: Long!): [CorePlanItem!]!
 }
 
 interface CorePlanItem implements Node {
@@ -22,39 +24,48 @@ interface CorePlanItem implements Node {
 
 type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     id: ID!
-    owner: User!
     name: String!
-    """The color associated with the plan, expressed as a number sign and six
-    hex digits (e.g., '#F57F17').
-    """
-    color: String!
     """A plan's plan is always itself."""
     plan: Plan!
-    share: ShareInfo
-    acl: Acl!
-    grants: [AccessControlEntry!]!
     childCount: NonNegativeInt!
     children: [PlanItem!]!
     descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
+    # extensions
+    """The color associated with the plan, expressed as a number sign and six
+    hex digits (e.g., '#F57F17').
+    """
+    color: String!
+    acl: Acl!
+    grants: [AccessControlEntry!]!
+    """The plan's owner
+    """
+    owner: User!
+    share: ShareInfo
     bucketCount: NonNegativeInt!
     buckets: [PlanBucket!]!
+    """Retrieve all items which have been updated since the passed cutoff
+    (expressed in milliseconds since the UNIX epoch). May include this plan!"""
+    updatedSince(cutoff: Long!): [CorePlanItem!]!
 }
 
 """Represents a single item on a plan"""
 type PlanItem implements Node & CorePlanItem {
     id: ID!
     name: String!
-    quantity: Quantity
-    preparation: String
-    ingredient: Ingredient
-    notes: String
     plan: Plan!
-    parent: PlanItem
     childCount: NonNegativeInt!
     children: [PlanItem!]!
     descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
+    # extensions
+    """This item's parent; follow enough and you'll always get to the plan.
+    """
+    parent: CorePlanItem
+    notes: String
+    quantity: Quantity
+    preparation: String
+    ingredient: Ingredient
     aggregate: PlanItem
     componentCount: NonNegativeInt!
     components: [PlanItem!]!
@@ -108,7 +119,7 @@ type PlannerMutation {
     specific item already under that parent. The parent's info is returned."""
     mutateTree(itemIds: [ID!]!, parentId: ID!, afterId: ID): PlanItem!
     """Update the name of the given plan or plan item (but not bucket)."""
-    rename(id: ID!, name: String!): PlanItem!
+    rename(id: ID!, name: String!): CorePlanItem!
     """Reorder the item/plan subitems in the same order as the passed list. If
     there are subitems not included in the list, they will not be reordered. If
     an item under a different parent is included in the list, it will be moved

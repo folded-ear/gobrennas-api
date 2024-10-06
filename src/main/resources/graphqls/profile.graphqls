@@ -21,9 +21,9 @@ type Acl implements Owned {
 
 type AccessControlEntry {
     """The user who has been granted access to an AccessControlled object."""
-    user: User
+    user: User!
     """The level of access the user has been granted."""
-    level: AccessLevel
+    level: AccessLevel!
 }
 
 enum AccessLevel {
