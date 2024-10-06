@@ -56,7 +56,7 @@ public class SharedRecipeController {
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
-            Object ing = Hibernate.unproxy(ir.getIngredient());
+            var ing = Hibernate.unproxy(ir.getIngredient(), Ingredient.class);
             if (ing instanceof Recipe r) {
                 ings.add(ingredientMapper.recipeToInfo(r));
             } else if (ing instanceof PantryItem pi) {

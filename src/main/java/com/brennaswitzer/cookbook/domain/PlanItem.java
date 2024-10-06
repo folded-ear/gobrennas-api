@@ -42,7 +42,7 @@ import static jakarta.persistence.CascadeType.REFRESH;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @DiscriminatorValue("item")
-public class PlanItem extends BaseEntity implements Named, MutableItem {
+public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlanItem {
 
     public static final Comparator<PlanItem> BY_ID = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -225,7 +225,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     }
 
     public void setParent(PlanItem parent) {
-        PlanItem currentParent = (PlanItem) Hibernate.unproxy(getParent());
+        PlanItem currentParent = Hibernate.unproxy(getParent(), PlanItem.class);
         // see if it's a no-op
         if (Objects.equals(parent, currentParent)) {
             return;

@@ -153,7 +153,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
             if (!ref.hasIngredient()) continue;
-            Object ingredient = Hibernate.unproxy(ref.getIngredient());
+            var ingredient = Hibernate.unproxy(ref.getIngredient(), Ingredient.class);
             if (ingredient instanceof PantryItem) {
                 refs.add(ref);
             } else if (ingredient instanceof AggregateIngredient agg) {
@@ -178,7 +178,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
         if (ingredients == null) return refs;
         for (IngredientRef ref : ingredients) {
             if (ref.hasIngredient()) {
-                Object ingredient = Hibernate.unproxy(ref.getIngredient());
+                var ingredient = Hibernate.unproxy(ref.getIngredient(), Ingredient.class);
                 if (ingredient instanceof AggregateIngredient agg) {
                     refs.addAll(agg.assembleRawIngredientRefs());
                 }

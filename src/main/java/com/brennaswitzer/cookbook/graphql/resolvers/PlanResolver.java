@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
+import com.brennaswitzer.cookbook.domain.CorePlanItem;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
@@ -9,6 +10,7 @@ import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 
 import static com.brennaswitzer.cookbook.util.CollectionUtils.tail;
@@ -30,8 +32,8 @@ public class PlanResolver implements GraphQLResolver<Plan> {
         return plan.getOrderedChildView();
     }
 
-    public int descendantCount(Plan item) {
-        return planService.getTreeById(item).size() - 1;
+    public int descendantCount(Plan plan) {
+        return planService.getTreeById(plan).size() - 1;
     }
 
     public List<PlanItem> descendants(Plan plan) {
@@ -40,6 +42,11 @@ public class PlanResolver implements GraphQLResolver<Plan> {
 
     public ShareInfo share(Plan plan) {
         return shareHelper.getInfo(Plan.class, plan);
+    }
+
+    List<? extends CorePlanItem> updatedSince(Plan plan, Long cutoff) {
+        return planService.getTreeDeltasById(plan.getId(),
+                                             Instant.ofEpochMilli(cutoff));
     }
 
 }

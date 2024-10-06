@@ -171,7 +171,7 @@ class PlannerMutationTest extends MockTest {
         when(planService.renameItem(id, newName))
                 .thenReturn(item);
 
-        PlanItem result = mutation.rename(id, newName);
+        var result = mutation.rename(id, newName);
 
         assertSame(item, result);
     }

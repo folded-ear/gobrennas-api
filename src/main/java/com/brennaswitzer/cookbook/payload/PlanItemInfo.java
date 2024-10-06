@@ -21,7 +21,7 @@ import static com.brennaswitzer.cookbook.util.IdUtils.toIdList;
 public class PlanItemInfo {
 
     public static PlanItemInfo from(PlanItem item) {
-        item = (PlanItem) Hibernate.unproxy(item);
+        item = Hibernate.unproxy(item, PlanItem.class);
         PlanItemInfo info = new PlanItemInfo();
         info.id = item.getId();
         info.name = item.getName();

@@ -2,9 +2,12 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.MockTestTarget;
+import graphql.GraphQLContext;
+import graphql.schema.DataFetchingEnvironment;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -12,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,14 +39,21 @@ class PlannerQueryTest extends MockTest {
         when(a.getName()).thenReturn("A");
         Plan b = mock(Plan.class);
         when(b.getName()).thenReturn("B");
-        when(planService.getPlans())
+        when(planService.getPlans(123L))
                 .thenReturn(Arrays.asList(a, b));
+        var principal = mock(UserPrincipal.class);
+        when(principal.getId()).thenReturn(123L);
+        var ctx = mock(GraphQLContext.class);
+        when(ctx.getOrEmpty(UserPrincipal.class))
+                .thenReturn(Optional.of(principal));
+        var env = mock(DataFetchingEnvironment.class);
+        when(env.getGraphQlContext()).thenReturn(ctx);
 
-        var ps = query.plans();
+        var ps = query.plans(env);
 
         assertEquals(2, ps.size());
         assertEach(Arrays.asList("A", "B"), ps, Plan::getName);
-        verify(planService).getPlans();
+        verify(planService).getPlans(123L);
     }
 
     @Test
@@ -63,7 +74,7 @@ class PlannerQueryTest extends MockTest {
                                            Instant.EPOCH.plusMillis(456)))
                 .thenReturn(list);
 
-        List<PlanItem> result = query.updatedSince(123L, 456L);
+        var result = query.updatedSince(123L, 456L);
 
         assertSame(list, result);
     }

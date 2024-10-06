@@ -6,6 +6,8 @@ HELP.md
 /src/main/resources/application-default.yml
 /src/main/resources/application-dev.yml
 /src/main/resources/liquibase.properties
+/src/main/resources/graphql.config.yml
+/src/main/resources/gql
 
 ### STS ###
 .apt_generated

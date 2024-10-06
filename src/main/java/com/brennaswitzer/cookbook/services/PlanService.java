@@ -103,7 +103,7 @@ public class PlanService {
                 principalAccess.getUser(),
                 requiredAccess
         );
-        return item;
+        return Hibernate.unproxy(item, PlanItem.class);
     }
 
     public Plan getPlanById(Long id) {
@@ -116,7 +116,7 @@ public class PlanService {
                 principalAccess.getUser(),
                 requiredAccess
         );
-        return plan;
+        return Hibernate.unproxy(plan, Plan.class);
     }
 
     public List<PlanItem> getTreeById(Long id) {
@@ -210,7 +210,7 @@ public class PlanService {
         if (scale == null || scale <= 0) { // nonsense!
             scale = 1d;
         }
-        Ingredient ingredient = (Ingredient) Hibernate.unproxy(ref.getIngredient());
+        Ingredient ingredient = Hibernate.unproxy(ref.getIngredient(), Ingredient.class);
         boolean isAggregate = ingredient instanceof AggregateIngredient;
         if (ref.hasQuantity()) {
             ref = ref.scale(scale);
