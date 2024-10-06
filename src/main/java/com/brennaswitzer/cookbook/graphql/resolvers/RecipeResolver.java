@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.FavoriteType;
+import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
@@ -81,7 +82,7 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
-            Object ing = Hibernate.unproxy(ir.getIngredient());
+            var ing = Hibernate.unproxy(ir.getIngredient(), Ingredient.class);
             if (ing instanceof Recipe r && result.add(r)) {
                 queue.addAll(r.getIngredients());
             }

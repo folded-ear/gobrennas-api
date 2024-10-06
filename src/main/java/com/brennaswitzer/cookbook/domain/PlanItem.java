@@ -225,7 +225,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem {
     }
 
     public void setParent(PlanItem parent) {
-        PlanItem currentParent = (PlanItem) Hibernate.unproxy(getParent());
+        PlanItem currentParent = Hibernate.unproxy(getParent(), PlanItem.class);
         // see if it's a no-op
         if (Objects.equals(parent, currentParent)) {
             return;
