@@ -3,7 +3,7 @@ extend type Query {
 }
 
 type PlannerQuery {
-    plans: [Plan]!
+    plans: [Plan!]!
     plan(id: ID!): Plan!
     planItem(id: ID!): PlanItem!
     """Retrieve all items on the given plan which have been updated since the
