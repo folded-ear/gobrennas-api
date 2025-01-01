@@ -40,10 +40,8 @@ public class SharedPlanController {
             throw new AuthorizationServiceException("Bad secret");
         }
         response.setCharacterEncoding("UTF-8");
-        response.addHeader(HttpHeaders.CONTENT_TYPE, switch (ext) {
-            case "txt" -> "text/plain";
-            default -> "text/calendar";
-        });
+        response.addHeader(HttpHeaders.CONTENT_TYPE,
+                           "txt".equals(ext) ? "text/plain" : "text/calendar");
         new CalendarOutputter(calendarProperties.isValidate())
                 .output(planCalendar.getCalendar(id),
                         response.getWriter());
