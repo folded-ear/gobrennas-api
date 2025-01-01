@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
@@ -148,9 +149,6 @@ public class PlanCalendar {
                 .getFluentTarget();
     }
 
-    /**
-     * I convert the passed stream of PlanItems to an iCal calendar.
-     */
     public Calendar getCalendar(long planId) {
         Plan plan = planRepo.getReferenceById(planId);
         FluentCalendar cal = new Calendar()
@@ -164,6 +162,8 @@ public class PlanCalendar {
                 .sorted(Comparator.comparing(PlanBucket::getDate))
                 .map(PlanBucket::getItems)
                 .flatMap(Collection::stream)
+                .filter(it -> it.getStatus() != PlanItemStatus.DELETED
+                              || Duration.between(it.getCreatedAt(), it.getUpdatedAt()).toHours() > 6)
                 .map(this::getEvent)
                 .forEach(cal::withComponent);
         return cal.getFluentTarget();
