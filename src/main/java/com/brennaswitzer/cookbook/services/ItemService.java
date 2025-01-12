@@ -81,7 +81,7 @@ public class ItemService {
                             ? RecognizedRangeType.ITEM
                             : RecognizedRangeType.NEW_ITEM
             ).withId(oing.map(Ingredient::getId).orElse(null)));
-        } else if (!raw.contains("\"")) {
+        } else if (!RawUtils.containsNameDelim(raw)) {
             // no explicit name, so see if there's an implicit one
             Optional<RecognizedRange> matched = multiPass(item.unrecognizedWords(), raw);
             // TODO: Break out pieces and test for item service
@@ -120,7 +120,7 @@ public class ItemService {
         String raw = item.getRaw();
         // based on cursor position, see if we can suggest any names
         // start with looking backwards for a quote
-        int start = raw.lastIndexOf('"', item.getCursor());
+        int start = RawUtils.lastIndexOfNameStart(raw, item.getCursor() - 1);
         boolean hasQuote = start >= 0;
         boolean hasSpace = false;
         if (start < 0) { // look backwards for a non-trailing space

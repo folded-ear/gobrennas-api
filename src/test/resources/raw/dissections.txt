@@ -6,6 +6,10 @@ raw|quantity|qstart|qend|unit|ustart|uend|name|nstart|nend
 1 cup "flour"|1|0|1||||flour|6|13
 1 cup garbage "flour"|1|0|1||||flour|14|21
 1 cup "flour" garbage|1|0|1||||flour|6|13
+# same as above, with curly/smart/iOS quotes
+1 cup “flour” garbage|1|0|1||||flour|6|13
+# same as above, with angle quotes (e.g., French)
+1 cup «flour» garbage|1|0|1||||flour|6|13
 1 cup garbage "flour" garbage|1|0|1||||flour|14|21
 1 cup flour, sifted|1|0|1||||||
 1 _cup_ "flour", sifted|1|0|1|cup|2|7|flour|8|15
