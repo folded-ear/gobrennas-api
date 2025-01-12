@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.util.RawUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -33,18 +34,9 @@ public class RawIngredientDissection {
                         || RecognizedRangeType.NEW_ITEM == r.getType())
                 .findFirst();
 
-        Function<String, String> stripMarkers = s -> {
-            if (s == null) return s;
-            if (s.length() < 3) return s;
-            char c = s.charAt(0);
-            if (c != s.charAt(s.length() - 1)) return s;
-            if (Character.isLetterOrDigit(c)) return s;
-            return s.substring(1, s.length() - 1);
-        };
-
         Function<Optional<RecognizedRange>, Section> sectionFromRange = or ->
                 or.map(r -> new Section(
-                                stripMarkers.apply(
+                                RawUtils.stripMarkers(
                                         it.getRaw().substring(r.getStart(), r.getEnd())),
                                 r.getStart(),
                                 r.getEnd())
@@ -59,7 +51,6 @@ public class RawIngredientDissection {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .sorted(Comparator.comparingInt(RecognizedRange::getStart).reversed())
-                .sequential()
                 .reduce(
                         it.getRaw(),
                         (s, r) -> s.substring(0, r.getStart()) + s.substring(r.getEnd()),

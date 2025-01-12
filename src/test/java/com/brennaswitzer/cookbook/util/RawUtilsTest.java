@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RawUtilsTest {
 
@@ -19,6 +22,59 @@ public class RawUtilsTest {
         assertEquals(3, RawUtils.lengthOfLongestSharedSuffix("abc", "abc"));
         assertEquals(3, RawUtils.lengthOfLongestSharedSuffix("abc", "zzzzabc"));
         assertEquals(3, RawUtils.lengthOfLongestSharedSuffix("zzzzabc", "abc"));
+    }
+
+    @Test
+    void lastIndexOfName_normalQuotes() {
+        assertEquals(-1, RawUtils.lastIndexOfNameStart("1 goat, shredded"));
+        assertEquals(-1, RawUtils.lastIndexOfNameStart("1 goat, shredded", 10));
+        assertEquals(-1, RawUtils.lastIndexOfNameStart("1 goat, shredded", 0));
+        assertEquals(7, RawUtils.lastIndexOfNameStart("1 \"goat\", shredded"));
+        assertEquals(2, RawUtils.lastIndexOfNameStart("1 \"goat\", shredded", 6));
+        assertEquals(7, RawUtils.lastIndexOfNameStart("1 \"goat\", shredded", 7));
+    }
+
+    @Test
+    void lastIndexOfName_curlyQuotes() {
+        assertEquals(7, RawUtils.lastIndexOfNameStart("1 “goat”, shredded"));
+        assertEquals(2, RawUtils.lastIndexOfNameStart("1 “goat”, shredded", 6));
+        assertEquals(7, RawUtils.lastIndexOfNameStart("1 “goat”, shredded", 7));
+    }
+
+    @Test
+    void lastIndexOfName_angleQuotes() {
+        assertEquals(7, RawUtils.lastIndexOfNameStart("1 «goat», shredded"));
+        assertEquals(2, RawUtils.lastIndexOfNameStart("1 «goat», shredded", 6));
+        assertEquals(7, RawUtils.lastIndexOfNameStart("1 «goat», shredded", 7));
+    }
+
+    @Test
+    void containsNameDelim() {
+        assertFalse(RawUtils.containsNameDelim("1 goat, shredded"));
+        assertTrue(RawUtils.containsNameDelim("1 goat\", shredded"));
+        assertTrue(RawUtils.containsNameDelim("1 “goat, shredded"));
+        assertTrue(RawUtils.containsNameDelim("1 goat”, shredded"));
+        assertTrue(RawUtils.containsNameDelim("1 «goat, shredded"));
+        assertTrue(RawUtils.containsNameDelim("1 goat», shredded"));
+    }
+
+    @Test
+    void stripMarkers() {
+        assertNull(RawUtils.stripMarkers(null));
+        assertEquals("", RawUtils.stripMarkers(""));
+        assertEquals("goat", RawUtils.stripMarkers("goat"));
+        assertEquals("goat", RawUtils.stripMarkers("\"goat\""));
+        assertEquals("goat", RawUtils.stripMarkers("“goat”"));
+        assertEquals("goat", RawUtils.stripMarkers("«goat»"));
+        assertEquals("grams", RawUtils.stripMarkers("_grams_"));
+        assertEquals("goat\"", RawUtils.stripMarkers("goat\""));
+        assertEquals("goat”", RawUtils.stripMarkers("goat”"));
+        assertEquals("goat»", RawUtils.stripMarkers("goat»"));
+        assertEquals("grams_", RawUtils.stripMarkers("grams_"));
+        assertEquals("\"goat", RawUtils.stripMarkers("\"goat"));
+        assertEquals("“goat", RawUtils.stripMarkers("“goat"));
+        assertEquals("«goat", RawUtils.stripMarkers("«goat"));
+        assertEquals("_grams", RawUtils.stripMarkers("_grams"));
     }
 
     @Test
