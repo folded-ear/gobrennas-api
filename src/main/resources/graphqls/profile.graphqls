@@ -44,3 +44,11 @@ type User implements Node {
     provider: String!
     roles: [String!]!
 }
+
+extend type Query {
+    profile: ProfileQuery
+}
+
+type ProfileQuery {
+    friends: [User!]!
+}
