@@ -33,6 +33,8 @@ type PantryQuery {
         """
         after: Cursor = null
     ): PantryItemConnection!
+
+    updatedSince(cutoff: Long!): [PantryItem!]!
 }
 
 type PantryItemConnection {

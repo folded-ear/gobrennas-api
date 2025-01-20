@@ -113,7 +113,6 @@ type RecipeConnectionEdge {
 interface Ingredient implements Node {
     id: ID!
     name: String!
-    labels: [String!]
 }
 
 enum ChronoUnit {

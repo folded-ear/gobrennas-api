@@ -49,7 +49,8 @@ class PlannerQueryTest extends MockTest {
         var env = mock(DataFetchingEnvironment.class);
         when(env.getGraphQlContext()).thenReturn(ctx);
 
-        var ps = query.plans(env);
+        List<Plan> ps = new ArrayList<>();
+        query.plans(env).forEach(ps::add);
 
         assertEquals(2, ps.size());
         assertEach(Arrays.asList("A", "B"), ps, Plan::getName);

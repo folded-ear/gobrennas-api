@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +58,10 @@ public class PantryQuery extends PagingQuery {
                         .limit(getLimit(first))
                         .build());
         return new OffsetConnection<>(rs);
+    }
+
+    public Iterable<PantryItem> updatedSince(Long cutoff) {
+        return pantryItemService.findAllByUpdatedAtIsAfter(Instant.ofEpochMilli(cutoff));
     }
 
     private Sort getSort(String sortBy, SortDir sortDir) {
