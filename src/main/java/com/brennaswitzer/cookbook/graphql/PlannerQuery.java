@@ -30,6 +30,10 @@ public class PlannerQuery {
         return planService.getPlanItemById(id);
     }
 
+    CorePlanItem planOrItem(Long id) {
+        return planService.getPlanItemById(id);
+    }
+
     List<? extends CorePlanItem> updatedSince(Long planId, Long cutoff) {
         return planService.getTreeDeltasById(planId,
                                              Instant.ofEpochMilli(cutoff));

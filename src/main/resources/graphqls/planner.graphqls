@@ -6,6 +6,7 @@ type PlannerQuery {
     plans: [Plan!]!
     plan(id: ID!): Plan!
     planItem(id: ID!): PlanItem!
+    planOrItem(id: ID!): CorePlanItem!
     """Retrieve all items on the given plan which have been updated since the
     passed cutoff (expressed in milliseconds since the UNIX epoch). May include
     the plan itself!"""
