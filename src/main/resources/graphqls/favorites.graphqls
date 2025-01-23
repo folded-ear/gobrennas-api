@@ -1,5 +1,5 @@
 extend type Query {
-    favorite: FavoriteQuery
+    favorite: FavoriteQuery!
 }
 
 type FavoriteQuery {
@@ -15,7 +15,7 @@ type FavoriteQuery {
 }
 
 extend type Mutation {
-    favorite: FavoriteMutation
+    favorite: FavoriteMutation!
 }
 
 type FavoriteMutation {

@@ -1,5 +1,5 @@
 extend type Query {
-    pantry: PantryQuery
+    pantry: PantryQuery!
 }
 
 enum SortDir {
@@ -74,7 +74,7 @@ type PantryItem implements Node & Ingredient {
 }
 
 extend type Mutation {
-    pantry: PantryMutation
+    pantry: PantryMutation!
 }
 
 type PantryMutation {

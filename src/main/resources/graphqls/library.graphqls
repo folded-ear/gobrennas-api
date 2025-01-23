@@ -1,5 +1,5 @@
 extend type Query {
-    library: LibraryQuery
+    library: LibraryQuery!
 }
 
 enum LibrarySearchScope {
@@ -208,7 +208,7 @@ type PlannedRecipeHistory implements Node {
 }
 
 extend type Mutation {
-    library: LibraryMutation
+    library: LibraryMutation!
 }
 
 type LibraryMutation {

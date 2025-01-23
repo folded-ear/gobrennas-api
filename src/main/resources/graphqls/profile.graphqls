@@ -46,7 +46,7 @@ type User implements Node {
 }
 
 extend type Query {
-    profile: ProfileQuery
+    profile: ProfileQuery!
 }
 
 type ProfileQuery {
