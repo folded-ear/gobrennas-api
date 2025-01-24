@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -19,11 +18,8 @@ public class PlannerQuery {
     @Autowired
     private PlanService planService;
 
-    List<Plan> plans(DataFetchingEnvironment env) {
-        List<Plan> result = new ArrayList<>();
-        planService.getPlans(PrincipalUtil.from(env).getId())
-                .forEach(result::add);
-        return result;
+    Iterable<Plan> plans(DataFetchingEnvironment env) {
+        return planService.getPlans(PrincipalUtil.from(env).getId());
     }
 
     Plan plan(Long id) {
@@ -31,6 +27,10 @@ public class PlannerQuery {
     }
 
     PlanItem planItem(Long id) {
+        return planService.getPlanItemById(id);
+    }
+
+    CorePlanItem planOrItem(Long id) {
         return planService.getPlanItemById(id);
     }
 
