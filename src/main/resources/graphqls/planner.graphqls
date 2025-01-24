@@ -129,7 +129,7 @@ type PlannerMutation {
     """Set the plan's color (e.g., '#F57F17'), or reset it with a null or empty string."""
     setColor(planId: ID!, color: String): Plan!
     """Set the access level granted to a user w/in a plan."""
-    setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel): Plan!
+    setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel!): Plan!
     """Sets the status of the given item. This will always return the updated
     item, though it may immediately moved to the trash (in the background)."""
     setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!
