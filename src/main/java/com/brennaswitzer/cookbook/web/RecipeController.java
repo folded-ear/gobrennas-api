@@ -68,7 +68,7 @@ public class RecipeController {
             @RequestParam(name = "scope", defaultValue = "mine") String scope,
             @RequestParam(name = "filter", defaultValue = "") String filter,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "pageSize", defaultValue = "99999") int pageSize
+            @RequestParam(name = "pageSize", defaultValue = "25") int pageSize
     ) {
         SearchResponse<IngredientInfo> response = recipeService.searchRecipes(
                         LibrarySearchScope.valueOf(scope.toUpperCase()),
