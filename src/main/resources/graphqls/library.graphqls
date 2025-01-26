@@ -1,5 +1,5 @@
 extend type Query {
-    library: LibraryQuery
+    library: LibraryQuery!
 }
 
 enum LibrarySearchScope {
@@ -113,7 +113,6 @@ type RecipeConnectionEdge {
 interface Ingredient implements Node {
     id: ID!
     name: String!
-    labels: [String!]
 }
 
 enum ChronoUnit {
@@ -209,7 +208,7 @@ type PlannedRecipeHistory implements Node {
 }
 
 extend type Mutation {
-    library: LibraryMutation
+    library: LibraryMutation!
 }
 
 type LibraryMutation {

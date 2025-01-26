@@ -40,6 +40,9 @@ public class Query implements GraphQLQueryResolver {
     @Autowired
     public PlannerQuery planner;
 
+    @Autowired
+    public ProfileQuery profile;
+
     Object getNode(Long id,
                    DataFetchingEnvironment env) {
         return repositories.stream()

@@ -12,7 +12,7 @@ public interface UserRepository extends BaseEntityRepository<User> {
 
     User getByName(String name);
 
-    // kludge for FriendController's pretend implementation
+    // kludge for ProfileQuery's pretend implementation
     List<User> findByIdNot(Long idToExclude);
 
 }

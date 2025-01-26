@@ -1,11 +1,12 @@
 extend type Query {
-    planner: PlannerQuery
+    planner: PlannerQuery!
 }
 
 type PlannerQuery {
     plans: [Plan!]!
     plan(id: ID!): Plan!
     planItem(id: ID!): PlanItem!
+    planOrItem(id: ID!): CorePlanItem!
     """Retrieve all items on the given plan which have been updated since the
     passed cutoff (expressed in milliseconds since the UNIX epoch). May include
     the plan itself!"""
@@ -88,12 +89,12 @@ enum PlanItemStatus {
 }
 
 extend type Mutation {
-    planner: PlannerMutation
+    planner: PlannerMutation!
 }
 
 type PlannerMutation {
-    """Assign a plan item to a bucket (in the same plan)."""
-    assignBucket(id: ID!, bucketId: ID!): PlanItem!
+    """Assign a plan item to a bucket (in the same plan), or clear an item's bucket."""
+    assignBucket(id: ID!, bucketId: ID): PlanItem!
     """Create a new bucket w/in a plan, with an optional name and date."""
     createBucket(planId: ID!, name: String, date: Date): PlanBucket!
     """Create a new item under the specified parent (which may be a plan, for
@@ -128,7 +129,7 @@ type PlannerMutation {
     """Set the plan's color (e.g., '#F57F17'), or reset it with a null or empty string."""
     setColor(planId: ID!, color: String): Plan!
     """Set the access level granted to a user w/in a plan."""
-    setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel): Plan!
+    setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel!): Plan!
     """Sets the status of the given item. This will always return the updated
     item, though it may immediately moved to the trash (in the background)."""
     setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!
