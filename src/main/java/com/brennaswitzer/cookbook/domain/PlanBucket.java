@@ -47,8 +47,10 @@ public class PlanBucket extends BaseEntity implements Named {
 
     public PlanBucket() {}
 
-    public PlanBucket(String name) {
+    public PlanBucket(Plan plan, String name, LocalDate date) {
+        setPlan(plan);
         setName(name);
+        setDate(date);
     }
 
     @Override

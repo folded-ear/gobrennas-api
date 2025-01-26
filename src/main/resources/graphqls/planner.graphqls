@@ -81,6 +81,11 @@ type PlanBucket {
     date: Date
 }
 
+input UnsavedBucket {
+    name: String
+    date: Date
+}
+
 enum PlanItemStatus {
     NEEDED
     ACQUIRED
@@ -97,6 +102,8 @@ type PlannerMutation {
     assignBucket(id: ID!, bucketId: ID): PlanItem!
     """Create a new bucket w/in a plan, with an optional name and date."""
     createBucket(planId: ID!, name: String, date: Date): PlanBucket!
+    """Create multiple new buckets w/in a plan."""
+    createBuckets(planId: ID!, buckets: [UnsavedBucket!]!): [PlanBucket!]!
     """Create a new item under the specified parent (which may be a plan, for
     top-level items), after the specified peer item (null means 'at end'), and with
     the specified name.

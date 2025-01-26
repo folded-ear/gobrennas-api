@@ -13,6 +13,7 @@ import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.message.PlanMessage;
 import com.brennaswitzer.cookbook.payload.PlanBucketInfo;
@@ -331,13 +332,18 @@ public class PlanService {
 
     public PlanBucket createBucket(Long planId, String name, LocalDate date) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
-        PlanBucket bucket = new PlanBucket();
-        bucket.setName(name);
-        bucket.setDate(date);
-        bucket.setPlan(plan);
+        PlanBucket bucket = new PlanBucket(plan, name, date);
         bucket = bucketRepo.save(bucket);
-        if (bucket.getId() != null) bucketRepo.flush();
+        if (bucket.getId() == null) bucketRepo.flush();
         return bucket;
+    }
+
+    public List<PlanBucket> createBuckets(Long planId, List<UnsavedBucket> buckets) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        List<PlanBucket> toSave = buckets.stream()
+                .map(b -> new PlanBucket(plan, b.getName(), b.getDate()))
+                .toList();
+        return bucketRepo.saveAll(toSave);
     }
 
     public PlanBucket updateBucket(Long planId, Long id, String name, LocalDate date) {
