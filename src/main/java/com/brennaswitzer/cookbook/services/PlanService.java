@@ -257,8 +257,11 @@ public class PlanService {
         Plan plan = createPlan(name);
         Plan src = planRepo.getReferenceById(fromId);
         duplicateChildren(src, plan);
-        // todo: should duplicating a plan copy buckets and grants?
-        return plan;
+        for (var b : src.getBuckets()) {
+            new PlanBucket(plan, b.getName(), b.getDate());
+        }
+        // todo: should duplicating a plan include grants?
+        return planRepo.save(plan);
     }
 
     private void duplicateChildren(PlanItem src, PlanItem dest) {
