@@ -7,13 +7,13 @@ import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
+import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -28,6 +28,11 @@ public class PlannerMutation {
 
     public PlanBucket createBucket(Long planId, String name, LocalDate date) {
         return planService.createBucket(planId, name, date);
+    }
+
+    public List<PlanBucket> createBuckets(Long planId, List<UnsavedBucket> buckets) {
+        if (buckets.isEmpty()) return List.of();
+        return planService.createBuckets(planId, buckets);
     }
 
     public PlanItem createItem(Long parentId, Long afterId, String name) {
@@ -45,9 +50,7 @@ public class PlannerMutation {
     }
 
     public List<Deletion> deleteBuckets(Long planId, List<Long> bucketIds) {
-        if (bucketIds.isEmpty()) {
-            return Collections.emptyList();
-        }
+        if (bucketIds.isEmpty()) return List.of();
         return planService.deleteBuckets(planId, bucketIds)
                 .stream()
                 .map(Deletion::of)
