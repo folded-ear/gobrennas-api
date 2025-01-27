@@ -17,9 +17,11 @@ public class ShareHelper {
     @Autowired
     private AppProperties appProperties;
 
-    public <T extends Identified & Named> ShareInfo getInfo(Class<T> clazz, T object) {
+    public <T extends Identified> ShareInfo getInfo(Class<T> clazz, T object) {
         return new ShareInfo(object.getId(),
-                             SlugUtils.toSlug(object.getName(), 40),
+                             SlugUtils.toSlug(object instanceof Named named
+                                                      ? named.getName()
+                                                      : clazz.getSimpleName(), 40),
                              getSecret(clazz, object.getId()));
     }
 
