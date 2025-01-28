@@ -11,6 +11,8 @@ import com.brennaswitzer.cookbook.graphql.loaders.FavKey;
 import com.brennaswitzer.cookbook.graphql.loaders.IsFavoriteBatchLoader;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
+import com.brennaswitzer.cookbook.payload.ShareInfo;
+import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.kickstart.tools.GraphQLResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
@@ -35,6 +37,9 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
 
     @Autowired
     private LabelMapper labelMapper;
+
+    @Autowired
+    private ShareHelper shareHelper;
 
     public Integer totalTime(Recipe recipe, ChronoUnit unit) {
         Integer millis = recipe.getTotalTime();
@@ -108,6 +113,10 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .filter(ofStatus(status))
                 .limit(last)
                 .toList();
+    }
+
+    public ShareInfo share(Recipe recipe) {
+        return shareHelper.getInfo(Recipe.class, recipe);
     }
 
     private Predicate<PlannedRecipeHistory> ofStatus(PlanItemStatus status) {

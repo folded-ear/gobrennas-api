@@ -42,7 +42,7 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     """The plan's owner
     """
     owner: User!
-    share: ShareInfo
+    share: ShareInfo!
     bucketCount: NonNegativeInt!
     buckets: [PlanBucket!]!
     """Retrieve all items which have been updated since the passed cutoff
