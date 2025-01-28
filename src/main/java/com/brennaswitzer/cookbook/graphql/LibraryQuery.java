@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
+import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.relay.Connection;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.NoResultException;
@@ -26,6 +27,9 @@ public class LibraryQuery extends PagingQuery {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private ShareHelper shareHelper;
+
     public Connection<Recipe> recipes(
             LibrarySearchScope scope,
             String query,
@@ -38,8 +42,9 @@ public class LibraryQuery extends PagingQuery {
     }
 
     public Recipe getRecipeById(Long id,
+                                String optionalSecret,
                                 DataFetchingEnvironment env) {
-        PrincipalUtil.ensurePrincipal(env);
+        ensurePrincipalOrSecret(id, optionalSecret, env);
         return recipeService.findRecipeById(id)
                 .orElseThrow(() -> new NoResultException("There is no recipe with id: " + id));
     }
@@ -60,6 +65,24 @@ public class LibraryQuery extends PagingQuery {
             OffsetConnectionCursor after) {
         SearchResponse<Recipe> rs = recipeService.suggestRecipes(getOffset(after), first);
         return new OffsetConnection<>(rs);
+    }
+
+    private void ensurePrincipalOrSecret(Long id,
+                                         String optionalSecret,
+                                         DataFetchingEnvironment env) {
+        // this check is much faster than validating the secret
+        if (PrincipalUtil.optionally(env).isPresent()) {
+            return;
+        }
+        // anonymous, see if the secret is good
+        if (optionalSecret != null
+            && shareHelper.isSecretValid(Recipe.class,
+                                         id,
+                                         optionalSecret)) {
+            return; // woo!
+        }
+        // at this point, guaranteed to throw
+        PrincipalUtil.ensurePrincipal(env);
     }
 
 }

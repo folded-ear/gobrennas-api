@@ -36,7 +36,10 @@ type LibraryQuery {
         after: Cursor = null
     ): RecipeConnection!
 
-    getRecipeById(id: ID!): Recipe!
+    """Retrieve a single recipe by its ID. Authenticated users can request any
+    recipe. Anonymous users must supply the recipe's secret.
+    """
+    getRecipeById(id: ID!, secret: String): Recipe!
 
     """Recognize quantity, unit, and/or ingredient in a raw ingredient ref (aka
     item) string, and describe that structure. By default, also provide
