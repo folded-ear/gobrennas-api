@@ -53,7 +53,7 @@ type LibraryQuery {
         suggestions. If not specified, the end of the raw string is assumed.
         """
         cursor: NonNegativeInt
-    ): RecognizedItem
+    ): RecognizedItem!
 }
 
 """The result of recognizing a raw ingredient ref item.
