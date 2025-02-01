@@ -59,4 +59,10 @@ public class PantryMutation {
         return Deletion.of(pantryItemService.deleteItem(id));
     }
 
+    public PantryItem orderForStore(Long id, Long targetId, Boolean after) {
+        // need to default here, even though the mutation has a default, in case
+        // a null is explicitly passed.
+        if (after == null) after = true;
+        return pantryItemService.orderForStore(id, targetId, after);
+    }
 }

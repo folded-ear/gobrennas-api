@@ -78,21 +78,27 @@ extend type Mutation {
 }
 
 type PantryMutation {
-    renameItem(id: ID!, name: String!): PantryItem
+    renameItem(id: ID!, name: String!): PantryItem!
 
-    addLabel(id: ID!, label: String!): PantryItem
-    removeLabel(id: ID!, label: String!): PantryItem
-    setLabels(id: ID!, labels: [String!]!): PantryItem
+    addLabel(id: ID!, label: String!): PantryItem!
+    removeLabel(id: ID!, label: String!): PantryItem!
+    setLabels(id: ID!, labels: [String!]!): PantryItem!
 
-    addSynonym(id: ID!, synonym: String!): PantryItem
-    removeSynonym(id: ID!, synonym: String!): PantryItem
-    setSynonyms(id: ID!, synonyms: [String!]!): PantryItem
+    addSynonym(id: ID!, synonym: String!): PantryItem!
+    removeSynonym(id: ID!, synonym: String!): PantryItem!
+    setSynonyms(id: ID!, synonyms: [String!]!): PantryItem!
 
     """Combine two or more pantry items, and return the result, after unifying
     synonyms, labels, and references.
     """
-    combineItems(ids: [ID!]!): PantryItem
+    combineItems(ids: [ID!]!): PantryItem!
     """Delete a pantry item, which MUST be unreferenced.
     """
     deleteItem(id: ID!): Deletion!
+
+    """Orders one PantryItem relative to another, and returns it. Note that
+    there will almost certainly be other PantryItems affected by the operation.
+    A follow-on 'updatedSince' query can get the whole shebang, if you care.
+    """
+    orderForStore(id: ID!, targetId: ID!, after: Boolean = true): PantryItem!
 }
