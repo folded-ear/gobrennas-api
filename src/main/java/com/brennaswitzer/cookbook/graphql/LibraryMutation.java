@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql;
 
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
@@ -62,6 +63,10 @@ public class LibraryMutation {
 
     public RecipeHistoryMutation history(Long recipeId) {
         return history;
+    }
+
+    public PlanItem sendRecipeToPlan(Long id, Long planId, Double scale) {
+        return recipeService.sendToPlan(id, planId, scale);
     }
 
 }

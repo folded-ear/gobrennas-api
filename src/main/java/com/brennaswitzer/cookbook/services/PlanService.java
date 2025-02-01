@@ -231,12 +231,18 @@ public class PlanService {
         }
     }
 
-    public void addRecipe(Long planId, Recipe r, Double scale) {
+    /**
+     * I add the passed Recipe to the specified plan, and return the new PlanItem
+     * corresponding to the recipe itself.
+     */
+    public PlanItem addRecipe(Long planId, Recipe r, Double scale) {
         PlanItem recipeItem = new PlanItem(r.getName(), r);
         recipeItem.setQuantity(Quantity.count(scale));
         Plan plan = getPlanById(planId, AccessLevel.CHANGE);
         plan.addChild(recipeItem);
         sendToPlan(r, recipeItem, scale);
+        planRepo.flush(); // to ensure IDs are set everywhere
+        return recipeItem;
     }
 
     private PlanMessage buildCreationMessage(PlanItem item) {
