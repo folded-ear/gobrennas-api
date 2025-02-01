@@ -8,6 +8,7 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
+import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -69,8 +70,10 @@ public class PlannerMutation {
         return planService.duplicatePlan(name, sourcePlanId);
     }
 
-    public PlanItem mutateTree(List<Long> itemIds, Long parentId, Long afterId) {
-        return planService.mutateTree(itemIds, parentId, afterId);
+    public PlanItem mutateTree(MutatePlanTree spec) {
+        return planService.mutateTree(spec.getIds(),
+                                      spec.getParentId(),
+                                      spec.getAfterId());
     }
 
     public CorePlanItem rename(Long id, String name) {
