@@ -233,6 +233,10 @@ type LibraryMutation {
     """Delete a recipe from your library.
     """
     deleteRecipe(id: ID!): Deletion!
+    """I add the specified recipe to the specified plan, and return the new
+    PlanItem corresponding to the recipe itself.
+    """
+    sendRecipeToPlan(id: ID!, planId: ID!, scale: Float = 1.0): PlanItem!
     history(recipeId: ID!): RecipeHistoryMutation
 }
 

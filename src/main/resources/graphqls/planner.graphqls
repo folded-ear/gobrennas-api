@@ -62,7 +62,7 @@ type PlanItem implements Node & CorePlanItem {
     # extensions
     """This item's parent; follow enough and you'll always get to the plan.
     """
-    parent: CorePlanItem
+    parent: CorePlanItem!
     notes: String
     quantity: Quantity
     preparation: String

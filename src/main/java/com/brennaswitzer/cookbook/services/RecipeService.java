@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Photo;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.Upload;
@@ -28,9 +29,6 @@ public class RecipeService {
 
     @Autowired
     private RecipeRepository recipeRepository;
-
-    @Autowired
-    IngredientService ingredientService;
 
     @Autowired
     private PlanService planService;
@@ -146,10 +144,11 @@ public class RecipeService {
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public void sendToPlan(Long recipeId, Long planId, Double scale) {
-        planService.addRecipe(planId,
-                              recipeRepository.findById(recipeId).get(),
-                              scale);
+    public PlanItem sendToPlan(Long recipeId, Long planId, Double scale) {
+        return planService.addRecipe(
+                planId,
+                recipeRepository.findById(recipeId).get(),
+                scale);
     }
 
 
