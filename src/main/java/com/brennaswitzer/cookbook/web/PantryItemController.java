@@ -52,12 +52,9 @@ public class PantryItemController {
 
     @PostMapping("/order-for-store")
     public void orderForStore(@RequestBody OrderForStore action) {
-        Long id = action.getId();
-        Long targetId = action.getTargetId();
-        if (id == null || targetId == null || id.equals(targetId)) {
-            throw new IllegalArgumentException("Can only 'order to' for two distinct non-null ingredient IDs");
-        }
-        pantryItemService.orderForStore(id, targetId, action.isAfter());
+        pantryItemService.orderForStore(action.getId(),
+                                        action.getTargetId(),
+                                        action.isAfter());
     }
 
 }

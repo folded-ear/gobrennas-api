@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -46,11 +45,19 @@ public class PantryItemService {
         return pantryItemRepository.findAllByUpdatedAtIsAfter(cutoff);
     }
 
-    public void orderForStore(Long id, Long targetId, boolean after) {
+    /**
+     * Order a PantryItem relative to another, and return it after the update.
+     */
+    public PantryItem orderForStore(Long id, Long targetId, boolean after) {
+        if (id == null || targetId == null || id.equals(targetId)) {
+            throw new IllegalArgumentException("Can only 'order to' for two distinct non-null ingredient IDs");
+        }
         AtomicInteger seq = new AtomicInteger(0);
         //noinspection OptionalGetWithoutIsPresent
         PantryItem active = pantryItemRepository.findById(id).get();
-        StreamSupport.stream(pantryItemRepository.findAll().spliterator(), false)
+        // todo: it's a little silly to pull the entire database into memory...
+        pantryItemRepository.findAll()
+                .stream()
                 .filter(it -> it.getStoreOrder() > 0 || it.getId().equals(targetId))
                 .filter(it -> !it.getId().equals(active.getId()))
                 .sorted(PantryItem.BY_STORE_ORDER)
@@ -67,6 +74,7 @@ public class PantryItemService {
                         it.setStoreOrder(seq.incrementAndGet());
                     }
                 });
+        return active;
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
