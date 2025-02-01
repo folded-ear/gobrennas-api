@@ -125,7 +125,7 @@ type PlannerMutation {
     deletePlan(id: ID!): Deletion!
     """Move the given items under the given parent, in order, optionally after a
     specific item already under that parent. The parent's info is returned."""
-    mutateTree(itemIds: [ID!]!, parentId: ID!, afterId: ID): PlanItem!
+    mutateTree(spec: MutatePlanTree!): PlanItem!
     """Update the name of the given plan or plan item (but not bucket)."""
     rename(id: ID!, name: String!): CorePlanItem!
     """Reorder the item/plan subitems in the same order as the passed list. If
@@ -142,4 +142,10 @@ type PlannerMutation {
     setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!
     """Update a bucket w/in a plan, by setting or clearing its name and date."""
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
+}
+
+input MutatePlanTree {
+    ids: [ID!]!
+    parentId: ID!
+    afterId: ID
 }

@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
+import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.MockTestTarget;
@@ -158,7 +159,8 @@ class PlannerMutationTest extends MockTest {
         when(planService.mutateTree(itemIds, parentId, afterId))
                 .thenReturn(parent);
 
-        PlanItem result = mutation.mutateTree(itemIds, parentId, afterId);
+        PlanItem result = mutation.mutateTree(
+                new MutatePlanTree(itemIds, parentId, afterId));
 
         assertSame(parent, result);
     }
