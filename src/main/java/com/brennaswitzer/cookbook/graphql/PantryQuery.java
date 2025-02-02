@@ -1,11 +1,13 @@
 package com.brennaswitzer.cookbook.graphql;
 
+import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.SortDir;
+import com.brennaswitzer.cookbook.services.IngredientService;
 import com.brennaswitzer.cookbook.services.PantryItemService;
 import graphql.relay.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -24,6 +27,9 @@ public class PantryQuery extends PagingQuery {
 
     @Autowired
     private PantryItemService pantryItemService;
+
+    @Autowired
+    private IngredientService ingredientService;
 
     public Connection<PantryItem> search(
             String query,
@@ -58,6 +64,10 @@ public class PantryQuery extends PagingQuery {
                         .limit(getLimit(first))
                         .build());
         return new OffsetConnection<>(rs);
+    }
+
+    public Collection<Ingredient> bulkIngredients(Collection<Long> ids) {
+        return ingredientService.bulkIngredients(ids);
     }
 
     public Iterable<PantryItem> updatedSince(Long cutoff) {
