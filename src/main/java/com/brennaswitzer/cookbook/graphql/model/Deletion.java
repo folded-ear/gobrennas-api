@@ -10,8 +10,11 @@ public class Deletion {
     Long id;
     String name;
 
-    public static <T extends Identified & Named> Deletion of(T it) {
-        return new Deletion(it.getId(), it.getName());
+    public static <T extends Identified> Deletion of(T it) {
+        String name = it instanceof Named named
+                ? named.getName()
+                : it.getClass().getSimpleName();
+        return new Deletion(it.getId(), name);
     }
 
 }

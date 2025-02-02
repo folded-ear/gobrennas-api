@@ -19,4 +19,7 @@ public class Mutation implements GraphQLMutationResolver {
     @Autowired
     public PlannerMutation planner;
 
+    @Autowired
+    public TextractMutation textract;
+
 }

@@ -43,6 +43,9 @@ public class Query implements GraphQLQueryResolver {
     @Autowired
     public ProfileQuery profile;
 
+    @Autowired
+    public TextractQuery textract;
+
     Object getNode(Long id,
                    DataFetchingEnvironment env) {
         return repositories.stream()
