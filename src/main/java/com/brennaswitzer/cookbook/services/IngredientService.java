@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,6 +80,13 @@ public class IngredientService {
             results.addAll(findAllIngredientsByNameContaining(name));
         }
         return results;
+    }
+
+    public Collection<Ingredient> bulkIngredients(Collection<Long> ids) {
+        Collection<Ingredient> result = new ArrayList<>(ids.size());
+        result.addAll(pantryItemRepository.findAllById(ids));
+        result.addAll(recipeRepository.findAllById(ids));
+        return result;
     }
 
 }

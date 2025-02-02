@@ -34,6 +34,13 @@ type PantryQuery {
         after: Cursor = null
     ): PantryItemConnection!
 
+    """Retrieve ingredients in bulk, regardless of type. Invalid IDs will be
+    silently ignored, and no result returned for them. Duplicate IDs will only
+    have a single result returned. The order of results is unspecified.
+    Identical to the query of the same name in 'pantry'.
+    """
+    bulkIngredients(ids: [ID!]): [Ingredient!]!
+
     updatedSince(cutoff: Long!): [PantryItem!]!
 }
 
