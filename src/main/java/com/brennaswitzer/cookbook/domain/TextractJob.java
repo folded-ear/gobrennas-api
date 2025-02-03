@@ -18,6 +18,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
+@Setter
+@Getter
 @Entity
 public class TextractJob extends BaseEntity {
 
@@ -52,25 +54,17 @@ public class TextractJob extends BaseEntity {
         double height;
     }
 
-    @Getter
-    @Setter
     @ManyToOne(optional = false)
     private User owner;
 
-    @Getter
-    @Setter
     @Embedded
     private S3File photo;
     public boolean hasPhoto() {
         return photo != null;
     }
 
-    @Getter
-    @Setter
     private boolean ready;
 
-    @Getter
-    @Setter
     @ElementCollection
     private Set<Line> lines;
 

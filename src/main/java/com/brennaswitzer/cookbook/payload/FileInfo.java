@@ -12,12 +12,8 @@ public class FileInfo {
 
     public static FileInfo fromS3File(S3File file, StorageService storage) {
         FileInfo info = new FileInfo();
-        String url = storage.load(file.getObjectKey());
-        info.setUrl(url);
-        int i = url.lastIndexOf("/");
-        if (i > 0 && i < url.length() - 1) {
-            info.setFilename(url.substring(i + 1));
-        }
+        info.setUrl(storage.load(file.getObjectKey()));
+        info.setFilename(file.getFilename());
         info.setContentType(file.getContentType());
         info.setSize(file.getSize());
         return info;

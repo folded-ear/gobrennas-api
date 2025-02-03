@@ -1,0 +1,48 @@
+extend type Query {
+  textract: TextractQuery!
+}
+
+type TextractQuery {
+  """List all jobs the current user owns.
+  """
+  listJobs: [TextractJob!]!
+
+  jobById(id: ID!): TextractJob!
+}
+
+extend type Mutation {
+  textract: TextractMutation!
+}
+
+type TextractMutation {
+  createJob(photo: Upload!): TextractJob!
+  deleteJob(id: ID!): Deletion!
+}
+
+type TextractJob {
+  id: ID!
+  photo: FileInfo!
+  ready: Boolean!
+  """Lines of extracted text. Will only have data if 'ready' is true.
+  """
+  lines: [TextractLine!]
+}
+
+type FileInfo {
+  url: String!
+  contentType: String!
+  size: NonNegativeInt!
+  filename: String!
+}
+
+type TextractLine {
+  text: String!
+  box: TextractBox!
+}
+
+type TextractBox {
+  left: NonNegativeFloat!
+  top: NonNegativeFloat!
+  width: NonNegativeFloat!
+  height: NonNegativeFloat!
+}
