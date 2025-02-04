@@ -60,7 +60,7 @@ type PantryItem implements Node & Ingredient {
     """The relative order this pantry item will be shown on the shopping view.
     The absolute value has no semantic, and may change arbitrarily.
     """
-    storeOrder: Int
+    storeOrder: Int!
     """Other names this pantry item can be referred to as. E.g., an "apple" item
     may have synonym "pomme".
     """
