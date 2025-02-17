@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -456,6 +457,12 @@ public class PlanService {
                                        Instant doneAtOrNull) {
         Instant doneAt = doneAtOrNull == null ? Instant.now() : doneAtOrNull;
         if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
+            if (status == PlanItemStatus.DELETED
+                && Duration.between(item.getCreatedAt(), doneAt).toMinutes() < 120) {
+                // If deleted within two hours of adding, don't record history.
+                // It was probably tentatively added and then decided against.
+                return;
+            }
             double scale = item.getQuantity().getQuantity();
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
