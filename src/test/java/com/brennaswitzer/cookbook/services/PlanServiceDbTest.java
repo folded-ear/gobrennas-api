@@ -237,13 +237,9 @@ class PlanServiceDbTest {
                 .stream()
                 .collect(Collectors.toMap(PlannedRecipeHistory::getRecipe,
                                           Function.identity()));
-        // crust got deleted
+        // crust got deleted, but too soon to be recorded
         var h = byRecipe.get(box.pizzaCrust);
-        assertEquals(crust.getId(), h.getPlanItemId());
-        assertEquals(alice, h.getOwner());
-        assertNotNull(h.getPlannedAt());
-        assertNotNull(h.getDoneAt());
-        assertEquals(PlanItemStatus.DELETED, h.getStatus());
+        assertNull(h);
         // pizza got completed
         h = byRecipe.get(box.pizza);
         var pizzaHistory = byRecipe.get(box.pizza);
@@ -259,7 +255,7 @@ class PlanServiceDbTest {
         assertEquals(pizzaHistory.getDoneAt(), sauceHistory.getDoneAt());
 
         // ignore tomatoes - not a recipe
-        assertEquals(3, recipeHistoryRepo.count());
+        assertEquals(2, recipeHistoryRepo.count());
     }
 
 }
