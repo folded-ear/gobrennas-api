@@ -152,7 +152,7 @@ public class PlanServiceMockedTest extends MockTest {
         inOrder.verify(plan).setColor(null);
         inOrder.verifyNoMoreInteractions();
         verify(service, times(4))
-                .getPlanById(123L, AccessLevel.ADMINISTER);
+                .getPlanById(123L, AccessLevel.CHANGE);
     }
 
 }

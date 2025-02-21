@@ -96,6 +96,10 @@ public class PlannerMutation {
         return planService.setGrantOnPlan(planId, userId, accessLevel);
     }
 
+    public Plan updatePlanNotes(Long planId, String notes) {
+        return planService.updatePlanNotes(planId, notes);
+    }
+
     public PlanItem setStatus(Long id, PlanItemStatus status, Instant doneAt) {
         return planService.setItemStatus(id, status, doneAt);
     }

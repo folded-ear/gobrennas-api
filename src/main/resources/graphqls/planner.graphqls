@@ -42,6 +42,7 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     """The plan's owner
     """
     owner: User!
+    notes: String
     share: ShareInfo!
     bucketCount: NonNegativeInt!
     buckets: [PlanBucket!]!
@@ -142,6 +143,7 @@ type PlannerMutation {
     setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!
     """Update a bucket w/in a plan, by setting or clearing its name and date."""
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
+    updatePlanNotes(planId: ID!, notes: String): Plan!
 }
 
 input MutatePlanTree {

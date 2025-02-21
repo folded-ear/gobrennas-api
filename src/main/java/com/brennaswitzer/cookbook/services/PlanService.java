@@ -546,8 +546,14 @@ public class PlanService {
                     "Color '%s' is invalid. Use six hash-prefix digits (e.g., '#f57f17').",
                     color));
         }
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = getPlanById(planId, AccessLevel.CHANGE);
         plan.setColor(color);
+        return plan;
+    }
+
+    public Plan updatePlanNotes(Long planId, String notes) {
+        Plan plan = getPlanById(planId, AccessLevel.CHANGE);
+        plan.setNotes(StringUtils.hasText(notes) ? notes : null);
         return plan;
     }
 
