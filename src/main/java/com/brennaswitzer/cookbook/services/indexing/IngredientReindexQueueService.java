@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.function.Consumer;
 
 @Service
+@Transactional
 public class IngredientReindexQueueService {
 
     @Autowired

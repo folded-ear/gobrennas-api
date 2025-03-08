@@ -5,11 +5,13 @@ import com.brennaswitzer.cookbook.domain.Labeled;
 import com.brennaswitzer.cookbook.repositories.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class LabelService {
 
     @Autowired

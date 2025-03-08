@@ -11,6 +11,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
+@Transactional
 public class RefreshPantryItemDuplicates extends QueueProcessor {
 
     protected RefreshPantryItemDuplicates() {
