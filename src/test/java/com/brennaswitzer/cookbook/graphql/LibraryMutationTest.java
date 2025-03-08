@@ -37,7 +37,6 @@ class LibraryMutationTest extends MockTest {
     @Mock
     private RecipeService recipeService;
     @Mock
-    @SuppressWarnings("unused") // needed for the method reference
     private ItemService itemService;
     @Mock
     private LabelService labelService;

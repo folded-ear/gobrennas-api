@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("unused")
 @Component
 public class PantryMutation {
 

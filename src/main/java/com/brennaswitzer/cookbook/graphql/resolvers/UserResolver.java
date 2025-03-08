@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;
 
-@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class UserResolver implements GraphQLResolver<User> {
 
