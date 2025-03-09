@@ -2,12 +2,14 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.repositories.AppSettingRepository;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -21,9 +23,11 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class UnitLoaderTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+public class UnitLoaderTest {
 
-    @MockTestTarget
+    @InjectMocks
+    @Spy
     private UnitLoader loader;
 
     @Mock
@@ -33,11 +37,8 @@ public class UnitLoaderTest extends MockTest {
     @Mock
     private TransactionTemplate txTemplate;
 
-    @Override
     @BeforeEach
     public void setup() {
-        super.setup();
-
         doAnswer(iom -> new UnitOfMeasure(iom.getArgument(0)))
                 .when(loader)
                 .ensure(any());

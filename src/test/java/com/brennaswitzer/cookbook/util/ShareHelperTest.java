@@ -5,13 +5,19 @@ import com.brennaswitzer.cookbook.domain.Named;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import lombok.Value;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
 
-class ShareHelperTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+class ShareHelperTest {
 
-    @MockTestTarget
+    @InjectMocks
+    @Spy
     private ShareHelper helper;
 
     @Value

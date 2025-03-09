@@ -4,9 +4,11 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,9 +24,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PlanServiceMockedTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+public class PlanServiceMockedTest {
 
-    @MockTestTarget
+    @InjectMocks
+    @Spy
     private PlanService service;
 
     @Test
@@ -35,9 +39,6 @@ public class PlanServiceMockedTest extends MockTest {
                 .thenReturn(cutoff.plusSeconds(1));
         var milk = mock(PlanItem.class);
         when(milk.getUpdatedAt())
-                .thenReturn(cutoff.minusSeconds(1));
-        var tues = mock(PlanBucket.class);
-        when(tues.getUpdatedAt())
                 .thenReturn(cutoff.minusSeconds(1));
         doReturn(groceries)
                 .when(service)
@@ -60,9 +61,6 @@ public class PlanServiceMockedTest extends MockTest {
         var milk = mock(PlanItem.class);
         when(milk.getUpdatedAt())
                 .thenReturn(cutoff.plusSeconds(1));
-        var tues = mock(PlanBucket.class);
-        when(tues.getUpdatedAt())
-                .thenReturn(cutoff.minusSeconds(1));
         doReturn(groceries)
                 .when(service)
                 .getPlanById(any(), any());
@@ -84,9 +82,6 @@ public class PlanServiceMockedTest extends MockTest {
         var milk = mock(PlanItem.class);
         when(milk.getUpdatedAt())
                 .thenReturn(cutoff.plusSeconds(1));
-        var tues = mock(PlanBucket.class);
-        when(tues.getUpdatedAt())
-                .thenReturn(cutoff.minusSeconds(1));
         doReturn(groceries)
                 .when(service)
                 .getPlanById(any(), any());

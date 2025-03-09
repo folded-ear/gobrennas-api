@@ -7,10 +7,11 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.services.PlanService;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,9 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class PlannerMutationTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+class PlannerMutationTest {
 
-    @MockTestTarget
+    @InjectMocks
     private PlannerMutation mutation;
 
     @Mock

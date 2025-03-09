@@ -6,13 +6,14 @@ import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.Part;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +30,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class LibraryMutationTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+class LibraryMutationTest {
 
-    @MockTestTarget
+    @InjectMocks
     private LibraryMutation mutation;
 
     @Mock

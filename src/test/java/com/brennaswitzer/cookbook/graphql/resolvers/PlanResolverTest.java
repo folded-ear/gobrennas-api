@@ -7,11 +7,12 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,9 +26,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class PlanResolverTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+class PlanResolverTest {
 
-    @MockTestTarget
+    @InjectMocks
     private PlanResolver resolver;
 
     @Mock
