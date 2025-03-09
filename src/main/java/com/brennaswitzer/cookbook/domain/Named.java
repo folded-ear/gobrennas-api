@@ -8,7 +8,7 @@ public interface Named {
      * Whether this Named answers to the given name. The default implementation
      * simply checks case-insensitive equality. No Named ever answers to null.
      */
-    default boolean answersToName(String name) {
+    default boolean answersTo(String name) {
         return name != null && name.equalsIgnoreCase(getName());
     }
     

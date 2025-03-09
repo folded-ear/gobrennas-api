@@ -109,8 +109,8 @@ public class PantryItem extends Ingredient {
     }
 
     @Override
-    public boolean answersToName(String name) {
-        return super.answersToName(name)
+    public boolean answersTo(String name) {
+        return super.answersTo(name)
                 || hasSynonym(name);
     }
 

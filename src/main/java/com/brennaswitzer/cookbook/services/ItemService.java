@@ -276,8 +276,8 @@ public class ItemService {
 
         for (Phrase phrase : phrases) {
             for (Ingredient opt : options) {
-                if (opt.answersToName(phrase.getCanonical())
-                        || opt.answersToName(phrase.getOriginal())) {
+                if (opt.answersTo(phrase.getCanonical())
+                    || opt.answersTo(phrase.getOriginal())) {
                     Phrase match = phrase.of(RecognizedRangeType.ITEM)
                             .withId(opt.getId());
                     if (best == null || Phrase.BY_LENGTH.compare(match, best) > 0) {
