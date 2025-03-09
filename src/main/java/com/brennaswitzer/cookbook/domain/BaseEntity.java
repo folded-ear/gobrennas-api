@@ -20,27 +20,24 @@ import java.time.Instant;
         name = "id_seq",
         sequenceName = "id_seq"
 )
+@Getter
 public abstract class BaseEntity implements Identified {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_seq")
-    @Getter
     @Setter
     private Long id;
 
     @NotNull
     @Column(updatable = false)
-    @Getter
     private final Long _eqkey = IdUtils.next(getClass());
 
     @NotNull
-    @Getter
     @Setter
     private Instant createdAt;
 
     @NotNull
     @Version
-    @Getter
     private Instant updatedAt;
 
     @PrePersist
@@ -73,9 +70,8 @@ public abstract class BaseEntity implements Identified {
      */
     @Override
     public boolean equals(Object object) {
-        if (object == null) return false;
-        if (!BaseEntity.class.isAssignableFrom(object.getClass())) return false;
-        return this.get_eqkey().equals(((BaseEntity) object).get_eqkey());
+        return object instanceof BaseEntity e
+               && this.get_eqkey().equals(e.get_eqkey());
     }
 
     @Override
