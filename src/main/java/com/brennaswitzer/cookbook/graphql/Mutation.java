@@ -23,4 +23,7 @@ public class Mutation implements GraphQLMutationResolver {
     @Autowired
     public TextractMutation textract;
 
+    @Autowired
+    public ProfileMutation profile;
+
 }
