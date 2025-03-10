@@ -6,7 +6,6 @@ import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class PhotoResolver implements GraphQLResolver<Photo> {
 

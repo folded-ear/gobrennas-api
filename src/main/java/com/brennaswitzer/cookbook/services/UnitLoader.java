@@ -22,6 +22,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -162,7 +163,8 @@ public class UnitLoader {
         return status;
     }
 
-    protected Collection<UnitOfMeasure> loadUnits(String resourceName) {
+    @Transactional
+    public Collection<UnitOfMeasure> loadUnits(String resourceName) {
         val cl = this.getClass().getClassLoader();
         return loadUnits(
                 resourceName,

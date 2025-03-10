@@ -31,7 +31,6 @@ import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
-@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class RecipeResolver implements GraphQLResolver<Recipe> {
 

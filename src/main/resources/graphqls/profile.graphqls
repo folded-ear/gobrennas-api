@@ -33,7 +33,12 @@ enum AccessLevel {
 }
 
 extend type Query {
-    getCurrentUser: User
+    getCurrentUser: User @deprecated(reason: "Prefer 'profile/me'")
+    profile: ProfileQuery!
+}
+
+extend type Mutation {
+    profile: ProfileMutation!
 }
 
 type User implements Node {
@@ -43,12 +48,53 @@ type User implements Node {
     imageUrl: String
     provider: String!
     roles: [String!]!
+    devices: [UserDevice!]!
+    """A value for every preference is returned. If a deviceKey is provided,
+    that device's values are preferred. Otherwise, the user's global preferences
+    are used, if they exists. If not, the static default is returned.
+    """
+    preferences(deviceKey: String): [UserPreference!]!
 }
 
-extend type Query {
-    profile: ProfileQuery!
+type UserPreference {
+    user: User!
+    device: UserDevice
+    type: DataType!
+    name: String!
+    value: String
+}
+
+type UserDevice implements Node {
+    id: ID!
+    user: User!
+    key: String!
+    name: String!
+    preferences: [UserPreference!]!
+}
+
+"""A suggestion for how to interpret the always-a-String value of a preference.
+Clients should be "generous" in their parsing, where possible. E.g, `BOOLEAN`
+strings `"123"` and `"0"` should be treated as `true` and `false`, respectively.
+"""
+enum DataType {
+    BOOLEAN
+    FLOAT
+    "A string with ID semantics"
+    ID
+    INT
+    "Arbitrary JSON-serialized data"
+    JSON
+    "A JSON-serialized list of ID values"
+    SET_OF_IDS
+    STRING
 }
 
 type ProfileQuery {
+    me: User!
     friends: [User!]!
+}
+
+type ProfileMutation {
+    clearPreference(name: String!, deviceKey: String): UserPreference!
+    setPreference(name: String!, deviceKey: String, value: String!): UserPreference!
 }

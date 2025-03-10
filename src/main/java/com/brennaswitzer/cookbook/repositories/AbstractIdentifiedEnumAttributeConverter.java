@@ -1,15 +1,22 @@
 package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Identified;
+import jakarta.persistence.AttributeConverter;
 
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
-abstract class AbstractIdentifiedEnumAttributeConverter<E extends Enum<E> & Identified> {
+@SuppressWarnings("ConverterNotAnnotatedInspection")
+abstract class AbstractIdentifiedEnumAttributeConverter<E extends Enum<E> & Identified> implements AttributeConverter<E, Long> {
 
     private final Class<E> clazz;
+    private final Map<Long, E> byId;
 
     AbstractIdentifiedEnumAttributeConverter(Class<E> clazz) {
         this.clazz = clazz;
+        this.byId = new HashMap<>();
+        for (var v : clazz.getEnumConstants())
+            byId.put(v.getId(), v);
     }
 
     public Long convertToDatabaseColumn(E attribute) {
@@ -19,10 +26,12 @@ abstract class AbstractIdentifiedEnumAttributeConverter<E extends Enum<E> & Iden
 
     public E convertToEntityAttribute(Long id) {
         if (id == null) return null;
-        return Stream.of(clazz.getEnumConstants())
-                .filter(it -> it.getId().equals(id))
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+        var v = byId.get(id);
+        if (v != null) return v;
+        throw new IllegalArgumentException(String.format(
+                "No '%s' with id '%s' is known.",
+                        clazz.getSimpleName(),
+                id));
     }
 
 }

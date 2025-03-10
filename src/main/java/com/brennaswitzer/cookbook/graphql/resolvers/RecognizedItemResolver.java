@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@SuppressWarnings("unused") // component-scanned for graphql-java
 @Component
 public class RecognizedItemResolver implements GraphQLResolver<RecognizedItem> {
 

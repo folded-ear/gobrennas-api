@@ -86,7 +86,7 @@ public class PlanService {
     public Iterable<Plan> getPlans(Long userId) {
         User user = userRepo.getReferenceById(userId);
         List<Plan> result = new LinkedList<>();
-        planRepo.findAccessibleLists(userId)
+        planRepo.findAccessiblePlans(userId)
                 .forEach(l -> {
                     if (l.isPermitted(user, AccessLevel.VIEW)) {
                         result.add(l);

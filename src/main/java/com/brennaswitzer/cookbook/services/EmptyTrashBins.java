@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -22,7 +23,10 @@ public class EmptyTrashBins {
     @Scheduled(cron = "${random.int[60]} ${random.int[60]} * * * *")
     public void emptyTrashBins() {
         val cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+        var watch = new StopWatch();
+        watch.start();
         val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);
-        log.info("Deleted {} old item(s) from the trash bin", n);
+        watch.stop();
+        log.info("Deleted {} old item(s) from the trash bin in {} ms", n, watch.getTotalTimeMillis());
     }
 }

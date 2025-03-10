@@ -1,12 +1,11 @@
 package com.brennaswitzer.cookbook.payload;
 
-import com.brennaswitzer.cookbook.util.MockTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class RecognizedRangeTest extends MockTest {
+class RecognizedRangeTest {
 
     @Test
     void overlaps() {

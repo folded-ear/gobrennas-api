@@ -2,7 +2,6 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.util.MockTest;
 import com.brennaswitzer.cookbook.util.RecipeBox;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -18,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @WithAliceBobEve(developer = true)
-class PantryItemServiceDeveloperTest extends MockTest {
+class PantryItemServiceDeveloperTest {
 
     @Autowired
     private PantryItemService service;
@@ -43,9 +42,11 @@ class PantryItemServiceDeveloperTest extends MockTest {
         entityManager.clear();
 
         // flour no longer exists
+        //noinspection ResultOfMethodCallIgnored
         assertThrows(EntityNotFoundException.class,
                      () -> ref(flour.getId()).getName());
         // water no longer exists
+        //noinspection ResultOfMethodCallIgnored
         assertThrows(EntityNotFoundException.class,
                      () -> ref(water.getId()).getName());
         // pizza crust now references salt three times

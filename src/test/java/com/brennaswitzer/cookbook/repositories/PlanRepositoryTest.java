@@ -60,15 +60,15 @@ public class PlanRepositoryTest {
     }
 
     @Test
-    public void findAccessibleLists() {
-        Iterable<Plan> lists = repo.findAccessibleLists(alice.getId());
+    public void findAccessiblePlans() {
+        Iterable<Plan> lists = repo.findAccessiblePlans(alice.getId());
         Iterator<Plan> itr = lists.iterator();
         assertFalse(itr.hasNext());
 
         Plan alicesList = repo.save(new Plan(alice, "Alice's List"));
         Plan bobsList = repo.save(new Plan(bob, "Bob's List"));
 
-        lists = repo.findAccessibleLists(alice.getId());
+        lists = repo.findAccessiblePlans(alice.getId());
         itr = lists.iterator();
         assertEquals("Alice's List", itr.next().getName());
         assertFalse(itr.hasNext());
@@ -77,7 +77,7 @@ public class PlanRepositoryTest {
         alicesList.getAcl().setGrant(eve, AccessLevel.CHANGE);
         bobsList.getAcl().setGrant(alice, AccessLevel.CHANGE);
 
-        lists = repo.findAccessibleLists(alice.getId());
+        lists = repo.findAccessiblePlans(alice.getId());
         itr = lists.iterator();
         assertEquals("Alice's List", itr.next().getName());
         assertEquals("Bob's List", itr.next().getName());

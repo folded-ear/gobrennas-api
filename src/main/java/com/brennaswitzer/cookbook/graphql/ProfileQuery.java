@@ -13,6 +13,10 @@ public class ProfileQuery {
     @Autowired
     private UserRepository userRepository;
 
+    public User me(DataFetchingEnvironment env) {
+        return userRepository.getReferenceById(PrincipalUtil.from(env).getId());
+    }
+
     public Iterable<User> friends(DataFetchingEnvironment env) {
         return userRepository.findByIdNot(PrincipalUtil.from(env).getId());
     }

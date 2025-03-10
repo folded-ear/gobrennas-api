@@ -8,9 +8,7 @@ public final class UserTestUtils {
 
     public static User createUser(String name) {
         return new User(name,
-                        name.toLowerCase(),
-                        name.toLowerCase() + "@gobrennas.com",
-                        "<HIDDEN>");
+                        name.toLowerCase() + "@gobrennas.com");
     }
 
 }

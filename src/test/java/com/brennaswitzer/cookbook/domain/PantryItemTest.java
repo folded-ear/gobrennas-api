@@ -35,17 +35,17 @@ class PantryItemTest {
     }
 
     @Test
-    void answersToName() {
+    void answersTo() {
         val it = new PantryItem("the curd-y stuff");
         it.addSynonyms("cheese", "Cheez", "CHEEZE");
 
-        assertFalse(it.answersToName("curd-y stuff"));
-        assertTrue(it.answersToName("THE curd-y STUFF"));
+        assertFalse(it.answersTo("curd-y stuff"));
+        assertTrue(it.answersTo("THE curd-y STUFF"));
 
-        assertTrue(it.answersToName("cheese"));
-        assertTrue(it.answersToName("cheeze"));
-        assertTrue(it.answersToName("CHEEZ"));
-        assertFalse(it.answersToName("cheese stick"));
+        assertTrue(it.answersTo("cheese"));
+        assertTrue(it.answersTo("cheeze"));
+        assertTrue(it.answersTo("CHEEZ"));
+        assertFalse(it.answersTo("cheese stick"));
     }
 
 }

@@ -5,8 +5,6 @@ import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import com.brennaswitzer.cookbook.util.NoUserPrincipalException;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.GraphQLContext;
@@ -14,7 +12,10 @@ import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -26,9 +27,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class LibraryQueryTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+class LibraryQueryTest {
 
-    @MockTestTarget
+    @InjectMocks
     private LibraryQuery query;
 
     @Mock

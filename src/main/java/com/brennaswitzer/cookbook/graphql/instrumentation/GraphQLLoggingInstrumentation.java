@@ -32,20 +32,20 @@ public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentati
             InstrumentationState state) {
         if (!logger.isInfoEnabled()) return SimpleInstrumentationContext.noOp();
         var startMillis = System.currentTimeMillis();
+        var debugEnabled = logger.isDebugEnabled();
+        var executionId = parameters.getExecutionInput().getExecutionId();
+        if (debugEnabled) {
+            logger.debug("graphql {} query: \"{}\"",
+                         executionId,
+                         StringEscapeUtils.escapeJson(parameters.getQuery().strip()));
+            logger.debug("graphql {} variables: {}",
+                         executionId,
+                         maybeAsJson(parameters.getVariables()));
+        }
         return new SimpleInstrumentationContext<>() {
             @Override
             public void onCompleted(ExecutionResult executionResult, Throwable t) {
                 var elapsed = System.currentTimeMillis() - startMillis;
-                var executionId = parameters.getExecutionInput().getExecutionId();
-                var debugEnabled = logger.isDebugEnabled();
-                if (debugEnabled) {
-                    logger.debug("graphql {} query: \"{}\"",
-                                 executionId,
-                                 StringEscapeUtils.escapeJson(parameters.getQuery().strip()));
-                    logger.debug("graphql {} variables: {}",
-                                 executionId,
-                                 maybeAsJson(parameters.getVariables()));
-                }
                 if (t != null) {
                     // SLF4J can EITHER interpolate OR log a Throwable.
                     logger.error("graphql %s exception:".formatted(executionId), t);

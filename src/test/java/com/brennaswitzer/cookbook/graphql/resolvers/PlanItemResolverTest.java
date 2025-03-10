@@ -3,10 +3,11 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.services.PlanService;
-import com.brennaswitzer.cookbook.util.MockTest;
-import com.brennaswitzer.cookbook.util.MockTestTarget;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,9 +21,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class PlanItemResolverTest extends MockTest {
+@ExtendWith(MockitoExtension.class)
+class PlanItemResolverTest {
 
-    @MockTestTarget
+    @InjectMocks
     private PlanItemResolver resolver;
 
     @Mock
@@ -32,7 +34,6 @@ class PlanItemResolverTest extends MockTest {
     void parent_plan() {
         Plan plan = mock(Plan.class);
         when(plan.getParent()).thenReturn(null);
-        when(plan.getPlan()).thenReturn(plan);
 
         var p = resolver.parent(plan);
 
@@ -44,7 +45,6 @@ class PlanItemResolverTest extends MockTest {
         Plan plan = mock(Plan.class);
         PlanItem item = mock(PlanItem.class);
         when(item.getParent()).thenReturn(plan);
-        when(item.getPlan()).thenReturn(plan);
 
         var p = resolver.parent(item);
 
