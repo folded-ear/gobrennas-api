@@ -96,5 +96,7 @@ type ProfileQuery {
 
 type ProfileMutation {
     clearPreference(name: String!, deviceKey: String): UserPreference!
+    deleteDevice(id: ID!): Deletion!
+    renameDevice(id: ID!, name: String!): UserDevice!
     setPreference(name: String!, deviceKey: String, value: String!): UserPreference!
 }
