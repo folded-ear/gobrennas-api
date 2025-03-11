@@ -14,7 +14,7 @@ import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.relay.Connection;
 import graphql.schema.DataFetchingEnvironment;
-import jakarta.persistence.NoResultException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +52,7 @@ public class LibraryQuery extends PagingQuery {
                                 DataFetchingEnvironment env) {
         ensurePrincipalOrSecret(id, optionalSecret, env);
         return recipeService.findRecipeById(id)
-                .orElseThrow(() -> new NoResultException("There is no recipe with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("There is no recipe with id: " + id));
     }
 
     public RecognizedItem recognizeItem(String raw,

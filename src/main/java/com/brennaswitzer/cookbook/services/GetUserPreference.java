@@ -4,7 +4,7 @@ import com.brennaswitzer.cookbook.domain.Preference;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.domain.UserDevice;
 import com.brennaswitzer.cookbook.domain.UserPreference;
-import jakarta.persistence.NoResultException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,11 +36,11 @@ public class GetUserPreference {
                               UserDevice device) {
         return find(user, prefName, device)
                 .orElseThrow(() -> {
-                    if (device == null) return new NoResultException(String.format(
+                    if (device == null) return new EntityNotFoundException(String.format(
                             "User '%s' has no global '%s' preference",
                             user.getId(),
                             prefName));
-                    return new NoResultException(String.format(
+                    return new EntityNotFoundException(String.format(
                             "User '%s' has no '%s' preference for '%s'",
                             user.getId(),
                             prefName,

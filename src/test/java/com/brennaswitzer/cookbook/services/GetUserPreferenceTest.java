@@ -3,7 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.domain.UserDevice;
 import com.brennaswitzer.cookbook.domain.UserPreference;
-import jakarta.persistence.NoResultException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -78,7 +78,7 @@ class GetUserPreferenceTest {
         when(pref.answersTo(any())).thenReturn(false);
         when(user.getPreferences()).thenReturn(List.of(pref));
 
-        assertThrows(NoResultException.class,
+        assertThrows(EntityNotFoundException.class,
                      () -> getUserPref.get(user, "glerg", null));
     }
 
@@ -90,7 +90,7 @@ class GetUserPreferenceTest {
         when(pref.answersTo(any())).thenReturn(false);
         when(user.getPreferences()).thenReturn(List.of(pref));
 
-        assertThrows(NoResultException.class,
+        assertThrows(EntityNotFoundException.class,
                      () -> getUserPref.get(user, "glerg", device));
     }
 

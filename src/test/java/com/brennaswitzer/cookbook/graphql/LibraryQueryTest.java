@@ -9,7 +9,7 @@ import com.brennaswitzer.cookbook.util.NoUserPrincipalException;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
-import jakarta.persistence.NoResultException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,7 +89,7 @@ class LibraryQueryTest {
         authenticated();
         when(recipeService.findRecipeById(any())).thenReturn(Optional.empty());
 
-        assertThrows(NoResultException.class,
+        assertThrows(EntityNotFoundException.class,
                      () -> query.getRecipeById(4L, null, env));
 
         verify(recipeService).findRecipeById(4L);
