@@ -5,7 +5,6 @@ import com.brennaswitzer.cookbook.domain.Rating;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import jakarta.persistence.EntityNotFoundException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class RecipeHistoryService {
         return h;
     }
 
-    private @NotNull PlannedRecipeHistory getMyHistoryItem(Long recipeId, Long id) {
+    private PlannedRecipeHistory getMyHistoryItem(Long recipeId, Long id) {
         var h = repo.getReferenceById(id);
         if (!Objects.equals(recipeId, h.getRecipe().getId())) {
             throw new EntityNotFoundException("No history %s:%s found".formatted(recipeId, id));
