@@ -1,16 +1,15 @@
 package com.brennaswitzer.cookbook.config;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.textract.AmazonTextract;
-import com.amazonaws.services.textract.AmazonTextractClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.textract.TextractClient;
 
 @Configuration
 @Profile({"production", "default"})
@@ -20,28 +19,23 @@ public class AWSConfig {
     private AWSProperties props;
 
     @Bean
-    public AWSCredentials awsCredentials() {
-        return new BasicAWSCredentials(
-                props.getAccessKey(),
-                props.getSecretKey()
-        );
+    public AwsCredentials awsCredentials() {
+        return AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey());
     }
 
     @Bean
-    public AmazonS3 s3client() {
-        return AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials()))
-                .withRegion(props.getRegion())
+    public S3Client s3client() {
+        return S3Client.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials()))
+                .region(Region.of(props.getRegion()))
                 .build();
     }
 
     @Bean
-    public AmazonTextract textractClient() {
-        return AmazonTextractClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials()))
-                .withRegion(props.getRegion())
+    public TextractClient textractClient() {
+        return TextractClient.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials()))
+                .region(Region.of(props.getRegion()))
                 .build();
     }
 
