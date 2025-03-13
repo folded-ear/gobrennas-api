@@ -3,7 +3,7 @@ package com.brennaswitzer.cookbook.mapper;
 import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
-import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

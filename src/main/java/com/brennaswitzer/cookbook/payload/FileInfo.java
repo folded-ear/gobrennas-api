@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.S3File;
-import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;

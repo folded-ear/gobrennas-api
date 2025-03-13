@@ -6,10 +6,12 @@ import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
-import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ import java.util.List;
 @Transactional
 public class TextractService {
 
+    private static final String OBJECT_KEY_PREFIX = "textract/";
+
     @Autowired
     private UserPrincipalAccess principalAccess;
 
@@ -31,6 +35,9 @@ public class TextractService {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired
+    private ScratchSpace scratchSpace;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -52,22 +59,17 @@ public class TextractService {
         User user = principalAccess.getUser();
         TextractJob job = new TextractJob();
         job.setOwner(user);
-
-        String name = photo.getOriginalFilename();
-        if (name == null) {
-            name = "photo";
-        } else {
-            name = S3File.sanitizeFilename(name);
-        }
-        String objectKey;
-        objectKey = storageService.store(
-                photo,
-                "textract/" + user.getId() + "/" + job.get_eqkey() + "/" + name);
-        job.setPhoto(new S3File(
-                objectKey,
+        return startJob(job, new S3File(
+                storageService.store(
+                        photo,
+                        buildObjectKey(job, photo.getOriginalFilename())),
                 photo.getContentType(),
-                photo.getSize()
-        ));
+                photo.getSize()));
+    }
+
+    @NotNull
+    private TextractJob startJob(TextractJob job, S3File s3File) {
+        job.setPhoto(s3File);
         val savedJob = jobRepository.save(job);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -94,6 +96,30 @@ public class TextractService {
         storageService.remove(j.getPhoto().getObjectKey());
         jobRepository.delete(j);
         return j;
+    }
+
+    public TextractJob createPreUploadedJob(UserPrincipal userPrincipal,
+                                            String filename) {
+        var user = principalAccess.getUser(userPrincipal);
+        var file = scratchSpace.verifyUpload(user, filename);
+        var job = new TextractJob();
+        job.setOwner(user);
+        var objectKey = buildObjectKey(job, file.filename());
+        file.moveTo(objectKey);
+        return startJob(job, new S3File(
+                objectKey,
+                file.contentType(),
+                file.size()));
+    }
+
+    private String buildObjectKey(TextractJob job,
+                                  String originalFilename) {
+        return OBJECT_KEY_PREFIX
+               + job.getOwner().getId()
+               + "/"
+               + job.get_eqkey()
+               + "/"
+               + S3File.sanitizeFilename(originalFilename);
     }
 
 }

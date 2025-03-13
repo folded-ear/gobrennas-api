@@ -15,7 +15,13 @@ extend type Mutation {
 }
 
 type TextractMutation {
+  """DEPRECATED: Uploads over GraphQL have CSRF issues. Use textract.createPreUploadedJob instead.
+  """
   createJob(photo: Upload!): TextractJob!
+  """Create a new job from a pre-uploaded file. Use the `profile.photoUpload`
+  field to obtain a pre-signed upload URL, and pass its filename here when done.
+  """
+  createPreUploadedJob(filename: String!): TextractJob!
   deleteJob(id: ID!): Deletion!
 }
 

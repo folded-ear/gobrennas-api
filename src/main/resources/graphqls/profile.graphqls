@@ -33,7 +33,8 @@ enum AccessLevel {
 }
 
 extend type Query {
-    getCurrentUser: User @deprecated(reason: "Prefer 'profile/me'")
+    """DEPRECATED: prefer `profile.me`"""
+    getCurrentUser: User
     profile: ProfileQuery!
 }
 
@@ -89,9 +90,34 @@ enum DataType {
     STRING
 }
 
+"""I represent an uploadable "scratch file", which may be PUT without further
+authentication of the client. Scratch files are identified by their filename,
+which may be passed to other APIs to "use" an uploaded scratch file.
+"""
+type ScratchUpload {
+    """The filename which uniquely identifies the uploaded scratch file."""
+    filename: String!
+    """The URL to PUT the scratch file to."""
+    url: String!
+    """When the URL's signature will expire."""
+    expiration: DateTime!
+    """The content type of the scratch file."""
+    contentType: String!
+    """The cache-control header which must be set on the request."""
+    cacheControl: String!
+    """INFORMATIONAL: an example cURL command you might use to upload the file."""
+    curl: String!
+}
+
 type ProfileQuery {
     me: User!
     friends: [User!]!
+    """Request a pre-signed upload URL to PUT a scratch file to, identified by
+    the returned `filename`. Upload URLs are valid for only a short time; they
+    should be requested when an upload is needed, not preemptively in case one
+    may be needed in the future.
+    """
+    scratchFile(contentType: String!, originalFilename: String): ScratchUpload!
 }
 
 type ProfileMutation {

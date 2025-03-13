@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.TextractJob;
-import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;

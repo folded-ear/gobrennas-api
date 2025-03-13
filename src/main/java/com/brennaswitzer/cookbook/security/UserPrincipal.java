@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.security;
 
+import com.brennaswitzer.cookbook.domain.Identified;
 import com.brennaswitzer.cookbook.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class UserPrincipal implements OAuth2User, UserDetails {
+public class UserPrincipal implements OAuth2User, UserDetails, Identified {
 
     public static final GrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
     public static final GrantedAuthority ROLE_DEVELOPER = new SimpleGrantedAuthority("ROLE_DEVELOPER");

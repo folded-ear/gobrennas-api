@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.services;
+package com.brennaswitzer.cookbook.services.storage;
 
 import com.brennaswitzer.cookbook.domain.Upload;
 import org.springframework.util.Assert;

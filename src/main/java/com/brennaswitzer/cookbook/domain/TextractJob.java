@@ -21,7 +21,7 @@ import java.util.Set;
 @Setter
 @Getter
 @Entity
-public class TextractJob extends BaseEntity {
+public class TextractJob extends BaseEntity implements Owned {
 
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
