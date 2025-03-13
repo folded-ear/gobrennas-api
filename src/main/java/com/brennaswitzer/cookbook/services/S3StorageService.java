@@ -7,22 +7,19 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class S3StorageService implements StorageService {
 
     private final S3Client client;
 
-    private final String region;
-
     private final String bucketName;
 
-    public S3StorageService(S3Client s3client, String region, String bucketName) {
+    public S3StorageService(S3Client s3client, String bucketName) {
         Assert.notNull(s3client, "client is required");
-        Assert.notNull(region, "region is required");
         Assert.notNull(bucketName, "bucketName is required");
         this.client = s3client;
-        this.region = region;
         this.bucketName = bucketName;
     }
 
@@ -50,7 +47,13 @@ public class S3StorageService implements StorageService {
     @Override
     public String load(String objectKey) {
         Assert.notNull(objectKey, "objectKey is required");
-        return "https://s3-" + region + ".amazonaws.com" + "/" + bucketName + "/" + objectKey;
+        GetUrlRequest request = GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
+        return client.utilities()
+                .getUrl(request)
+                .toExternalForm();
     }
 
     @SneakyThrows
