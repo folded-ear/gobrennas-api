@@ -6,7 +6,6 @@ import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.services.indexing.PantryItemNeedsDuplicatesFound;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -92,7 +91,6 @@ public class PantryItemService {
         return item;
     }
 
-    @NotNull
     private PantryItem getItem(Long id) {
         return pantryItemRepository.findById(id)
                 .orElseThrow();

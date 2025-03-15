@@ -11,7 +11,6 @@ import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -81,7 +80,6 @@ public class RecipeService {
         return recipeRepository.save(recipe);
     }
 
-    @NotNull
     private Recipe getMyRecipe(Long id) {
         Recipe recipe = recipeRepository.getReferenceById(id);
         if (!recipe.getOwner().equals(principalAccess.getUser())) {

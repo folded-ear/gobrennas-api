@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.graphql.support;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import static com.brennaswitzer.cookbook.graphql.support.CoercingUtil.coercionFailure;
@@ -12,7 +11,7 @@ import static com.brennaswitzer.cookbook.graphql.support.CoercingUtil.coercionFa
 public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnectionCursor, String> {
 
     @Override
-    public String serialize(@NotNull Object object) {
+    public String serialize(Object object) {
         if (object instanceof OffsetConnectionCursor) {
             return ((OffsetConnectionCursor) object).getValue();
         }
@@ -20,7 +19,7 @@ public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnection
     }
 
     @Override
-    public @NotNull OffsetConnectionCursor parseValue(@NotNull Object input) {
+    public OffsetConnectionCursor parseValue(Object input) {
         if (input instanceof String) {
             try {
                 return new OffsetConnectionCursor((String) input);
@@ -32,7 +31,7 @@ public class OffsetConnectionCursorCoercing implements Coercing<OffsetConnection
     }
 
     @Override
-    public @NotNull OffsetConnectionCursor parseLiteral(@NotNull Object literal) {
+    public OffsetConnectionCursor parseLiteral(Object literal) {
         if (literal instanceof StringValue) {
             return parseValue(((StringValue) literal).getValue());
         }

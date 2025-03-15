@@ -9,7 +9,6 @@ import graphql.execution.instrumentation.SimpleInstrumentationContext;
 import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationExecutionParameters;
 import org.apache.commons.text.StringEscapeUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,6 @@ public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentati
     private ObjectMapper objectMapper;
 
     @Override
-    @NotNull
     public InstrumentationContext<ExecutionResult> beginExecution(
             InstrumentationExecutionParameters parameters,
             InstrumentationState state) {

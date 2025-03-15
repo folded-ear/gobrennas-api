@@ -26,7 +26,6 @@ import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import lombok.val;
 import org.hibernate.Hibernate;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -378,7 +377,7 @@ public class PlanService {
         return deleteBucketInternal(bucketId);
     }
 
-    private @NotNull PlanBucket deleteBucketInternal(Long bucketId) {
+    private PlanBucket deleteBucketInternal(Long bucketId) {
         PlanBucket bucket = bucketRepo.getReferenceById(bucketId);
         bucket.setPlan(null);
         return bucket;

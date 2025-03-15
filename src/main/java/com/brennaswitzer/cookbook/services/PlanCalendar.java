@@ -30,7 +30,6 @@ import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.model.property.Transp;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +76,6 @@ public class PlanCalendar {
         return event.getFluentTarget();
     }
 
-    @NotNull
     private Transp getEventTransparency(PlanItem item) {
         return Transp.TRANSPARENT;
     }
@@ -116,7 +114,6 @@ public class PlanCalendar {
         return new Summary(sb.toString());
     }
 
-    @NotNull
     private DtStart getEventStartDate(PlanItem item) {
         java.util.Date dt = java.util.Date.from(
                 item.getBucket()
