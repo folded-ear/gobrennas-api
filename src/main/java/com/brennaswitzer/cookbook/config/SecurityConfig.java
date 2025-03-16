@@ -8,6 +8,10 @@ import com.brennaswitzer.cookbook.security.oauth2.CustomOAuth2UserService;
 import com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +22,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.DisableEncodeUrlFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter.TOKEN_COOKIE_NAME;
 
@@ -127,6 +136,31 @@ public class SecurityConfig {
         // Add our custom Token based authentication filter
         http.addFilterBefore(cookieTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(headerTokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        // Give every request a unique thread name.
+        http.addFilterBefore(
+                new OncePerRequestFilter() {
+                    final AtomicInteger counter = new AtomicInteger();
+
+                    @Override
+                    protected void doFilterInternal(HttpServletRequest request,
+                                                    HttpServletResponse response,
+                                                    FilterChain filterChain) throws ServletException, IOException {
+                        String original = Thread.currentThread().getName();
+                        Thread.currentThread().setName(original
+                                                       + '-'
+                                                       + System.currentTimeMillis()
+                                                       + '-'
+                                                       + counter.incrementAndGet());
+                        try {
+                            filterChain.doFilter(request, response);
+                        } finally {
+                            Thread.currentThread().setName(original);
+                        }
+                    }
+                },
+                // this is the first filter in Spring Security's chain
+                DisableEncodeUrlFilter.class);
 
         return http.build();
     }
