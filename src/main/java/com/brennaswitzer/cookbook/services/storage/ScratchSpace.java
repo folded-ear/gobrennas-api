@@ -36,7 +36,9 @@ public class ScratchSpace {
 
             @Override
             public String filename() {
-                if (gone) throw new IllegalStateException("This scratch file no longer exists");
+                if (gone) throw new IllegalStateException(String.format(
+                        "Scratch file '%s' no longer exists",
+                        filename));
                 return delegate.filename();
             }
 

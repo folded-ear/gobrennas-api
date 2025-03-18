@@ -61,6 +61,7 @@ public class IngredientInfo {
                     .map(ref -> ref.asIngredientRef(em))
                     .collect(Collectors.toList()));
         }
+        // photo is NOT copied, as the S3 object needs to move too
         if (photoFocus != null && photoFocus.length == 2) {
             r.getPhoto(true).setFocusArray(photoFocus);
         }
