@@ -28,33 +28,38 @@ public class LibraryMutation {
     @Autowired
     private EntityManager entityManager;
 
-    public Recipe createRecipe(IngredientInfo info, Part photo, boolean cookThis) {
+    public Recipe createRecipe(IngredientInfo info,
+                               boolean cookThis,
+                               @Deprecated Part photo) {
         Recipe recipe = info.asRecipe(entityManager);
         if (cookThis) {
             recipe.getIngredients().forEach(itemService::autoRecognize);
         }
-        recipe = recipeService.createNewRecipe(recipe, Upload.of(photo));
+        recipe = recipeService.createNewRecipe(recipe, info, Upload.of(photo));
         labelService.updateLabels(recipe, info.getLabels());
         return recipe;
     }
 
-    public Recipe createRecipeFrom(Long sourceRecipeId, IngredientInfo info, Part photo) {
+    public Recipe createRecipeFrom(Long sourceRecipeId, IngredientInfo info, @Deprecated Part photo) {
         Recipe recipe = info.asRecipe(entityManager);
-        recipe = recipeService.createNewRecipeFrom(sourceRecipeId, recipe, Upload.of(photo));
+        recipe = recipeService.createNewRecipeFrom(sourceRecipeId, recipe, info, Upload.of(photo));
         labelService.updateLabels(recipe, info.getLabels());
         return recipe;
     }
 
-    public Recipe updateRecipe(Long id, IngredientInfo info, Part photo) {
+    public Recipe updateRecipe(Long id, IngredientInfo info, @Deprecated Part photo) {
         info.setId(id);
         Recipe recipe = info.asRecipe(entityManager);
-        recipe = recipeService.updateRecipe(recipe, Upload.of(photo));
+        recipe = recipeService.updateRecipe(recipe, info, Upload.of(photo));
         labelService.updateLabels(recipe, info.getLabels());
         return recipe;
     }
 
-    public Recipe setRecipePhoto(Long id, Part photo) {
-        return recipeService.setRecipePhoto(id, Upload.of(photo));
+    public Recipe setRecipePhoto(Long id,
+                                 String filename,
+                                 float[] focus,
+                                 @Deprecated Part photo) {
+        return recipeService.setRecipePhoto(id, filename, focus, Upload.of(photo));
     }
 
     public Deletion deleteRecipe(Long id) {

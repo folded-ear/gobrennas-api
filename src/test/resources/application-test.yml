@@ -2,9 +2,18 @@ spring:
   datasource:
     # This is the PostgreSQL version we target. Keep it in sync.
     url: jdbc:tc:postgresql:15.6:///postgres
-#  jpa.show-sql: true
 app:
   aws:
     access-key: oh-my-its-so-glergy
     secret-key: glerg-fest
     bucket-name: s3-bucketname
+
+logging:
+  level:
+    com.brennaswitzer: debug
+    org.hibernate: info
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+    org.hibernate.stat: debug
+    org.hibernate.SQL_SLOW: info
+    org.hibernate.cache: debug

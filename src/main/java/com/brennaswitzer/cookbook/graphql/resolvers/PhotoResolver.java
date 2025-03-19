@@ -1,7 +1,7 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.Photo;
-import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

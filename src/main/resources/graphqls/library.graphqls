@@ -225,18 +225,40 @@ extend type Mutation {
 type LibraryMutation {
     """Create a new recipe in your library, from the passed info.
     """
-    createRecipe(info: IngredientInfo!, photo: Upload, cookThis: Boolean): Recipe!
+    createRecipe(
+        info: IngredientInfo!
+        cookThis: Boolean
+        "DEPRECATED: use `profile.scratchFile`, and pass the filename in `info.photo`"
+        photo: Upload
+    ): Recipe!
     """Create a new recipe in your library, from the passed info, which is based
     on the passed source recipe id.
     """
-    createRecipeFrom(sourceRecipeId: ID!, info: IngredientInfo!, photo: Upload): Recipe!
+    createRecipeFrom(
+        sourceRecipeId: ID!
+        info: IngredientInfo!
+        "DEPRECATED: use `profile.scratchFile`, and pass the filename in `info.photo`"
+        photo: Upload
+    ): Recipe!
     """Update a recipe in your library, from the passed info.
     """
-    updateRecipe(id: ID!, info: IngredientInfo!, photo: Upload): Recipe!
+    updateRecipe(
+        id: ID!
+        info: IngredientInfo!
+        "DEPRECATED: use `profile.scratchFile`, and pass the filename in `info.photo`"
+        photo: Upload
+    ): Recipe!
     """Set the photo for a recipe in your library, without changing any other
     info about the recipe. A photo may be set during create and/or update.
     """
-    setRecipePhoto(id: ID!, photo: Upload!): Recipe!
+    setRecipePhoto(
+        id: ID!
+        """Filename of a scratch upload."""
+        filename: String
+        focus: [Float!]
+        "DEPRECATED: use `profile.scratchFile`, and pass the filename to `filename`"
+        photo: Upload
+    ): Recipe!
     """Delete a recipe from your library.
     """
     deleteRecipe(id: ID!): Deletion!
@@ -269,6 +291,8 @@ input IngredientInfo {
     yield: Int
     calories: Int
     totalTime: Int
+    """Filename of a scratch upload to set as this recipe's photo."""
+    photo: String
     photoFocus: [Float!]
 }
 

@@ -69,4 +69,24 @@ matched client, and a bunch of mess. All of which is normal "host this thing"
 boilerplate. So figure it out. :) You may find `application-production.yml`
 useful, illustrating one way to parameterize things.
 
+One particular item of note is that the S3 bucket must have a CORS policy set up
+to allow `PUT`s from arbitrary clients or users will have issues with photos:
+
+```json
+[
+  {
+    "AllowedHeaders": [
+      "*"
+    ],
+    "AllowedMethods": [
+      "PUT"
+    ],
+    "AllowedOrigins": [
+      "*"
+    ],
+    "ExposeHeaders": []
+  }
+]
+```
+
 You can hit https://api.gobrennas.com/ to see it in action.

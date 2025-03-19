@@ -4,7 +4,7 @@ import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.TextractJobInfo;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
-import com.brennaswitzer.cookbook.services.StorageService;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.services.textract.TextractService;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;

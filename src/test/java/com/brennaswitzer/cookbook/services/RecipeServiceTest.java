@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
+import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -16,9 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
@@ -136,15 +134,6 @@ public class UnitLoader {
             appSettingRepo.save(setting);
         }
 
-    }
-
-    @EventListener
-    public void onStart(ApplicationStartedEvent ignored) {
-        try {
-            loadUnits("units.yml");
-        } catch (Exception e) {
-            log.error("Error loading units", e);
-        }
     }
 
     private Status getStatusFromSetting(AppSetting setting) {
