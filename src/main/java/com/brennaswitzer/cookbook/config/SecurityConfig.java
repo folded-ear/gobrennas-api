@@ -26,7 +26,6 @@ import org.springframework.security.web.session.DisableEncodeUrlFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter.TOKEN_COOKIE_NAME;
 
@@ -140,8 +139,6 @@ public class SecurityConfig {
         // Give every request a unique thread name.
         http.addFilterBefore(
                 new OncePerRequestFilter() {
-                    final AtomicInteger counter = new AtomicInteger();
-
                     @Override
                     protected void doFilterInternal(HttpServletRequest request,
                                                     HttpServletResponse response,
@@ -149,9 +146,7 @@ public class SecurityConfig {
                         String original = Thread.currentThread().getName();
                         Thread.currentThread().setName(original
                                                        + '-'
-                                                       + System.currentTimeMillis()
-                                                       + '-'
-                                                       + counter.incrementAndGet());
+                                                       + System.currentTimeMillis());
                         try {
                             filterChain.doFilter(request, response);
                         } finally {
