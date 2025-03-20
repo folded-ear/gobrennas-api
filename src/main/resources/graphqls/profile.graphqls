@@ -70,6 +70,8 @@ type UserDevice implements Node {
     user: User!
     key: String!
     name: String!
+    createdAt: DateTime!
+    lastEnsuredAt: DateTime!
     preferences: [UserPreference!]!
 }
 

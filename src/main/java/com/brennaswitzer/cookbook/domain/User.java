@@ -5,12 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Collection;
+import java.util.List;
 
 @Setter
 @Getter
@@ -35,7 +37,8 @@ public class User extends BaseEntity {
     private Collection<UserPreference> preferences;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Collection<UserDevice> devices;
+    @OrderBy("lastEnsuredAt desc")
+    private List<UserDevice> devices;
 
     public User() {
     }

@@ -45,7 +45,7 @@ public class ClearUserPreference {
                                 String deviceKey) {
         return clear(user,
                      prefName,
-                     ensureUserDevice.ensure(user, deviceKey));
+                     ensureUserDevice.forWrite(user, deviceKey));
     }
 
     public UserPreference clear(User user,

@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.Collection;
 
 @Entity
@@ -27,7 +28,18 @@ public class UserDevice extends BaseEntity implements Named {
     @NotNull
     private String name;
 
+    /**
+     * I am the most recent time this device was ensured to exist, which happens
+     * any time its preferences are read or updated.
+     */
+    @NotNull
+    private Instant lastEnsuredAt;
+
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true)
     private Collection<UserPreference> preferences;
+
+    public void markEnsured() {
+        setLastEnsuredAt(Instant.now());
+    }
 
 }
