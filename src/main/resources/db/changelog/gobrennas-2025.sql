@@ -102,3 +102,12 @@ VALUES ('activePlan', 4, NULL)
      , ('devMode', 2, 'false')
      , ('layout', 3, 'auto')
      , ('navCollapsed', 2, 'false');
+
+
+--changeset barneyb:track-last-ensured-timestamp-on-devices
+ALTER TABLE user_device
+    ADD COLUMN last_ensured_at TIMESTAMP NOT NULL DEFAULT NOW();
+
+UPDATE user_device
+   SET last_ensured_at = created_at
+ WHERE last_ensured_at = NOW();

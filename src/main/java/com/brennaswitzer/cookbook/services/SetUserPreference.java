@@ -44,7 +44,7 @@ public class SetUserPreference {
                               String value) {
         return set(user,
                    prefName,
-                   ensureUserDevice.ensure(user, deviceKey),
+                   ensureUserDevice.forWrite(user, deviceKey),
                    value);
     }
 

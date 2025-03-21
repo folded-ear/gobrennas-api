@@ -52,7 +52,7 @@ public class DefaultUserPreference {
     public UserPreference build(User user, Preference preference, String deviceKey) {
         return build(user,
                      preference,
-                     ensureUserDevice.ensure(user, deviceKey));
+                     ensureUserDevice.forRead(user, deviceKey));
     }
 
     public UserPreference build(User user, Preference preference, UserDevice device) {
@@ -82,7 +82,7 @@ public class DefaultUserPreference {
     public Function<Preference, UserPreference> factory(
             User user,
             String deviceKey) {
-        return factory(user, ensureUserDevice.ensure(user, deviceKey));
+        return factory(user, ensureUserDevice.forRead(user, deviceKey));
     }
 
     public Function<Preference, UserPreference> factory(

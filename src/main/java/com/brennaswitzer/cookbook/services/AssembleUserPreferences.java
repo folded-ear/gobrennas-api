@@ -30,7 +30,7 @@ public class AssembleUserPreferences {
 
     public Collection<UserPreference> assemble(User user,
                                                String deviceKey) {
-        return assemble(user, ensureUserDevice.ensure(user, deviceKey));
+        return assemble(user, ensureUserDevice.forRead(user, deviceKey));
     }
 
     public Collection<UserPreference> assemble(User user,
