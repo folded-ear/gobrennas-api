@@ -1,91 +1,137 @@
-function getUrlParts(scripts) {
-    const parts = scripts[scripts.length - 1].src.split("?");
-    let root = parts[0].split("/");
-    root.pop();
-    root = root.join("/");
-    const querystring = parts[1].split("&")
-        .map(p => p.split("="))
-        .reduce((m, a) => ({
-            ...m,
-            [a.shift()]: a.join("="),
-        }), {});
+window.__cook_this__ = function __cook_this__() {
+    function getUrlParts(scripts) {
+        const parts = scripts[scripts.length - 1].src.split("?");
+        let root = parts[0].split("/");
+        root.pop();
+        root = root.join("/");
+        const querystring = parts[1].split("&")
+            .map(p => p.split("="))
+            .reduce((m, a) => ({
+                ...m,
+                [a.shift()]: a.join("="),
+            }), {});
 
-    return {
-        appRoot: (querystring.appRoot || root),
-        apiRoot: (querystring.apiRoot || root) + "/api",
-        querystring,
-    };
-}
+        return {
+            appRoot: (querystring.appRoot || root),
+            apiRoot: (querystring.apiRoot || root) + "/api",
+            graphql: (querystring.apiRoot || root) + "/graphql",
+            querystring,
+        };
+    }
 
-(function () {
     const scripts = [ ...document.getElementsByTagName("script") ]
         .filter(el => el.id === "foodinger-import-bookmarklet");
 
-    const { appRoot, apiRoot, querystring } = getUrlParts(scripts);
+    const { appRoot, apiRoot, graphql, querystring } = getUrlParts(scripts);
+    const headers = querystring.token
+        ? { "Authorization": `Bearer ${querystring.token}` }
+        : {};
 
-    const authHeaders = {
-        "Authorization": `Bearer ${querystring.token || "garbage"}`,
-    };
-    fetch(apiRoot + "/user/me", {
-        credentials: "include",
-        headers: authHeaders,
-    }).then(r => {
-        if (!r.ok) {
-            throw new Error("stale token");
-        }
-    })
-        .catch(() => {
-            store.mode = "stale";
-            render();
-        });
-
-    const sendToFoodinger = () => {
-        fetchImage().then(result => {
-            let recipeData = new FormData();
-            recipeData.append("info", JSON.stringify({
-                type: "Recipe",
-                name: store.title,
-                externalUrl: store.url,
-                ingredients: store.ingredients.map(i => ({ raw: i })),
-                directions: store.directions
-                    .map(d => d.trim())
-                    .map(d => d.length === 0 ? d : `1.  ${d}`)
-                    .join("\n"),
-                calories: store.calories ? Number(store.calories) : null,
-                yield: store.yield ? Number(store.yield) : null,
-                totalTime: store.totalTime ? (Number(store.totalTime) * 60 * 1000) : null,
-                cookThis: true,
-            }));
-            if (result) {
-                recipeData.append("photo", result);
-            }
-            fetch(apiRoot + "/recipe", {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    ...authHeaders,
-                },
-                body: recipeData,
+    function gql(query, variables = {}) {
+        return fetch(graphql, {
+            method: 'POST',
+            credentials: "include",
+            headers: {
+                'Content-Type': 'application/json',
+                ...headers,
+            },
+            body: JSON.stringify({ query, variables }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to fetch");
+                return res.json();
             })
-              .then(r => {
-                    if (r.status === 401) {
-                        store.mode = "stale";
-                        render();
-                        throw new Error("stale token");
-                    }
-                    if (r.status !== 201) {
-                        throw new Error(`${r.status} ${r.statusText}`);
-                    }
-                    return r.json();
+            .then(json => {
+                if (json.errors) console.error("FOODINGER ERROR", json.errors[0].message, json.errors);
+                if (!json.data) throw new Error("no data");
+                return json;
+            });
+    }
+
+    gql(`query canICookThis { profile { me { imageUrl } } }`)
+    .then(json => {
+        console.log("COOKTHIS", json)
+        store.profileImageUrl = json.data.profile.me.imageUrl;
+    })
+    .catch(() => store.mode = "stale")
+    .finally(() => render());
+
+    const createScratchPhoto = () => {
+        if (!store.photoURL) {
+            return Promise.resolve(null);
+        }
+        // use the BFS proxy to avoid CORS problems
+        return fetch(apiRoot + "/_image_proxy", {
+            credentials: "include",
+            headers: {
+                ...headers,
+                "x-bfs-url": store.photoURL
+            },
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            return gql(
+                    `query cookThisScratchPhoto($type: String! $filename: String!) {
+                profile { scratchFile(contentType: $type, originalFilename: $filename) {
+                  url
+                  cacheControl
+                  filename
+                }}}`,
+                {
+                    type: blob.type,
+                    filename: store.photoURL.split("/").pop(),
                 })
-                .then(r => {
-                    store.mode = "imported";
-                    store.id = r.id;
-                    render();
+            .then(json => {
+                const {
+                    url,
+                    cacheControl,
+                    filename,
+                } = json.data.profile.scratchFile;
+                return fetch(url, {
+                    method: "PUT",
+                    headers: {
+                        "Cache-Control": cacheControl,
+                    },
+                    body: blob,
+                }).then(() => filename);
+            });
+        })
+        .catch(e => console.error("FOODINGER UPLOAD", e));
+    };
+
+    const sendToApi = () => {
+        createScratchPhoto().then(scratchPhoto => {
+            gql(`mutation cookThis($info: IngredientInfo!) {
+              library {
+                createRecipe(cookThis: true, info: $info) {
+                  id
+                }
+              }
+            }`,
+                {
+                    info: {
+                        type: "Recipe",
+                        name: store.title,
+                        externalUrl: store.url,
+                        ingredients: store.ingredients.map(i => ({ raw: i })),
+                        directions: store.directions
+                            .map(d => d.trim())
+                            .map(d => d.length === 0 ? d : `1.  ${d}`)
+                            .join("\n"),
+                        calories: store.calories ? Number(store.calories) : null,
+                        yield: store.yield ? Number(store.yield) : null,
+                        totalTime: store.totalTime ? (Number(store.totalTime) * 60 * 1000) : null,
+                        photo: scratchPhoto || null,
+                    }
                 })
-                .catch(e => {
-                    alert(`Something went wrong: ${e}\n\nTry it again?`);
-                });
+            .then(json => {
+                store.mode = "imported";
+                store.id = json.data.library.createRecipe.id;
+                render();
+            })
+            .catch(e => {
+                alert(`Something went wrong: ${e}\n\nTry it again?`);
+            });
             store.mode = "importing";
             render();
         });
@@ -108,6 +154,7 @@ function getUrlParts(scripts) {
         photo: null,
         photoURL: "",
         id: null,
+        profileImageUrl: null,
     };
 
     // copied verbatim from the in-app library
@@ -134,9 +181,15 @@ function getUrlParts(scripts) {
 
     const findSelectHandler = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (!e.target.src) return;
         store.photoURL = e.target.src;
         tearDownGrab();
+    };
+
+    const listenerOpts = {
+        capture: true,
+        once: true,
     };
 
     const setUpGrab = (target, style) => {
@@ -152,7 +205,7 @@ function getUrlParts(scripts) {
         store.grabTarget = target;
         store.grabStyle = style;
         setTimeout(
-            () => document.addEventListener("click", findSelectHandler),
+            () => document.addEventListener("click", findSelectHandler, listenerOpts),
             500,
         );
         render();
@@ -162,11 +215,8 @@ function getUrlParts(scripts) {
         store.grabTarget = null;
         store.grabStyle = null;
         store.mode === "find"
-            ? document.removeEventListener("click", findSelectHandler)
-            : document.removeEventListener(
-                "selectionchange",
-                grabSelectHandler,
-            );
+            ? document.removeEventListener("click", findSelectHandler, listenerOpts)
+            : document.removeEventListener("selectionchange", grabSelectHandler);
         store.mode = "form";
         render();
     };
@@ -201,20 +251,6 @@ function getUrlParts(scripts) {
         if (!node.src) return;
         store.photoURL = node.src;
     };
-    const fetchImage = () => {
-        if (!store.photoURL) {
-            return Promise.resolve(null);
-        }
-        const filename = store.photoURL.split("/").pop();
-        return fetch(store.photoURL)
-            .then(response => {
-                return response.blob();
-            })
-            .then(blob => {
-                return new File([ blob ], filename, { type: blob.type });
-            })
-            .catch(() => null);
-    };
     const camelToDashed = n =>
         n.replace(/([a-z0-9])([A-Z])/g, (match, a, b) =>
             `${a}-${b.toLowerCase()}`);
@@ -237,6 +273,7 @@ function getUrlParts(scripts) {
         paddingBottom: "1em",
     });
     const headerStyle = toStyle({
+        marginTop: 0,
         fontSize: "2rem",
         fontWeight: "bold",
         padding: "0.2em 0.4em",
@@ -259,6 +296,9 @@ function getUrlParts(scripts) {
     const grabBtnStyle = toStyle({
         display: "inline-block",
         verticalAlign: "top",
+        backgroundColor: "#ffead9",
+        border: "1px solid #ddd",
+        padding: "0 0.25em",
         cursor: "pointer",
     });
     const importBtnStyle = toStyle({
@@ -296,9 +336,13 @@ function getUrlParts(scripts) {
     const dirStyle = toStyle({
         ...blockRules,
     });
+    const drawHeader = title => `<h1 style="${headerStyle}">
+        ${title}
+        ${store.profileImageUrl ? `<img src="${store.profileImageUrl}" alt="" style="float:right;margin-right:1.7rem;width:2.25rem;height:2.25rem;border-radius:50%" />` : ""}
+        </h1>`;
     const renderForm = $div => {
         // noinspection CheckTagEmptyBody
-        $div.innerHTML = `<h1 style="${headerStyle}">Cook This!</h1>
+        $div.innerHTML = `${drawHeader("Cook This!")}
         <div style="${formItemStyle}">
             <label style="${labelStyle}">Title:</label>
             <input style="${valueStyle}" name="title" />
@@ -333,7 +377,7 @@ function getUrlParts(scripts) {
         <div style="${formItemStyle}">
             <label style="${labelStyle}"></label>
             <button style="${importBtnStyle}" onclick="${GATEWAY_PROP}.findPhoto()">Find Photo</button>
-            <img id="photo" src="${store.photoURL}" style="${photoStyle}" alt="photo" />
+            ${store.photoURL ? `<img id="photo" src="${store.photoURL}" style="${photoStyle}" alt="photo" />` : ""}
         </div>
         <div style="${formItemStyle}">
             <label style="${labelStyle}"></label>
@@ -384,8 +428,6 @@ function getUrlParts(scripts) {
             store.directions = e.target.value
                 .split("\n")
                 .map(l => l.trim()));
-        const photo = $div.querySelector("#photo");
-        photo.setAttribute("src", store.photoURL);
         return {
             grabTitle: () =>
                 setUpGrab("title", "string"),
@@ -396,13 +438,14 @@ function getUrlParts(scripts) {
             findPhoto: () =>
                 setUpFind("photo", "image"),
             doImport: () =>
-                sendToFoodinger(),
+                sendToApi(),
         };
     };
     const renderGrab = $div => {
-        $div.innerHTML = `<h1 style="${headerStyle}">Grabbing '${store.grabTarget}'</h1>
-        Select some of the ${store.grabTarget}. Doesn't have to be perfect.
-        <button onclick="${GATEWAY_PROP}.cancel()">Cancel</button>`;
+        $div.innerHTML = `${drawHeader(`Grabbing '${store.grabTarget}'`)}
+        <p>Select some of the ${store.grabTarget}. Doesn't have to be perfect.
+        <button style="${grabBtnStyle}" onclick="${GATEWAY_PROP}.cancel()">Cancel</button>
+        </p>`;
         return {
             cancel: () => {
                 tearDownGrab();
@@ -410,9 +453,10 @@ function getUrlParts(scripts) {
         };
     };
     const renderFind = $div => {
-        $div.innerHTML = `<h1 style="${headerStyle}">Finding '${store.grabTarget}'</h1>
-        Click on the ${store.grabTarget} you would like to import.
-        <button onclick="${GATEWAY_PROP}.cancel()">Cancel</button>`;
+        $div.innerHTML = `${drawHeader(`Finding '${store.grabTarget}'`)}
+        <p>Click on the ${store.grabTarget} you would like to import.
+        <button style="${grabBtnStyle}" onclick="${GATEWAY_PROP}.cancel()">Cancel</button>
+        </p>`;
         return {
             cancel: () => {
                 tearDownGrab();
@@ -420,19 +464,19 @@ function getUrlParts(scripts) {
         };
     };
     const renderStale = $div => {
-        $div.innerHTML = `<h1 style="${headerStyle}">Update Cook This!</h1>
+        $div.innerHTML = `${drawHeader(`Update Cook This!`)}
         <p>Cook This! needs an update. Delete it, reinstall from <a
         href="https://gobrennas.com/profile#cook-this" target="_blank">your
         profile</a>, then return to this page and click it!</p>
         `;
     };
     const renderImporting = $div => {
-        $div.innerHTML = `<h1 style="${headerStyle}">Importing...</h1>
+        $div.innerHTML = `${drawHeader(`Importing...`)}
         <p>Your recipe is being imported. Hang tight...</p>
         `;
     };
     const renderImported = $div => {
-        $div.innerHTML = `<h1 style="${headerStyle}">Success!</h1>
+        $div.innerHTML = `${drawHeader(`Success!`)}
         <p>Your recipe was successfully imported!</p>
         <p>You can <a href="${appRoot}/library/recipe/${store.id}">view it</a>
         or <a href="${appRoot}/library/recipe/${store.id}/edit">edit it</a>, or
@@ -443,13 +487,13 @@ function getUrlParts(scripts) {
         // eslint-disable-next-line no-console
         console.log("FOODINGER", store);
         let $div = document.getElementById(CONTAINER_ID);
-        if ($div == null) {
+        if (!$div) {
             $div = document.createElement("div");
             $div.id = CONTAINER_ID;
-            $div.innerHTML = `<div style="position:relative">
+            $div.innerHTML = `<div style="all:initial;position:relative;font-family:system-ui,sans-serif">
                 <div id="${CONTENT_ID}"></div>
-                <a href="#" onclick="${GATEWAY_PROP}.__close()" style="position:absolute;top:0;right:10px;font-weight:bold;font-size:200%;color:#fff;">×</a>
-            </div>`;
+            </div>
+            <a href="#" onclick="${GATEWAY_PROP}.__close(event)" style="position:absolute;top:0.3rem;right:0.5rem;font-weight:bold;font-size:200%;color:#fff;text-decoration:none">×</a>`;
             $div.style = containerStyle;
             document.body.append($div);
         }
@@ -464,7 +508,9 @@ function getUrlParts(scripts) {
                                             throw new Error(`Unrecognized '${store.mode}' mode`);
                                         }
             )(document.getElementById(CONTENT_ID)),
-            __close: () => {
+            __close: (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 $div.parentNode.removeChild($div);
                 const $script = document.getElementById(
                     "foodinger-import-bookmarklet");
@@ -477,7 +523,22 @@ function getUrlParts(scripts) {
 
     /** This section autoprocesses based on selectors on common cooking sites **/
     for (const auto of [
-        // return truthy to indicate autoprocessing did it's thing.
+        // return truthy to indicate autoprocessing did its thing.
+        // () => {
+        //     if (!store.url.includes("ssl.barneyb.com")) return;
+        //     const r = document.querySelector("html");
+        //     store.title = "at " + new Date().toLocaleString();
+        //     store.ingredients = grabList(r.querySelector(
+        //         "body > ul"));
+        //     store.directions = [
+        //         ...grabList(r.querySelector("body > h2")),
+        //         "and then",
+        //         "finally" ];
+        //     store.calories = Date.now() % 1000 + 3;
+        //     store.yield = Date.now() % 10 + 1;
+        //     store.totalTime = Date.now() % 100 + 2;
+        //     return true;
+        // },
         () => {
             if (!store.url.includes("foodnetwork.com")) return;
             const r = document.querySelector(".o-Recipe");
@@ -525,4 +586,5 @@ function getUrlParts(scripts) {
             console.warn("auto-import error", e);
         }
     }
-})();
+}
+window.__cook_this__();
