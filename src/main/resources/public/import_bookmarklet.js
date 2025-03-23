@@ -23,6 +23,7 @@ window.__cook_this__ = function __cook_this__() {
         .filter(el => el.id === "foodinger-import-bookmarklet");
 
     const { appRoot, apiRoot, graphql, querystring } = getUrlParts(scripts);
+    const color = querystring.color || "#F57F17";
     const headers = querystring.token
         ? { "Authorization": `Bearer ${querystring.token}` }
         : {};
@@ -262,71 +263,62 @@ window.__cook_this__ = function __cook_this__() {
         position: "fixed",
         top: 0,
         right: 0,
-        zIndex: 99999,
+        zIndex: 999999,
         backgroundColor: "whitesmoke",
-        border: "1px solid #F57F17",
+        border: "1px solid " + color,
         borderRightWidth: 0,
         borderTopWidth: 0,
-        boxShadow: "0 5px 5px #d3b8ae",
+        boxShadow: "0 5px 5px " + color,
         borderBottomLeftRadius: "5px",
-        width: "50%",
+        width: "40%",
         paddingBottom: "1em",
     });
-    const headerStyle = toStyle({
-        marginTop: 0,
-        fontSize: "2rem",
-        fontWeight: "bold",
-        padding: "0.2em 0.4em",
-        backgroundColor: "#F57F17",
-        color: "#fff",
-    });
     const formItemStyle = toStyle({
-        marginTop: "5px",
+        marginTop: "0.5rem",
+        display: "flex",
+        gap: "0.5em",
+        padding: "0 0.3em"
     });
     const labelStyle = toStyle({
         display: "inline-block",
         textAlign: "right",
         verticalAlign: "top",
-        paddingTop: "0.3em",
-        marginRight: "0.5em",
+        padding: "0.2em 0 0.1em",
         width: "6.5em",
         fontSize: "0.9em",
-        fontWeight: "bold",
     });
     const grabBtnStyle = toStyle({
-        display: "inline-block",
         verticalAlign: "top",
-        backgroundColor: "#ffead9",
-        border: "1px solid #ddd",
+        backgroundColor: "gainsboro",
+        border: "1px solid darkgray",
+        borderRadius: "0.25em",
         padding: "0 0.25em",
         cursor: "pointer",
     });
     const importBtnStyle = toStyle({
         display: "inline-block",
-        borderRadius: "0.2em",
+        borderRadius: "0.3em",
         color: "white",
         textTransform: "uppercase",
-        backgroundColor: "#F57F17",
-        border: "1px solid #ddd",
+        backgroundColor: color,
+        border: "1px solid lightgray",
         fontWeight: "bold",
         padding: "0.5em 1em",
         cursor: "pointer",
     });
-    const valueStyle = toStyle({
-        width: "75%",
+    const valueRules = {
+        flex: "1",
         backgroundColor: "white",
-        border: "1px solid #ddd",
-    });
+        border: "1px solid lightgray",
+    };
+    const valueStyle = toStyle(valueRules);
     const photoStyle = toStyle({
-        width: "85px",
-        height: "auto",
-        margin: "10px",
+        maxWidth: "85px",
+        maxHeight: "75px",
+        margin: "0 0.5rem",
     });
     const blockRules = {
-        border: "1px solid #ddd",
-        backgroundColor: "white",
-        width: "75%",
-        minWidth: "20em",
+        ...valueRules,
         minHeight: "12em",
     };
     const ingStyle = toStyle({
@@ -336,10 +328,11 @@ window.__cook_this__ = function __cook_this__() {
     const dirStyle = toStyle({
         ...blockRules,
     });
-    const drawHeader = title => `<h1 style="${headerStyle}">
-        ${title}
-        ${store.profileImageUrl ? `<img src="${store.profileImageUrl}" alt="" style="float:right;margin-right:1.7rem;width:2.25rem;height:2.25rem;border-radius:50%" />` : ""}
-        </h1>`;
+    const drawHeader = title => `<div style="display:flex;gap:1rem;justify-content:space-between;font-weight:bold;background-color:${color};padding:0.2em 0.4em">
+        <h1 style="flex:1;margin:0;font-size:2rem;color:#fff">${title}</h1>
+            ${store.profileImageUrl ? `<img src="${store.profileImageUrl}" alt="" style="width:2.25rem;height:2.25rem;border-radius:50%" />` : ""}
+            <a href="#" onclick="${GATEWAY_PROP}.__close(event)" style="font-size:200%;color:#fff;text-decoration:none">×</a>
+    </div>`;
     const renderForm = $div => {
         // noinspection CheckTagEmptyBody
         $div.innerHTML = `${drawHeader("Cook This!")}
@@ -376,7 +369,7 @@ window.__cook_this__ = function __cook_this__() {
         </div>
         <div style="${formItemStyle}">
             <label style="${labelStyle}"></label>
-            <button style="${importBtnStyle}" onclick="${GATEWAY_PROP}.findPhoto()">Find Photo</button>
+            <button style="${grabBtnStyle}" onclick="${GATEWAY_PROP}.findPhoto()">Find Photo</button>
             ${store.photoURL ? `<img id="photo" src="${store.photoURL}" style="${photoStyle}" alt="photo" />` : ""}
         </div>
         <div style="${formItemStyle}">
@@ -492,8 +485,7 @@ window.__cook_this__ = function __cook_this__() {
             $div.id = CONTAINER_ID;
             $div.innerHTML = `<div style="all:initial !important">
                 <div id="${CONTENT_ID}" style="position:relative;font-family:system-ui,sans-serif""></div>
-            </div>
-            <a href="#" onclick="${GATEWAY_PROP}.__close(event)" style="position:absolute;top:0.3rem;right:0.5rem;font-weight:bold;font-size:200%;color:#fff;text-decoration:none">×</a>`;
+            </div>`;
             $div.style = containerStyle;
             document.body.append($div);
         }
