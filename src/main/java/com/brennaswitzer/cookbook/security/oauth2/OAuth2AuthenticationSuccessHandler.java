@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -23,6 +24,7 @@ import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilte
 import static com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @Component
+@Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     /**
@@ -61,18 +63,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
+        String host = request.getHeader(HttpHeaders.HOST);
+        boolean onApi = host != null && host.startsWith(API_HOST_PREFIX);
+        boolean secureProxy = "true".equals(request.getHeader("X-Is-Secure"));
+        log.info("authed:{} host:{} onApi:{} secure:{} secureProxy:{} redirectTo:{}",
+                 authentication.isAuthenticated(),
+                 host,
+                 onApi,
+                 request.isSecure(),
+                 secureProxy,
+                 targetUrl);
 
         String token = tokenProvider.createToken(authentication);
-
         ResponseCookie.ResponseCookieBuilder cb = ResponseCookie.from(TOKEN_COOKIE_NAME, token)
                 .path("/")
                 .maxAge(appProperties.getAuth().getTokenExpirationMsec() / 1000);
-        String host = request.getHeader(HttpHeaders.HOST);
-        if (host != null && host.startsWith(API_HOST_PREFIX)) {
+        if (onApi) {
             // Strip the prefix, so it'll be available to the client too.
             cb.domain(host.substring(API_HOST_PREFIX.length()));
         }
-        if (request.isSecure() || "true".equals(request.getHeader("X-Is-Secure"))) {
+        if (request.isSecure() || secureProxy) {
             // If we're on a secure endpoint, set it up for cross-origin use by
             // the import bookmarklet. If isn't secure... bummer?
             cb.secure(true)
@@ -81,7 +91,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         CookieUtils.addCookie(response, cb);
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("token", token)
-                .build().toUriString();
+                .build()
+                .toUriString();
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
