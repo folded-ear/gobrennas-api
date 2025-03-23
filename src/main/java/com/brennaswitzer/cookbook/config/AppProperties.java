@@ -13,6 +13,7 @@ import java.util.List;
 public class AppProperties {
 
     private String publicUrl;
+    private long maxProxySize = 1024 * 1024 * 2;
 
     private final Auth auth = new Auth();
     private final OAuth2 oauth2 = new OAuth2();
