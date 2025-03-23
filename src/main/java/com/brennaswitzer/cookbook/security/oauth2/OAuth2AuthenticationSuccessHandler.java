@@ -8,6 +8,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -24,20 +25,19 @@ import static com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2Authori
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private TokenProvider tokenProvider;
-
-    private AppProperties appProperties;
-
-    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
-
+    /**
+     * If the host header starts with this, set the token cookie without it.
+     */
+    private static final String API_HOST_PREFIX = "api.";
 
     @Autowired
-    OAuth2AuthenticationSuccessHandler(TokenProvider tokenProvider, AppProperties appProperties,
-                                       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
-        this.tokenProvider = tokenProvider;
-        this.appProperties = appProperties;
-        this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
-    }
+    private TokenProvider tokenProvider;
+
+    @Autowired
+    private AppProperties appProperties;
+
+    @Autowired
+    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -67,6 +67,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         ResponseCookie.ResponseCookieBuilder cb = ResponseCookie.from(TOKEN_COOKIE_NAME, token)
                 .path("/")
                 .maxAge(appProperties.getAuth().getTokenExpirationMsec() / 1000);
+        String host = request.getHeader(HttpHeaders.HOST);
+        if (host != null && host.startsWith(API_HOST_PREFIX)) {
+            // Strip the prefix, so it'll be available to the client too.
+            cb.domain(host.substring(API_HOST_PREFIX.length()));
+        }
         if (request.isSecure() || "true".equals(request.getHeader("X-Is-Secure"))) {
             // If we're on a secure endpoint, set it up for cross-origin use by
             // the import bookmarklet. If isn't secure... bummer?
