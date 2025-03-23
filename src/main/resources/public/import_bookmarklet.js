@@ -490,8 +490,8 @@ window.__cook_this__ = function __cook_this__() {
         if (!$div) {
             $div = document.createElement("div");
             $div.id = CONTAINER_ID;
-            $div.innerHTML = `<div style="all:initial;position:relative;font-family:system-ui,sans-serif">
-                <div id="${CONTENT_ID}"></div>
+            $div.innerHTML = `<div style="all:initial !important">
+                <div id="${CONTENT_ID}" style="position:relative;font-family:system-ui,sans-serif""></div>
             </div>
             <a href="#" onclick="${GATEWAY_PROP}.__close(event)" style="position:absolute;top:0.3rem;right:0.5rem;font-weight:bold;font-size:200%;color:#fff;text-decoration:none">×</a>`;
             $div.style = containerStyle;
