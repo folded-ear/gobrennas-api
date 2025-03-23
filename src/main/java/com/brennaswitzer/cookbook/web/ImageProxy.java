@@ -99,9 +99,8 @@ public class ImageProxy {
                         }
                     });
                     long bytes;
-                    try (var in = resp.getBody();
-                         var out = response.getOutputStream()) {
-                        bytes = in.transferTo(out);
+                    try (var in = resp.getBody()) {
+                        bytes = in.transferTo(response.getOutputStream());
                     }
                     log.debug("bytesReturned:{}", bytes);
                     return bytes;
