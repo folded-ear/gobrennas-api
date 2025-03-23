@@ -33,6 +33,9 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+        # Hibernate will indicate this isn't needed, but it's used earlier by
+        # Spring Data's JPA bootstrapping when there isn't a database available.
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: true # the default; just suppress the warning
   security:
     oauth2:
