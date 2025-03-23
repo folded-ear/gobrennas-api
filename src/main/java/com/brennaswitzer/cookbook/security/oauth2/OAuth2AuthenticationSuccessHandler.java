@@ -7,9 +7,7 @@ import com.brennaswitzer.cookbook.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -24,22 +22,22 @@ import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilte
 import static com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @Component
-@Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    /**
-     * If the host header starts with this, set the token cookie without it.
-     */
-    private static final String API_HOST_PREFIX = "api.";
-
-    @Autowired
     private TokenProvider tokenProvider;
 
-    @Autowired
     private AppProperties appProperties;
 
-    @Autowired
     private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+
+
+    @Autowired
+    OAuth2AuthenticationSuccessHandler(TokenProvider tokenProvider, AppProperties appProperties,
+                                       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
+        this.tokenProvider = tokenProvider;
+        this.appProperties = appProperties;
+        this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -63,26 +61,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
-        String host = request.getHeader(HttpHeaders.HOST);
-        boolean onApi = host != null && host.startsWith(API_HOST_PREFIX);
-        boolean secureProxy = "true".equals(request.getHeader("X-Is-Secure"));
-        log.info("authed:{} host:{} onApi:{} secure:{} secureProxy:{} redirectTo:{}",
-                 authentication.isAuthenticated(),
-                 host,
-                 onApi,
-                 request.isSecure(),
-                 secureProxy,
-                 targetUrl);
 
         String token = tokenProvider.createToken(authentication);
+
         ResponseCookie.ResponseCookieBuilder cb = ResponseCookie.from(TOKEN_COOKIE_NAME, token)
                 .path("/")
                 .maxAge(appProperties.getAuth().getTokenExpirationMsec() / 1000);
-        if (onApi) {
-            // Strip the prefix, so it'll be available to the client too.
-            cb.domain(host.substring(API_HOST_PREFIX.length()));
-        }
-        if (request.isSecure() || secureProxy) {
+        if (request.isSecure() || "true".equals(request.getHeader("X-Is-Secure"))) {
             // If we're on a secure endpoint, set it up for cross-origin use by
             // the import bookmarklet. If isn't secure... bummer?
             cb.secure(true)
@@ -91,8 +76,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         CookieUtils.addCookie(response, cb);
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("token", token)
-                .build()
-                .toUriString();
+                .build().toUriString();
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
