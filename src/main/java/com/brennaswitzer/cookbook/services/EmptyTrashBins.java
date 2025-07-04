@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -18,11 +19,16 @@ import java.time.temporal.ChronoUnit;
 public class EmptyTrashBins {
 
     @Autowired
+    private AppProperties appProperties;
+
+    @Autowired
     private PlanItemRepository planItemRepository;
 
     @Scheduled(cron = "${random.int[60]} ${random.int[60]} * * * *")
     public void emptyTrashBins() {
-        val cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+        val cutoff = Instant.now()
+                .minus(appProperties.getDaysInTrashBin(),
+                       ChronoUnit.DAYS);
         var watch = new StopWatch();
         watch.start();
         val n = planItemRepository.deleteByUpdatedAtBeforeAndTrashBinIsNotNull(cutoff);

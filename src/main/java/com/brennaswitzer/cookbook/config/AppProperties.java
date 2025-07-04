@@ -15,6 +15,11 @@ public class AppProperties {
     private String publicUrl;
     private long maxProxySize = 1024 * 1024 * 2;
 
+    /**
+     * Items untouched in the trash for this many days will be hard-deleted.
+     */
+    private int daysInTrashBin = 30;
+
     private final Auth auth = new Auth();
     private final OAuth2 oauth2 = new OAuth2();
     private final AWSProperties aws = new AWSProperties();
