@@ -11,4 +11,10 @@ public class CalendarProperties {
 
     private boolean validate;
 
+    /**
+     * Items deleted within this many hours of creation will be marked canceled,
+     * under assumption they were tentatively added and then discarded.
+     */
+    private int hoursDeletedWithinToCancel = 6;
+
 }

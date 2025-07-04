@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.config.AppProperties;
+import com.brennaswitzer.cookbook.config.CalendarProperties;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -47,7 +49,7 @@ public class PlanCalendar {
      * Used to artificially inflate sequence numbers when a code change
      * requires an update to <em>all</em> events.
      */
-    private static final int SEQUENCE_OFFSET = 1;
+    private static final int SEQUENCE_OFFSET = 2;
 
     private static final String PROD_ID = "-//Brenna's Food Software//NONSGML BFS API/plan Plan 1.0/EN";
 
@@ -60,6 +62,9 @@ public class PlanCalendar {
     @Autowired
     private AppProperties appProperties;
 
+    @Autowired
+    private CalendarProperties calendarProperties;
+
     private VEvent getEvent(PlanItem item) {
         FluentComponent event = new VEvent()
                 .withProperty(getEventSummary(item))
@@ -69,14 +74,14 @@ public class PlanCalendar {
                 .withProperty(getEventOrganizer(item))
                 .withProperty(getEventTransparency(item))
                 .withProperty(getEventDescription(item));
-        if (item.isInTrashBin()) {
+        if (shouldMarkCanceled(item)) {
             event.withProperty(Method.CANCEL)
                     .withProperty(Status.VEVENT_CANCELLED);
         }
         return event.getFluentTarget();
     }
 
-    private Transp getEventTransparency(PlanItem item) {
+    private Transp getEventTransparency(PlanItem ignoredItem) {
         return Transp.TRANSPARENT;
     }
 
@@ -159,8 +164,6 @@ public class PlanCalendar {
                 .sorted(Comparator.comparing(PlanBucket::getDate))
                 .map(PlanBucket::getItems)
                 .flatMap(Collection::stream)
-                .filter(it -> it.getStatus() != PlanItemStatus.DELETED
-                              || Duration.between(it.getCreatedAt(), it.getUpdatedAt()).toHours() > 6)
                 .map(this::getEvent)
                 .forEach(cal::withComponent);
         return cal.getFluentTarget();
@@ -172,6 +175,28 @@ public class PlanCalendar {
         return new RefreshInterval(
                 params,
                 Duration.of(4, ChronoUnit.HOURS));
+    }
+
+    private boolean shouldMarkCanceled(PlanItem it) {
+        // is it still active?
+        if (!it.isInTrashBin()) {
+            return false;
+        }
+
+        // was it deleted soon after creation?
+        if (it.getStatus() == PlanItemStatus.DELETED
+            && Duration.between(it.getCreatedAt(), it.getUpdatedAt())
+                       .toHours() <= calendarProperties.getHoursDeletedWithinToCancel()) {
+            return true;
+        }
+
+        // has it been in the trash a while?
+        if (Duration.between(it.getUpdatedAt(), Instant.now())
+                    .toDays() > appProperties.getDaysInTrashBin() / 2) {
+            return true;
+        }
+
+        return false;
     }
 
 }
