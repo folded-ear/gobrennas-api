@@ -37,12 +37,15 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 @Service
 @Transactional
@@ -52,7 +55,7 @@ public class PlanCalendar {
      * Used to artificially inflate sequence numbers when a code change
      * requires an update to <em>all</em> events.
      */
-    private static final int SEQUENCE_OFFSET = 2;
+    private static final int SEQUENCE_OFFSET = 3;
 
     private static final String PROD_ID = "-//Brenna's Food Software//NONSGML BFS API/plan Plan 1.0/EN";
 
@@ -71,12 +74,16 @@ public class PlanCalendar {
     private record State(PlanItemStatus status,
                          boolean hidden) {}
 
-    private class GetEvent implements Function<PlanItem, VEvent> {
+    private class GetEvent implements BiFunction<PlanItem, Boolean, VEvent> {
+
+        private static final DateTimeFormatter BUCKET_DATE_FORMAT
+                = DateTimeFormatter.ofPattern("eee, MMM d");
 
         Map<PlanItem, State> itemToState = new HashMap<>();
 
         @Override
-        public VEvent apply(PlanItem item) {
+        public VEvent apply(PlanItem item,
+                            Boolean includeBucketLink) {
             FluentComponent event = new VEvent()
                     .withProperty(getEventSummary(item))
                     .withProperty(getEventStartDate(item))
@@ -84,7 +91,8 @@ public class PlanCalendar {
                     .withProperty(getEventSequence(item))
                     .withProperty(getEventOrganizer(item))
                     .withProperty(getEventTransparency(item))
-                    .withProperty(getEventDescription(item));
+                    .withProperty(getEventDescription(item,
+                                                      includeBucketLink));
             if (getState(item).hidden()) {
                 event.withProperty(Method.CANCEL)
                         .withProperty(Status.VEVENT_CANCELLED);
@@ -96,23 +104,43 @@ public class PlanCalendar {
             return Transp.TRANSPARENT;
         }
 
-        private Description getEventDescription(PlanItem item) {
+        private Description getEventDescription(PlanItem item,
+                                                boolean includeBucketLink) {
             Plan plan = item.getPlan();
-            return new Description(String.format(
-                    "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>%n" +
-                    "%n" +
-                    "Plan: <a href=\"%1$splan/%2$s\">%s</a>",
+            List<String> lines = new ArrayList<>();
+            lines.add(String.format(
+                    "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>",
                     appProperties.getPublicUrl(),
                     plan.getId(),
                     item.getId(),
-                    getDisplayName(item),
+                    getDisplayName(item)));
+            if (includeBucketLink) {
+                PlanBucket bucket = item.getBucket();
+                lines.add(String.format(
+                        "Cook: <a href=\"%splan/%s/bucket/%s\">%s</a>",
+                        appProperties.getPublicUrl(),
+                        plan.getId(),
+                        bucket.getId(),
+                        getBucketLabel(bucket)));
+            }
+            lines.add(String.format(
+                    "Plan: <a href=\"%splan/%s\">%s</a>",
+                    appProperties.getPublicUrl(),
+                    plan.getId(),
                     plan.getName()));
+            return new Description(String.join("\n\n", lines));
         }
 
         private String getDisplayName(PlanItem item) {
             return item.isRecognitionDisallowed()
                     ? item.getName().substring(1)
                     : item.getName();
+        }
+
+        private String getBucketLabel(PlanBucket bucket) {
+            return bucket.isNamed()
+                    ? bucket.getName()
+                    : bucket.getDate().format(BUCKET_DATE_FORMAT);
         }
 
         private Summary getEventSummary(PlanItem item) {
@@ -122,11 +150,6 @@ public class PlanCalendar {
                 case DELETED -> sb.append("✘ ");
             }
             sb.append(getDisplayName(item));
-            PlanBucket bucket = item.getBucket();
-            if (bucket.isNamed()) {
-                sb.append(" - ")
-                        .append(bucket.getName());
-            }
             return new Summary(sb.toString());
         }
 
@@ -208,12 +231,18 @@ public class PlanCalendar {
                 .withProperty(CalScale.GREGORIAN)
                 .withProperty(Method.PUBLISH)
                 .withProperty(getRefreshInterval());
+        GetEvent getEvent = new GetEvent();
         bucketRepo.streamAllByPlanIdAndDateIsNotNull(planId)
                 .sorted(Comparator.comparing(PlanBucket::getDate))
-                .map(PlanBucket::getItems)
-                .flatMap(Collection::stream)
-                .map(new GetEvent())
-                .forEach(cal::withComponent);
+                .forEach(bucket -> {
+                    Collection<PlanItem> items = bucket.getItems();
+                    boolean includeBucketLink = bucket.isNamed() || items.size() > 1;
+                    for (PlanItem it : items) {
+                        cal.withComponent(getEvent.apply(
+                                it,
+                                includeBucketLink));
+                    }
+                });
         return cal.getFluentTarget();
     }
 
