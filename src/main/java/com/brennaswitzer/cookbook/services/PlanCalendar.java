@@ -40,6 +40,9 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 @Service
 @Transactional
@@ -65,90 +68,135 @@ public class PlanCalendar {
     @Autowired
     private CalendarProperties calendarProperties;
 
-    private VEvent getEvent(PlanItem item) {
-        FluentComponent event = new VEvent()
-                .withProperty(getEventSummary(item))
-                .withProperty(getEventStartDate(item))
-                .withProperty(getEventUid(item))
-                .withProperty(getEventSequence(item))
-                .withProperty(getEventOrganizer(item))
-                .withProperty(getEventTransparency(item))
-                .withProperty(getEventDescription(item));
-        if (shouldMarkCanceled(item)) {
-            event.withProperty(Method.CANCEL)
-                    .withProperty(Status.VEVENT_CANCELLED);
+    private record State(PlanItemStatus status,
+                         boolean hidden) {}
+
+    private class GetEvent implements Function<PlanItem, VEvent> {
+
+        Map<PlanItem, State> itemToState = new HashMap<>();
+
+        @Override
+        public VEvent apply(PlanItem item) {
+            FluentComponent event = new VEvent()
+                    .withProperty(getEventSummary(item))
+                    .withProperty(getEventStartDate(item))
+                    .withProperty(getEventUid(item))
+                    .withProperty(getEventSequence(item))
+                    .withProperty(getEventOrganizer(item))
+                    .withProperty(getEventTransparency(item))
+                    .withProperty(getEventDescription(item));
+            if (getState(item).hidden()) {
+                event.withProperty(Method.CANCEL)
+                        .withProperty(Status.VEVENT_CANCELLED);
+            }
+            return event.getFluentTarget();
         }
-        return event.getFluentTarget();
-    }
 
-    private Transp getEventTransparency(PlanItem ignoredItem) {
-        return Transp.TRANSPARENT;
-    }
-
-    private Description getEventDescription(PlanItem item) {
-        Plan plan = item.getPlan();
-        return new Description(String.format(
-                "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>%n" +
-                        "%n" +
-                        "Plan: <a href=\"%1$splan/%2$s\">%s</a>",
-                appProperties.getPublicUrl(),
-                plan.getId(),
-                item.getId(),
-                getDisplayName(item),
-                plan.getName()));
-    }
-
-    private String getDisplayName(PlanItem item) {
-        return item.isRecognitionDisallowed()
-                ? item.getName().substring(1)
-                : item.getName();
-    }
-
-    private Summary getEventSummary(PlanItem item) {
-        StringBuilder sb = new StringBuilder();
-        switch (item.getStatus()) {
-            case COMPLETED -> sb.append("✔ ");
-            case DELETED -> sb.append("✘ ");
+        private Transp getEventTransparency(PlanItem ignoredItem) {
+            return Transp.TRANSPARENT;
         }
-        sb.append(getDisplayName(item));
-        PlanBucket bucket = item.getBucket();
-        if (bucket.isNamed()) {
-            sb.append(" - ")
-                    .append(bucket.getName());
+
+        private Description getEventDescription(PlanItem item) {
+            Plan plan = item.getPlan();
+            return new Description(String.format(
+                    "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>%n" +
+                    "%n" +
+                    "Plan: <a href=\"%1$splan/%2$s\">%s</a>",
+                    appProperties.getPublicUrl(),
+                    plan.getId(),
+                    item.getId(),
+                    getDisplayName(item),
+                    plan.getName()));
         }
-        return new Summary(sb.toString());
-    }
 
-    private DtStart getEventStartDate(PlanItem item) {
-        java.util.Date dt = java.util.Date.from(
-                item.getBucket()
-                        .getDate()
-                        .atStartOfDay(ZoneOffset.UTC)
-                        .toInstant());
-        return new DtStart(new Date(dt));
-    }
+        private String getDisplayName(PlanItem item) {
+            return item.isRecognitionDisallowed()
+                    ? item.getName().substring(1)
+                    : item.getName();
+        }
 
-    private Uid getEventUid(PlanItem item) {
-        User owner = item.getPlan().getOwner();
-        return new Uid(String.format(
-                "planitem%d@user%d.gobrennas.com",
-                item.getId(),
-                owner.getId()));
-    }
+        private Summary getEventSummary(PlanItem item) {
+            StringBuilder sb = new StringBuilder();
+            switch (getState(item).status()) {
+                case COMPLETED -> sb.append("✔ ");
+                case DELETED -> sb.append("✘ ");
+            }
+            sb.append(getDisplayName(item));
+            PlanBucket bucket = item.getBucket();
+            if (bucket.isNamed()) {
+                sb.append(" - ")
+                        .append(bucket.getName());
+            }
+            return new Summary(sb.toString());
+        }
 
-    private Sequence getEventSequence(PlanItem item) {
-        return new Sequence(String.valueOf(
-                SEQUENCE_OFFSET
-                        + item.getModCount()
-                        + item.getBucket().getModCount()));
-    }
+        private DtStart getEventStartDate(PlanItem item) {
+            java.util.Date dt = java.util.Date.from(
+                    item.getBucket()
+                            .getDate()
+                            .atStartOfDay(ZoneOffset.UTC)
+                            .toInstant());
+            return new DtStart(new Date(dt));
+        }
 
-    private Organizer getEventOrganizer(PlanItem item) {
-        User owner = item.getPlan().getOwner();
-        return new Organizer()
-                .withParameter(new Cn(owner.getName()))
-                .withParameter(new Email(owner.getEmail()))
-                .getFluentTarget();
+        private Uid getEventUid(PlanItem item) {
+            User owner = item.getPlan().getOwner();
+            return new Uid(String.format(
+                    "planitem%d@user%d.gobrennas.com",
+                    item.getId(),
+                    owner.getId()));
+        }
+
+        private Sequence getEventSequence(PlanItem item) {
+            return new Sequence(String.valueOf(
+                    SEQUENCE_OFFSET
+                    + item.getModCount()
+                    + item.getBucket().getModCount()));
+        }
+
+        private Organizer getEventOrganizer(PlanItem item) {
+            User owner = item.getPlan().getOwner();
+            return new Organizer()
+                    .withParameter(new Cn(owner.getName()))
+                    .withParameter(new Email(owner.getEmail()))
+                    .getFluentTarget();
+        }
+
+        private State getState(PlanItem item) {
+            // why not computeIfAbsent? ConcurrentModificationException!
+            State s = itemToState.get(item);
+            if (s == null) {
+                s = computeState(item);
+                itemToState.put(item, s);
+            }
+            return s;
+        }
+
+        private State computeState(PlanItem item) {
+            PlanItemStatus status = item.getStatus();
+            if (!status.isForDelete() && item.hasParent()) {
+                PlanItemStatus ps = getState(item.getParent()).status;
+                if (ps.isForDelete()) status = ps;
+            }
+            boolean hidden = item.hasParent()
+                             && getState(item.getParent()).hidden();
+
+            if (!hidden && item.isInTrashBin()) {
+                if (status == PlanItemStatus.DELETED
+                    && Duration.between(item.getCreatedAt(), item.getUpdatedAt())
+                               .toHours() <= calendarProperties.getHoursDeletedWithinToCancel()) {
+                    // deleted soon after creation
+                    hidden = true;
+                } else if (Duration.between(item.getUpdatedAt(), Instant.now())
+                                   .toDays() > appProperties.getDaysInTrashBin() / 2) {
+                    // been in the trash a while
+                    hidden = true;
+                }
+            }
+
+            return new State(status, hidden);
+        }
+
     }
 
     public Calendar getCalendar(long planId) {
@@ -164,7 +212,7 @@ public class PlanCalendar {
                 .sorted(Comparator.comparing(PlanBucket::getDate))
                 .map(PlanBucket::getItems)
                 .flatMap(Collection::stream)
-                .map(this::getEvent)
+                .map(new GetEvent())
                 .forEach(cal::withComponent);
         return cal.getFluentTarget();
     }
@@ -175,28 +223,6 @@ public class PlanCalendar {
         return new RefreshInterval(
                 params,
                 Duration.of(4, ChronoUnit.HOURS));
-    }
-
-    private boolean shouldMarkCanceled(PlanItem it) {
-        // is it still active?
-        if (!it.isInTrashBin()) {
-            return false;
-        }
-
-        // was it deleted soon after creation?
-        if (it.getStatus() == PlanItemStatus.DELETED
-            && Duration.between(it.getCreatedAt(), it.getUpdatedAt())
-                       .toHours() <= calendarProperties.getHoursDeletedWithinToCancel()) {
-            return true;
-        }
-
-        // has it been in the trash a while?
-        if (Duration.between(it.getUpdatedAt(), Instant.now())
-                    .toDays() > appProperties.getDaysInTrashBin() / 2) {
-            return true;
-        }
-
-        return false;
     }
 
 }
