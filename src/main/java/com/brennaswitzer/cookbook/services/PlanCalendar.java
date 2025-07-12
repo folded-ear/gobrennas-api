@@ -108,12 +108,14 @@ public class PlanCalendar {
                                                 boolean includeBucketLink) {
             Plan plan = item.getPlan();
             List<String> lines = new ArrayList<>();
-            lines.add(String.format(
-                    "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>",
-                    appProperties.getPublicUrl(),
-                    plan.getId(),
-                    item.getId(),
-                    getDisplayName(item)));
+            if (!getState(item).hidden()) {
+                lines.add(String.format(
+                        "Cook: <a href=\"%splan/%s/recipe/%s\">%s</a>",
+                        appProperties.getPublicUrl(),
+                        plan.getId(),
+                        item.getId(),
+                        getDisplayName(item)));
+            }
             if (includeBucketLink) {
                 PlanBucket bucket = item.getBucket();
                 lines.add(String.format(
@@ -236,7 +238,9 @@ public class PlanCalendar {
                 .sorted(Comparator.comparing(PlanBucket::getDate))
                 .forEach(bucket -> {
                     Collection<PlanItem> items = bucket.getItems();
-                    boolean includeBucketLink = bucket.isNamed() || items.size() > 1;
+                    boolean includeBucketLink = (bucket.isNamed() || items.size() > 1)
+                                                && items.stream()
+                                                        .anyMatch(it -> !getEvent.getState(it).hidden());
                     for (PlanItem it : items) {
                         cal.withComponent(getEvent.apply(
                                 it,
