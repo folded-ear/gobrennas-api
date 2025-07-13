@@ -16,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 @Service
 @Transactional
 public class ItemService {
@@ -146,6 +151,7 @@ public class ItemService {
         String lcRawPrefix = raw.toLowerCase()
                 .substring(0, item.getCursor() - search.length());
         return StreamSupport.stream(matches.spliterator(), false)
+                .filter(new UniqueSuggestions())
                 .limit(count)
                 .map(i -> {
                     // this should probably check all locations the
@@ -174,6 +180,22 @@ public class ItemService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    private static class UniqueSuggestions implements Predicate<Ingredient> {
+
+        private final Set<String> uniquer = new HashSet<>();
+
+        @Override
+        public boolean test(Ingredient ing) {
+            String name = ing.getName();
+            if (uniquer.add(name)) {
+                return true;
+            }
+            log.warn("Ignore duplicate '{}' suggestion (from {})", name, ing.getId());
+            return false;
+        }
+
     }
 
     public void clearAutoRecognition(MutableItem it) {
