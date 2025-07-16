@@ -13,12 +13,14 @@ cupcakes, the icing is a section of the cupcakes recipe, even though they're sep
 Sections are stored as recipes, with "section-ness" represented implicitly. _Owned_ sections (frosting) are
 "part of" their _owning_ recipe (german chocolate cake). Recipes (buttercream icing) may be _by reference_ sections of
 other recipes (cupcakes). An _owned_ section may also be the referent of _by reference_ sections (reuse german chocolate
-cake's frosting for cupcakes, without promoting frosting to a top-level recipe).
+cake's frosting for cupcakes, without 'promoting' frosting to a top-level recipe).
 
 1. Add a new `Recipe sectionOf;` field to the `Recipe` class, backed by a `ON DELETE RESTRICT` FK column in the
    database.
     1. The value indicates the recipe the section is _owned_ by.
     1. Null means the recipe is not an _owned_ section.
+1. Add a new `boolean section;` field to the `IngredientRef` class, for whether the ref is a section. Whether _owned_ or
+   _by reference_ is not differentiated.
 1. _By reference_ sections are normal entity associations (aka today's subrecipes).
 1. _Owned_ sections are as if composed into their _owning_ recipe.
     1. When an _owned_ section is removed from a recipe, it is either:
@@ -63,8 +65,9 @@ and `bulkIngredients`. _Owned_ sections will not be returned from `LibraryQuery.
 
 1. New "Add Section" button, to either:
     1. create a blank _owned_ section, or
-    1. search for _owned_ sections (not all recipes) to include _by reference_.
-        1. This should probably have a toggle to search for all recipes, not just sections.
+   1. search for _owned_ sections to include _by reference_.
+       1. This needs a toggle to search for recipes, instead of _owned_ sections. Or between _owned_ sections and
+          everything?
 1. _Owned_ sections contain title, ingredients, directions, and labels.
     1. Title is required and gets defaulted to "MOAR Goober Whosit" or something.
     1. Ingredients are optional, with a blank ElEdit row visible to start.
@@ -80,25 +83,23 @@ and `bulkIngredients`. _Owned_ sections will not be returned from `LibraryQuery.
 1. Non-section ingredients can be dragged between _owned_ sections and/or the top-level recipe.
 1. Sections can be reordered, separate from reordering their ingredients. On the form, they don't float/fall.
 1. Sections can be removed from the recipe.
-1. _Owned_ sections have a "Uses" button, if any other recipe includes them _by reference_, which opens a dialog to
+1. _Owned_ sections have a "Used By" button, if any other recipe includes them _by reference_, which opens a dialog to
    enumerate referrers. Should all sections?
 
 ### Textract
 
 1. **FUTURE:** New "New Section" action button, which will create a new (name-defaulted) section and add the selected
-   text
-   as its
-   ingredients.
+   text as its ingredients.
 1. **FUTURE:** make the existing buttons into combo buttons which allow targeting a section, instead of the top-level
    recipe, if any sections exist.
 
 ## Planner
 
-No special handling.
+_Owned_ sections shouldn't have a "Cook" button.
 
-### Cook Recipe or Bucket
+### Cook Planned Recipe or Bucket
 
-1. Remove ingredient scaling UI.
+1. Remove ingredient scaling UI; it's too late.
 1. Sections with non-blank description float to the top w/ collapse as subrecipes do today.
 1. Sections with no description fall to the bottom of the ingredient list, title as subheading.
 1. Hide "I Cooked It!" and "Open Library Recipe" for
@@ -124,13 +125,13 @@ icing (reasonable) and "Clara's Birthday - Cupcakes / Our Week" for the cupcakes
 might need to pass section ownership information from library to planner, so only frosting gets flipped around. Or maybe
 everything should always be top-down, period?
 
-Note that the "Our Week" breadcrumb is only visible if you're shopping multiple plans.
+Note that the "Our Week" breadcrumb is only visible if you're shopping multiple plans, and "Clara's Birthday" might be a
+bucket, not a plan item.
 
 ## Plan Sidebar (and Calendar)
 
 1. **ASSUMPTION:** Sections usually stay with their recipe, so if you want to move them, having to open the full planner
-   is
-   reasonable for the reduced clutter of the sidebar. Hide planned recipes which:
+   is reasonable for the reduced clutter of the sidebar. Hide planned recipes which:
     1. are a section,
     1. are a descendant of their aggregate, and
     1. are in the same bucket as their aggregate, or not bucketed.
@@ -140,3 +141,14 @@ Note that the "Our Week" breadcrumb is only visible if you're shopping multiple 
 1. The "Uses" popup needs to include the top-level recipe's name for _owned_ sections.
     1. Include "and 7 other referrers"?
     1. For _by reference_ sections too?
+
+## Discussion
+
+1. A quantity of an _owned_ section makes no sense; it's part of this recipe.
+1. A quantity of a _by reference_ section makes a lot of sense.
+    1. If you want to add buttercream icing to a recipe, you'd want to multiply across the buttercream recipe's yield.
+       E.g., if buttercream yields 4 c icing, but I only need 2 c for my recipe, I want "1/2 buttercream icing"
+1. A quantity of a _by reference_ section targeting an _owned_ section is ... uh
+    1. If you want to reuse german chocolate cake's coconut frosting for cupcakes, there's no yield for the frosting
+       alone. If the cake recipe makes two 9-inch layers, but your cupcake recipe makes 12, you need a _lot_ less
+       frosting... but there's no yield on a section to multiple across.

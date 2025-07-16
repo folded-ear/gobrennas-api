@@ -116,8 +116,39 @@ public class RecipeService {
         Recipe recipe = getMyRecipe(id);
         removePhotoInternal(recipe);
         planService.severLibraryLinks(recipe);
+        recipe.getOwnedSections()
+                .forEach(this::removeOwnedSection);
         recipeRepository.delete(recipe);
         return recipe;
+    }
+
+    /**
+     * I change the passed section's owning recipe. If the section is not
+     * referenced by any other recipes, it is deleted.
+     */
+    public void removeOwnedSection(Recipe section) {
+        Recipe sectionOf = section.getSectionOf();
+        if (sectionOf == null) {
+            throw new IllegalStateException(String.format(
+                    "Cannot remove non-owned section '%s' (%s)",
+                    section.getId(),
+                    section.getName()));
+        }
+        recipeRepository.searchRecipes(
+                        LibrarySearchRequest.builder()
+                                .user(sectionOf.getOwner())
+                                .ingredientIds(Set.of(section.getId()))
+                                .build())
+                .getContent()
+                .stream()
+                .filter(r -> !sectionOf.equals(r))
+                .findFirst()
+                .ifPresentOrElse(
+                        r -> r.addOwnedSection(section),
+                        () -> {
+                            sectionOf.removeOwnedSection(section);
+                            recipeRepository.delete(section);
+                        });
     }
 
     private final class SetPhoto {

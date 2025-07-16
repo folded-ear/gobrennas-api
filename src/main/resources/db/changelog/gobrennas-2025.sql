@@ -111,3 +111,21 @@ ALTER TABLE user_device
 UPDATE user_device
    SET last_ensured_at = created_at
  WHERE last_ensured_at = NOW();
+
+
+--changeset barneyb:recipe-sections
+ALTER TABLE ingredient
+    ADD section_of_id BIGINT NULL;
+
+CREATE INDEX idx_ingredient_section_of ON ingredient (section_of_id);
+
+ALTER TABLE ingredient
+    ADD CONSTRAINT fk_ingredient_section_of
+        FOREIGN KEY (section_of_id)
+            REFERENCES ingredient (id)
+            ON DELETE RESTRICT;
+
+ALTER TABLE recipe_ingredients
+    ADD is_section BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE INDEX idx_ingredient_recipe ON recipe_ingredients (ingredient_id, recipe_id);

@@ -14,12 +14,15 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PreUpdate;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.BatchSize;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,6 +109,16 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @BatchSize(size = 50)
     private Collection<PlannedRecipeHistory> planHistory;
 
+    @Getter
+    @Setter(AccessLevel.PRIVATE) // force clients to add/removeOwnedSection
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Recipe sectionOf;
+
+    @Getter
+    @OneToMany(mappedBy = "sectionOf")
+    @BatchSize(size = 50)
+    private Collection<Recipe> ownedSections;
+
     public Recipe() {
     }
 
@@ -114,9 +127,11 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     }
 
     @Override
-    public void addIngredient(Quantity quantity, Ingredient ingredient, String preparation) {
+    public IngredientRef addIngredient(Quantity quantity, Ingredient ingredient, String preparation) {
         ensureIngredients();
-        ingredients.add(new IngredientRef(quantity, ingredient, preparation));
+        IngredientRef ref = new IngredientRef(quantity, ingredient, preparation);
+        ingredients.add(ref);
+        return ref;
     }
 
     private void ensureIngredients() {
@@ -187,6 +202,57 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
             }
         }
         return refs;
+    }
+
+    public boolean isOwnedSection() {
+        return getSectionOf() != null;
+    }
+
+    public void clearSectionOf() {
+        setSectionOf(null);
+    }
+
+    public void addOwnedSection(Recipe section) {
+        Recipe sectionOf = section.getSectionOf();
+        if (sectionOf != null) {
+            sectionOf.removeOwnedSection(section);
+        }
+        section.setSectionOf(this);
+        addIngredient(section)
+                .setSection(true);
+        if (ownedSections == null) {
+            ownedSections = new ArrayList<>();
+        }
+        ownedSections.add(section);
+    }
+
+    public void removeOwnedSection(Recipe section) {
+        Recipe sectionOf = section.getSectionOf();
+        if (sectionOf == null) {
+            throw new IllegalStateException(String.format(
+                    "Section '%s' cannot be removed from '%s', as it's not owned",
+                    section.getId(),
+                    getId()));
+        }
+        if (!this.equals(sectionOf)) {
+            throw new IllegalStateException(String.format(
+                    "Section '%s' cannot be removed from '%s', as it's owned by '%s'",
+                    section.getId(),
+                    getId(),
+                    sectionOf.getId()));
+        }
+        if (ownedSections == null) return;
+        if (ownedSections.remove(section)) {
+            section.clearSectionOf();
+            Iterator<IngredientRef> refItr = ingredients.iterator();
+            while (refItr.hasNext()) {
+                IngredientRef r = refItr.next();
+                if (r.isSection() && section.equals(r.getIngredient())) {
+                    refItr.remove();
+                    break;
+                }
+            }
+        }
     }
 
     @Override

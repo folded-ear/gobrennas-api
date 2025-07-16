@@ -25,6 +25,12 @@ public class IngredientRef implements MutableItem {
     @Column(name = "_order")
     private int _idx;
 
+    /**
+     * Does this ref represent a section?
+     */
+    @Column(name = "is_section")
+    private boolean section;
+
     private String raw;
 
     @Embedded

@@ -7,8 +7,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RecipeTest {
 
@@ -61,6 +64,30 @@ public class RecipeTest {
         assertEquals("water", itr.next().getIngredient().getName());
         assertEquals("yeast", itr.next().getIngredient().getName());
         assertFalse(itr.hasNext());
+    }
+
+    @Test
+    void addOwnedSection() {
+        RecipeBox box = new RecipeBox();
+        box.pizza.addOwnedSection(box.pizzaCrust);
+        box.pizza.addOwnedSection(box.pizzaCrust); // a no-op
+
+        assertTrue(box.pizzaCrust.isOwnedSection());
+        assertEquals(box.pizza, box.pizzaCrust.getSectionOf());
+        assertEquals(List.of(box.pizzaCrust), box.pizza.getOwnedSections());
+    }
+
+    @Test
+    void removeOwnedSection() {
+        RecipeBox box = new RecipeBox();
+        assertThrows(RuntimeException.class,
+                     () -> box.pizza.removeOwnedSection(box.pizzaCrust));
+        box.pizza.addOwnedSection(box.pizzaCrust);
+        box.pizza.removeOwnedSection(box.pizzaCrust);
+
+        assertFalse(box.pizzaCrust.isOwnedSection());
+        assertNull(box.pizzaCrust.getSectionOf());
+        assertEquals(List.of(), box.pizza.getOwnedSections());
     }
 
 }
