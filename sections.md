@@ -36,17 +36,21 @@ contextual viewpoints in the cook's mind. It's also the reason for all the itali
 
 ## GraphQL Schema
 
-1. _By reference_ sections are mutated via `IngredientInfo.ingredients` (as today).
-1. _By reference_ sections are queried via `Recipe.subrecipes` and/or `Recipe.ingredients` (as today).
-1. _Owned_ sections will be manipulated via extending `IngredientRefInfo`. The section's title and directions can reuse
-   `raw` and `preparation`. Two new fields will be added:
-    1. `ingredients: [IngredientRefInfo!]`, and
-    1. `labels: [String!]`.
-1. _Owned_ sections will be queried directly via a new `LibraryQuery.sections` field, and indirectly extending
-   `IngredientRef` analogous to above.
+1. Sections (_owned_ or _by reference_) are recipes; they can always be retrieved via `LibraryQuery.getRecipeById`and
+   `bulkIngredients`.
+1. _Owned_ sections will not be returned from `LibraryQuery.recipes` or `.suggestRecipesToCook`.
+1. Create a `LibrarySearch` input type with `LibraryQuery.recipes`'s params and accept that instead.
 
-Since sections (_owned_ or _by reference_) are recipes, they can always be retrieved via `LibraryQuery.getRecipeById`
-and `bulkIngredients`. _Owned_ sections will not be returned from `LibraryQuery.recipes` or `.suggestRecipesToCook`.
+1. Add a new `Section` type, sharing `id`, `name`, `direction`, `ingredients`, and `labels` with `Recipe`, plus a
+   `sectionOf: ID`.
+1. Add a new `sections: [Section!]!` to `Recipe`.
+1. Add a new `LibraryQuery.sections` field which also accepts `LibrarySearch` and only returns _owned_ sections
+   (as a new `SectionConnection` and friends).
+
+1. Add a new `SectionInfo` input type, sharing `id`, `name`, `direction`, `ingredients`, and `labels` with
+   `IngredientInfo`. _Owned_ sections will always have the data fields populated, as well as `id` once persistent. _By
+   reference_ sections will only ever have `id`.
+1. Add a new `sections: [SectionInfo!]` to `IngredientInfo`.
 
 ## Library
 

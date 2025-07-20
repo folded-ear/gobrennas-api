@@ -7,32 +7,65 @@ enum LibrarySearchScope {
     EVERYONE
 }
 
+input LibrarySearch {
+    """The scope to search within, 'only mine' by default.
+    """
+    scope: LibrarySearchScope! = MINE
+    """The textual query to filter results by. Can include simple words, as
+    well as quoted phrases.
+    """
+    query: String! = ""
+    """Only return results which include at least one of these ingredients.
+    """
+    ingredients: [ID!]! = []
+    """How many results to return. If not specified, 10 will be returned.
+    """
+    first: NonNegativeInt! = 10
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
+input SuggestionSearch {
+    """How many results to return. If not specified, 5 will be returned.
+    """
+    first: NonNegativeInt! = 5
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
 type LibraryQuery {
     """Search the recipe library.
     """
     recipes(
-        """The scope to search for recipes within.
+        search: LibrarySearch
+        """The scope to search for recipes within. Prefer `search.scope`.
         """
         scope: LibrarySearchScope! = MINE
         """The textual query to filter results by. Can include simple words, as
-        well as quoted phrases.
+        well as quoted phrases. Prefer `search.query`.
         """
         query: String! = ""
-        """Ingredient(s) to include. Missing/empty means "all".
+        """Ingredient(s) to include. Missing/empty means "all". Prefer
+        `search.ingredients`.
         """
         ingredients: [ID!]! = []
         """How many recipes to return in the connection. If not specified, 10
-        will be returned.
+        will be returned.  Prefer `search.first`.
         """
         first: NonNegativeInt! = 10
         """Cursor to find results after. This should be omitted to retrieve the
-        first page.
+        first page. Prefer `search.after`.
         """
         after: Cursor = null
     ): RecipeConnection!
 
     suggestRecipesToCook(
+        search: SuggestionSearch
+        "Prefer `search.first`."
         first: NonNegativeInt! = 5
+        "Prefer `search.after`."
         after: Cursor = null
     ): RecipeConnection!
 

@@ -7,8 +7,37 @@ enum SortDir {
     DESC
 }
 
+input PantrySearch {
+    """Textual query to filter items by. The exact query operation performed
+    is unspecified, except that 'duplicates:12345' will return auto-detected
+    duplicates of the item with id '12345'. Exactly what "duplicate" means
+    is unspecified and subject to change, excepting that it will remain
+    consistent with results' "duplicateCount".
+    """
+    query: String
+    """Field to sort the result by. If omitted, the sort will be stable, but
+    is otherwise unspecified.
+    """
+    sortBy: String
+    """Direction to sort the result, ascending by default.
+    """
+    sortDir: SortDir = ASC
+    """How many items to return in the connection. If not specified, 25 will be
+    returned.
+    """
+    first: NonNegativeInt! = 25
+    """Cursor to find results after. This should be omitted to retrieve the
+    first page.
+    """
+    after: Cursor = null
+}
+
 type PantryQuery {
-    """Search available pantry items.
+    pantryItems(
+        search: PantrySearch!
+    ): PantryItemConnection!
+
+    """Search available pantry items. Prefer `pantryItems()`.
     """
     search(
         """Textual query to filter items by. The exact query operation performed

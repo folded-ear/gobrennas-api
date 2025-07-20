@@ -15,6 +15,10 @@ import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.relay.Connection;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +26,30 @@ import java.util.Collection;
 import java.util.Set;
 
 @Component
-public class LibraryQuery extends PagingQuery {
+public class LibraryQuery {
+
+    @Data
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @Builder
+    public static class LibrarySearch implements GqlSearch {
+
+        LibrarySearchScope scope;
+        String query;
+        Set<Long> ingredients;
+        int first;
+        OffsetConnectionCursor after;
+
+    }
+
+    @Data
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @Builder
+    public static class SuggestionSearch implements GqlSearch {
+
+        int first;
+        OffsetConnectionCursor after;
+
+    }
 
     @Autowired
     private RecipeService recipeService;
@@ -37,13 +64,28 @@ public class LibraryQuery extends PagingQuery {
     private ShareHelper shareHelper;
 
     public Connection<Recipe> recipes(
+            LibrarySearch search,
             LibrarySearchScope scope,
             String query,
-            Set<Long> ingredientIds,
+            Set<Long> ingredients,
             int first,
             OffsetConnectionCursor after
     ) {
-        SearchResponse<Recipe> rs = recipeService.searchRecipes(scope, query, ingredientIds, getOffset(after), first);
+        if (search == null) {
+            search = LibrarySearch.builder()
+                    .scope(scope)
+                    .query(query)
+                    .ingredients(ingredients)
+                    .first(first)
+                    .after(after)
+                    .build();
+        }
+        SearchResponse<Recipe> rs = recipeService.searchRecipes(
+                search.getScope(),
+                search.getQuery(),
+                search.getIngredients(),
+                search.getOffset(),
+                search.getFirst());
         return new OffsetConnection<>(rs);
     }
 
@@ -67,9 +109,18 @@ public class LibraryQuery extends PagingQuery {
     }
 
     public Connection<Recipe> suggestRecipesToCook(
+            SuggestionSearch search,
             int first,
             OffsetConnectionCursor after) {
-        SearchResponse<Recipe> rs = recipeService.suggestRecipes(getOffset(after), first);
+        if (search == null) {
+            search = SuggestionSearch.builder()
+                    .first(first)
+                    .after(after)
+                    .build();
+        }
+        SearchResponse<Recipe> rs = recipeService.suggestRecipes(
+                search.getOffset(),
+                search.getFirst());
         return new OffsetConnection<>(rs);
     }
 
