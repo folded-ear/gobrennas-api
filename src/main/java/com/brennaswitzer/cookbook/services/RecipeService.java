@@ -244,19 +244,34 @@ public class RecipeService {
                 scale);
     }
 
+    /**
+     * @deprecated prefer {@link #searchLibrary}
+     */
+    @Deprecated
     public SearchResponse<Recipe> searchRecipes(LibrarySearchScope scope,
                                                 String filter,
                                                 Set<Long> ingredientIds,
                                                 int offset,
                                                 int limit) {
-        return recipeRepository.searchRecipes(
+        return searchInternal(
                 LibrarySearchRequest.builder()
-                        .user(principalAccess.getUser())
                         .scope(scope)
                         .filter(filter)
                         .ingredientIds(ingredientIds)
                         .offset(offset)
-                        .limit(limit)
+                        .limit(limit));
+    }
+
+    public SearchResponse<Recipe> searchLibrary(
+            LibrarySearchRequest req) {
+        return searchInternal(req.toBuilder());
+    }
+
+    private SearchResponse<Recipe> searchInternal(
+            LibrarySearchRequest.LibrarySearchRequestBuilder reqBuilder) {
+        return recipeRepository.searchRecipes(
+                reqBuilder
+                        .user(principalAccess.getUser())
                         .build());
     }
 

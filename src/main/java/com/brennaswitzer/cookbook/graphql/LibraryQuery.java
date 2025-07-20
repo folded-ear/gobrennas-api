@@ -4,10 +4,13 @@ import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
+import com.brennaswitzer.cookbook.graphql.model.Section;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchType;
 import com.brennaswitzer.cookbook.services.IngredientService;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
@@ -38,6 +41,27 @@ public class LibraryQuery {
         Set<Long> ingredients;
         int first;
         OffsetConnectionCursor after;
+
+        LibrarySearchRequest toRecipeRequest() {
+            return buildRequest()
+                    .type(LibrarySearchType.TOP_LEVEL_RECIPE)
+                    .build();
+        }
+
+        LibrarySearchRequest toSectionRequest() {
+            return buildRequest()
+                    .type(LibrarySearchType.OWNED_SECTION)
+                    .build();
+        }
+
+        private LibrarySearchRequest.LibrarySearchRequestBuilder buildRequest() {
+            return LibrarySearchRequest.builder()
+                    .scope(scope)
+                    .filter(query)
+                    .ingredientIds(ingredients)
+                    .offset(getOffset())
+                    .limit(first);
+        }
 
     }
 
@@ -80,12 +104,13 @@ public class LibraryQuery {
                     .after(after)
                     .build();
         }
-        SearchResponse<Recipe> rs = recipeService.searchRecipes(
-                search.getScope(),
-                search.getQuery(),
-                search.getIngredients(),
-                search.getOffset(),
-                search.getFirst());
+        SearchResponse<Recipe> rs = recipeService.searchLibrary(search.toRecipeRequest());
+        return new OffsetConnection<>(rs);
+    }
+
+    public Connection<Section> sections(LibrarySearch search) {
+        SearchResponse<Section> rs = recipeService.searchLibrary(search.toSectionRequest())
+                .map(Section::new);
         return new OffsetConnection<>(rs);
     }
 

@@ -15,7 +15,8 @@ input LibrarySearch {
     well as quoted phrases.
     """
     query: String! = ""
-    """Only return results which include at least one of these ingredients.
+    """Only return results which include at least one of these ingredients. An
+    empty list means "unconstrained".
     """
     ingredients: [ID!]! = []
     """How many results to return. If not specified, 10 will be returned.
@@ -47,8 +48,8 @@ type LibraryQuery {
         well as quoted phrases. Prefer `search.query`.
         """
         query: String! = ""
-        """Ingredient(s) to include. Missing/empty means "all". Prefer
-        `search.ingredients`.
+        """Only return results which include at least one of these ingredients.
+        An empty list means "unconstrained". Prefer `search.ingredients`.
         """
         ingredients: [ID!]! = []
         """How many recipes to return in the connection. If not specified, 10
@@ -60,6 +61,10 @@ type LibraryQuery {
         """
         after: Cursor = null
     ): RecipeConnection!
+
+    """Search for sections of recipes.
+    """
+    sections(search: LibrarySearch!): SectionConnection!
 
     suggestRecipesToCook(
         search: SuggestionSearch
@@ -153,6 +158,16 @@ type RecipeConnectionEdge {
     cursor: Cursor!
 }
 
+type SectionConnection {
+    edges: [SectionConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
+type SectionConnectionEdge {
+    node: Section!
+    cursor: Cursor!
+}
+
 interface Ingredient implements Node {
     id: ID!
     name: String!
@@ -171,13 +186,22 @@ type Recipe implements Node & Owned & Ingredient {
     name: String!
     externalUrl: String
     directions: String
+    """Ingredients which are part of the recipe. Ingredients and sections are
+    disjoint.
+    """
     ingredients(
         """Ingredient(s) to include. Missing/empty means "all".
         """
         ingredients: [ID!]! = []
     ): [IngredientRef!]!
+    """Sections of the recipe, owned or by reference. Use `sectionOf` if you
+    need to differentiate. Sections and ingredients are disjoint.
+    """
+    sections: [Section!]!
     """All subrecipes. Multiple layers of nested recipes are flattened, and the
-    contextual recipe is not included.
+    contextual recipe is not included. This does not include sections (owned or
+    unowned) of the contextual recipe, only recipe-as-ingredient, but sections
+    of those subrecipes _are_ included.
     """
     subrecipes: [Recipe!]!
     labels: [String!]
@@ -203,6 +227,18 @@ type Recipe implements Node & Owned & Ingredient {
         last: NonNegativeInt = 5
     ): [PlannedRecipeHistory!]!
     share: ShareInfo!
+}
+
+type Section implements Node {
+    id: ID!
+    """The recipe this section belongs to, if owned. When a top-level recipe is
+    used as a section, this will be null.
+    """
+    sectionOf: Recipe
+    name: String!
+    directions: String
+    ingredients: [IngredientRef!]!
+    labels: [String!]
 }
 
 type Photo {

@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchType;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -49,13 +50,19 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
         builder.append("""
                        SELECT ing.*
                        FROM ingredient ing
-                            LEFT JOIN favorite fav
-                                      ON fav.object_id = ing.id
-                                          AND fav.object_type = ing.dtype
-                                          AND fav.owner_id = :userId
-                       """,
-                       "userId",
-                       request.getUser().getId());
+                       """);
+        boolean considerFavorites = !request.isFiltered()
+                                    && request.getType() == LibrarySearchType.TOP_LEVEL_RECIPE;
+        if (considerFavorites) {
+            builder.append("""
+                                LEFT JOIN favorite fav
+                                          ON fav.object_id = ing.id
+                                              AND fav.object_type = ing.dtype
+                                              AND fav.owner_id = :userId
+                           """,
+                           "userId",
+                           request.getUser().getId());
+        }
         if (request.isFiltered()) {
             builder.append("   , TO_TSQUERY('en', :query) query\n",
                            "query",
@@ -71,20 +78,30 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
                                 SELECT *
                                 FROM recipe_ingredients ref
                                 WHERE ref.recipe_id = ing.id
-                                  AND ref.ingredient_id in :ingredientId
+                                  AND ref.ingredient_id IN :ingredientId
                              )
                            """, "ingredientId", request.getIngredientIds());
         }
         if (request.isOwnerConstrained()) {
-            builder.append("  AND ing.owner_id in (:ownerIds)\n",
+            builder.append("  AND ing.owner_id IN (:ownerIds)\n",
                            "ownerIds",
                            singleton(request.getUser().getId()));
         }
-        builder.append("ORDER BY fav.id IS NULL\n");
+        switch (request.getType()) {
+            case TOP_LEVEL_RECIPE -> builder.append("  AND ing.section_of_id IS NULL\n");
+            case OWNED_SECTION -> builder.append("  AND ing.section_of_id IS NOT NULL\n");
+        }
+        builder.append("ORDER BY ");
         if (request.isFiltered()) {
-            builder.append("       , TS_RANK(fulltext, query) DESC\n");
+            builder.append("TS_RANK(fulltext, query) DESC\n");
+        } else if (considerFavorites) {
+            builder.append("fav.id IS NULL\n");
+        } else {
+            // silly, but whatever
+            builder.append("1\n");
         }
         builder.append("""
+                              , ing.updated_at DESC
                               , UPPER(ing.name)
                               , ing.id
                        """);
