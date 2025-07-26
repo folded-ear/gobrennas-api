@@ -6,27 +6,18 @@ import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class IngredientInfo {
+public class IngredientInfo extends CoreRecipeInfo {
 
-    @Deprecated
-    public static class Ref extends IngredientRefInfo {
-    }
-
-    private Long id;
     private String type;
-    private String name;
     private Integer storeOrder;
     private String externalUrl;
-    private String directions;
-    private List<IngredientRefInfo> ingredients;
-    private List<String> labels;
+    private List<SectionInfo> sections;
     private Long ownerId;
     private Integer yield;
     private Integer calories;
@@ -34,12 +25,6 @@ public class IngredientInfo {
     private String photo;
     private float[] photoFocus;
     private Boolean cookThis;
-
-    public List<String> getLabels() {
-        return labels == null
-                ? Collections.emptyList()
-                : labels;
-    }
 
     public boolean isCookThis() {
         return cookThis != null && cookThis;
@@ -55,7 +40,7 @@ public class IngredientInfo {
         r.setYield(getYield());
         r.setTotalTime(getTotalTime());
         r.setCalories(getCalories());
-        if (getIngredients() != null) {
+        if (hasIngredients()) {
             r.setIngredients(getIngredients()
                     .stream()
                     .map(ref -> ref.asIngredientRef(em))
@@ -66,6 +51,10 @@ public class IngredientInfo {
             r.getPhoto(true).setFocusArray(photoFocus);
         }
         return r;
+    }
+
+    public boolean hasSections() {
+        return getSections() != null && !getSections().isEmpty();
     }
 
 }

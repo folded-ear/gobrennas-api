@@ -1,0 +1,70 @@
+{
+  "type": "Recipe",
+  "name": "With Sections",
+  "directions": "First the flugel, then the booble",
+  "ingredients": [
+    {
+      "ingredientId": 87,
+      "preparation": "",
+      "raw": "Slow-Rise Pizza Crust"
+    },
+    {
+      "ingredientId": 8777749711659,
+      "preparation": "",
+      "raw": "1/2 jar of spaghetti sauce",
+      "quantity": 0.5
+    },
+    {
+      "ingredientId": 8777749736581,
+      "preparation": "sliced",
+      "raw": "3 c sliced lamb chops",
+      "quantity": 3,
+      "uomId": 8777749698019
+    },
+    {
+      "ingredientId": 8777749708459,
+      "preparation": "",
+      "raw": "onion powder"
+    }
+  ],
+  "sections": [
+    {
+      "id": 48,
+      "name": "ignored"
+    },
+    {
+      "id": 8777749736580,
+      "name": "Italian Dressing",
+      "ingredients": [
+        {
+          "ingredientId": 8777749707259,
+          "raw": "salt"
+        },
+        {
+          "ingredientId": 8777749712779,
+          "raw": "pepper"
+        },
+        {
+          "preparation": "herbs",
+          "raw": "herbs"
+        },
+        {
+          "ingredientId": 8777749712239,
+          "raw": "olive oil"
+        },
+        {
+          "ingredientId": 8777749702979,
+          "raw": "balsamic vinegar"
+        }
+      ],
+      "directions": "Combine all ingredients and shake",
+      "labels": [
+        "section",
+        "dressing"
+      ]
+    }
+  ],
+  "labels": [
+    "top-level"
+  ]
+}

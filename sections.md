@@ -97,6 +97,10 @@ contextual viewpoints in the cook's mind. It's also the reason for all the itali
 1. **FUTURE:** make the existing buttons into combo buttons which allow targeting a section, instead of the top-level
    recipe, if any sections exist.
 
+### Cook This!
+
+**FUTURE**
+
 ## Planner
 
 _Owned_ sections shouldn't have a "Cook" button.

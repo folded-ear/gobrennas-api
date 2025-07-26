@@ -4,11 +4,11 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
+import com.brennaswitzer.cookbook.graphql.support.Info2Recipe;
+import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
-import com.brennaswitzer.cookbook.services.ItemService;
-import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import jakarta.persistence.EntityManager;
+import graphql.schema.DataFetchingEnvironment;
 import jakarta.servlet.http.Part;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,37 +22,54 @@ public class LibraryMutation {
     @Autowired
     private RecipeService recipeService;
     @Autowired
-    private ItemService itemService;
-    @Autowired
-    private LabelService labelService;
-    @Autowired
-    private EntityManager entityManager;
+    private Info2Recipe info2Recipe;
 
     public Recipe createRecipe(IngredientInfo info,
                                boolean cookThis,
-                               @Deprecated Part photo) {
-        Recipe recipe = info.asRecipe(entityManager);
-        if (cookThis) {
-            recipe.getIngredients().forEach(itemService::autoRecognize);
+                               @Deprecated Part photo,
+                               DataFetchingEnvironment env) {
+        info.setId(null);
+        Recipe recipe = info2Recipe.convert(PrincipalUtil.from(env),
+                                            info,
+                                            cookThis);
+        return recipeService.createNewRecipe(recipe, info, Upload.of(photo));
+    }
+
+    public Recipe createRecipeFrom(Long sourceRecipeId,
+                                   IngredientInfo info,
+                                   @Deprecated Part photo,
+                                   DataFetchingEnvironment env) {
+        if (info.getId() != null) {
+            if (sourceRecipeId != null && !info.getId().equals(sourceRecipeId)) {
+                throw new IllegalArgumentException(String.format(
+                        "Cannot create from '%s' with info from '%s'",
+                        sourceRecipeId,
+                        info.getId()));
+            }
+            sourceRecipeId = info.getId();
+            info.setId(null);
         }
-        recipe = recipeService.createNewRecipe(recipe, info, Upload.of(photo));
-        labelService.updateLabels(recipe, info.getLabels());
-        return recipe;
+        Recipe recipe = info2Recipe.convert(PrincipalUtil.from(env),
+                                            info);
+        return recipeService.createNewRecipeFrom(sourceRecipeId, recipe, info, Upload.of(photo));
     }
 
-    public Recipe createRecipeFrom(Long sourceRecipeId, IngredientInfo info, @Deprecated Part photo) {
-        Recipe recipe = info.asRecipe(entityManager);
-        recipe = recipeService.createNewRecipeFrom(sourceRecipeId, recipe, info, Upload.of(photo));
-        labelService.updateLabels(recipe, info.getLabels());
-        return recipe;
-    }
-
-    public Recipe updateRecipe(Long id, IngredientInfo info, @Deprecated Part photo) {
-        info.setId(id);
-        Recipe recipe = info.asRecipe(entityManager);
-        recipe = recipeService.updateRecipe(recipe, info, Upload.of(photo));
-        labelService.updateLabels(recipe, info.getLabels());
-        return recipe;
+    public Recipe updateRecipe(Long id,
+                               IngredientInfo info,
+                               @Deprecated Part photo,
+                               DataFetchingEnvironment env) {
+        if (id != null) {
+            if (info.getId() != null && !id.equals(info.getId())) {
+                throw new IllegalArgumentException(String.format(
+                        "Cannot update recipe '%s' with info from '%s'",
+                        id,
+                        info.getId()));
+            }
+            info.setId(id);
+        }
+        Recipe recipe = info2Recipe.convert(PrincipalUtil.from(env),
+                                            info);
+        return recipeService.updateRecipe(recipe, info, Upload.of(photo));
     }
 
     public Recipe setRecipePhoto(Long id,

@@ -246,8 +246,8 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
             section.clearSectionOf();
             Iterator<IngredientRef> refItr = ingredients.iterator();
             while (refItr.hasNext()) {
-                IngredientRef r = refItr.next();
-                if (r.isSection() && section.equals(r.getIngredient())) {
+                IngredientRef ref = refItr.next();
+                if (ref.isSection() && section.equals(ref.getIngredient())) {
                     refItr.remove();
                     break;
                 }

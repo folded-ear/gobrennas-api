@@ -262,6 +262,7 @@ type UnitOfMeasure implements Node {
     id: ID!
     name: String!
 }
+
 enum Rating {
     ONE_STAR
     TWO_STARS
@@ -350,12 +351,14 @@ type RecipeHistoryMutation {
 }
 
 input IngredientInfo {
+    id: ID
     type: String!
     name: String!
     storeOrder: Int
     externalUrl: String
     directions: String
     ingredients: [IngredientRefInfo!]
+    sections: [SectionInfo!]
     labels: [String!]
     yield: Int
     calories: Int
@@ -369,8 +372,19 @@ input IngredientRefInfo {
     raw: String!
     quantity: Float
     units: String
-    uomId: Long
+    uomId: ID
     ingredient: String
-    ingredientId: Long
+    ingredientId: ID
     preparation: String
+}
+
+input SectionInfo {
+    """Id of the section, owned or by reference. Unsaved owned sections have
+    null. By reference sections will have no other fields populated.
+    """
+    id: ID
+    name: String
+    directions: String
+    ingredients: [IngredientRefInfo!]
+    labels: [String!]
 }

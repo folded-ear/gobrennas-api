@@ -26,7 +26,7 @@ public class IngredientRef implements MutableItem {
     private int _idx;
 
     /**
-     * Does this ref represent a section?
+     * Whether this ref represents a section (owned or by reference).
      */
     @Column(name = "is_section")
     private boolean section;
