@@ -44,7 +44,9 @@ public class IngredientService {
         List<PantryItem> pantryItems = pantryItemRepository.findAllByNameIgnoreCaseContainingOrderById(unpluralized);
         List<Ingredient> result = new ArrayList<>(pantryItems);
         User user = principalAccess.getUser();
-        List<Recipe> recipes = recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingOrderById(user, unpluralized);
+        List<Recipe> recipes = recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingAndSectionOfIsNullOrderById(
+                user,
+                unpluralized);
         result.addAll(recipes);
         return result;
     }
