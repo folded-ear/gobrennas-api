@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,7 +17,11 @@ import java.util.stream.Stream;
 @Service
 public class PostgresFullTextQueryConverter {
 
+    private static final Pattern RE_FOLLOWED_BY = Pattern.compile("<(-|\\d+)>");
+
     public String convert(String filter) {
+        // for now, just strip operators
+        filter = removeOperatorsAndParens(filter);
         List<String> terms = new ArrayList<>();
         int at = 0;
         while (at < filter.length()) {
@@ -42,6 +47,18 @@ public class PostgresFullTextQueryConverter {
             }
         }
         return String.join(" | ", terms);
+    }
+
+    private String removeOperatorsAndParens(String filter) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : filter.toCharArray()) {
+            switch (c) {
+                case '&', '|', '!', '(', ')' -> sb.append(' ');
+                default -> sb.append(c);
+            }
+        }
+        return RE_FOLLOWED_BY.matcher(sb.toString())
+                .replaceAll(" ");
     }
 
     private List<String> toWords(String text, int start, int end, boolean prefix) {
