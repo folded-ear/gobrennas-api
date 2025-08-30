@@ -1,7 +1,8 @@
 package com.brennaswitzer.cookbook.security.oauth2;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
@@ -17,41 +18,46 @@ class CookieDomainProviderTest {
     @Mock
     private ResponseCookie.ResponseCookieBuilder builder;
 
-    @Test
-    void localhost() {
-        new CookieDomainProvider().provide(
-                "http://localhost:4000//post-oauth2/redirect",
-                builder);
+    @ParameterizedTest
+    @CsvSource({
+            "https://gobrennas.com//post-oauth2/redirect,          gobrennas.com",
+            "https://www.gobrennas.com//post-oauth2/redirect,      gobrennas.com",
+            "https://next.gobrennas.com//post-oauth2/redirect,     gobrennas.com",
+            "https://api.gobrennas.com//post-oauth2/redirect,      gobrennas.com",
+            "https://beta.gobrennas.com/post-oauth2/redirect,      beta.gobrennas.com",
+            "https://www.beta.gobrennas.com/post-oauth2/redirect,  beta.gobrennas.com",
+            "https://next.beta.gobrennas.com/post-oauth2/redirect, beta.gobrennas.com",
+            "https://api.beta.gobrennas.com/post-oauth2/redirect,  beta.gobrennas.com",
+    })
+    void withDomain(String target, String domain) {
+        new CookieDomainProvider()
+                .provide(target, builder);
+
+        verify(builder).domain(domain);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "https://localhost:4000/post-oauth2/redirect",
+    })
+    void withoutDomain(String target) {
+        new CookieDomainProvider()
+                .provide(target, builder);
 
         verify(builder, never()).domain(any());
     }
 
-    @Test
-    void prod() {
-        new CookieDomainProvider().provide(
-                "http://api.gobrennas.com/post-oauth2/redirect",
-                builder);
-
-        verify(builder).domain("gobrennas.com");
-    }
-
-    @Test
-    void oldBeta() {
-        CookieDomainProvider provider = new CookieDomainProvider();
+    @ParameterizedTest
+    @CsvSource({
+            "https://beta.www.gobrennas.com/post-oauth2/redirect",
+            "https://beta.next.gobrennas.com/post-oauth2/redirect",
+            "https://beta.api.gobrennas.com/post-oauth2/redirect",
+    })
+    void disallowed(String target) {
+        var p = new CookieDomainProvider();
 
         assertThrows(IllegalArgumentException.class,
-                     () -> provider.provide(
-                             "http://beta.api.gobrennas.com//post-oauth2/redirect",
-                             builder));
-    }
-
-    @Test
-    void targetBeta() {
-        new CookieDomainProvider().provide(
-                "http://api.beta.gobrennas.com//post-oauth2/redirect",
-                builder);
-
-        verify(builder).domain("beta.gobrennas.com");
+                     () -> p.provide(target, builder));
     }
 
 }
