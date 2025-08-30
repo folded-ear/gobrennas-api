@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.config;
 
 import com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter;
+import com.brennaswitzer.cookbook.security.CookieTokenLogoutHandler;
 import com.brennaswitzer.cookbook.security.CustomUserDetailsService;
 import com.brennaswitzer.cookbook.security.HeaderTokenAuthenticationFilter;
 import com.brennaswitzer.cookbook.security.RestAuthenticationEntryPoint;
@@ -26,8 +27,6 @@ import org.springframework.security.web.session.DisableEncodeUrlFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
-import static com.brennaswitzer.cookbook.security.CookieTokenAuthenticationFilter.TOKEN_COOKIE_NAME;
 
 /**
  * OAuth2 Login Flow
@@ -73,6 +72,9 @@ public class SecurityConfig {
     @Autowired
     private AppProperties appProperties;
 
+    @Autowired
+    private CookieTokenLogoutHandler cookieTokenLogoutHandler;
+
     @Bean
     public HeaderTokenAuthenticationFilter headerTokenAuthenticationFilter() {
         return new HeaderTokenAuthenticationFilter();
@@ -104,7 +106,7 @@ public class SecurityConfig {
         http.exceptionHandling(eh -> eh.authenticationEntryPoint(new RestAuthenticationEntryPoint()));
         http.logout(l -> l.logoutUrl("/oauth2/logout")
                 .logoutSuccessUrl(appProperties.getPublicUrl())
-                .deleteCookies("JSESSIONID", TOKEN_COOKIE_NAME)
+                .addLogoutHandler(cookieTokenLogoutHandler)
                 .permitAll());
         http.authorizeHttpRequests(r -> r.requestMatchers(
                         "/",

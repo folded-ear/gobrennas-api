@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.security.oauth2;
+package com.brennaswitzer.cookbook.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
