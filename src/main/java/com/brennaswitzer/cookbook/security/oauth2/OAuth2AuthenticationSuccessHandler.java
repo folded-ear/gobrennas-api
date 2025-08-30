@@ -24,19 +24,23 @@ import static com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2Authori
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private TokenProvider tokenProvider;
+    private final TokenProvider tokenProvider;
 
-    private AppProperties appProperties;
+    private final AppProperties appProperties;
 
-    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
+    private final CookieDomainProvider cookieDomainProvider;
 
     @Autowired
-    OAuth2AuthenticationSuccessHandler(TokenProvider tokenProvider, AppProperties appProperties,
-                                       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
+    OAuth2AuthenticationSuccessHandler(TokenProvider tokenProvider,
+                                       AppProperties appProperties,
+                                       HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository,
+                                       CookieDomainProvider cookieDomainProvider) {
         this.tokenProvider = tokenProvider;
         this.appProperties = appProperties;
         this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
+        this.cookieDomainProvider = cookieDomainProvider;
     }
 
     @Override
@@ -67,6 +71,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         ResponseCookie.ResponseCookieBuilder cb = ResponseCookie.from(TOKEN_COOKIE_NAME, token)
                 .path("/")
                 .maxAge(appProperties.getAuth().getTokenExpirationMsec() / 1000);
+        // This will "leak" the API cookie for the Next.js site to use
+        cookieDomainProvider.provide(targetUrl, cb);
         if (request.isSecure() || "true".equals(request.getHeader("X-Is-Secure"))) {
             // If we're on a secure endpoint, set it up for cross-origin use by
             // the import bookmarklet. If isn't secure... bummer?
@@ -96,4 +102,5 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                             && authorizedURI.getPort() == clientRedirectUri.getPort();
                 });
     }
+
 }
