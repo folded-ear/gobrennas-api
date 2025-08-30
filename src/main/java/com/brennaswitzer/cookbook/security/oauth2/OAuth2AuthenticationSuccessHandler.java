@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.security.oauth2;
 
 import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.exceptions.BadRequestException;
+import com.brennaswitzer.cookbook.security.CookieDomainProvider;
 import com.brennaswitzer.cookbook.security.TokenProvider;
 import com.brennaswitzer.cookbook.util.CookieUtils;
 import jakarta.servlet.http.Cookie;

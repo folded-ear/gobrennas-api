@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.security.oauth2;
+package com.brennaswitzer.cookbook.security;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
