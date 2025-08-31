@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 import com.brennaswitzer.cookbook.domain.FavoriteType;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
+import com.brennaswitzer.cookbook.domain.Label;
 import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
@@ -11,7 +12,6 @@ import com.brennaswitzer.cookbook.graphql.loaders.FavKey;
 import com.brennaswitzer.cookbook.graphql.loaders.IsFavoriteBatchLoader;
 import com.brennaswitzer.cookbook.graphql.model.Section;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
-import com.brennaswitzer.cookbook.mapper.LabelMapper;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.kickstart.tools.GraphQLResolver;
@@ -38,9 +38,6 @@ import static java.util.function.Predicate.not;
 public class RecipeResolver implements GraphQLResolver<Recipe> {
 
     @Autowired
-    private LabelMapper labelMapper;
-
-    @Autowired
     private ShareHelper shareHelper;
 
     public Integer totalTime(Recipe recipe, ChronoUnit unit) {
@@ -54,7 +51,7 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
     public List<String> labels(Recipe recipe) {
         return recipe.getLabels()
                 .stream()
-                .map(labelMapper::labelToString)
+                .map(Label::getName)
                 .toList();
     }
 
