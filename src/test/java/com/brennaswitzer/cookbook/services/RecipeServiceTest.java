@@ -3,7 +3,6 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
-import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.impl.SearchResponseImpl;
@@ -23,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -45,101 +43,16 @@ class RecipeServiceTest {
     private StorageService storageService;
 
     @Test
-    void createNewRecipe_withPhoto() {
-        Recipe input = new Recipe();
-        Recipe saved = new Recipe();
-        long recipeId = 1234L;
-        saved.setId(recipeId);
-        Upload photo = mock(Upload.class);
-        String filename = "photo.jpg";
-        when(photo.getOriginalFilename())
-                .thenReturn(filename);
-        when(recipeRepository.save(input))
-                .thenReturn(saved);
-
-        Recipe result = service.createNewRecipe(input, null, photo);
-
-        assertSame(saved, result);
-        verify(storageService)
-                .store(photo,
-                       String.format("recipe/%d/%s",
-                                     recipeId,
-                                     filename));
-    }
-
-    @Test
     void createRecipe_noPhoto() {
         Recipe input = new Recipe();
         Recipe saved = new Recipe();
         when(recipeRepository.save(input))
                 .thenReturn(saved);
 
-        Recipe result = service.createNewRecipe(input, null, null);
+        Recipe result = service.createNewRecipe(input, null);
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
-    }
-
-    @Test
-    void updateRecipe_addPhoto() {
-        User owner = new User();
-        long recipeId = 123L;
-        Upload photo = mock(Upload.class);
-        String filename = "photo.jpg";
-        when(photo.getOriginalFilename())
-                .thenReturn(filename);
-        Recipe saved = new Recipe();
-        saved.setId(recipeId);
-        saved.setOwner(owner);
-        when(recipeRepository.getReferenceById(recipeId))
-                .thenReturn(saved);
-        when(recipeRepository.save(saved))
-                .thenReturn(saved);
-        when(principalAccess.getUser())
-                .thenReturn(owner);
-
-        Recipe result = service.updateRecipe(saved, null, photo);
-
-        assertSame(saved, result);
-        verify(storageService)
-                .store(photo,
-                       String.format("recipe/%d/%s",
-                                     recipeId,
-                                     filename));
-    }
-
-    @Test
-    void updateRecipe_replacePhoto() {
-        User owner = new User();
-        Upload photo = mock(Upload.class);
-        String filename = "photo.jpg";
-        when(photo.getOriginalFilename())
-                .thenReturn(filename);
-        long recipeId = 123L;
-        Recipe saved = new Recipe();
-        saved.setId(recipeId);
-        saved.setOwner(owner);
-        String oldObjectKey = "path/to/old_photo.jpg";
-        saved.setPhoto(new S3File(oldObjectKey,
-                                  "image/jpg",
-                                  1234L));
-        when(recipeRepository.getReferenceById(recipeId))
-                .thenReturn(saved);
-        when(recipeRepository.save(saved))
-                .thenReturn(saved);
-        when(principalAccess.getUser())
-                .thenReturn(owner);
-
-        Recipe result = service.updateRecipe(saved, null, photo);
-
-        assertSame(saved, result);
-        verify(storageService)
-                .remove(oldObjectKey);
-        verify(storageService)
-                .store(photo,
-                       String.format("recipe/%d/%s",
-                                     recipeId,
-                                     filename));
     }
 
     @Test
@@ -159,7 +72,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(saved, null, null);
+        Recipe result = service.updateRecipe(saved, null);
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
@@ -180,7 +93,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(input, null, null);
+        Recipe result = service.updateRecipe(input, null);
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);

@@ -7,7 +7,6 @@ scalar NonNegativeFloat
 """The type of a cursor, an opaque string used for walking connections.
 """
 scalar Cursor
-scalar Upload
 
 schema {
     query: Query

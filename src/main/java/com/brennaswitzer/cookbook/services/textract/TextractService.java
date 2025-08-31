@@ -2,7 +2,6 @@ package com.brennaswitzer.cookbook.services.textract;
 
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.TextractJob;
-import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
@@ -49,19 +48,6 @@ public class TextractService {
             throw new EntityNotFoundException("Job #" + id + " not found");
         }
         return job;
-    }
-
-    public TextractJob createJob(UserPrincipal principal,
-                                 Upload photo) {
-        User user = principalAccess.getUser(principal);
-        TextractJob job = new TextractJob();
-        job.setOwner(user);
-        return startJob(job, new S3File(
-                storageService.store(
-                        photo,
-                        buildObjectKey(job, photo.getOriginalFilename())),
-                photo.getContentType(),
-                photo.getSize()));
     }
 
     @NotNull

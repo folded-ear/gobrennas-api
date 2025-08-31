@@ -298,8 +298,6 @@ type LibraryMutation {
     createRecipe(
         info: IngredientInfo!
         cookThis: Boolean
-        "DEPRECATED: use `profile.scratchFile`, and pass the filename in `info.photo`"
-        photo: Upload
     ): Recipe!
     """Create a new recipe in your library, from the passed info, which is based
     on the passed source recipe id.
@@ -307,16 +305,12 @@ type LibraryMutation {
     createRecipeFrom(
         sourceRecipeId: ID!
         info: IngredientInfo!
-        "DEPRECATED: use `profile.scratchFile`, and pass the filename in `info.photo`"
-        photo: Upload
     ): Recipe!
     """Update a recipe in your library, from the passed info.
     """
     updateRecipe(
         id: ID!
         info: IngredientInfo!
-        "DEPRECATED: use `profile.scratchFile`, and pass the filename in `info.photo`"
-        photo: Upload
     ): Recipe!
     """Set the photo for a recipe in your library, without changing any other
     info about the recipe. A photo may be set during create and/or update.
@@ -326,8 +320,6 @@ type LibraryMutation {
         """Filename of a scratch upload."""
         filename: String
         focus: [Float!]
-        "DEPRECATED: use `profile.scratchFile`, and pass the filename to `filename`"
-        photo: Upload
     ): Recipe!
     """Delete a recipe from your library.
     """

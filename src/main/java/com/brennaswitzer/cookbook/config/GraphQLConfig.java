@@ -15,7 +15,6 @@ import graphql.kickstart.execution.config.DefaultExecutionStrategyProvider;
 import graphql.kickstart.execution.config.ExecutionStrategyProvider;
 import graphql.kickstart.execution.context.DefaultGraphQLContext;
 import graphql.kickstart.execution.context.GraphQLKickstartContext;
-import graphql.kickstart.servlet.apollo.ApolloScalars;
 import graphql.kickstart.servlet.context.GraphQLServletContextBuilder;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
@@ -58,11 +57,6 @@ public class GraphQLConfig {
     @Bean
     public GraphQLScalarType long_() {
         return ExtendedScalars.GraphQLLong;
-    }
-
-    @Bean
-    public GraphQLScalarType upload() {
-        return ApolloScalars.Upload;
     }
 
     @Bean

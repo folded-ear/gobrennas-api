@@ -2,14 +2,12 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.graphql.support.Info2Recipe;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import graphql.schema.DataFetchingEnvironment;
-import jakarta.servlet.http.Part;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,18 +24,16 @@ public class LibraryMutation {
 
     public Recipe createRecipe(IngredientInfo info,
                                boolean cookThis,
-                               @Deprecated Part photo,
                                DataFetchingEnvironment env) {
         info.setId(null);
         Recipe recipe = info2Recipe.convert(PrincipalUtil.from(env),
                                             info,
                                             cookThis);
-        return recipeService.createNewRecipe(recipe, info, Upload.of(photo));
+        return recipeService.createNewRecipe(recipe, info);
     }
 
     public Recipe createRecipeFrom(Long sourceRecipeId,
                                    IngredientInfo info,
-                                   @Deprecated Part photo,
                                    DataFetchingEnvironment env) {
         if (info.getId() != null) {
             if (sourceRecipeId != null && !info.getId().equals(sourceRecipeId)) {
@@ -51,12 +47,11 @@ public class LibraryMutation {
         }
         Recipe recipe = info2Recipe.convert(PrincipalUtil.from(env),
                                             info);
-        return recipeService.createNewRecipeFrom(sourceRecipeId, recipe, info, Upload.of(photo));
+        return recipeService.createNewRecipeFrom(sourceRecipeId, recipe, info);
     }
 
     public Recipe updateRecipe(Long id,
                                IngredientInfo info,
-                               @Deprecated Part photo,
                                DataFetchingEnvironment env) {
         if (id != null) {
             if (info.getId() != null && !id.equals(info.getId())) {
@@ -69,14 +64,13 @@ public class LibraryMutation {
         }
         Recipe recipe = info2Recipe.convert(PrincipalUtil.from(env),
                                             info);
-        return recipeService.updateRecipe(recipe, info, Upload.of(photo));
+        return recipeService.updateRecipe(recipe, info);
     }
 
     public Recipe setRecipePhoto(Long id,
                                  String filename,
-                                 float[] focus,
-                                 @Deprecated Part photo) {
-        return recipeService.setRecipePhoto(id, filename, focus, Upload.of(photo));
+                                 float[] focus) {
+        return recipeService.setRecipePhoto(id, filename, focus);
     }
 
     public Deletion deleteRecipe(Long id) {
