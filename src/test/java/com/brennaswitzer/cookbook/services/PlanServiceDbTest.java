@@ -168,7 +168,7 @@ class PlanServiceDbTest {
         Plan plan = planRepo.save(new Plan(alice, "root"));
         PlanItem bill = itemRepo.save(new PlanItem("bill").of(plan));
 
-        service.renameItemForMessage(bill.getId(), "William");
+        service.renameItem(bill.getId(), "William");
         itemRepo.flush();
         entityManager.clear();
 
@@ -216,8 +216,8 @@ class PlanServiceDbTest {
             if (box.pizzaSauce.equals(it.getIngredient())) {
                 sauce = it;
                 // mark tomatoes acquired
-                service.setItemStatusForMessage(it.getChildView().iterator().next().getId(),
-                                                PlanItemStatus.ACQUIRED);
+                service.setItemStatus(it.getChildView().iterator().next().getId(),
+                                      PlanItemStatus.ACQUIRED);
                 entityManager.flush();
             } else if (box.pizzaCrust.equals(it.getIngredient())) {
                 crust = it;
