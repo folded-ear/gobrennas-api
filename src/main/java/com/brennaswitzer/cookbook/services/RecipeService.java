@@ -116,8 +116,11 @@ public class RecipeService {
         Recipe recipe = getMyRecipe(id);
         removePhotoInternal(recipe);
         planService.severLibraryLinks(recipe);
-        recipe.getOwnedSections()
-                .forEach(this::removeOwnedSection);
+        while (!recipe.getOwnedSections().isEmpty()) {
+            removeOwnedSection(recipe.getOwnedSections()
+                                       .iterator()
+                                       .next());
+        }
         recipeRepository.delete(recipe);
         return recipe;
     }
