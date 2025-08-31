@@ -46,17 +46,14 @@ public class TextractService {
                               long id) {
         TextractJob job = jobRepository.getReferenceById(id);
         if (!job.getOwner().equals(principalAccess.getUser(principal))) {
-            throw new EntityNotFoundException("Job #" + id + " not foundq");
+            throw new EntityNotFoundException("Job #" + id + " not found");
         }
         return job;
     }
 
-    public TextractJob getJob(long id) {
-        return getJob(principalAccess.getUserPrincipal(), id);
-    }
-
-    public TextractJob createJob(Upload photo) {
-        User user = principalAccess.getUser();
+    public TextractJob createJob(UserPrincipal principal,
+                                 Upload photo) {
+        User user = principalAccess.getUser(principal);
         TextractJob job = new TextractJob();
         job.setOwner(user);
         return startJob(job, new S3File(
@@ -87,12 +84,9 @@ public class TextractService {
         return jobRepository.findAllByOwnerOrderByCreatedAtDesc(user);
     }
 
-    public List<TextractJob> getAllJobs() {
-        return getMyJobs(principalAccess.getUserPrincipal());
-    }
-
-    public TextractJob deleteJob(long id) {
-        TextractJob j = jobRepository.getReferenceById(id);
+    public TextractJob deleteJob(UserPrincipal principal,
+                                 long id) {
+        TextractJob j = getJob(principal, id);
         storageService.remove(j.getPhoto().getObjectKey());
         jobRepository.delete(j);
         return j;
