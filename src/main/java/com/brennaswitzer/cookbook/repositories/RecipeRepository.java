@@ -16,7 +16,7 @@ public interface RecipeRepository extends BaseEntityRepository<Recipe>, RecipeSe
 
     List<Recipe> findByOwnerAndNameIgnoreCaseOrderById(User owner, String name);
 
-    List<Recipe> findAllByOwnerAndNameIgnoreCaseContainingOrderById(User owner, String name);
+    List<Recipe> findAllByOwnerAndNameIgnoreCaseContainingAndSectionOfIsNullOrderById(User owner, String name);
 
     List<Recipe> findByIdIn(Collection<Long> ids);
 

@@ -7,32 +7,70 @@ enum LibrarySearchScope {
     EVERYONE
 }
 
+input LibrarySearch {
+    """The scope to search within, 'only mine' by default.
+    """
+    scope: LibrarySearchScope! = MINE
+    """The textual query to filter results by. Can include simple words, as
+    well as quoted phrases.
+    """
+    query: String! = ""
+    """Only return results which include at least one of these ingredients. An
+    empty list means "unconstrained".
+    """
+    ingredients: [ID!]! = []
+    """How many results to return. If not specified, 10 will be returned.
+    """
+    first: NonNegativeInt! = 10
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
+input SuggestionSearch {
+    """How many results to return. If not specified, 5 will be returned.
+    """
+    first: NonNegativeInt! = 5
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
 type LibraryQuery {
     """Search the recipe library.
     """
     recipes(
-        """The scope to search for recipes within.
+        search: LibrarySearch
+        """The scope to search for recipes within. Prefer `search.scope`.
         """
         scope: LibrarySearchScope! = MINE
         """The textual query to filter results by. Can include simple words, as
-        well as quoted phrases.
+        well as quoted phrases. Prefer `search.query`.
         """
         query: String! = ""
-        """Ingredient(s) to include. Missing/empty means "all".
+        """Only return results which include at least one of these ingredients.
+        An empty list means "unconstrained". Prefer `search.ingredients`.
         """
         ingredients: [ID!]! = []
         """How many recipes to return in the connection. If not specified, 10
-        will be returned.
+        will be returned.  Prefer `search.first`.
         """
         first: NonNegativeInt! = 10
         """Cursor to find results after. This should be omitted to retrieve the
-        first page.
+        first page. Prefer `search.after`.
         """
         after: Cursor = null
     ): RecipeConnection!
 
+    """Search for sections of recipes.
+    """
+    sections(search: LibrarySearch!): SectionConnection!
+
     suggestRecipesToCook(
+        search: SuggestionSearch
+        "Prefer `search.first`."
         first: NonNegativeInt! = 5
+        "Prefer `search.after`."
         after: Cursor = null
     ): RecipeConnection!
 
@@ -120,6 +158,16 @@ type RecipeConnectionEdge {
     cursor: Cursor!
 }
 
+type SectionConnection {
+    edges: [SectionConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
+type SectionConnectionEdge {
+    node: Section!
+    cursor: Cursor!
+}
+
 interface Ingredient implements Node {
     id: ID!
     name: String!
@@ -138,13 +186,22 @@ type Recipe implements Node & Owned & Ingredient {
     name: String!
     externalUrl: String
     directions: String
+    """Ingredients which are part of the recipe. Ingredients and sections are
+    disjoint.
+    """
     ingredients(
         """Ingredient(s) to include. Missing/empty means "all".
         """
         ingredients: [ID!]! = []
     ): [IngredientRef!]!
+    """Sections of the recipe, owned or by reference. Use `sectionOf` if you
+    need to differentiate. Sections and ingredients are disjoint.
+    """
+    sections: [Section!]!
     """All subrecipes. Multiple layers of nested recipes are flattened, and the
-    contextual recipe is not included.
+    contextual recipe is not included. This does not include sections (owned or
+    unowned) of the contextual recipe, only recipe-as-ingredient, but sections
+    of those subrecipes _are_ included.
     """
     subrecipes: [Recipe!]!
     labels: [String!]
@@ -172,6 +229,18 @@ type Recipe implements Node & Owned & Ingredient {
     share: ShareInfo!
 }
 
+type Section implements Node {
+    id: ID!
+    """The recipe this section belongs to, if owned. When a top-level recipe is
+    used as a section, this will be null.
+    """
+    sectionOf: Recipe
+    name: String!
+    directions: String
+    ingredients: [IngredientRef!]!
+    labels: [String!]
+}
+
 type Photo {
     url: String!
     focus: [Float!]
@@ -193,6 +262,7 @@ type UnitOfMeasure implements Node {
     id: ID!
     name: String!
 }
+
 enum Rating {
     ONE_STAR
     TWO_STARS
@@ -281,12 +351,14 @@ type RecipeHistoryMutation {
 }
 
 input IngredientInfo {
+    id: ID
     type: String!
     name: String!
     storeOrder: Int
     externalUrl: String
     directions: String
     ingredients: [IngredientRefInfo!]
+    sections: [SectionInfo!]
     labels: [String!]
     yield: Int
     calories: Int
@@ -300,8 +372,19 @@ input IngredientRefInfo {
     raw: String!
     quantity: Float
     units: String
-    uomId: Long
+    uomId: ID
     ingredient: String
-    ingredientId: Long
+    ingredientId: ID
     preparation: String
+}
+
+input SectionInfo {
+    """Id of the section, owned or by reference. Unsaved owned sections have
+    null. By reference sections will have no other fields populated.
+    """
+    id: ID
+    name: String
+    directions: String
+    ingredients: [IngredientRefInfo!]
+    labels: [String!]
 }

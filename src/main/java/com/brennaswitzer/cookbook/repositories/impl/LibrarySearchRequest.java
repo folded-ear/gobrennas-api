@@ -9,16 +9,22 @@ import org.springframework.data.domain.Sort;
 import java.util.Set;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class LibrarySearchRequest implements SearchRequest {
 
     LibrarySearchScope scope;
+    LibrarySearchType type;
     User user;
     String filter;
     Set<Long> ingredientIds;
     int offset;
     int limit;
     Sort sort;
+
+    public LibrarySearchType getType() {
+        if (type != null) return type;
+        return LibrarySearchType.TOP_LEVEL_RECIPE;
+    }
 
     public boolean isFiltered() {
         return filter != null && !filter.isBlank();

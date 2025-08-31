@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.loaders.FavKey;
 import com.brennaswitzer.cookbook.graphql.loaders.IsFavoriteBatchLoader;
+import com.brennaswitzer.cookbook.graphql.model.Section;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.mapper.LabelMapper;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
@@ -28,8 +29,10 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.function.Predicate.not;
 
 @Component
 public class RecipeResolver implements GraphQLResolver<Recipe> {
@@ -52,7 +55,7 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
         return recipe.getLabels()
                 .stream()
                 .map(labelMapper::labelToString)
-                .collect(toList());
+                .toList();
     }
 
     public CompletableFuture<Boolean> favorite(Recipe recipe,
@@ -70,19 +73,24 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
     }
 
     public List<IngredientRef> ingredients(Recipe recipe, Set<Long> ingredientIds) {
-        if (ingredientIds == null || ingredientIds.isEmpty()) {
-            return recipe.getIngredients();
-        }
-        return recipe.getIngredients()
+        Stream<IngredientRef> allIngredients = recipe.getIngredients()
                 .stream()
-                .filter(r -> r.hasIngredient()
-                             && ingredientIds.contains(r.getIngredient().getId()))
+                .filter(not(Section::isSection));
+        if (ingredientIds != null && !ingredientIds.isEmpty()) {
+            allIngredients = allIngredients
+                    .filter(r -> r.hasIngredient()
+                                 && ingredientIds.contains(r.getIngredient().getId()));
+        }
+        return allIngredients
                 .toList();
     }
 
     public Collection<Recipe> subrecipes(Recipe recipe) {
         Collection<Recipe> result = new LinkedHashSet<>();
-        Queue<IngredientRef> queue = new LinkedList<>(recipe.getIngredients());
+        Queue<IngredientRef> queue = recipe.getIngredients()
+                .stream()
+                .filter(not(IngredientRef::isSection))
+                .collect(Collectors.toCollection(LinkedList::new));
         while (!queue.isEmpty()) {
             IngredientRef ir = queue.remove();
             if (!ir.hasIngredient()) continue;
@@ -116,6 +124,14 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
 
     public ShareInfo share(Recipe recipe) {
         return shareHelper.getInfo(Recipe.class, recipe);
+    }
+
+    public List<Section> sections(Recipe recipe) {
+        return recipe.getIngredients()
+                .stream()
+                .filter(Section::isSection)
+                .map(Section::from)
+                .toList();
     }
 
     private Predicate<PlannedRecipeHistory> ofStatus(PlanItemStatus status) {

@@ -19,12 +19,14 @@ public interface PlannedRecipeHistoryRepository extends BaseEntityRepository<Pla
      * ago will contribute a quarter as much as today.
      */
     @Query(value = """
-                   SELECT recipe_id
-                     FROM planned_recipe_history
-                    WHERE owner_id = :userId
-                      AND status_id = 100 -- completed
-                    GROUP BY recipe_id
-                    ORDER BY SUM(EXP(LN(0.5) / 60 * (CURRENT_DATE - CAST(done_at AS DATE))) * COALESCE(rating, 3)) DESC
+                   SELECT h.recipe_id
+                     FROM planned_recipe_history h
+                              JOIN ingredient i ON h.recipe_id = i.id
+                    WHERE h.owner_id = :userId
+                      AND h.status_id = 100 -- completed
+                      AND i.section_of_id IS NULL -- not an owned section
+                    GROUP BY h.recipe_id
+                    ORDER BY SUM(EXP(LN(0.5) / 60 * (CURRENT_DATE - CAST(h.done_at AS DATE))) * COALESCE(h.rating, 3)) DESC
                            , 1
                     LIMIT :limit
                    OFFSET :offset

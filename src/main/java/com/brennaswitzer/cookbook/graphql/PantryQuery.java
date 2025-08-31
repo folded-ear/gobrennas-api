@@ -10,6 +10,12 @@ import com.brennaswitzer.cookbook.repositories.impl.SortDir;
 import com.brennaswitzer.cookbook.services.IngredientService;
 import com.brennaswitzer.cookbook.services.PantryItemService;
 import graphql.relay.Connection;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -20,16 +26,92 @@ import java.util.Collection;
 import java.util.List;
 
 @Component
-public class PantryQuery extends PagingQuery {
+public class PantryQuery {
 
     private static final int DEFAULT_LIMIT = 25;
     private static final String DUPLICATE_PREFIX = "duplicates:";
+
+    @Data
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @Builder
+    public static class PantrySearch implements GqlSearch {
+
+        String query;
+        String sortBy;
+        SortDir sortDir;
+        int first;
+        OffsetConnectionCursor after;
+
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        transient List<String> filterTerms;
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        transient Long duplicateOf;
+
+        public List<String> getFilterTerms() {
+            processQuery();
+            return filterTerms;
+        }
+
+        public Long getDuplicateOf() {
+            processQuery();
+            return duplicateOf;
+        }
+
+        public Sort getSort() {
+            if (sortBy == null || sortBy.isBlank()) return null;
+            Sort.Direction dir = SortDir.DESC == sortDir
+                    ? Sort.Direction.DESC
+                    : Sort.Direction.ASC;
+            return Sort.by(dir, sortBy);
+        }
+
+        private void processQuery() {
+            if (filterTerms != null) return;
+            String[] rawTerms = query.split(" +");
+            filterTerms = new ArrayList<>(rawTerms.length);
+            for (var t : rawTerms) {
+                if (t.startsWith(DUPLICATE_PREFIX)) {
+                    if (duplicateOf != null) {
+                        throw new IllegalArgumentException(String.format(
+                                "Only one '%s' term is allowed, but '%s' has more",
+                                DUPLICATE_PREFIX,
+                                query));
+                    }
+                    String id = t.substring(DUPLICATE_PREFIX.length());
+                    try {
+                        duplicateOf = Long.valueOf(id);
+                    } catch (NumberFormatException nfe) {
+                        throw new IllegalArgumentException(String.format(
+                                "Cannot parse '%s' as an item ID.",
+                                id));
+                    }
+                } else {
+                    filterTerms.add(t);
+                }
+            }
+        }
+
+    }
 
     @Autowired
     private PantryItemService pantryItemService;
 
     @Autowired
     private IngredientService ingredientService;
+
+    public Connection<PantryItem> pantryItems(PantrySearch search) {
+        SearchResponse<PantryItem> rs = pantryItemService.search(
+                PantryItemSearchRequest.builder()
+                        .filter(String.join(" ", search.getFilterTerms()))
+                        .duplicateOf(search.getDuplicateOf())
+                        .sort(search.getSort())
+                        .offset(search.getOffset())
+                        .limit(search.getFirst())
+                        .build());
+        return new OffsetConnection<>(rs);
+    }
 
     public Connection<PantryItem> search(
             String query,
@@ -38,32 +120,13 @@ public class PantryQuery extends PagingQuery {
             Integer first,
             OffsetConnectionCursor after
     ) {
-        String[] rawTerms = query.split(" +");
-        List<String> filterTerms = new ArrayList<>(rawTerms.length);
-        Long duplicateOf = null;
-        for (var t : rawTerms) {
-            if (t.startsWith(DUPLICATE_PREFIX)) {
-                String id = t.substring(DUPLICATE_PREFIX.length());
-                try {
-                    duplicateOf = Long.valueOf(id);
-                } catch (NumberFormatException nfe) {
-                    throw new IllegalArgumentException(String.format(
-                            "Cannot parse '%s' as an item ID.",
-                            id));
-                }
-            } else {
-                filterTerms.add(t);
-            }
-        }
-        SearchResponse<PantryItem> rs = pantryItemService.search(
-                PantryItemSearchRequest.builder()
-                        .filter(String.join(" ", filterTerms))
-                        .duplicateOf(duplicateOf)
-                        .sort(getSort(sortBy, sortDir))
-                        .offset(getOffset(after))
-                        .limit(getLimit(first))
-                        .build());
-        return new OffsetConnection<>(rs);
+        return pantryItems(PantrySearch.builder()
+                                   .query(query)
+                                   .sortBy(sortBy)
+                                   .sortDir(sortDir)
+                                   .first(first)
+                                   .after(after)
+                                   .build());
     }
 
     public Collection<Ingredient> bulkIngredients(Collection<Long> ids) {
@@ -72,18 +135,6 @@ public class PantryQuery extends PagingQuery {
 
     public Iterable<PantryItem> updatedSince(Long cutoff) {
         return pantryItemService.findAllByUpdatedAtIsAfter(Instant.ofEpochMilli(cutoff));
-    }
-
-    private Sort getSort(String sortBy, SortDir sortDir) {
-        if (sortBy == null || sortBy.isBlank()) return null;
-        Sort.Direction dir = SortDir.DESC == sortDir
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC;
-        return Sort.by(dir, sortBy);
-    }
-
-    private int getLimit(Integer first) {
-        return first == null || first <= 0 ? DEFAULT_LIMIT : first;
     }
 
 }

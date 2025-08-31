@@ -2,9 +2,14 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 
-abstract class PagingQuery {
+public interface GqlSearch {
 
-    protected int getOffset(OffsetConnectionCursor after) {
+    int getFirst();
+
+    OffsetConnectionCursor getAfter();
+
+    default int getOffset() {
+        OffsetConnectionCursor after = getAfter();
         return after == null
                 ? 0
                 : after.getOffset() + 1;

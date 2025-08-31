@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import net.fortuna.ical4j.data.CalendarOutputter;
+import net.fortuna.ical4j.data.FoldingWriter;
 import net.fortuna.ical4j.model.Calendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 @RestController
 @RequestMapping({ "/shared/plan" })
@@ -56,11 +58,25 @@ public class SharedPlanController {
                     "Plan Not Found",
                     enfe);
         }
+        boolean textOutput = "txt".equals(ext);
         response.addHeader(HttpHeaders.CONTENT_TYPE,
-                           "txt".equals(ext) ? "text/plain" : "text/calendar");
-        new CalendarOutputter(calendarProperties.isValidate())
-                .output(calendar,
-                        response.getWriter());
+                           textOutput ? "text/plain" : "text/calendar");
+        if (textOutput) {
+            writeAsText(calendar, response.getWriter());
+        } else {
+            new CalendarOutputter(calendarProperties.isValidate())
+                    .output(calendar,
+                            response.getWriter());
+        }
+    }
+
+    private void writeAsText(Calendar calendar, PrintWriter out) throws IOException {
+        calendar.validate();
+        try (FoldingWriter writer = new FoldingWriter(out, FoldingWriter.REDUCED_FOLD_LENGTH)) {
+            writer.write(calendar.toString()
+                                 .replaceAll("BEGIN:VEVENT", "\nBEGIN:VEVENT")
+                                 .replaceAll("\\\\n", "\\\\n\n "));
+        }
     }
 
 }

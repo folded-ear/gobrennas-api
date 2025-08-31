@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -60,7 +61,8 @@ public class RecipeSearchRepositoryImplTest {
         doReturn(query)
                 .when(entityManager)
                 .createNativeQuery(any(), eq(Recipe.class));
-        doReturn(2L)
+        // only used when no query is provided.
+        lenient().doReturn(2L)
                 .when(user)
                 .getId();
     }
@@ -121,8 +123,6 @@ public class RecipeSearchRepositoryImplTest {
         verify(entityManager)
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
         verify(query)
-                .setParameter(eq("userId"), eq(2L));
-        verify(query)
                 .setParameter(eq("query"), queryCaptor.capture());
         assertEquals(tsquery, queryCaptor.getValue());
         verify(query, never())
@@ -159,8 +159,6 @@ public class RecipeSearchRepositoryImplTest {
 
         verify(entityManager)
                 .createNativeQuery(sqlCaptor.capture(), eq(Recipe.class));
-        verify(query)
-                .setParameter(eq("userId"), eq(2L));
         verify(query)
                 .setParameter(eq("ownerIds"), eq(Set.of(2L)));
         verify(query)

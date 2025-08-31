@@ -1,10 +1,12 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
+import com.brennaswitzer.cookbook.repositories.impl.SearchResponseImpl;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.junit.jupiter.api.Test;
@@ -13,8 +15,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -174,6 +184,67 @@ class RecipeServiceTest {
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
+    }
+
+    @Test
+    void addOwnedSection() {
+        Recipe pizza = new Recipe();
+        Recipe crust = new Recipe();
+
+        pizza.addOwnedSection(crust);
+
+        assertEquals(pizza, crust.getSectionOf());
+        assertEquals(List.of(crust), pizza.getOwnedSections());
+        Iterator<IngredientRef> itr = pizza.getIngredients().iterator();
+        IngredientRef ref = itr.next();
+        assertFalse(itr.hasNext(), "expected only one ingredient");
+        assertTrue(ref.isSection());
+        assertEquals(crust, ref.getIngredient());
+    }
+
+    @Test
+    void removeOwnedSection_orphan() {
+        Recipe pizza = new Recipe();
+        Recipe crust = new Recipe();
+        crust.setId(123L);
+        pizza.addOwnedSection(crust);
+        when(recipeRepository.searchRecipes(any()))
+                .thenReturn(SearchResponseImpl.<Recipe>builder()
+                                    .content(List.of(pizza))
+                                    .build());
+
+        service.removeOwnedSection(crust);
+
+        assertEquals(List.of(),
+                     pizza.getOwnedSections());
+        assertEquals(List.of(),
+                     pizza.getIngredients());
+        verify(recipeRepository).delete(crust);
+    }
+
+    @Test
+    void removeOwnedSection_rehome() {
+        Recipe pizza = new Recipe();
+        Recipe pie = new Recipe();
+        Recipe crust = new Recipe();
+        crust.setId(123L);
+        pizza.addOwnedSection(crust);
+        pie.addIngredient(crust) // by reference section
+                .setSection(true);
+        when(recipeRepository.searchRecipes(any()))
+                .thenReturn(SearchResponseImpl.<Recipe>builder()
+                                    .content(List.of(pizza, pie))
+                                    .build());
+
+        service.removeOwnedSection(crust);
+
+        assertEquals(List.of(),
+                     pizza.getOwnedSections());
+        assertEquals(List.of(),
+                     pizza.getIngredients());
+        assertEquals(List.of(crust),
+                     pie.getOwnedSections()); // became an owned section
+        verify(recipeRepository, never()).delete(any());
     }
 
 }

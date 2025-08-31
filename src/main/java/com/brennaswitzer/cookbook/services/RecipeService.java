@@ -116,8 +116,42 @@ public class RecipeService {
         Recipe recipe = getMyRecipe(id);
         removePhotoInternal(recipe);
         planService.severLibraryLinks(recipe);
+        while (!recipe.getOwnedSections().isEmpty()) {
+            removeOwnedSection(recipe.getOwnedSections()
+                                       .iterator()
+                                       .next());
+        }
         recipeRepository.delete(recipe);
         return recipe;
+    }
+
+    /**
+     * I change the passed section's owning recipe. If the section is not
+     * referenced by any other recipes, it is deleted.
+     */
+    public void removeOwnedSection(Recipe section) {
+        Recipe sectionOf = section.getSectionOf();
+        if (sectionOf == null) {
+            throw new IllegalStateException(String.format(
+                    "Cannot remove non-owned section '%s' (%s)",
+                    section.getId(),
+                    section.getName()));
+        }
+        recipeRepository.searchRecipes(
+                        LibrarySearchRequest.builder()
+                                .user(sectionOf.getOwner())
+                                .ingredientIds(Set.of(section.getId()))
+                                .build())
+                .getContent()
+                .stream()
+                .filter(r -> !sectionOf.equals(r))
+                .findFirst()
+                .ifPresentOrElse(
+                        r -> r.addOwnedSection(section),
+                        () -> {
+                            sectionOf.removeOwnedSection(section);
+                            recipeRepository.delete(section);
+                        });
     }
 
     private final class SetPhoto {
@@ -213,19 +247,34 @@ public class RecipeService {
                 scale);
     }
 
+    /**
+     * @deprecated prefer {@link #searchLibrary}
+     */
+    @Deprecated
     public SearchResponse<Recipe> searchRecipes(LibrarySearchScope scope,
                                                 String filter,
                                                 Set<Long> ingredientIds,
                                                 int offset,
                                                 int limit) {
-        return recipeRepository.searchRecipes(
+        return searchInternal(
                 LibrarySearchRequest.builder()
-                        .user(principalAccess.getUser())
                         .scope(scope)
                         .filter(filter)
                         .ingredientIds(ingredientIds)
                         .offset(offset)
-                        .limit(limit)
+                        .limit(limit));
+    }
+
+    public SearchResponse<Recipe> searchLibrary(
+            LibrarySearchRequest req) {
+        return searchInternal(req.toBuilder());
+    }
+
+    private SearchResponse<Recipe> searchInternal(
+            LibrarySearchRequest.LibrarySearchRequestBuilder reqBuilder) {
+        return recipeRepository.searchRecipes(
+                reqBuilder
+                        .user(principalAccess.getUser())
                         .build());
     }
 

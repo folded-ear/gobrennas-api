@@ -208,6 +208,13 @@ CREATE INDEX idx_pantry_item_fulltext ON ingredient
     USING GIN (fulltext, owner_id)
     WHERE dtype = 'PantryItem';
 
+--changeset barneyb:tsvector_agg
+CREATE AGGREGATE tsvector_agg(tsvector) (
+    STYPE = pg_catalog.tsvector,
+    SFUNC = pg_catalog.tsvector_concat,
+    INITCOND = ''
+    );
+
 --changeset barneyb:q_ingredient_fulltext_handler splitStatements:false runOnChange:true
 CREATE OR REPLACE FUNCTION q_ingredient_fulltext_handler(id BIGINT) RETURNS VOID AS
 $$
@@ -241,9 +248,18 @@ BEGIN
                                     FROM recipe_ingredients link
                                              JOIN pantry_item_synonyms syn ON link.ingredient_id = syn.pantry_item_id
                                     WHERE recipe_id = ingredient.id), '')), 'C') ||
-                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.directions, '')), 'D')
+                           SETWEIGHT(TO_TSVECTOR('en', COALESCE(ingredient.directions, '')), 'D') ||
+                           (SELECT tsvector_agg(sec.fulltext)
+                              FROM ingredient sec
+                             WHERE sec.section_of_id = ingredient.id)
                        END
     WHERE ingredient.id = q_ingredient_fulltext_handler.id;
+
+    -- if an owned section, reprocess the owner
+    PERFORM q_ingredient_fulltext_handler(ing.section_of_id)
+       FROM ingredient ing
+      WHERE ing.id = q_ingredient_fulltext_handler.id
+        AND ing.section_of_id IS NOT NULL;
 END
 $$ LANGUAGE plpgsql;
 

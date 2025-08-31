@@ -17,6 +17,7 @@ public class PostgresFullTextQueryConverterTest {
                         "chicken thighs"        , chicken <-> thighs
                         celery "chicken thighs" , celery:* | chicken <-> thighs
                         'a b' "c d" e 'f "g     , a <-> b | c <-> d | e:* | f:* | g:*
+                        a (!not | pipe & amp)  , a:* | not:* | pipe:* | amp:*
                         """)
     public void filterConversion(String input, String expected) {
         String actual = new PostgresFullTextQueryConverter()
