@@ -10,7 +10,6 @@ import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
-import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
@@ -49,14 +48,6 @@ public class RecipeService {
     @Autowired
     private ScratchSpace scratchSpace;
 
-    public Recipe createNewRecipe(Recipe recipe) {
-        return createNewRecipe(recipe, null);
-    }
-
-    public Recipe createNewRecipe(Recipe recipe, Upload photo) {
-        return createNewRecipe(recipe, null, photo);
-    }
-
     public Recipe createNewRecipe(Recipe recipe, IngredientInfo info, Upload photo) {
         recipe.setOwner(principalAccess.getUser());
         recipe = recipeRepository.save(recipe);
@@ -74,23 +65,11 @@ public class RecipeService {
         return recipe;
     }
 
-    public Recipe updateRecipe(Recipe recipe) {
-        return this.updateRecipe(recipe, null);
-    }
-
-    public Recipe updateRecipe(Recipe recipe, Upload photo) {
-        return updateRecipe(recipe, null, photo);
-    }
-
     public Recipe updateRecipe(Recipe recipe, IngredientInfo info, Upload photo) {
         getMyRecipe(recipe.getId());
         new SetPhoto(info, photo)
                 .set(recipe);
         return recipeRepository.save(recipe);
-    }
-
-    public Recipe setRecipePhoto(Long id, Upload photo) {
-        return setRecipePhoto(id, null, null, photo);
     }
 
     public Recipe setRecipePhoto(Long id, String photoFilename, float[] photoFocus, Upload photo) {
@@ -245,24 +224,6 @@ public class RecipeService {
                 planId,
                 recipeRepository.findById(recipeId).get(),
                 scale);
-    }
-
-    /**
-     * @deprecated prefer {@link #searchLibrary}
-     */
-    @Deprecated
-    public SearchResponse<Recipe> searchRecipes(LibrarySearchScope scope,
-                                                String filter,
-                                                Set<Long> ingredientIds,
-                                                int offset,
-                                                int limit) {
-        return searchInternal(
-                LibrarySearchRequest.builder()
-                        .scope(scope)
-                        .filter(filter)
-                        .ingredientIds(ingredientIds)
-                        .offset(offset)
-                        .limit(limit));
     }
 
     public SearchResponse<Recipe> searchLibrary(
