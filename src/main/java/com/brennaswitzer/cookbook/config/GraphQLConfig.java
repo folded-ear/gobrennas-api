@@ -1,45 +1,29 @@
 package com.brennaswitzer.cookbook.config;
 
 import com.brennaswitzer.cookbook.graphql.support.OffsetConnectionCursorCoercing;
-import com.brennaswitzer.cookbook.security.UserPrincipal;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import graphql.execution.AsyncExecutionStrategy;
+import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.ResultPath;
-import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
-import graphql.kickstart.execution.config.DefaultExecutionStrategyProvider;
-import graphql.kickstart.execution.config.ExecutionStrategyProvider;
-import graphql.kickstart.execution.context.DefaultGraphQLContext;
-import graphql.kickstart.execution.context.GraphQLKickstartContext;
-import graphql.kickstart.servlet.context.GraphQLServletContextBuilder;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.HandshakeRequest;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.dataloader.BatchLoader;
-import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderOptions;
-import org.dataloader.DataLoaderRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.graphql.GraphQlSourceBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.graphql.execution.RuntimeWiringConfigurer;
+import org.springframework.graphql.execution.DataFetcherExceptionResolver;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Configuration
@@ -86,88 +70,32 @@ public class GraphQLConfig {
     }
 
     @Bean
-    public RuntimeWiringConfigurer runtimeWiringConfigurer(
-            Collection<GraphQLScalarType> scalars) {
-        return wiringBuilder -> scalars.forEach(wiringBuilder::scalar);
-    }
-
-    @Bean
-    public GraphQlSourceBuilderCustomizer sourceBuilderCustomizer(
-            DataLoaderRegistry dataLoadRegistry,
-            UserPrincipalAccess principalAccess) {
-        return srb -> {
-            srb.inspectSchemaMappings(report -> log.info("{}", report));
-        };
-    }
-
-    @Bean
-    public GraphQLServletContextBuilder graphQLServletContextBuilder(
-            DataLoaderRegistry dataLoadRegistry,
-            UserPrincipalAccess principalAccess) {
-        return new GraphQLServletContextBuilder() {
-            @Override
-            public GraphQLKickstartContext build() {
-                return new DefaultGraphQLContext(dataLoadRegistry);
-            }
-
-            @Override
-            public GraphQLKickstartContext build(HttpServletRequest request, HttpServletResponse response) {
-                Map<Object, Object> map = new HashMap<>();
-                map.put(HttpServletRequest.class, request);
-                map.put(HttpServletResponse.class, response);
-                // Spring Security's holder will always be available at this
-                // point in execution. Get the Principal - if it exists - now,
-                // so it's available to resolvers. They can decide if its
-                // required or not, as well as inflate to a full User (so they
-                // deal with session and transaction demarcation).
-                principalAccess.findUserPrincipal()
-                        .ifPresent(p -> map.put(UserPrincipal.class, p));
-                return new DefaultGraphQLContext(dataLoadRegistry, map);
-            }
-
-            @Override
-            public GraphQLKickstartContext build(Session session, HandshakeRequest handshakeRequest) {
-                throw new UnsupportedOperationException("GoBrenna's doesn't yet speak websockets. Again.");
-            }
-        };
-    }
-
-    @Bean
-    public DataLoaderDispatcherInstrumentation dataLoaderDispatcherInstrumentation() {
-        return new DataLoaderDispatcherInstrumentation();
-    }
-
-    @Bean
-    public DataLoaderRegistry dataLoadRegistry(Collection<BatchLoader<?, ?>> batchLoaders) {
-        DataLoaderOptions dataLoaderOptions = new DataLoaderOptions()
-                .setCachingEnabled(false)
-                .setCachingExceptionsEnabled(false)
-                .setMaxBatchSize(10_000);
-        DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
-        batchLoaders.forEach(l -> dataLoaderRegistry.register(
-                l.getClass().getName(),
-                DataLoaderFactory.newDataLoader(l, dataLoaderOptions)));
-        return dataLoaderRegistry;
-    }
-
-    @Bean
-    public ExecutionStrategyProvider executionStrategyProvider(
-            TransactionTemplate mutationTmpl) {
-        // Making this a proper bean gave cyclic dependency errors for reasons
-        // I decided not to try and figure out. The warning is for IntelliJ's
-        // massive over-aggro application of @NotNull to places where library
-        // authors omitted it. In this case, Spring explicitly says the passed
-        // definition must be non-null, but leaves the manager nullable. But
-        // IntelliJ doesn't care about Spring's opinion, so have to suppress it.
+    GraphQlSourceBuilderCustomizer sourceBuilderCustomizer(
+            Collection<GraphQLScalarType> scalars,
+            TransactionTemplate mutationTmpl,
+            ObjectProvider<DataFetcherExceptionResolver> resolvers) {
+        // The warning is for IntelliJ's over-aggro application of @NotNull to
+        // places where library authors omitted it. In this case, Spring
+        // explicitly says the passed definition must be non-null, but leaves
+        // the manager nullable. IntelliJ doesn't care about Spring's opinion,
+        // so have to suppress it.
         @SuppressWarnings("DataFlowIssue")
         TransactionTemplate queryTmpl = new TransactionTemplate(
                 mutationTmpl.getTransactionManager(),
                 mutationTmpl);
-        queryTmpl.setReadOnly(true);
-        return new DefaultExecutionStrategyProvider(
-                transactionalExecutionStrategy(queryTmpl),
-                transactionalExecutionStrategy(mutationTmpl),
-                null);
+
+        DataFetcherExceptionHandler exceptionHandler =
+                DataFetcherExceptionResolver.createExceptionHandler(resolvers.stream().toList());
+
+        ExecutionStrategy queryStrat = transactionalExecutionStrategy(queryTmpl, exceptionHandler);
+        ExecutionStrategy mutationStrat = transactionalExecutionStrategy(mutationTmpl, exceptionHandler);
+
+        return sourceBuilder -> sourceBuilder
+                .configureGraphQl(builder -> builder
+                        .queryExecutionStrategy(queryStrat)
+                        .mutationExecutionStrategy(mutationStrat))
+                .configureRuntimeWiring(wiring -> scalars.forEach(wiring::scalar))
+                .inspectSchemaMappings(report -> log.info("{}", report));
     }
 
     /*
@@ -187,16 +115,17 @@ public class GraphQLConfig {
      raise an Exception, because it's now explicit.
     */
     private ExecutionStrategy transactionalExecutionStrategy(
-            TransactionTemplate txTmpl
+            TransactionTemplate txTmpl,
+            DataFetcherExceptionHandler exceptionHandler
     ) {
-        return new AsyncExecutionStrategy() {
+        return new AsyncExecutionStrategy(exceptionHandler) {
             @Override
             public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext,
                                                               ExecutionStrategyParameters parameters) {
                 return txTmpl.execute(tx -> {
                     val result = super.execute(executionContext, parameters);
-                    if (tx.isNewTransaction() && tx instanceof DefaultTransactionStatus) {
-                        if (((DefaultTransactionStatus) tx).isGlobalRollbackOnly()) {
+                    if (tx.isNewTransaction() && tx instanceof DefaultTransactionStatus dtx) {
+                        if (dtx.isGlobalRollbackOnly()) {
                             tx.setRollbackOnly();
                             // What Spring would have raised
                             val ure = new UnexpectedRollbackException(

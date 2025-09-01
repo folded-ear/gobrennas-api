@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
-import com.brennaswitzer.cookbook.domain.FavoriteType;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Label;
@@ -8,13 +7,9 @@ import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
-import com.brennaswitzer.cookbook.graphql.loaders.FavKey;
-import com.brennaswitzer.cookbook.graphql.loaders.IsFavoriteBatchLoader;
 import com.brennaswitzer.cookbook.graphql.model.Section;
-import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.util.ShareHelper;
-import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -28,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,15 +51,6 @@ public class RecipeResolver {
                 .stream()
                 .map(Label::getName)
                 .toList();
-    }
-
-    @SchemaMapping
-    public CompletableFuture<Boolean> favorite(Recipe recipe,
-                                               DataFetchingEnvironment env) {
-        return env.<FavKey, Boolean>getDataLoader(IsFavoriteBatchLoader.class.getName())
-                .load(new FavKey(PrincipalUtil.from(env).getId(),
-                                 FavoriteType.RECIPE,
-                                 recipe.getId()));
     }
 
     @SchemaMapping

@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.impl.SearchResponseImpl;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
@@ -49,7 +50,7 @@ class RecipeServiceTest {
         when(recipeRepository.save(input))
                 .thenReturn(saved);
 
-        Recipe result = service.createNewRecipe(input, null);
+        Recipe result = service.createNewRecipe(input, new IngredientInfo());
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
@@ -72,7 +73,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(saved, null);
+        Recipe result = service.updateRecipe(saved, new IngredientInfo());
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
@@ -93,7 +94,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(input, null);
+        Recipe result = service.updateRecipe(input, new IngredientInfo());
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);

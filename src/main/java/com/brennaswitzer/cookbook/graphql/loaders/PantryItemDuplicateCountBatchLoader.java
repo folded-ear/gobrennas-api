@@ -2,24 +2,22 @@ package com.brennaswitzer.cookbook.graphql.loaders;
 
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.PantryItemRepository;
-import org.dataloader.BatchLoader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.Map;
 
-@Component
-public class PantryItemDuplicateCountBatchLoader implements BatchLoader<PantryItem, Long> {
+@Controller
+public class PantryItemDuplicateCountBatchLoader {
 
     @Autowired
     private PantryItemRepository pantryItemRepository;
 
-    public CompletionStage<List<Long>> load(List<PantryItem> items) {
-        return CompletableFuture.supplyAsync(() -> items.stream()
-                .map(pantryItemRepository.countDuplicates(items)::get)
-                .toList());
+    @BatchMapping
+    public Map<PantryItem, Long> duplicateCount(List<PantryItem> items) {
+        return pantryItemRepository.countDuplicates(items);
     }
 
 }

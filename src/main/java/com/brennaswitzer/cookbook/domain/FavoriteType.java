@@ -6,7 +6,8 @@ import lombok.ToString;
 @ToString
 @Getter
 public enum FavoriteType {
-    RECIPE(Recipe.class);
+    RECIPE(Recipe.class),
+    ;
 
     private final String key;
 
