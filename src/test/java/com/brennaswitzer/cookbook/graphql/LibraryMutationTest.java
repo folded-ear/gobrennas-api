@@ -5,17 +5,13 @@ import com.brennaswitzer.cookbook.graphql.support.Info2Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.servlet.http.Part;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -23,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -43,17 +38,6 @@ class LibraryMutationTest {
     private DataFetchingEnvironment env;
     @Mock
     private UserPrincipal userPrincipal;
-    @Mock
-    private GraphQLContext graphQLContext;
-
-    @BeforeEach
-    void setUp() {
-        // lenient, since delete and set photo still use UserPrincipalAccess
-        lenient().when(graphQLContext.getOrEmpty(UserPrincipal.class))
-                .thenReturn(Optional.of(userPrincipal));
-        lenient().when(env.getGraphQlContext())
-                .thenReturn(graphQLContext);
-    }
 
     @Test
     void createRecipe_cookThis() {
@@ -66,7 +50,7 @@ class LibraryMutationTest {
         when(recipeService.createNewRecipe(any(), any()))
                 .thenAnswer(iom -> iom.getArgument(0));
 
-        var result = mutation.createRecipe(info, true, env);
+        var result = mutation.createRecipe(info, true, userPrincipal);
 
         assertSame(recipe, result);
         verify(recipeService).createNewRecipe(same(recipe), same(info));
@@ -84,7 +68,7 @@ class LibraryMutationTest {
         when(recipeService.createNewRecipeFrom(any(), any(), any()))
                 .thenAnswer(iom -> iom.getArgument(1));
 
-        var result = mutation.createRecipeFrom(123L, info, env);
+        var result = mutation.createRecipeFrom(123L, info, userPrincipal);
 
         assertSame(recipe, result);
         verify(recipeService).createNewRecipeFrom(eq(123L), same(recipe), same(info));
@@ -96,7 +80,7 @@ class LibraryMutationTest {
         when(info.getId()).thenReturn(456L);
 
         assertThrows(IllegalArgumentException.class,
-                     () -> mutation.createRecipeFrom(123L, info, env));
+                     () -> mutation.createRecipeFrom(123L, info, userPrincipal));
         verifyNoInteractions(info2Recipe);
         verifyNoInteractions(recipeService);
     }
@@ -113,7 +97,7 @@ class LibraryMutationTest {
         when(recipeService.updateRecipe(any(), any()))
                 .thenAnswer(iom -> iom.getArgument(0));
 
-        var result = mutation.updateRecipe(123L, info, env);
+        var result = mutation.updateRecipe(123L, info, userPrincipal);
 
         assertSame(recipe, result);
         verify(info).setId(123L);
@@ -126,7 +110,7 @@ class LibraryMutationTest {
         when(info.getId()).thenReturn(456L);
 
         assertThrows(IllegalArgumentException.class,
-                     () -> mutation.updateRecipe(123L, info, env));
+                     () -> mutation.updateRecipe(123L, info, userPrincipal));
         verifyNoInteractions(info2Recipe);
         verifyNoInteractions(recipeService);
     }

@@ -4,8 +4,6 @@ import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.PlanService;
-import graphql.GraphQLContext;
-import graphql.schema.DataFetchingEnvironment;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,7 +14,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,14 +42,9 @@ class PlannerQueryTest {
                 .thenReturn(Arrays.asList(a, b));
         var principal = mock(UserPrincipal.class);
         when(principal.getId()).thenReturn(123L);
-        var ctx = mock(GraphQLContext.class);
-        when(ctx.getOrEmpty(UserPrincipal.class))
-                .thenReturn(Optional.of(principal));
-        var env = mock(DataFetchingEnvironment.class);
-        when(env.getGraphQlContext()).thenReturn(ctx);
 
         List<Plan> ps = new ArrayList<>();
-        query.plans(env).forEach(ps::add);
+        query.plans(principal).forEach(ps::add);
 
         assertEquals(2, ps.size());
         assertEach(Arrays.asList("A", "B"), ps, Plan::getName);

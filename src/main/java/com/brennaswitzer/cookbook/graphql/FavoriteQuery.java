@@ -1,12 +1,13 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Favorite;
-import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
-import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -18,22 +19,25 @@ public class FavoriteQuery {
     private FetchFavorites fetchFavorites;
 
     @SchemaMapping(typeName = "FavoriteQuery")
-    public List<Favorite> all(DataFetchingEnvironment env) {
-        return fetchFavorites.all(PrincipalUtil.from(env));
+    @PreAuthorize("hasRole('USER')")
+    public List<Favorite> all(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return fetchFavorites.all(userPrincipal);
     }
 
     @SchemaMapping(typeName = "FavoriteQuery")
+    @PreAuthorize("hasRole('USER')")
     public List<Favorite> byType(@Argument String objectType,
-                                 DataFetchingEnvironment env) {
-        return fetchFavorites.byType(PrincipalUtil.from(env),
+                                 @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return fetchFavorites.byType(userPrincipal,
                                      objectType);
     }
 
     @SchemaMapping(typeName = "FavoriteQuery")
+    @PreAuthorize("hasRole('USER')")
     public Favorite byObject(@Argument String objectType,
                              @Argument Long objectId,
-                             DataFetchingEnvironment env) {
-        return fetchFavorites.byObject(PrincipalUtil.from(env),
+                             @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return fetchFavorites.byObject(userPrincipal,
                                        objectType,
                                        objectId)
                 .orElse(null);

@@ -5,18 +5,18 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import com.brennaswitzer.cookbook.graphql.model.Section;
-import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchType;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.IngredientService;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
+import com.brennaswitzer.cookbook.util.NoUserPrincipalException;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import graphql.relay.Connection;
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -25,6 +25,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
@@ -121,17 +123,16 @@ public class LibraryQuery {
     @SchemaMapping(typeName = "LibraryQuery")
     public Recipe getRecipeById(@Argument Long id,
                                 @Argument("secret") String optionalSecret,
-                                DataFetchingEnvironment env) {
-        ensurePrincipalOrSecret(id, optionalSecret, env);
+                                @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        ensurePrincipalOrSecret(id, optionalSecret, userPrincipal);
         return recipeService.findRecipeById(id)
                 .orElseThrow(() -> new EntityNotFoundException("There is no recipe with id: " + id));
     }
 
     @SchemaMapping(typeName = "LibraryQuery")
+    @PreAuthorize("hasRole('USER')")
     public RecognizedItem recognizeItem(@Argument String raw,
-                                        @Argument Integer cursor,
-                                        DataFetchingEnvironment env) {
-        PrincipalUtil.ensurePrincipal(env);
+                                        @Argument Integer cursor) {
         // never request suggestions, so the resolver can process 'count'
         return itemService.recognizeItem(
                 raw,
@@ -163,9 +164,9 @@ public class LibraryQuery {
 
     private void ensurePrincipalOrSecret(Long id,
                                          String optionalSecret,
-                                         DataFetchingEnvironment env) {
-        // this check is much faster than validating the secret
-        if (PrincipalUtil.optionally(env).isPresent()) {
+                                         UserPrincipal userPrincipal) {
+        // If they're authenticated, we're good
+        if (userPrincipal != null) {
             return;
         }
         // anonymous, see if the secret is good
@@ -175,8 +176,8 @@ public class LibraryQuery {
                                          optionalSecret)) {
             return; // woo!
         }
-        // at this point, guaranteed to throw
-        PrincipalUtil.ensurePrincipal(env);
+        // nope!
+        throw new NoUserPrincipalException();
     }
 
 }

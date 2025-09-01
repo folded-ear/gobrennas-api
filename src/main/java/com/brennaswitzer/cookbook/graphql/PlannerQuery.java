@@ -3,12 +3,13 @@ package com.brennaswitzer.cookbook.graphql;
 import com.brennaswitzer.cookbook.domain.CorePlanItem;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
-import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.PlanService;
-import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.time.Instant;
@@ -21,8 +22,9 @@ public class PlannerQuery {
     private PlanService planService;
 
     @SchemaMapping(typeName = "PlannerQuery")
-    Iterable<Plan> plans(DataFetchingEnvironment env) {
-        return planService.getPlans(PrincipalUtil.from(env).getId());
+    @PreAuthorize("hasRole('USER')")
+    Iterable<Plan> plans(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return planService.getPlans(userPrincipal.getId());
     }
 
     @SchemaMapping(typeName = "PlannerQuery")

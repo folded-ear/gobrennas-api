@@ -4,11 +4,12 @@ import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
-import graphql.schema.DataFetchingEnvironment;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -84,14 +85,14 @@ public class Query {
 
     @QueryMapping
     public Object node(@Argument Long id,
-                       DataFetchingEnvironment env) {
+                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return repositories.stream()
                 .map(r -> r.findById(id))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Hibernate::unproxy)
                 .filter(it -> !(it instanceof AccessControlled ac) ||
-                              ac.isPermitted(profile.me(env),
+                              ac.isPermitted(profile.me(userPrincipal),
                                              AccessLevel.VIEW))
                 .findFirst()
                 .orElse(null);
@@ -102,8 +103,8 @@ public class Query {
      */
     @QueryMapping
     @Deprecated
-    public User getCurrentUser(DataFetchingEnvironment env) {
-        return profile.me(env);
+    public User getCurrentUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return profile.me(userPrincipal);
     }
 
 }

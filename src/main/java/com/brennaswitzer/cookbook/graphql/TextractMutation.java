@@ -1,15 +1,16 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
-import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.TextractJobInfo;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.services.textract.TextractService;
-import graphql.schema.DataFetchingEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Slf4j
@@ -23,19 +24,21 @@ public class TextractMutation {
     private StorageService storageService;
 
     @SchemaMapping(typeName = "TextractMutation")
+    @PreAuthorize("hasRole('USER')")
     public TextractJobInfo createPreUploadedJob(@Argument String filename,
-                                                DataFetchingEnvironment env) {
+                                                @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return TextractJobInfo.fromJobWithLines(
                 service.createPreUploadedJob(
-                        PrincipalUtil.from(env),
+                        userPrincipal,
                         filename),
                 storageService);
     }
 
     @SchemaMapping(typeName = "TextractMutation")
+    @PreAuthorize("hasRole('USER')")
     public Deletion deleteJob(@Argument Long id,
-                              DataFetchingEnvironment env) {
-        return Deletion.of(service.deleteJob(PrincipalUtil.from(env),
+                              @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return Deletion.of(service.deleteJob(userPrincipal,
                                              id));
     }
 

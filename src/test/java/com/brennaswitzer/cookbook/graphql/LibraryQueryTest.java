@@ -7,10 +7,7 @@ import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import com.brennaswitzer.cookbook.util.NoUserPrincipalException;
 import com.brennaswitzer.cookbook.util.ShareHelper;
-import graphql.GraphQLContext;
-import graphql.schema.DataFetchingEnvironment;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,106 +35,72 @@ class LibraryQueryTest {
     @Mock
     private ItemService itemService;
     @Mock
-    private DataFetchingEnvironment env;
-    @Mock
-    private GraphQLContext gqlCtx;
-    @Mock
     private ShareHelper shareHelper;
-
-    @BeforeEach
-    void setUp() {
-        authenticated();
-        when(env.getGraphQlContext()).thenReturn(gqlCtx);
-    }
+    @Mock
+    private UserPrincipal userPrincipal;
 
     @Test
     void getRecipeById_anonymous_noSecret() {
-        anonymously();
-
         assertThrows(NoUserPrincipalException.class,
-                     () -> query.getRecipeById(4L, null, env));
+                     () -> query.getRecipeById(4L, null, null));
 
         verifyNoInteractions(recipeService);
     }
 
     @Test
     void getRecipeById_anonymous_wrongSecret() {
-        anonymously();
         when(shareHelper.isSecretValid(any(), any(), any())).thenReturn(false);
 
         assertThrows(NoUserPrincipalException.class,
-                     () -> query.getRecipeById(4L, "garbage", env));
+                     () -> query.getRecipeById(4L, "garbage", null));
 
         verifyNoInteractions(recipeService);
     }
 
     @Test
     void getRecipeById_anonymous_correctSecret() {
-        anonymously();
         when(shareHelper.isSecretValid(Recipe.class, 4L, "secret"))
                 .thenReturn(true);
         when(recipeService.findRecipeById(any()))
                 .thenReturn(Optional.of(mock(Recipe.class)));
 
-        query.getRecipeById(4L, "secret", env);
+        query.getRecipeById(4L, "secret", null);
 
         verify(recipeService).findRecipeById(4L);
     }
 
     @Test
     void getRecipeById_unknown() {
-        authenticated();
         when(recipeService.findRecipeById(any())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class,
-                     () -> query.getRecipeById(4L, null, env));
+                     () -> query.getRecipeById(4L, null, userPrincipal));
 
         verify(recipeService).findRecipeById(4L);
     }
 
     @Test
     void getRecipeById() {
-        authenticated();
         Recipe recipe = mock(Recipe.class);
         when(recipeService.findRecipeById(any())).thenReturn(Optional.of(recipe));
-        assertSame(recipe, query.getRecipeById(4L, null, env));
-    }
-
-    @Test
-    void recognizeItem_anonymous() {
-        anonymously();
-        assertThrows(NoUserPrincipalException.class,
-                     () -> query.recognizeItem("goat", 14, env));
-        verifyNoInteractions(itemService);
+        assertSame(recipe, query.getRecipeById(4L, null, userPrincipal));
     }
 
     @Test
     void recognizeItem_cursor() {
-        authenticated();
-        query.recognizeItem("goat", 14, env);
+        query.recognizeItem("goat", 14);
         verify(itemService).recognizeItem("goat", 14, false);
     }
 
     @Test
     void recognizeItem_noCursor() {
-        authenticated();
         var mock = mock(RecognizedItem.class);
         when(itemService.recognizeItem("goat", 4, false))
                 .thenReturn(mock);
 
-        var result = query.recognizeItem("goat", null, env);
+        var result = query.recognizeItem("goat", null);
 
         assertSame(mock, result);
-    }
-
-    private void authenticated() {
-        when(gqlCtx.getOrEmpty(UserPrincipal.class))
-                .thenReturn(Optional.of(mock(UserPrincipal.class)));
-    }
-
-    private void anonymously() {
-        when(gqlCtx.getOrEmpty(UserPrincipal.class))
-                .thenReturn(Optional.empty());
     }
 
 }
