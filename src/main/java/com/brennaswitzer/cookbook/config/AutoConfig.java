@@ -44,8 +44,6 @@ import org.springframework.boot.autoconfigure.graphql.reactive.GraphQlWebFluxAut
 import org.springframework.boot.autoconfigure.graphql.rsocket.GraphQlRSocketAutoConfiguration;
 import org.springframework.boot.autoconfigure.graphql.rsocket.RSocketGraphQlClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.graphql.security.GraphQlWebFluxSecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.graphql.security.GraphQlWebMvcSecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.graphql.servlet.GraphQlWebMvcAutoConfiguration;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
 import org.springframework.boot.autoconfigure.h2.H2ConsoleAutoConfiguration;
 import org.springframework.boot.autoconfigure.hateoas.HypermediaAutoConfiguration;
@@ -132,8 +130,6 @@ import org.springframework.context.annotation.Configuration;
         GraphQlReactiveQuerydslAutoConfiguration.class,
         GraphQlWebFluxAutoConfiguration.class,
         GraphQlWebFluxSecurityAutoConfiguration.class,
-        GraphQlWebMvcAutoConfiguration.class,
-        GraphQlWebMvcSecurityAutoConfiguration.class,
         GroovyTemplateAutoConfiguration.class,
         H2ConsoleAutoConfiguration.class,
         HazelcastAutoConfiguration.class,

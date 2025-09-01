@@ -14,11 +14,12 @@ import com.brennaswitzer.cookbook.graphql.model.Section;
 import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.util.ShareHelper;
-import graphql.kickstart.tools.GraphQLResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -34,13 +35,15 @@ import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
 
-@Component
-public class RecipeResolver implements GraphQLResolver<Recipe> {
+@Controller
+public class RecipeResolver {
 
     @Autowired
     private ShareHelper shareHelper;
 
-    public Integer totalTime(Recipe recipe, ChronoUnit unit) {
+    @SchemaMapping
+    public Integer totalTime(Recipe recipe,
+                             @Argument ChronoUnit unit) {
         Integer millis = recipe.getTotalTime();
         if (millis == null || unit == ChronoUnit.MILLIS) {
             return millis;
@@ -48,6 +51,7 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
         return millis / (int) unit.getDuration().toMillis();
     }
 
+    @SchemaMapping
     public List<String> labels(Recipe recipe) {
         return recipe.getLabels()
                 .stream()
@@ -55,6 +59,7 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .toList();
     }
 
+    @SchemaMapping
     public CompletableFuture<Boolean> favorite(Recipe recipe,
                                                DataFetchingEnvironment env) {
         return env.<FavKey, Boolean>getDataLoader(IsFavoriteBatchLoader.class.getName())
@@ -63,13 +68,16 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                                  recipe.getId()));
     }
 
+    @SchemaMapping
     public Photo photo(Recipe recipe) {
         return recipe.hasPhoto()
                 ? recipe.getPhoto()
                 : null;
     }
 
-    public List<IngredientRef> ingredients(Recipe recipe, Set<Long> ingredientIds) {
+    @SchemaMapping
+    public List<IngredientRef> ingredients(Recipe recipe,
+                                           @Argument("ingredients") Set<Long> ingredientIds) {
         Stream<IngredientRef> allIngredients = recipe.getIngredients()
                 .stream()
                 .filter(not(Section::isSection));
@@ -82,6 +90,7 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .toList();
     }
 
+    @SchemaMapping
     public Collection<Recipe> subrecipes(Recipe recipe) {
         Collection<Recipe> result = new LinkedHashSet<>();
         Queue<IngredientRef> queue = recipe.getIngredients()
@@ -99,7 +108,9 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
         return result;
     }
 
-    public int plannedCount(Recipe recipe, PlanItemStatus status) {
+    @SchemaMapping
+    public int plannedCount(Recipe recipe,
+                            @Argument PlanItemStatus status) {
         if (status == null) {
             // don't materialize the collection if we don't need to.
             return recipe.getPlanHistory().size();
@@ -110,7 +121,10 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .count();
     }
 
-    public List<PlannedRecipeHistory> plannedHistory(Recipe recipe, PlanItemStatus status, int last) {
+    @SchemaMapping
+    public List<PlannedRecipeHistory> plannedHistory(Recipe recipe,
+                                                     @Argument PlanItemStatus status,
+                                                     @Argument int last) {
         return recipe.getPlanHistory()
                 .stream()
                 .sorted(PlannedRecipeHistory.BY_RECENT)
@@ -119,10 +133,12 @@ public class RecipeResolver implements GraphQLResolver<Recipe> {
                 .toList();
     }
 
+    @SchemaMapping
     public ShareInfo share(Recipe recipe) {
         return shareHelper.getInfo(Recipe.class, recipe);
     }
 
+    @SchemaMapping
     public List<Section> sections(Recipe recipe) {
         return recipe.getIngredients()
                 .stream()

@@ -5,28 +5,33 @@ import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-@Component
+@Controller
 public class FavoriteQuery {
 
     @Autowired
     private FetchFavorites fetchFavorites;
 
+    @SchemaMapping(typeName = "FavoriteQuery")
     public List<Favorite> all(DataFetchingEnvironment env) {
         return fetchFavorites.all(PrincipalUtil.from(env));
     }
 
-    public List<Favorite> byType(String objectType,
+    @SchemaMapping(typeName = "FavoriteQuery")
+    public List<Favorite> byType(@Argument String objectType,
                                  DataFetchingEnvironment env) {
         return fetchFavorites.byType(PrincipalUtil.from(env),
                                      objectType);
     }
 
-    public Favorite byObject(String objectType,
-                             Long objectId,
+    @SchemaMapping(typeName = "FavoriteQuery")
+    public Favorite byObject(@Argument String objectType,
+                             @Argument Long objectId,
                              DataFetchingEnvironment env) {
         return fetchFavorites.byObject(PrincipalUtil.from(env),
                                        objectType,

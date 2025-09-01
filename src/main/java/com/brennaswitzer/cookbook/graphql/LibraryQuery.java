@@ -23,12 +23,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
 import java.util.Set;
 
-@Component
+@Controller
 public class LibraryQuery {
 
     @Data
@@ -87,13 +89,14 @@ public class LibraryQuery {
     @Autowired
     private ShareHelper shareHelper;
 
+    @SchemaMapping(typeName = "LibraryQuery")
     public Connection<Recipe> recipes(
-            LibrarySearch search,
-            LibrarySearchScope scope,
-            String query,
-            Set<Long> ingredients,
-            int first,
-            OffsetConnectionCursor after
+            @Argument LibrarySearch search,
+            @Argument LibrarySearchScope scope,
+            @Argument String query,
+            @Argument Set<Long> ingredients,
+            @Argument int first,
+            @Argument OffsetConnectionCursor after
     ) {
         if (search == null) {
             search = LibrarySearch.builder()
@@ -108,22 +111,25 @@ public class LibraryQuery {
         return new OffsetConnection<>(rs);
     }
 
-    public Connection<Section> sections(LibrarySearch search) {
+    @SchemaMapping(typeName = "LibraryQuery")
+    public Connection<Section> sections(@Argument LibrarySearch search) {
         SearchResponse<Section> rs = recipeService.searchLibrary(search.toSectionRequest())
                 .map(Section::new);
         return new OffsetConnection<>(rs);
     }
 
-    public Recipe getRecipeById(Long id,
-                                String optionalSecret,
+    @SchemaMapping(typeName = "LibraryQuery")
+    public Recipe getRecipeById(@Argument Long id,
+                                @Argument("secret") String optionalSecret,
                                 DataFetchingEnvironment env) {
         ensurePrincipalOrSecret(id, optionalSecret, env);
         return recipeService.findRecipeById(id)
                 .orElseThrow(() -> new EntityNotFoundException("There is no recipe with id: " + id));
     }
 
-    public RecognizedItem recognizeItem(String raw,
-                                        Integer cursor,
+    @SchemaMapping(typeName = "LibraryQuery")
+    public RecognizedItem recognizeItem(@Argument String raw,
+                                        @Argument Integer cursor,
                                         DataFetchingEnvironment env) {
         PrincipalUtil.ensurePrincipal(env);
         // never request suggestions, so the resolver can process 'count'
@@ -133,10 +139,11 @@ public class LibraryQuery {
                 false);
     }
 
+    @SchemaMapping(typeName = "LibraryQuery")
     public Connection<Recipe> suggestRecipesToCook(
-            SuggestionSearch search,
-            int first,
-            OffsetConnectionCursor after) {
+            @Argument SuggestionSearch search,
+            @Argument int first,
+            @Argument OffsetConnectionCursor after) {
         if (search == null) {
             search = SuggestionSearch.builder()
                     .first(first)
@@ -149,7 +156,8 @@ public class LibraryQuery {
         return new OffsetConnection<>(rs);
     }
 
-    public Collection<Ingredient> bulkIngredients(Collection<Long> ids) {
+    @SchemaMapping(typeName = "LibraryQuery")
+    public Collection<Ingredient> bulkIngredients(@Argument Collection<Long> ids) {
         return ingredientService.bulkIngredients(ids);
     }
 

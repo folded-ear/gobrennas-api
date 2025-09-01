@@ -8,10 +8,12 @@ import com.brennaswitzer.cookbook.services.textract.TextractService;
 import graphql.schema.DataFetchingEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 @Slf4j
-@Component
+@Controller
 public class TextractMutation {
 
     @Autowired
@@ -20,7 +22,8 @@ public class TextractMutation {
     @Autowired
     private StorageService storageService;
 
-    public TextractJobInfo createPreUploadedJob(String filename,
+    @SchemaMapping(typeName = "TextractMutation")
+    public TextractJobInfo createPreUploadedJob(@Argument String filename,
                                                 DataFetchingEnvironment env) {
         return TextractJobInfo.fromJobWithLines(
                 service.createPreUploadedJob(
@@ -29,7 +32,8 @@ public class TextractMutation {
                 storageService);
     }
 
-    public Deletion deleteJob(Long id,
+    @SchemaMapping(typeName = "TextractMutation")
+    public Deletion deleteJob(@Argument Long id,
                               DataFetchingEnvironment env) {
         return Deletion.of(service.deleteJob(PrincipalUtil.from(env),
                                              id));

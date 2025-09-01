@@ -4,16 +4,17 @@ import com.brennaswitzer.cookbook.domain.Favorite;
 import com.brennaswitzer.cookbook.domain.FavoriteType;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.services.RecipeService;
-import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
-@Component
-public class FavoriteResolver implements GraphQLResolver<Favorite> {
+@Controller
+public class FavoriteResolver {
 
     @Autowired
     private RecipeService recipeService;
 
+    @SchemaMapping
     public String name(Favorite favorite) {
         if (FavoriteType.RECIPE.matches(favorite.getObjectType())) {
             return recipeService.findRecipeById(favorite.getObjectId())

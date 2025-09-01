@@ -1,29 +1,58 @@
 package com.brennaswitzer.cookbook.graphql;
 
-import graphql.kickstart.tools.GraphQLMutationResolver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.stereotype.Controller;
 
-@SuppressWarnings("unused")
-@Component
-public class Mutation implements GraphQLMutationResolver {
-
-    @Autowired
-    public PantryMutation pantry;
+@Controller
+public class Mutation {
 
     @Autowired
-    public LibraryMutation library;
+    private PantryMutation pantry;
 
     @Autowired
-    public FavoriteMutation favorite;
+    private LibraryMutation library;
 
     @Autowired
-    public PlannerMutation planner;
+    private FavoriteMutation favorite;
 
     @Autowired
-    public TextractMutation textract;
+    private PlannerMutation planner;
 
     @Autowired
-    public ProfileMutation profile;
+    private TextractMutation textract;
+
+    @Autowired
+    private ProfileMutation profile;
+
+    @MutationMapping
+    public PantryMutation pantry() {
+        return pantry;
+    }
+
+    @MutationMapping
+    public LibraryMutation library() {
+        return library;
+    }
+
+    @MutationMapping
+    public FavoriteMutation favorite() {
+        return favorite;
+    }
+
+    @MutationMapping
+    public PlannerMutation planner() {
+        return planner;
+    }
+
+    @MutationMapping
+    public TextractMutation textract() {
+        return textract;
+    }
+
+    @MutationMapping
+    public ProfileMutation profile() {
+        return profile;
+    }
 
 }

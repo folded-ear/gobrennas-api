@@ -5,22 +5,25 @@ import com.brennaswitzer.cookbook.domain.Rating;
 import com.brennaswitzer.cookbook.services.RecipeHistoryService;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
-
-@Component
+@Controller
 public class RecipeHistoryMutation {
 
     @Autowired
     private RecipeHistoryService service;
 
+    @SchemaMapping(typeName = "RecipeHistoryMutation")
     public Long recipeId(DataFetchingEnvironment env) {
         return Long.valueOf((String) env.getExecutionStepInfo().getParent().getArguments().get("recipeId"));
     }
 
-    public PlannedRecipeHistory setRating(Long id,
-                                          Rating rating,
-                                          Long ratingInt,
+    @SchemaMapping(typeName = "RecipeHistoryMutation")
+    public PlannedRecipeHistory setRating(@Argument Long id,
+                                          @Argument Rating rating,
+                                          @Argument Long ratingInt,
                                           DataFetchingEnvironment env) {
         if (rating == null) {
             rating = Rating.fromId(ratingInt);
@@ -31,8 +34,9 @@ public class RecipeHistoryMutation {
         return service.setRating(recipeId(env), id, rating);
     }
 
-    public PlannedRecipeHistory setNotes(Long id,
-                                         String notes,
+    @SchemaMapping(typeName = "RecipeHistoryMutation")
+    public PlannedRecipeHistory setNotes(@Argument Long id,
+                                         @Argument String notes,
                                          DataFetchingEnvironment env) {
         return service.setNotes(recipeId(env), id, notes);
     }

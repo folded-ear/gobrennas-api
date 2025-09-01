@@ -18,14 +18,16 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@Component
+@Controller
 public class PantryQuery {
 
     private static final int DEFAULT_LIMIT = 25;
@@ -101,7 +103,8 @@ public class PantryQuery {
     @Autowired
     private IngredientService ingredientService;
 
-    public Connection<PantryItem> pantryItems(PantrySearch search) {
+    @SchemaMapping(typeName = "PantryQuery")
+    public Connection<PantryItem> pantryItems(@Argument PantrySearch search) {
         SearchResponse<PantryItem> rs = pantryItemService.search(
                 PantryItemSearchRequest.builder()
                         .filter(String.join(" ", search.getFilterTerms()))
@@ -113,12 +116,13 @@ public class PantryQuery {
         return new OffsetConnection<>(rs);
     }
 
+    @SchemaMapping(typeName = "PantryQuery")
     public Connection<PantryItem> search(
-            String query,
-            String sortBy,
-            SortDir sortDir,
-            Integer first,
-            OffsetConnectionCursor after
+            @Argument String query,
+            @Argument String sortBy,
+            @Argument SortDir sortDir,
+            @Argument Integer first,
+            @Argument OffsetConnectionCursor after
     ) {
         return pantryItems(PantrySearch.builder()
                                    .query(query)
@@ -129,11 +133,13 @@ public class PantryQuery {
                                    .build());
     }
 
-    public Collection<Ingredient> bulkIngredients(Collection<Long> ids) {
+    @SchemaMapping(typeName = "PantryQuery")
+    public Collection<Ingredient> bulkIngredients(@Argument Collection<Long> ids) {
         return ingredientService.bulkIngredients(ids);
     }
 
-    public Iterable<PantryItem> updatedSince(Long cutoff) {
+    @SchemaMapping(typeName = "PantryQuery")
+    public Iterable<PantryItem> updatedSince(@Argument Long cutoff) {
         return pantryItemService.findAllByUpdatedAtIsAfter(Instant.ofEpochMilli(cutoff));
     }
 

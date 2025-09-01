@@ -4,61 +4,75 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.services.PantryItemService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.Set;
 
-@Component
+@Controller
 public class PantryMutation {
 
     @Autowired
     private PantryItemService pantryItemService;
 
-    public PantryItem renameItem(Long id,
-                                 String name) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem renameItem(@Argument Long id,
+                                 @Argument String name) {
         return pantryItemService.renameItem(id, name);
     }
 
-    public PantryItem addLabel(Long id,
-                               String label) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem addLabel(@Argument Long id,
+                               @Argument String label) {
         return pantryItemService.addLabel(id, label);
     }
 
-    public PantryItem removeLabel(Long id,
-                                  String label) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem removeLabel(@Argument Long id,
+                                  @Argument String label) {
         return pantryItemService.removeLabel(id, label);
     }
 
-    public PantryItem setLabels(Long id,
-                                Set<String> labels) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem setLabels(@Argument Long id,
+                                @Argument Set<String> labels) {
         return pantryItemService.setLabels(id, labels);
     }
 
-    public PantryItem addSynonym(Long id,
-                                 String synonym) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem addSynonym(@Argument Long id,
+                                 @Argument String synonym) {
         return pantryItemService.addSynonym(id, synonym);
     }
 
-    public PantryItem removeSynonym(Long id,
-                                    String synonym) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem removeSynonym(@Argument Long id,
+                                    @Argument String synonym) {
         return pantryItemService.removeSynonym(id, synonym);
     }
 
-    public PantryItem setSynonyms(Long id,
-                                  Set<String> synonyms) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem setSynonyms(@Argument Long id,
+                                  @Argument Set<String> synonyms) {
         return pantryItemService.setSynonyms(id, synonyms);
     }
 
-    public PantryItem combineItems(List<Long> ids) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem combineItems(@Argument List<Long> ids) {
         return pantryItemService.combineItems(ids);
     }
 
-    public Deletion deleteItem(Long id) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public Deletion deleteItem(@Argument Long id) {
         return Deletion.of(pantryItemService.deleteItem(id));
     }
 
-    public PantryItem orderForStore(Long id, Long targetId, Boolean after) {
+    @SchemaMapping(typeName = "PantryMutation")
+    public PantryItem orderForStore(@Argument Long id,
+                                    @Argument Long targetId,
+                                    @Argument Boolean after) {
         // need to default here, even though the mutation has a default, in case
         // a null is explicitly passed.
         if (after == null) after = true;

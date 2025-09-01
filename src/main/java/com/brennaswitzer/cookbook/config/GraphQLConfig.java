@@ -29,8 +29,10 @@ import org.dataloader.BatchLoader;
 import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
+import org.springframework.boot.autoconfigure.graphql.GraphQlSourceBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -81,6 +83,21 @@ public class GraphQLConfig {
                 .description("The type of a cursor, an opaque string used for walking connections")
                 .coercing(coercing)
                 .build();
+    }
+
+    @Bean
+    public RuntimeWiringConfigurer runtimeWiringConfigurer(
+            Collection<GraphQLScalarType> scalars) {
+        return wiringBuilder -> scalars.forEach(wiringBuilder::scalar);
+    }
+
+    @Bean
+    public GraphQlSourceBuilderCustomizer sourceBuilderCustomizer(
+            DataLoaderRegistry dataLoadRegistry,
+            UserPrincipalAccess principalAccess) {
+        return srb -> {
+            srb.inspectSchemaMappings(report -> log.info("{}", report));
+        };
     }
 
     @Bean

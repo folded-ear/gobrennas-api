@@ -46,6 +46,9 @@ spring:
             scope:
               - email
               - profile
+  graphql:
+    schema:
+      locations: classpath:graphqls/**/
 app:
   # where 'index.html' lives from the UA's perspective
   public-url: http://localhost:3001/

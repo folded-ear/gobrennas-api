@@ -5,24 +5,28 @@ import com.brennaswitzer.cookbook.graphql.support.PrincipalUtil;
 import com.brennaswitzer.cookbook.services.favorites.UpdateFavorites;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
-@Component
+@Controller
 public class FavoriteMutation {
 
     @Autowired
     private UpdateFavorites updateFavorites;
 
-    public Favorite markFavorite(String objectType,
-                                 Long objectId,
+    @SchemaMapping(typeName = "FavoriteMutation")
+    public Favorite markFavorite(@Argument String objectType,
+                                 @Argument Long objectId,
                                  DataFetchingEnvironment env) {
         return updateFavorites.ensureFavorite(PrincipalUtil.from(env),
                                               objectType,
                                               objectId);
     }
 
-    public boolean removeFavorite(String objectType,
-                                  Long objectId,
+    @SchemaMapping(typeName = "FavoriteMutation")
+    public boolean removeFavorite(@Argument String objectType,
+                                  @Argument Long objectId,
                                   DataFetchingEnvironment env) {
         return updateFavorites.ensureNotFavorite(PrincipalUtil.from(env),
                                                  objectType,

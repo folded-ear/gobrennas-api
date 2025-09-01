@@ -8,11 +8,13 @@ import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.services.textract.TextractService;
 import graphql.schema.DataFetchingEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-@Component
+@Controller
 public class TextractQuery {
 
     @Autowired
@@ -21,6 +23,7 @@ public class TextractQuery {
     @Autowired
     private StorageService storageService;
 
+    @SchemaMapping(typeName = "TextractQuery")
     public List<TextractJobInfo> listJobs(DataFetchingEnvironment env) {
         UserPrincipal p = PrincipalUtil.from(env);
         return service.getMyJobs(p)
@@ -29,7 +32,8 @@ public class TextractQuery {
                 .toList();
     }
 
-    public TextractJobInfo jobById(Long id,
+    @SchemaMapping(typeName = "TextractQuery")
+    public TextractJobInfo jobById(@Argument Long id,
                                    DataFetchingEnvironment env) {
         UserPrincipal p = PrincipalUtil.from(env);
         TextractJob job = service.getJob(p, id);

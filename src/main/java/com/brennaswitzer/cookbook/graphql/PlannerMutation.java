@@ -11,46 +11,64 @@ import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-@Component
+@Controller
 public class PlannerMutation {
 
     @Autowired
     private PlanService planService;
 
-    public PlanItem assignBucket(Long id, Long bucketId) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanItem assignBucket(@Argument Long id,
+                                 @Argument Long bucketId) {
         return planService.assignItemBucket(id, bucketId);
     }
 
-    public PlanBucket createBucket(Long planId, String name, LocalDate date) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanBucket createBucket(@Argument Long planId,
+                                   @Argument String name,
+                                   @Argument LocalDate date) {
         return planService.createBucket(planId, name, date);
     }
 
-    public List<PlanBucket> createBuckets(Long planId, List<UnsavedBucket> buckets) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public List<PlanBucket> createBuckets(@Argument Long planId,
+                                          @Argument List<UnsavedBucket> buckets) {
         if (buckets.isEmpty()) return List.of();
         return planService.createBuckets(planId, buckets);
     }
 
-    public PlanItem createItem(Long parentId, Long afterId, String name) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanItem createItem(@Argument Long parentId,
+                               @Argument Long afterId,
+                               @Argument String name) {
         return planService.createItem(parentId, afterId, name);
     }
 
-    public Plan createPlan(String name, Long sourcePlanId) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Plan createPlan(@Argument String name,
+                           @Argument Long sourcePlanId) {
         return sourcePlanId == null
                 ? planService.createPlan(name)
                 : duplicatePlan(name, sourcePlanId);
     }
 
-    public Deletion deleteBucket(Long planId, Long bucketId) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Deletion deleteBucket(@Argument Long planId,
+                                 @Argument Long bucketId) {
         return Deletion.of(planService.deleteBucket(planId, bucketId));
     }
 
-    public List<Deletion> deleteBuckets(Long planId, List<Long> bucketIds) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public List<Deletion> deleteBuckets(@Argument Long planId,
+                                        @Argument List<Long> bucketIds) {
         if (bucketIds.isEmpty()) return List.of();
         return planService.deleteBuckets(planId, bucketIds)
                 .stream()
@@ -58,53 +76,78 @@ public class PlannerMutation {
                 .toList();
     }
 
-    public Deletion deleteItem(Long id) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Deletion deleteItem(@Argument Long id) {
         return Deletion.of(planService.deleteItem(id));
     }
 
-    public Deletion deletePlan(Long id) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Deletion deletePlan(@Argument Long id) {
         return Deletion.of(planService.deletePlan(id));
     }
 
-    public Plan duplicatePlan(String name, Long sourcePlanId) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Plan duplicatePlan(@Argument String name,
+                              @Argument Long sourcePlanId) {
         return planService.duplicatePlan(name, sourcePlanId);
     }
 
-    public PlanItem mutateTree(MutatePlanTree spec) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanItem mutateTree(@Argument MutatePlanTree spec) {
         return planService.mutateTree(spec.getIds(),
                                       spec.getParentId(),
                                       spec.getAfterId());
     }
 
-    public CorePlanItem rename(Long id, String name) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public CorePlanItem rename(@Argument Long id,
+                               @Argument String name) {
         return planService.renameItem(id, name);
     }
 
-    public PlanItem reorderSubitems(Long parentId, List<Long> itemIds) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanItem reorderSubitems(@Argument Long parentId,
+                                    @Argument List<Long> itemIds) {
         return planService.resetSubitems(parentId, itemIds);
     }
 
-    public PlanBucket updateBucket(Long planId, Long bucketId, String name, LocalDate date) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanBucket updateBucket(@Argument Long planId,
+                                   @Argument Long bucketId,
+                                   @Argument String name,
+                                   @Argument LocalDate date) {
         return planService.updateBucket(planId, bucketId, name, date);
     }
 
-    public Plan setColor(Long planId, String color) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Plan setColor(@Argument Long planId,
+                         @Argument String color) {
         return planService.setColor(planId, color);
     }
 
-    public Plan setGrant(Long planId, Long userId, AccessLevel accessLevel) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Plan setGrant(@Argument Long planId,
+                         @Argument Long userId,
+                         @Argument AccessLevel accessLevel) {
         return planService.setGrantOnPlan(planId, userId, accessLevel);
     }
 
-    public Plan updatePlanNotes(Long planId, String notes) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Plan updatePlanNotes(@Argument Long planId,
+                                @Argument String notes) {
         return planService.updatePlanNotes(planId, notes);
     }
 
-    public PlanItem setStatus(Long id, PlanItemStatus status, Instant doneAt) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public PlanItem setStatus(@Argument Long id,
+                              @Argument PlanItemStatus status,
+                              @Argument Instant doneAt) {
         return planService.setItemStatus(id, status, doneAt);
     }
 
-    public Plan revokeGrant(Long planId, Long userId) {
+    @SchemaMapping(typeName = "PlannerMutation")
+    public Plan revokeGrant(@Argument Long planId,
+                            @Argument Long userId) {
         return planService.revokeGrantFromPlan(planId, userId);
     }
 

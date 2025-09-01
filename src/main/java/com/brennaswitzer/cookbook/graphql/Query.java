@@ -4,45 +4,87 @@ import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
-import graphql.kickstart.tools.GraphQLQueryResolver;
 import graphql.schema.DataFetchingEnvironment;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings("unused")
-@Component
-public class Query implements GraphQLQueryResolver {
+@Controller
+public class Query {
 
     @Autowired
     private List<BaseEntityRepository<?>> repositories;
 
     @Autowired
-    public FavoriteQuery favorite;
+    private FavoriteQuery favorite;
+
 
     @Autowired
-    public PantryQuery pantry;
+    private PantryQuery pantry;
+
 
     @Autowired
-    public LibraryQuery library;
+    private LibraryQuery library;
+
 
     @Autowired
-    public LabelsQuery labels;
+    private LabelsQuery labels;
+
 
     @Autowired
-    public PlannerQuery planner;
+    private PlannerQuery planner;
+
 
     @Autowired
-    public ProfileQuery profile;
+    private ProfileQuery profile;
+
 
     @Autowired
-    public TextractQuery textract;
+    private TextractQuery textract;
 
-    public Object getNode(Long id,
-                          DataFetchingEnvironment env) {
+    @QueryMapping
+    public FavoriteQuery favorite() {
+        return favorite;
+    }
+
+    @QueryMapping
+    public PantryQuery pantry() {
+        return pantry;
+    }
+
+    @QueryMapping
+    public LibraryQuery library() {
+        return library;
+    }
+
+    @QueryMapping
+    public LabelsQuery labels() {
+        return labels;
+    }
+
+    @QueryMapping
+    public PlannerQuery planner() {
+        return planner;
+    }
+
+    @QueryMapping
+    public ProfileQuery profile() {
+        return profile;
+    }
+
+    @QueryMapping
+    public TextractQuery textract() {
+        return textract;
+    }
+
+    @QueryMapping
+    public Object node(@Argument Long id,
+                       DataFetchingEnvironment env) {
         return repositories.stream()
                 .map(r -> r.findById(id))
                 .filter(Optional::isPresent)
@@ -58,6 +100,7 @@ public class Query implements GraphQLQueryResolver {
     /**
      * @deprecated prefer {@link ProfileQuery#me}
      */
+    @QueryMapping
     @Deprecated
     public User getCurrentUser(DataFetchingEnvironment env) {
         return profile.me(env);

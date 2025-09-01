@@ -3,19 +3,22 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.services.ItemService;
-import graphql.kickstart.tools.GraphQLResolver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-@Component
-public class RecognizedItemResolver implements GraphQLResolver<RecognizedItem> {
+@Controller
+public class RecognizedItemResolver {
 
     @Autowired
     private ItemService itemService;
 
-    public List<RecognitionSuggestion> suggestions(RecognizedItem item, int count) {
+    @SchemaMapping
+    public List<RecognitionSuggestion> suggestions(RecognizedItem item,
+                                                   @Argument int count) {
         return itemService.getSuggestions(item, count);
     }
 
