@@ -19,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
@@ -28,15 +29,17 @@ import java.util.Collection;
 import java.util.List;
 
 @Controller
-public class PantryQuery {
+public class PantryQueryController {
 
     private static final int DEFAULT_LIMIT = 25;
     private static final String DUPLICATE_PREFIX = "duplicates:";
 
+    record PantryQuery() {}
+
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @Builder
-    public static class PantrySearch implements GqlSearch {
+    static class PantrySearch implements GqlSearch {
 
         String query;
         String sortBy;
@@ -51,17 +54,17 @@ public class PantryQuery {
         @Setter(AccessLevel.NONE)
         transient Long duplicateOf;
 
-        public List<String> getFilterTerms() {
+        List<String> getFilterTerms() {
             processQuery();
             return filterTerms;
         }
 
-        public Long getDuplicateOf() {
+        Long getDuplicateOf() {
             processQuery();
             return duplicateOf;
         }
 
-        public Sort getSort() {
+        Sort getSort() {
             if (sortBy == null || sortBy.isBlank()) return null;
             Sort.Direction dir = SortDir.DESC == sortDir
                     ? Sort.Direction.DESC
@@ -103,8 +106,14 @@ public class PantryQuery {
     @Autowired
     private IngredientService ingredientService;
 
-    @SchemaMapping(typeName = "PantryQuery")
-    public Connection<PantryItem> pantryItems(@Argument PantrySearch search) {
+    @QueryMapping
+    PantryQuery pantry() {
+        return new PantryQuery();
+    }
+
+    @SchemaMapping
+    Connection<PantryItem> pantryItems(PantryQuery pantryQ,
+                                       @Argument PantrySearch search) {
         SearchResponse<PantryItem> rs = pantryItemService.search(
                 PantryItemSearchRequest.builder()
                         .filter(String.join(" ", search.getFilterTerms()))
@@ -116,15 +125,17 @@ public class PantryQuery {
         return new OffsetConnection<>(rs);
     }
 
-    @SchemaMapping(typeName = "PantryQuery")
-    public Connection<PantryItem> search(
+    @SchemaMapping
+    Connection<PantryItem> search(
+            PantryQuery pantryQ,
             @Argument String query,
             @Argument String sortBy,
             @Argument SortDir sortDir,
             @Argument Integer first,
             @Argument OffsetConnectionCursor after
     ) {
-        return pantryItems(PantrySearch.builder()
+        return pantryItems(pantryQ,
+                           PantrySearch.builder()
                                    .query(query)
                                    .sortBy(sortBy)
                                    .sortDir(sortDir)
@@ -133,13 +144,15 @@ public class PantryQuery {
                                    .build());
     }
 
-    @SchemaMapping(typeName = "PantryQuery")
-    public Collection<Ingredient> bulkIngredients(@Argument Collection<Long> ids) {
+    @SchemaMapping
+    Collection<Ingredient> bulkIngredients(PantryQuery pantryQ,
+                                           @Argument Collection<Long> ids) {
         return ingredientService.bulkIngredients(ids);
     }
 
-    @SchemaMapping(typeName = "PantryQuery")
-    public Iterable<PantryItem> updatedSince(@Argument Long cutoff) {
+    @SchemaMapping
+    Iterable<PantryItem> updatedSince(PantryQuery pantryQ,
+                                      @Argument Long cutoff) {
         return pantryItemService.findAllByUpdatedAtIsAfter(Instant.ofEpochMilli(cutoff));
     }
 

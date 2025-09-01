@@ -25,10 +25,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LibraryQueryTest {
+class LibraryQueryControllerTest {
 
     @InjectMocks
-    private LibraryQuery query;
+    private LibraryQueryController query;
 
     @Mock
     private RecipeService recipeService;
@@ -42,7 +42,7 @@ class LibraryQueryTest {
     @Test
     void getRecipeById_anonymous_noSecret() {
         assertThrows(NoUserPrincipalException.class,
-                     () -> query.getRecipeById(4L, null, null));
+                     () -> query.getRecipeById(null, 4L, null, null));
 
         verifyNoInteractions(recipeService);
     }
@@ -52,7 +52,7 @@ class LibraryQueryTest {
         when(shareHelper.isSecretValid(any(), any(), any())).thenReturn(false);
 
         assertThrows(NoUserPrincipalException.class,
-                     () -> query.getRecipeById(4L, "garbage", null));
+                     () -> query.getRecipeById(null, 4L, "garbage", null));
 
         verifyNoInteractions(recipeService);
     }
@@ -64,7 +64,7 @@ class LibraryQueryTest {
         when(recipeService.findRecipeById(any()))
                 .thenReturn(Optional.of(mock(Recipe.class)));
 
-        query.getRecipeById(4L, "secret", null);
+        query.getRecipeById(null, 4L, "secret", null);
 
         verify(recipeService).findRecipeById(4L);
     }
@@ -74,7 +74,7 @@ class LibraryQueryTest {
         when(recipeService.findRecipeById(any())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class,
-                     () -> query.getRecipeById(4L, null, userPrincipal));
+                     () -> query.getRecipeById(null, 4L, null, userPrincipal));
 
         verify(recipeService).findRecipeById(4L);
     }
@@ -83,12 +83,12 @@ class LibraryQueryTest {
     void getRecipeById() {
         Recipe recipe = mock(Recipe.class);
         when(recipeService.findRecipeById(any())).thenReturn(Optional.of(recipe));
-        assertSame(recipe, query.getRecipeById(4L, null, userPrincipal));
+        assertSame(recipe, query.getRecipeById(null, 4L, null, userPrincipal));
     }
 
     @Test
     void recognizeItem_cursor() {
-        query.recognizeItem("goat", 14);
+        query.recognizeItem(null, "goat", 14);
         verify(itemService).recognizeItem("goat", 14, false);
     }
 
@@ -98,7 +98,7 @@ class LibraryQueryTest {
         when(itemService.recognizeItem("goat", 4, false))
                 .thenReturn(mock);
 
-        var result = query.recognizeItem("goat", null);
+        var result = query.recognizeItem(null, "goat", null);
 
         assertSame(mock, result);
     }

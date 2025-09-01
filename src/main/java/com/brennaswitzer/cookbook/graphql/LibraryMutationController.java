@@ -9,16 +9,19 @@ import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class LibraryMutation {
+public class LibraryMutationController {
+
+    record LibraryMutation() {}
 
     @Autowired
-    private RecipeHistoryMutation history;
+    private RecipeHistoryMutationController history;
 
     @Autowired
     private RecipeService recipeService;
@@ -26,11 +29,17 @@ public class LibraryMutation {
     @Autowired
     private Info2Recipe info2Recipe;
 
-    @SchemaMapping(typeName = "LibraryMutation")
+    @MutationMapping
+    LibraryMutation library() {
+        return new LibraryMutation();
+    }
+
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
-    public Recipe createRecipe(@Argument IngredientInfo info,
-                               @Argument boolean cookThis,
-                               @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    Recipe createRecipe(LibraryMutation libMut,
+                        @Argument IngredientInfo info,
+                        @Argument boolean cookThis,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
         info.setId(null);
         Recipe recipe = info2Recipe.convert(userPrincipal,
                                             info,
@@ -38,11 +47,12 @@ public class LibraryMutation {
         return recipeService.createNewRecipe(recipe, info);
     }
 
-    @SchemaMapping(typeName = "LibraryMutation")
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
-    public Recipe createRecipeFrom(@Argument Long sourceRecipeId,
-                                   @Argument IngredientInfo info,
-                                   @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    Recipe createRecipeFrom(LibraryMutation libMut,
+                            @Argument Long sourceRecipeId,
+                            @Argument IngredientInfo info,
+                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         if (info.getId() != null) {
             if (sourceRecipeId != null && !info.getId().equals(sourceRecipeId)) {
                 throw new IllegalArgumentException(String.format(
@@ -58,11 +68,12 @@ public class LibraryMutation {
         return recipeService.createNewRecipeFrom(sourceRecipeId, recipe, info);
     }
 
-    @SchemaMapping(typeName = "LibraryMutation")
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
-    public Recipe updateRecipe(@Argument Long id,
-                               @Argument IngredientInfo info,
-                               @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    Recipe updateRecipe(LibraryMutation libMut,
+                        @Argument Long id,
+                        @Argument IngredientInfo info,
+                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
         if (id != null) {
             if (info.getId() != null && !id.equals(info.getId())) {
                 throw new IllegalArgumentException(String.format(
@@ -77,27 +88,25 @@ public class LibraryMutation {
         return recipeService.updateRecipe(recipe, info);
     }
 
-    @SchemaMapping(typeName = "LibraryMutation")
-    public Recipe setRecipePhoto(@Argument Long id,
-                                 @Argument String filename,
-                                 @Argument float[] focus) {
+    @SchemaMapping
+    Recipe setRecipePhoto(LibraryMutation libMut,
+                          @Argument Long id,
+                          @Argument String filename,
+                          @Argument float[] focus) {
         return recipeService.setRecipePhoto(id, filename, focus);
     }
 
-    @SchemaMapping(typeName = "LibraryMutation")
-    public Deletion deleteRecipe(@Argument Long id) {
+    @SchemaMapping
+    Deletion deleteRecipe(LibraryMutation libMut,
+                          @Argument Long id) {
         return Deletion.of(recipeService.deleteRecipeById(id));
     }
 
-    @SchemaMapping(typeName = "LibraryMutation")
-    public RecipeHistoryMutation history(@Argument Long recipeId) {
-        return history;
-    }
-
-    @SchemaMapping(typeName = "LibraryMutation")
-    public PlanItem sendRecipeToPlan(@Argument Long id,
-                                     @Argument Long planId,
-                                     @Argument Double scale) {
+    @SchemaMapping
+    PlanItem sendRecipeToPlan(LibraryMutation libMut,
+                              @Argument Long id,
+                              @Argument Long planId,
+                              @Argument Double scale) {
         return recipeService.sendToPlan(id, planId, scale);
     }
 

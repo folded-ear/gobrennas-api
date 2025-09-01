@@ -24,10 +24,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PlannerQueryTest {
+class PlannerQueryControllerTest {
 
     @InjectMocks
-    private PlannerQuery query;
+    private PlannerQueryController query;
 
     @Mock
     private PlanService planService;
@@ -44,7 +44,7 @@ class PlannerQueryTest {
         when(principal.getId()).thenReturn(123L);
 
         List<Plan> ps = new ArrayList<>();
-        query.plans(principal).forEach(ps::add);
+        query.plans(null, principal).forEach(ps::add);
 
         assertEquals(2, ps.size());
         assertEach(Arrays.asList("A", "B"), ps, Plan::getName);
@@ -56,7 +56,7 @@ class PlannerQueryTest {
         PlanItem it = mock(PlanItem.class);
         when(planService.getPlanItemById(any())).thenReturn(it);
 
-        var pi = query.planItem(123L);
+        var pi = query.planItem(null, 123L);
 
         assertSame(pi, it);
         verify(planService).getPlanItemById(123L);
@@ -69,7 +69,7 @@ class PlannerQueryTest {
                                            Instant.EPOCH.plusMillis(456)))
                 .thenReturn(list);
 
-        var result = query.updatedSince(123L, 456L);
+        var result = query.updatedSince(null, 123L, 456L);
 
         assertSame(list, result);
     }

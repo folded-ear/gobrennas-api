@@ -8,6 +8,7 @@ import com.brennaswitzer.cookbook.services.textract.TextractService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +16,9 @@ import org.springframework.stereotype.Controller;
 
 @Slf4j
 @Controller
-public class TextractMutation {
+public class TextractMutationController {
+
+    record TextractMutation() {}
 
     @Autowired
     private TextractService service;
@@ -23,10 +26,16 @@ public class TextractMutation {
     @Autowired
     private StorageService storageService;
 
-    @SchemaMapping(typeName = "TextractMutation")
+    @MutationMapping
+    TextractMutation textract() {
+        return new TextractMutation();
+    }
+
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
-    public TextractJobInfo createPreUploadedJob(@Argument String filename,
-                                                @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    TextractJobInfo createPreUploadedJob(TextractMutation textractMut,
+                                         @Argument String filename,
+                                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return TextractJobInfo.fromJobWithLines(
                 service.createPreUploadedJob(
                         userPrincipal,
@@ -34,10 +43,11 @@ public class TextractMutation {
                 storageService);
     }
 
-    @SchemaMapping(typeName = "TextractMutation")
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
-    public Deletion deleteJob(@Argument Long id,
-                              @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    Deletion deleteJob(TextractMutation textractMut,
+                       @Argument Long id,
+                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return Deletion.of(service.deleteJob(userPrincipal,
                                              id));
     }

@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,12 +34,14 @@ import java.util.Collection;
 import java.util.Set;
 
 @Controller
-public class LibraryQuery {
+public class LibraryQueryController {
+
+    record LibraryQuery() {}
 
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @Builder
-    public static class LibrarySearch implements GqlSearch {
+    static class LibrarySearch implements GqlSearch {
 
         LibrarySearchScope scope;
         String query;
@@ -72,7 +75,7 @@ public class LibraryQuery {
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @Builder
-    public static class SuggestionSearch implements GqlSearch {
+    static class SuggestionSearch implements GqlSearch {
 
         int first;
         OffsetConnectionCursor after;
@@ -91,8 +94,14 @@ public class LibraryQuery {
     @Autowired
     private ShareHelper shareHelper;
 
-    @SchemaMapping(typeName = "LibraryQuery")
-    public Connection<Recipe> recipes(
+    @QueryMapping
+    LibraryQuery library() {
+        return new LibraryQuery();
+    }
+
+    @SchemaMapping
+    Connection<Recipe> recipes(
+            LibraryQuery libQ,
             @Argument LibrarySearch search,
             @Argument LibrarySearchScope scope,
             @Argument String query,
@@ -113,26 +122,29 @@ public class LibraryQuery {
         return new OffsetConnection<>(rs);
     }
 
-    @SchemaMapping(typeName = "LibraryQuery")
-    public Connection<Section> sections(@Argument LibrarySearch search) {
+    @SchemaMapping
+    Connection<Section> sections(LibraryQuery libQ,
+                                 @Argument LibrarySearch search) {
         SearchResponse<Section> rs = recipeService.searchLibrary(search.toSectionRequest())
                 .map(Section::new);
         return new OffsetConnection<>(rs);
     }
 
-    @SchemaMapping(typeName = "LibraryQuery")
-    public Recipe getRecipeById(@Argument Long id,
-                                @Argument("secret") String optionalSecret,
-                                @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    @SchemaMapping
+    Recipe getRecipeById(LibraryQuery libQ,
+                         @Argument Long id,
+                         @Argument("secret") String optionalSecret,
+                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
         ensurePrincipalOrSecret(id, optionalSecret, userPrincipal);
         return recipeService.findRecipeById(id)
                 .orElseThrow(() -> new EntityNotFoundException("There is no recipe with id: " + id));
     }
 
-    @SchemaMapping(typeName = "LibraryQuery")
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
-    public RecognizedItem recognizeItem(@Argument String raw,
-                                        @Argument Integer cursor) {
+    RecognizedItem recognizeItem(LibraryQuery libQ,
+                                 @Argument String raw,
+                                 @Argument Integer cursor) {
         // never request suggestions, so the resolver can process 'count'
         return itemService.recognizeItem(
                 raw,
@@ -140,8 +152,9 @@ public class LibraryQuery {
                 false);
     }
 
-    @SchemaMapping(typeName = "LibraryQuery")
-    public Connection<Recipe> suggestRecipesToCook(
+    @SchemaMapping
+    Connection<Recipe> suggestRecipesToCook(
+            LibraryQuery libQ,
             @Argument SuggestionSearch search,
             @Argument int first,
             @Argument OffsetConnectionCursor after) {
@@ -157,8 +170,9 @@ public class LibraryQuery {
         return new OffsetConnection<>(rs);
     }
 
-    @SchemaMapping(typeName = "LibraryQuery")
-    public Collection<Ingredient> bulkIngredients(@Argument Collection<Long> ids) {
+    @SchemaMapping
+    Collection<Ingredient> bulkIngredients(LibraryQuery libQ,
+                                           @Argument Collection<Long> ids) {
         return ingredientService.bulkIngredients(ids);
     }
 

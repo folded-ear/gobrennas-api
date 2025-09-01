@@ -25,10 +25,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LibraryMutationTest {
+class LibraryMutationControllerTest {
 
     @InjectMocks
-    private LibraryMutation mutation;
+    private LibraryMutationController mutation;
 
     @Mock
     private RecipeService recipeService;
@@ -50,7 +50,7 @@ class LibraryMutationTest {
         when(recipeService.createNewRecipe(any(), any()))
                 .thenAnswer(iom -> iom.getArgument(0));
 
-        var result = mutation.createRecipe(info, true, userPrincipal);
+        var result = mutation.createRecipe(null, info, true, userPrincipal);
 
         assertSame(recipe, result);
         verify(recipeService).createNewRecipe(same(recipe), same(info));
@@ -68,7 +68,7 @@ class LibraryMutationTest {
         when(recipeService.createNewRecipeFrom(any(), any(), any()))
                 .thenAnswer(iom -> iom.getArgument(1));
 
-        var result = mutation.createRecipeFrom(123L, info, userPrincipal);
+        var result = mutation.createRecipeFrom(null, 123L, info, userPrincipal);
 
         assertSame(recipe, result);
         verify(recipeService).createNewRecipeFrom(eq(123L), same(recipe), same(info));
@@ -80,7 +80,7 @@ class LibraryMutationTest {
         when(info.getId()).thenReturn(456L);
 
         assertThrows(IllegalArgumentException.class,
-                     () -> mutation.createRecipeFrom(123L, info, userPrincipal));
+                     () -> mutation.createRecipeFrom(null, 123L, info, userPrincipal));
         verifyNoInteractions(info2Recipe);
         verifyNoInteractions(recipeService);
     }
@@ -97,7 +97,7 @@ class LibraryMutationTest {
         when(recipeService.updateRecipe(any(), any()))
                 .thenAnswer(iom -> iom.getArgument(0));
 
-        var result = mutation.updateRecipe(123L, info, userPrincipal);
+        var result = mutation.updateRecipe(null, 123L, info, userPrincipal);
 
         assertSame(recipe, result);
         verify(info).setId(123L);
@@ -110,7 +110,7 @@ class LibraryMutationTest {
         when(info.getId()).thenReturn(456L);
 
         assertThrows(IllegalArgumentException.class,
-                     () -> mutation.updateRecipe(123L, info, userPrincipal));
+                     () -> mutation.updateRecipe(null, 123L, info, userPrincipal));
         verifyNoInteractions(info2Recipe);
         verifyNoInteractions(recipeService);
     }
@@ -126,7 +126,7 @@ class LibraryMutationTest {
                     return r;
                 });
 
-        var d = mutation.deleteRecipe(123L);
+        var d = mutation.deleteRecipe(null, 123L);
 
         assertEquals(Long.valueOf(123L), d.getId());
         assertEquals("Recipe 123", d.getName());

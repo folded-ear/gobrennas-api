@@ -25,10 +25,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PlannerMutationTest {
+class PlannerMutationControllerTest {
 
     @InjectMocks
-    private PlannerMutation mutation;
+    private PlannerMutationController mutation;
 
     @Mock
     private PlanService planService;
@@ -41,7 +41,7 @@ class PlannerMutationTest {
         when(planService.assignItemBucket(itemId, bucketId))
                 .thenReturn(mock);
 
-        PlanItem item = mutation.assignBucket(itemId, bucketId);
+        PlanItem item = mutation.assignBucket(null, itemId, bucketId);
 
         assertSame(mock, item);
     }
@@ -55,7 +55,7 @@ class PlannerMutationTest {
         when(planService.createBucket(planId, name, date))
                 .thenReturn(bucket);
 
-        PlanBucket result = mutation.createBucket(planId, name, date);
+        PlanBucket result = mutation.createBucket(null, planId, name, date);
 
         assertSame(bucket, result);
     }
@@ -69,7 +69,7 @@ class PlannerMutationTest {
         when(planService.createItem(parentId, afterId, name))
                 .thenReturn(item);
 
-        PlanItem result = mutation.createItem(parentId, afterId, name);
+        PlanItem result = mutation.createItem(null, parentId, afterId, name);
 
         assertSame(item, result);
     }
@@ -81,7 +81,7 @@ class PlannerMutationTest {
         when(planService.createPlan(name))
                 .thenReturn(plan);
 
-        Plan result = mutation.createPlan(name, null);
+        Plan result = mutation.createPlan(null, name, null);
 
         assertSame(plan, result);
     }
@@ -94,7 +94,7 @@ class PlannerMutationTest {
         when(planService.duplicatePlan(name, sourcePlanId))
                 .thenReturn(plan);
 
-        Plan result = mutation.createPlan(name, sourcePlanId);
+        Plan result = mutation.createPlan(null, name, sourcePlanId);
 
         assertSame(plan, result);
     }
@@ -108,7 +108,7 @@ class PlannerMutationTest {
         when(planService.deleteBucket(planId, bucketId))
                 .thenReturn(bucket);
 
-        var result = mutation.deleteBucket(planId, bucketId);
+        var result = mutation.deleteBucket(null, planId, bucketId);
 
         assertEquals(Long.valueOf(456L), result.getId());
     }
@@ -121,7 +121,7 @@ class PlannerMutationTest {
         when(planService.deleteItem(itemId))
                 .thenReturn(item);
 
-        var result = mutation.deleteItem(itemId);
+        var result = mutation.deleteItem(null, itemId);
 
         assertEquals(Long.valueOf(itemId), result.getId());
     }
@@ -134,7 +134,7 @@ class PlannerMutationTest {
         when(planService.deletePlan(planId))
                 .thenReturn(plan);
 
-        var result = mutation.deletePlan(planId);
+        var result = mutation.deletePlan(null, planId);
 
         assertEquals(Long.valueOf(planId), result.getId());
     }
@@ -147,7 +147,7 @@ class PlannerMutationTest {
         when(planService.duplicatePlan(name, sourcePlanId))
                 .thenReturn(plan);
 
-        Plan result = mutation.duplicatePlan(name, sourcePlanId);
+        Plan result = mutation.duplicatePlan(null, name, sourcePlanId);
 
         assertSame(plan, result);
     }
@@ -161,7 +161,7 @@ class PlannerMutationTest {
         when(planService.mutateTree(itemIds, parentId, afterId))
                 .thenReturn(parent);
 
-        PlanItem result = mutation.mutateTree(
+        PlanItem result = mutation.mutateTree(null, 
                 new MutatePlanTree(itemIds, parentId, afterId));
 
         assertSame(parent, result);
@@ -175,7 +175,7 @@ class PlannerMutationTest {
         when(planService.renameItem(id, newName))
                 .thenReturn(item);
 
-        var result = mutation.rename(id, newName);
+        var result = mutation.rename(null, id, newName);
 
         assertSame(item, result);
     }
@@ -188,7 +188,7 @@ class PlannerMutationTest {
         when(planService.resetSubitems(parentId, itemIds))
                 .thenReturn(parent);
 
-        PlanItem result = mutation.reorderSubitems(parentId, itemIds);
+        PlanItem result = mutation.reorderSubitems(null, parentId, itemIds);
 
         assertSame(parent, result);
     }
@@ -202,7 +202,7 @@ class PlannerMutationTest {
         when(planService.setGrantOnPlan(planId, userId, level))
                 .thenReturn(plan);
 
-        Plan result = mutation.setGrant(planId, userId, level);
+        Plan result = mutation.setGrant(null, planId, userId, level);
 
         assertSame(plan, result);
     }
@@ -216,7 +216,7 @@ class PlannerMutationTest {
         when(planService.setItemStatus(id, status, date))
                 .thenReturn(item);
 
-        PlanItem result = mutation.setStatus(id, status, date);
+        PlanItem result = mutation.setStatus(null, id, status, date);
 
         assertSame(item, result);
     }
@@ -229,7 +229,7 @@ class PlannerMutationTest {
         when(planService.revokeGrantFromPlan(planId, userId))
                 .thenReturn(plan);
 
-        Plan result = mutation.revokeGrant(planId, userId);
+        Plan result = mutation.revokeGrant(null, planId, userId);
 
         assertSame(plan, result);
     }
@@ -244,7 +244,7 @@ class PlannerMutationTest {
         when(planService.updateBucket(planId, bucketId, name, date))
                 .thenReturn(mock);
 
-        PlanBucket bucket = mutation.updateBucket(planId, bucketId, name, date);
+        PlanBucket bucket = mutation.updateBucket(null, planId, bucketId, name, date);
 
         assertSame(mock, bucket);
     }
