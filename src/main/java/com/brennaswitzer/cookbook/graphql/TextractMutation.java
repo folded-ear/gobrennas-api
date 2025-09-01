@@ -22,10 +22,14 @@ public class TextractMutation {
     @Autowired
     private StorageService storageService;
 
-    public TextractJobInfo createJob(Part photo) {
+    public TextractJobInfo createJob(Part photo,
+                                     DataFetchingEnvironment env) {
         log.warn("Deprecated photo upload (use a scratch file)");
-        return TextractJobInfo.fromJobWithLines(service.createJob(Upload.of(photo)),
-                                                storageService);
+        return TextractJobInfo.fromJobWithLines(
+                service.createJob(
+                        PrincipalUtil.from(env),
+                        Upload.of(photo)),
+                storageService);
     }
 
     public TextractJobInfo createPreUploadedJob(String filename,
@@ -37,8 +41,10 @@ public class TextractMutation {
                 storageService);
     }
 
-    public Deletion deleteJob(Long id) {
-        return Deletion.of(service.deleteJob(id));
+    public Deletion deleteJob(Long id,
+                              DataFetchingEnvironment env) {
+        return Deletion.of(service.deleteJob(PrincipalUtil.from(env),
+                                             id));
     }
 
 }

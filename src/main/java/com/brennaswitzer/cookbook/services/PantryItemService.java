@@ -32,14 +32,6 @@ public class PantryItemService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    public PantryItem saveOrUpdatePantryItem(PantryItem item) {
-        return pantryItemRepository.save(item);
-    }
-
-    public Iterable<PantryItem> findAllPantryItems() {
-        return pantryItemRepository.findAll();
-    }
-
     public List<PantryItem> findAllByUpdatedAtIsAfter(Instant cutoff) {
         return pantryItemRepository.findAllByUpdatedAtIsAfter(cutoff);
     }

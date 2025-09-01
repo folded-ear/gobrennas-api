@@ -14,10 +14,6 @@ import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
-import com.brennaswitzer.cookbook.message.MutatePlanTree;
-import com.brennaswitzer.cookbook.message.PlanMessage;
-import com.brennaswitzer.cookbook.payload.PlanBucketInfo;
-import com.brennaswitzer.cookbook.payload.PlanItemInfo;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
@@ -78,10 +74,6 @@ public class PlanService {
         return getPlans(owner.getId());
     }
 
-    public Iterable<Plan> getPlans() {
-        return getPlans(principalAccess.getId());
-    }
-
     public Iterable<Plan> getPlans(Long userId) {
         User user = userRepo.getReferenceById(userId);
         List<Plan> result = new LinkedList<>();
@@ -118,10 +110,6 @@ public class PlanService {
                 requiredAccess
         );
         return Hibernate.unproxy(plan, Plan.class);
-    }
-
-    public List<PlanItem> getTreeById(Long id) {
-        return getTreeById(getPlanItemById(id, AccessLevel.VIEW));
     }
 
     public List<PlanItem> getTreeById(PlanItem item) {
@@ -178,14 +166,6 @@ public class PlanService {
         return parent;
     }
 
-    public PlanMessage mutateTreeForMessage(List<Long> ids, Long parentId, Long afterId) {
-        mutateTree(ids, parentId, afterId);
-        val m = new PlanMessage();
-        m.setType("tree-mutation");
-        m.setInfo(new MutatePlanTree(ids, parentId, afterId));
-        return m;
-    }
-
     public PlanItem resetSubitems(Long id, List<Long> subitemIds) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         PlanItem prev = null;
@@ -195,11 +175,6 @@ public class PlanService {
             prev = curr;
         }
         return item;
-    }
-
-    public PlanMessage resetSubitemsForMessage(Long id, List<Long> subitemIds) {
-        PlanItem item = resetSubitems(id, subitemIds);
-        return buildUpdateMessage(item);
     }
 
     private void sendToPlan(AggregateIngredient r, PlanItem aggItem, Double scale) {
@@ -243,16 +218,6 @@ public class PlanService {
         sendToPlan(r, recipeItem, scale);
         planRepo.flush(); // to ensure IDs are set everywhere
         return recipeItem;
-    }
-
-    private PlanMessage buildCreationMessage(PlanItem item) {
-        PlanItem parent = item.getParent();
-        PlanMessage m = new PlanMessage();
-        m.setId(parent.getId());
-        m.setType("create");
-        List<PlanItem> tree = getTreeById(parent);
-        m.setInfo(PlanItemInfo.from(tree));
-        return m;
     }
 
     public Plan createPlan(String name, User owner) {
@@ -322,23 +287,6 @@ public class PlanService {
         return item;
     }
 
-    public PlanMessage createItemForMessage(Object id, Long parentId, Long afterId, String name) {
-        PlanItem item = createItem(parentId, afterId, name);
-        PlanMessage m = buildCreationMessage(item);
-        m.addNewId(item.getId(), id);
-        return m;
-    }
-
-    public PlanMessage createBucketForMessage(Long planId, Object bucketId, String name, LocalDate date) {
-        PlanBucket bucket = createBucket(planId, name, date);
-        PlanMessage m = new PlanMessage();
-        m.setId(bucket.getId());
-        m.setType("create-bucket");
-        m.setInfo(PlanBucketInfo.from(bucket));
-        m.addNewId(bucket.getId(), bucketId);
-        return m;
-    }
-
     public PlanBucket createBucket(Long planId, String name, LocalDate date) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         PlanBucket bucket = new PlanBucket(plan, name, date);
@@ -363,15 +311,6 @@ public class PlanService {
         return bucket;
     }
 
-    public PlanMessage updateBucketForMessage(Long planId, Long id, String name, LocalDate date) {
-        PlanBucket bucket = updateBucket(planId, id, name, date);
-        PlanMessage m = new PlanMessage();
-        m.setId(bucket.getId());
-        m.setType("update-bucket");
-        m.setInfo(PlanBucketInfo.from(bucket));
-        return m;
-    }
-
     public PlanBucket deleteBucket(Long planId, Long bucketId) {
         getPlanById(planId, AccessLevel.ADMINISTER);
         return deleteBucketInternal(bucketId);
@@ -390,14 +329,6 @@ public class PlanService {
                 .toList();
     }
 
-    public PlanMessage deleteBucketForMessage(Long planId, Long id) {
-        PlanBucket bucket = deleteBucket(planId, id);
-        PlanMessage m = new PlanMessage();
-        m.setId(bucket.getId());
-        m.setType("delete-bucket");
-        return m;
-    }
-
     public PlanItem renameItem(Long id, String name) {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setName(name);
@@ -407,10 +338,6 @@ public class PlanService {
             itemService.updateAutoRecognition(item);
         }
         return item;
-    }
-
-    public PlanMessage renameItemForMessage(Long id, String name) {
-        return buildUpdateMessage(renameItem(id, name));
     }
 
     public PlanItem assignItemBucket(Long id, Long bucketId) {
@@ -423,18 +350,6 @@ public class PlanService {
         }
         item.setBucket(bucket);
         return item;
-    }
-
-    public PlanMessage assignItemBucketForMessage(Long id, Long bucketId) {
-        return buildUpdateMessage(assignItemBucket(id, bucketId));
-    }
-
-    private PlanMessage buildUpdateMessage(PlanItem item) {
-        PlanMessage m = new PlanMessage();
-        m.setId(item.getId());
-        m.setType("update");
-        m.setInfo(PlanItemInfo.from(item));
-        return m;
     }
 
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
@@ -497,17 +412,6 @@ public class PlanService {
             item.getChildView()
                     .forEach(it -> recordRecipeHistories(it, status, doneAt));
         }
-    }
-
-    public PlanMessage setItemStatusForMessage(Long id, PlanItemStatus status) {
-        PlanItem item = setItemStatus(id, status);
-        if (item.getStatus().isForDelete()) {
-            val m = new PlanMessage();
-            m.setId(id);
-            m.setType("delete");
-            return m;
-        }
-        return buildUpdateMessage(item);
     }
 
     public PlanItem deleteItem(Long id) {

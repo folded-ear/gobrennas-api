@@ -1,13 +1,10 @@
 package com.brennaswitzer.cookbook.payload;
 
-import com.brennaswitzer.cookbook.domain.Recipe;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -28,29 +25,6 @@ public class IngredientInfo extends CoreRecipeInfo {
 
     public boolean isCookThis() {
         return cookThis != null && cookThis;
-    }
-
-    public Recipe asRecipe(EntityManager em) {
-        Recipe r = getId() == null
-                ? new Recipe()
-                : em.getReference(Recipe.class, getId());
-        r.setName(getName());
-        r.setExternalUrl(getExternalUrl());
-        r.setDirections(getDirections());
-        r.setYield(getYield());
-        r.setTotalTime(getTotalTime());
-        r.setCalories(getCalories());
-        if (hasIngredients()) {
-            r.setIngredients(getIngredients()
-                    .stream()
-                    .map(ref -> ref.asIngredientRef(em))
-                    .collect(Collectors.toList()));
-        }
-        // photo is NOT copied, as the S3 object needs to move too
-        if (photoFocus != null && photoFocus.length == 2) {
-            r.getPhoto(true).setFocusArray(photoFocus);
-        }
-        return r;
     }
 
     public boolean hasSections() {

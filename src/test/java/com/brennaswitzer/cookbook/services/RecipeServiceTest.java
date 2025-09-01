@@ -57,7 +57,7 @@ class RecipeServiceTest {
         when(recipeRepository.save(input))
                 .thenReturn(saved);
 
-        Recipe result = service.createNewRecipe(input, photo);
+        Recipe result = service.createNewRecipe(input, null, photo);
 
         assertSame(saved, result);
         verify(storageService)
@@ -74,7 +74,7 @@ class RecipeServiceTest {
         when(recipeRepository.save(input))
                 .thenReturn(saved);
 
-        Recipe result = service.createNewRecipe(input);
+        Recipe result = service.createNewRecipe(input, null, null);
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
@@ -98,7 +98,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(saved, photo);
+        Recipe result = service.updateRecipe(saved, null, photo);
 
         assertSame(saved, result);
         verify(storageService)
@@ -130,7 +130,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(saved, photo);
+        Recipe result = service.updateRecipe(saved, null, photo);
 
         assertSame(saved, result);
         verify(storageService)
@@ -159,7 +159,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(saved);
+        Recipe result = service.updateRecipe(saved, null, null);
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
@@ -180,7 +180,7 @@ class RecipeServiceTest {
         when(principalAccess.getUser())
                 .thenReturn(owner);
 
-        Recipe result = service.updateRecipe(input);
+        Recipe result = service.updateRecipe(input, null, null);
 
         assertSame(saved, result);
         verifyNoInteractions(storageService);
