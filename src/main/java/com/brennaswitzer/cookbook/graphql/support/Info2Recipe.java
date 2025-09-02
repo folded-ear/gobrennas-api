@@ -99,9 +99,9 @@ public class Info2Recipe {
             r.setTotalTime(info.getTotalTime());
             r.setCalories(info.getCalories());
             // photo is NOT copied, as the S3 object needs to move too
-            float[] photoFocus = info.getPhotoFocus();
-            if (photoFocus != null && photoFocus.length == 2) {
-                r.getPhoto(true).setFocusArray(photoFocus);
+            List<Float> photoFocus = info.getPhotoFocus();
+            if (photoFocus != null && photoFocus.size() == 2) {
+                r.getPhoto(true).setFocus(photoFocus);
             }
             return r;
         }

@@ -17,9 +17,4 @@ public class PhotoResolver {
         return storageService.load(photo.getObjectKey());
     }
 
-    @SchemaMapping
-    public float[] focus(Photo photo) {
-        return photo.getFocusArray();
-    }
-
 }

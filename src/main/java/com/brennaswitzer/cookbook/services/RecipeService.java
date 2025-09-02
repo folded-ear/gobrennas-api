@@ -73,7 +73,7 @@ public class RecipeService {
         return recipeRepository.save(recipe);
     }
 
-    public Recipe setRecipePhoto(Long id, String photoFilename, float[] photoFocus) {
+    public Recipe setRecipePhoto(Long id, String photoFilename, List<Float> photoFocus) {
         Recipe recipe = getMyRecipe(id);
         new SetPhoto(photoFilename, photoFocus)
                 .set(recipe);
@@ -137,9 +137,9 @@ public class RecipeService {
     private final class SetPhoto {
 
         private final String filename;
-        private final float[] focus;
+        private final List<Float> focus;
 
-        public SetPhoto(String filename, float[] focus) {
+        public SetPhoto(String filename, List<Float> focus) {
             this.filename = filename;
             this.focus = focus;
         }
@@ -164,8 +164,8 @@ public class RecipeService {
             }
             removePhotoInternal(recipe);
             recipe.setPhoto(s3File);
-            if (focus != null && focus.length == 2) {
-                recipe.getPhoto().setFocusArray(focus);
+            if (focus != null && focus.size() == 2) {
+                recipe.getPhoto().setFocus(focus);
             }
             return true;
         }
@@ -182,7 +182,7 @@ public class RecipeService {
                         photo.getSize()
                 ));
                 if (photo.hasFocus()) {
-                    recipe.getPhoto().setFocusArray(photo.getFocusArray());
+                    recipe.getPhoto().setFocus(photo.getFocus());
                 }
                 return true;
             }

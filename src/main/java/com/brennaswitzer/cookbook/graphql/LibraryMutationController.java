@@ -15,6 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
+
 @Controller
 public class LibraryMutationController {
 
@@ -92,7 +94,7 @@ public class LibraryMutationController {
     Recipe setRecipePhoto(LibraryMutation libMut,
                           @Argument Long id,
                           @Argument String filename,
-                          @Argument float[] focus) {
+                          @Argument List<Float> focus) {
         return recipeService.setRecipePhoto(id, filename, focus);
     }
 
