@@ -50,8 +50,8 @@ class PlanResolverTest {
 
         assertEquals(1, aces.size());
         AccessControlEntry ace = aces.get(0);
-        assertSame(johann, ace.user);
-        assertEquals(AccessLevel.CHANGE, ace.level);
+        assertSame(johann, ace.getUser());
+        assertEquals(AccessLevel.CHANGE, ace.getLevel());
     }
 
     @Test

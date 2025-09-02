@@ -1,8 +1,6 @@
 package com.brennaswitzer.cookbook.payload;
 
-import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
-import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -49,7 +47,7 @@ public class IngredientRefInfo {
 
     @Deprecated
     public boolean hasUnits() {
-        return units != null && !"".equals(units) && !units.trim().isEmpty();
+        return units != null && !units.isEmpty() && !units.trim().isEmpty();
     }
 
     public boolean hasUomId() {
@@ -71,23 +69,6 @@ public class IngredientRefInfo {
                 ? UnitOfMeasure.ensure(em, getUnits())
                 : null;
         return new Quantity(getQuantity(), uom);
-    }
-
-    public IngredientRef asIngredientRef(EntityManager em) {
-        IngredientRef ref = new IngredientRef();
-        ref.setRaw(getRaw());
-        if (hasQuantity()) {
-            ref.setQuantity(extractQuantity(em));
-        }
-        ref.setPreparation(getPreparation());
-        if (hasIngredientId()) {
-            ref.setIngredient(em.find(Ingredient.class, getIngredientId()));
-        } else if (hasIngredient()) {
-            PantryItem it = new PantryItem(getIngredient());
-            em.persist(it);
-            ref.setIngredient(it);
-        }
-        return ref;
     }
 
     public static IngredientRefInfo from(IngredientRef ref) {

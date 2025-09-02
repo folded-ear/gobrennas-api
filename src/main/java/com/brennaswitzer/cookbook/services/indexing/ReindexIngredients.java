@@ -28,7 +28,6 @@ public class ReindexIngredients extends QueueProcessor {
     }
 
     @Scheduled(cron = "${random.int[60]} */5 * * * *")
-    @SuppressWarnings("ScheduledMethodInspection")
     public int reindexQueued() {
         int totalRows = drainQueue();
         if (totalRows > 0) {

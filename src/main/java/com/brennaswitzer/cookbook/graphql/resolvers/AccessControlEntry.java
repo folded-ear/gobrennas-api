@@ -5,15 +5,13 @@ import com.brennaswitzer.cookbook.domain.User;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter
+@Setter
 public class AccessControlEntry {
 
-    @Getter
-    @Setter
-    User user;
+    private User user;
 
-    @Getter
-    @Setter
-    AccessLevel level;
+    private AccessLevel level;
 
     public AccessControlEntry() {
     }

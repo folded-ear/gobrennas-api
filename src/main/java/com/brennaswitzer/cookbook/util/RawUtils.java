@@ -67,11 +67,11 @@ public class RawUtils {
         int pos = 0;
         if (n != null) {
             d.setQuantity(new RawIngredientDissection.Section(
-                    raw.substring(n.getStart(), n.getEnd()),
-                    n.getStart(),
-                    n.getEnd()
+                    raw.substring(n.start(), n.end()),
+                    n.start(),
+                    n.end()
             ));
-            pos = n.getEnd();
+            pos = n.end();
         }
         RawIngredientDissection.Section s = findSection(raw, pos, '_', '_');
         if (s != null) {

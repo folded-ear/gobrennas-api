@@ -18,37 +18,9 @@ public final class NumberUtils {
 
     private static final Log logger = LogFactory.getLog(NumberUtils.class);
 
-    public static class NumberWithRange {
-        private final double number;
-        private final int start;
-        private final int end;
-
-        public NumberWithRange(double number, int start, int end) {
-            this.number = number;
-            this.start = start;
-            this.end = end;
-        }
-
-        public double getNumber() {
-            return number;
-        }
-
-        public int getStart() {
-            return start;
-        }
-
-        public int getEnd() {
-            return end;
-        }
-
-        @Override
-        public String toString() {
-            return "NumberWithRange{" + "number=" + number +
-                    ", start=" + start +
-                    ", end=" + end +
-                    '}';
-        }
-    }
+    public record NumberWithRange(double number,
+                                  int start,
+                                  int end) {}
 
     private static class NumVis extends NumberBaseVisitor<NumberWithRange> {
 
