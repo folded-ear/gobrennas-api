@@ -2,13 +2,13 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.domain.UserPreference;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.AssembleUserPreferences;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
@@ -23,7 +23,7 @@ public class UserResolver {
 
     @SchemaMapping
     public List<String> roles(User user,
-                              @AuthenticationPrincipal UserPrincipal principal) {
+                              @CurrentUser UserPrincipal principal) {
         // if not the current user, create a new instance
         if (!Objects.equals(principal.getId(), user.getId())) {
             principal = UserPrincipal.create(user);

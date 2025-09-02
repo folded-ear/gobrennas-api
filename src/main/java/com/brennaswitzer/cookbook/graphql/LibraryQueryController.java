@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchType;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.IngredientService;
 import com.brennaswitzer.cookbook.services.ItemService;
@@ -27,7 +28,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collection;
@@ -134,7 +134,7 @@ public class LibraryQueryController {
     Recipe getRecipeById(LibraryQuery libQ,
                          @Argument Long id,
                          @Argument("secret") String optionalSecret,
-                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                         @CurrentUser UserPrincipal userPrincipal) {
         ensurePrincipalOrSecret(id, optionalSecret, userPrincipal);
         return recipeService.findRecipeById(id)
                 .orElseThrow(() -> new EntityNotFoundException("There is no recipe with id: " + id));

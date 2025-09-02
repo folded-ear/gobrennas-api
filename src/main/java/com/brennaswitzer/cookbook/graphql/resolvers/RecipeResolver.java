@@ -11,6 +11,7 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.loaders.FavKey;
 import com.brennaswitzer.cookbook.graphql.model.Section;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.util.ShareHelper;
 import org.dataloader.DataLoader;
@@ -18,7 +19,6 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.time.temporal.ChronoUnit;
@@ -140,7 +140,7 @@ public class RecipeResolver {
 
     @SchemaMapping
     public CompletableFuture<Boolean> favorite(Recipe recipe,
-                                               @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                               @CurrentUser UserPrincipal userPrincipal,
                                                DataLoader<FavKey, Boolean> favLoader) {
         return favLoader.load(new FavKey(userPrincipal.getId(),
                                          FavoriteType.RECIPE,

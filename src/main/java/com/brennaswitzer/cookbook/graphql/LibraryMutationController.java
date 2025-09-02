@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.graphql.support.Info2Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public class LibraryMutationController {
     Recipe createRecipe(LibraryMutation libMut,
                         @Argument IngredientInfo info,
                         @Argument boolean cookThis,
-                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                        @CurrentUser UserPrincipal userPrincipal) {
         info.setId(null);
         Recipe recipe = info2Recipe.convert(userPrincipal,
                                             info,
@@ -54,7 +54,7 @@ public class LibraryMutationController {
     Recipe createRecipeFrom(LibraryMutation libMut,
                             @Argument Long sourceRecipeId,
                             @Argument IngredientInfo info,
-                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                            @CurrentUser UserPrincipal userPrincipal) {
         if (info.getId() != null) {
             if (sourceRecipeId != null && !info.getId().equals(sourceRecipeId)) {
                 throw new IllegalArgumentException(String.format(
@@ -75,7 +75,7 @@ public class LibraryMutationController {
     Recipe updateRecipe(LibraryMutation libMut,
                         @Argument Long id,
                         @Argument IngredientInfo info,
-                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                        @CurrentUser UserPrincipal userPrincipal) {
         if (id != null) {
             if (info.getId() != null && !id.equals(info.getId())) {
                 throw new IllegalArgumentException(String.format(

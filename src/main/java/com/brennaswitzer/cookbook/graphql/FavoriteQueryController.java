@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Favorite;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.favorites.FetchFavorites;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class FavoriteQueryController {
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     List<Favorite> all(FavoriteQuery favQ,
-                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                       @CurrentUser UserPrincipal userPrincipal) {
         return fetchFavorites.all(userPrincipal);
     }
 
@@ -37,7 +37,7 @@ public class FavoriteQueryController {
     @PreAuthorize("hasRole('USER')")
     List<Favorite> byType(FavoriteQuery favQ,
                           @Argument String objectType,
-                          @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                          @CurrentUser UserPrincipal userPrincipal) {
         return fetchFavorites.byType(userPrincipal,
                                      objectType);
     }
@@ -47,7 +47,7 @@ public class FavoriteQueryController {
     Favorite byObject(FavoriteQuery favQ,
                       @Argument String objectType,
                       @Argument Long objectId,
-                      @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                      @CurrentUser UserPrincipal userPrincipal) {
         return fetchFavorites.byObject(userPrincipal,
                                        objectType,
                                        objectId)

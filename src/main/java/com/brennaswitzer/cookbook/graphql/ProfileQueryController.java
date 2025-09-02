@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
 import com.brennaswitzer.cookbook.services.storage.ScratchUpload;
@@ -10,7 +11,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -32,14 +32,14 @@ public class ProfileQueryController {
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     User me(ProfileQuery profileQ,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+            @CurrentUser UserPrincipal userPrincipal) {
         return userRepository.getReferenceById(userPrincipal.getId());
     }
 
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     Iterable<User> friends(ProfileQuery profileQ,
-                           @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                           @CurrentUser UserPrincipal userPrincipal) {
         return userRepository.findByIdNot(userPrincipal.getId());
     }
 
@@ -48,7 +48,7 @@ public class ProfileQueryController {
     ScratchUpload scratchFile(ProfileQuery profileQ,
                               @Argument String contentType,
                               @Argument String originalFilename,
-                              @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                              @CurrentUser UserPrincipal userPrincipal) {
         return scratchSpace.newScratchFile(
                 userPrincipal,
                 contentType,

@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.payload.TextractJobInfo;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.services.textract.TextractService;
@@ -11,7 +12,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Slf4j
@@ -35,7 +35,7 @@ public class TextractMutationController {
     @PreAuthorize("hasRole('USER')")
     TextractJobInfo createPreUploadedJob(TextractMutation textractMut,
                                          @Argument String filename,
-                                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                                         @CurrentUser UserPrincipal userPrincipal) {
         return TextractJobInfo.fromJobWithLines(
                 service.createPreUploadedJob(
                         userPrincipal,
@@ -47,7 +47,7 @@ public class TextractMutationController {
     @PreAuthorize("hasRole('USER')")
     Deletion deleteJob(TextractMutation textractMut,
                        @Argument Long id,
-                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                       @CurrentUser UserPrincipal userPrincipal) {
         return Deletion.of(service.deleteJob(userPrincipal,
                                              id));
     }

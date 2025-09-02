@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.graphql;
 import com.brennaswitzer.cookbook.domain.UserDevice;
 import com.brennaswitzer.cookbook.domain.UserPreference;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
+import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.ClearUserPreference;
 import com.brennaswitzer.cookbook.services.DeleteUserDevice;
@@ -13,7 +14,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -40,7 +40,7 @@ public class ProfileMutationController {
     UserPreference clearPreference(ProfileMutation profileMut,
                                    @Argument String name,
                                    @Argument String deviceKey,
-                                   @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                                   @CurrentUser UserPrincipal userPrincipal) {
         return clearUserPreference.clear(userPrincipal,
                                          name,
                                          deviceKey);
@@ -52,7 +52,7 @@ public class ProfileMutationController {
                                  @Argument String name,
                                  @Argument String deviceKey,
                                  @Argument String value,
-                                 @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                                 @CurrentUser UserPrincipal userPrincipal) {
         return setUserPreference.set(userPrincipal,
                                      name,
                                      deviceKey,
@@ -64,7 +64,7 @@ public class ProfileMutationController {
     UserDevice renameDevice(ProfileMutation profileMut,
                             @Argument Long id,
                             @Argument String name,
-                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                            @CurrentUser UserPrincipal userPrincipal) {
         return renameUserDevice.rename(userPrincipal, id, name);
     }
 
@@ -72,7 +72,7 @@ public class ProfileMutationController {
     @PreAuthorize("hasRole('USER')")
     Deletion deleteDevice(ProfileMutation profileMut,
                           @Argument Long id,
-                          @AuthenticationPrincipal UserPrincipal userPrincipal) {
+                          @CurrentUser UserPrincipal userPrincipal) {
         return deleteUserDevice.delete(userPrincipal, id);
     }
 
