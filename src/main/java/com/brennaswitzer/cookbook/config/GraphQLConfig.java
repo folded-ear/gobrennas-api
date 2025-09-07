@@ -1,6 +1,9 @@
 package com.brennaswitzer.cookbook.config;
 
+import com.brennaswitzer.cookbook.graphql.support.CachingPreparsedDocumentProvider;
 import com.brennaswitzer.cookbook.graphql.support.OffsetConnectionCursorCoercing;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import graphql.execution.AsyncExecutionStrategy;
@@ -9,6 +12,7 @@ import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.ResultPath;
+import graphql.execution.preparsed.PreparsedDocumentProvider;
 import graphql.language.SourceLocation;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
@@ -23,6 +27,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
@@ -70,6 +75,17 @@ public class GraphQLConfig {
     }
 
     @Bean
+    PreparsedDocumentProvider preparsedDocumentProvider() {
+        return new CachingPreparsedDocumentProvider(
+                Caffeine.newBuilder()
+                        // There aren't very many distinct queries
+                        .maximumSize(1_000)
+                        .expireAfterAccess(Duration.ofHours(6))
+                        .scheduler(Scheduler.systemScheduler())
+                        .build());
+    }
+
+    @Bean
     GraphQlSourceBuilderCustomizer sourceBuilderCustomizer(
             Collection<GraphQLScalarType> scalars,
             TransactionTemplate mutationTmpl,
@@ -93,7 +109,8 @@ public class GraphQLConfig {
         return sourceBuilder -> sourceBuilder
                 .configureGraphQl(builder -> builder
                         .queryExecutionStrategy(queryStrat)
-                        .mutationExecutionStrategy(mutationStrat))
+                        .mutationExecutionStrategy(mutationStrat)
+                        .preparsedDocumentProvider(preparsedDocumentProvider()))
                 .configureRuntimeWiring(wiring -> scalars.forEach(wiring::scalar))
                 .inspectSchemaMappings(report -> log.info("{}", report));
     }
