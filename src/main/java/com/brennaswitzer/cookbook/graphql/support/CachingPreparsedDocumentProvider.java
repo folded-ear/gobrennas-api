@@ -5,6 +5,7 @@ import graphql.ExecutionInput;
 import graphql.execution.preparsed.PreparsedDocumentEntry;
 import graphql.execution.preparsed.PreparsedDocumentProvider;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class CachingPreparsedDocumentProvider implements PreparsedDocumentProvider {
@@ -16,11 +17,12 @@ public class CachingPreparsedDocumentProvider implements PreparsedDocumentProvid
     }
 
     @Override
-    public PreparsedDocumentEntry getDocument(
+    public CompletableFuture<PreparsedDocumentEntry> getDocumentAsync(
             ExecutionInput executionInput,
             Function<ExecutionInput, PreparsedDocumentEntry> computeFunction) {
-        return cache.get(executionInput.getQuery(),
-                         k -> computeFunction.apply(executionInput));
+        return CompletableFuture.completedFuture(
+                cache.get(executionInput.getQuery(),
+                          k -> computeFunction.apply(executionInput)));
     }
 
 }
