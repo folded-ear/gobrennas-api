@@ -27,6 +27,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
 
     private static final String USE_COUNT_BY_ID =
             """
+            0 +
             (select count(distinct r.id)
              from Recipe r
                  join r.ingredients ref
@@ -40,6 +41,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
 
     private static final String DUPLICATE_COUNT_BY_ID =
             """
+            0 +
             (select count(*)
              from PantryItemDuplicate
              where pantryItem.id = %1$s
