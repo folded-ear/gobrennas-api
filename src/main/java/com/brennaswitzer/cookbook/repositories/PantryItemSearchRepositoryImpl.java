@@ -165,7 +165,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
         stmt.append("""
                     from PantryItem item
                        left join item.synonyms syn
-                       left join item.labels.label lbl
+                       left join item.labels lbl
                     """);
         if (request.isFiltered()) {
             int i = 0;
