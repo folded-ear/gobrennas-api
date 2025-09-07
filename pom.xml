@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.12</version>
+        <version>3.3.13</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.brennaswitzer</groupId>
@@ -20,7 +20,7 @@
         <antlr4.visitor>true</antlr4.visitor>
         <antlr4.listener>true</antlr4.listener>
         <org.antlr.version>4.13.1</org.antlr.version>
-        <spring-boot.version>3.2.12</spring-boot.version>
+        <spring-boot.version>3.3.13</spring-boot.version>
         <jakarta-xml-bind.version>4.0.1</jakarta-xml-bind.version>
         <lombok.version>1.18.30</lombok.version>
         <testcontainers.version>1.20.6</testcontainers.version>
