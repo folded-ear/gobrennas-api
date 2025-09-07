@@ -129,3 +129,21 @@ ALTER TABLE recipe_ingredients
     ADD is_section BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE INDEX idx_ingredient_recipe ON recipe_ingredients (ingredient_id, recipe_id);
+
+
+--changeset barneyb:ingredient-label-indexes-and-key
+ALTER TABLE ingredient_labels
+    DROP CONSTRAINT fk_ingredient_id;
+CREATE INDEX idx_ingredient_labels_ingredient ON ingredient_labels (ingredient_id, label_id);
+CREATE INDEX idx_ingredient_labels_label ON ingredient_labels (label_id, ingredient_id);
+ALTER TABLE ingredient_labels
+    ADD CONSTRAINT fk_ingredient_id FOREIGN KEY (ingredient_id)
+        REFERENCES ingredient (id)
+        ON DELETE CASCADE;
+
+
+--changeset barneyb:plan-item-indexes
+CREATE INDEX idx_plan_item_parent ON plan_item (parent_id);
+CREATE INDEX idx_plan_item_aggregate ON plan_item (aggregate_id);
+CREATE INDEX idx_plan_item_trash_bin ON plan_item (trash_bin_id);
+CREATE INDEX idx_plan_item_updated_at ON plan_item (updated_at);
