@@ -10,6 +10,7 @@ import jakarta.persistence.NamedQuery;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.util.Assert;
 
 import java.util.Collections;
@@ -37,6 +38,7 @@ import java.util.Set;
                 else 3
                 end
                 """)
+@BatchSize(size = 50)
 public class UnitOfMeasure extends BaseEntity {
 
     public static final Comparator<UnitOfMeasure> BY_NAME = (a, b) -> {

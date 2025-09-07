@@ -35,6 +35,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = PantryItem.class, name = "PantryItem"),
         @JsonSubTypes.Type(value = Recipe.class, name = "Recipe")
 })
+@BatchSize(size = 50)
 public abstract class Ingredient extends BaseEntity implements Named, Labeled {
 
     public static Comparator<Ingredient> BY_NAME = (a, b) -> {

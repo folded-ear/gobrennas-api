@@ -10,7 +10,6 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
-import org.hibernate.annotations.BatchSize;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -64,7 +63,6 @@ public class Quantity {
     private double quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @BatchSize(size = 10)
     private UnitOfMeasure units;
 
     public Quantity() {
