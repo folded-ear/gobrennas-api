@@ -13,6 +13,7 @@ import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -122,7 +123,6 @@ public class RecipeService {
                         LibrarySearchRequest.builder()
                                 .scope(LibrarySearchScope.EVERYONE)
                                 .ingredientIds(Set.of(section.getId()))
-                                .limit(25)
                                 .build())
                 .getContent()
                 .stream()
@@ -179,6 +179,7 @@ public class RecipeService {
             return true;
         }
 
+        @CanIgnoreReturnValue
         public boolean setOrCopy(Recipe source, Recipe recipe) {
             if (set(recipe)) return true;
             if (source.hasPhoto()) {
