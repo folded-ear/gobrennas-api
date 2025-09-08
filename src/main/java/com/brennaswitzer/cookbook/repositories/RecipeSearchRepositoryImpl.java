@@ -52,7 +52,8 @@ public class RecipeSearchRepositoryImpl implements RecipeSearchRepository {
                        FROM ingredient ing
                        """);
         boolean considerFavorites = !request.isFiltered()
-                                    && request.getType() == LibrarySearchType.TOP_LEVEL_RECIPE;
+                                    && request.getType() == LibrarySearchType.TOP_LEVEL_RECIPE
+                                    && request.getUser() != null;
         if (considerFavorites) {
             builder.append("""
                                 LEFT JOIN favorite fav

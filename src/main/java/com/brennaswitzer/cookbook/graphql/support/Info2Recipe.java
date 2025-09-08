@@ -86,7 +86,6 @@ public class Info2Recipe {
                     toRemove = List.copyOf(r.getOwnedSections());
                 }
                 toRemove.forEach(recipeService::removeOwnedSection);
-
             }
             setCoreInfo(info, r);
             if (info.hasSections()) {
