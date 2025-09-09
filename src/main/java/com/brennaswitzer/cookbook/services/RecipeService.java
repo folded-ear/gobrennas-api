@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
+import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
@@ -118,13 +119,21 @@ public class RecipeService {
         }
         recipeRepository.searchRecipes(
                         LibrarySearchRequest.builder()
-                                .user(sectionOf.getOwner())
+                                .scope(LibrarySearchScope.EVERYONE)
                                 .ingredientIds(Set.of(section.getId()))
+                                .limit(25)
                                 .build())
                 .getContent()
                 .stream()
                 .filter(r -> !sectionOf.equals(r))
-                .findFirst()
+                .min((a, b) -> {
+                    // Retain the same owner, if possible
+                    boolean aeq = a.getOwner().equals(sectionOf.getOwner());
+                    boolean beq = b.getOwner().equals(sectionOf.getOwner());
+                    return aeq == beq
+                            ? 0
+                            : aeq ? -1 : 1;
+                })
                 .ifPresentOrElse(
                         r -> r.addOwnedSection(section),
                         () -> {
