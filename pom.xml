@@ -170,7 +170,7 @@
         <dependency>
             <groupId>org.mnode.ical4j</groupId>
             <artifactId>ical4j</artifactId>
-            <version>3.2.12</version>
+            <version>4.1.1</version>
         </dependency>
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>
