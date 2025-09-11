@@ -113,15 +113,6 @@ public class PlanService {
     }
 
     public List<PlanItem> getTreeById(PlanItem item) {
-        List<PlanItem> treeItems = treeHelper(item);
-        for (PlanItem t : treeItems) {
-            // to load the collection before the session closes
-            t.getOrderedComponentsView();
-        }
-        return treeItems;
-    }
-
-    private List<PlanItem> treeHelper(PlanItem item) {
         List<PlanItem> treeItems = new ArrayList<>();
         treeHelper(item, treeItems::add);
         return treeItems;
