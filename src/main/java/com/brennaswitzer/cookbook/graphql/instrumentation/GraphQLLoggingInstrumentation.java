@@ -8,18 +8,20 @@ import graphql.execution.instrumentation.InstrumentationState;
 import graphql.execution.instrumentation.SimpleInstrumentationContext;
 import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationExecutionParameters;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Component
+@Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentation {
-
-    private static final Logger logger = LoggerFactory.getLogger(GraphQLLoggingInstrumentation.class);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -28,40 +30,49 @@ public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentati
     public InstrumentationContext<ExecutionResult> beginExecution(
             InstrumentationExecutionParameters parameters,
             InstrumentationState state) {
-        if (!logger.isInfoEnabled()) return SimpleInstrumentationContext.noOp();
-        var startMillis = System.currentTimeMillis();
-        var debugEnabled = logger.isDebugEnabled();
-        var executionId = parameters.getExecutionInput().getExecutionId();
-        if (debugEnabled) {
-            logger.debug("graphql {} query: \"{}\"",
-                         executionId,
-                         StringEscapeUtils.escapeJson(parameters.getQuery().strip()));
-            logger.debug("graphql {} variables: {}",
-                         executionId,
-                         maybeAsJson(parameters.getVariables()));
-        }
-        return new SimpleInstrumentationContext<>() {
+        if (!log.isInfoEnabled()) return SimpleInstrumentationContext.noOp();
+        return new InstrumentationContext<>() {
+
+            private final boolean debugEnabled = log.isDebugEnabled();
+            private final Object executionId = parameters.getExecutionInput().getExecutionId();
+
+            private long startMillis;
+
+            @Override
+            public void onDispatched(CompletableFuture<ExecutionResult> result) {
+                startMillis = System.currentTimeMillis();
+                if (debugEnabled) {
+                    log.debug("graphql {} query: \"{}\"",
+                              executionId,
+                              StringEscapeUtils.escapeJson(parameters.getQuery().strip()));
+                    log.debug("graphql {} variables: {}",
+                              executionId,
+                              maybeAsJson(parameters.getVariables()));
+                }
+            }
+
             @Override
             public void onCompleted(ExecutionResult executionResult, Throwable t) {
                 var elapsed = System.currentTimeMillis() - startMillis;
                 if (t != null) {
                     // SLF4J can EITHER interpolate OR log a Throwable.
-                    logger.error("graphql %s exception:".formatted(executionId), t);
+                    //noinspection StringConcatenationArgumentToLogCall
+                    log.error("graphql %s exception:".formatted(executionId), t);
                 }
                 for (var e : executionResult.getErrors()) {
-                    logger.warn("graphql {} error: {}",
-                                executionId,
-                                e);
+                    log.warn("graphql {} error: {}",
+                             executionId,
+                             e);
                 }
                 if (debugEnabled && executionResult.isDataPresent()) {
-                    logger.debug("graphql {} data: {}",
-                                 executionId,
-                                 maybeAsJson(executionResult.<Object>getData()));
+                    log.debug("graphql {} data: {}",
+                              executionId,
+                              maybeAsJson(executionResult.<Object>getData()));
                 }
-                logger.info("graphql {} operation: {} {}ms",
-                            executionId,
-                            parameters.getOperation(),
-                            elapsed);
+                log.info("graphql {} operation: {} {}ms",
+                         executionId,
+                         parameters.getOperation(),
+                         elapsed);
             }
         };
     }
