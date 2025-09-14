@@ -71,12 +71,3 @@ app:
       - https://next.gobrennas.com/post-oauth2/redirect
   calendar:
     validate: false
-
-graphql:
-  servlet:
-    websocket:
-      # noinspection SpringBootApplicationYaml
-      enabled: false
-    exception-handlers-enabled: true
-  tools:
-    schema-location-pattern: graphqls/**/*.graphqls
