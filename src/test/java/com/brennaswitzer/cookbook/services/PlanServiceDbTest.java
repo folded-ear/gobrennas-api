@@ -11,13 +11,14 @@ import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.RecipeBox;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -49,9 +50,6 @@ class PlanServiceDbTest {
 
     @Autowired
     private EntityManager entityManager;
-
-    @Autowired
-    UserPrincipalAccess principalAccess;
 
     @Autowired
     private UserRepository userRepo;
@@ -106,7 +104,7 @@ class PlanServiceDbTest {
     @Test
     void duplicatePlan() {
         var box = new RecipeBox();
-        box.persist(entityManager, principalAccess.getUser());
+        box.persist(entityManager, alice);
         Plan groceries = service.createPlan("Groceries", alice);
         service.addRecipe(groceries.getId(), box.pizza, 1.0);
         entityManager.flush();
@@ -206,7 +204,7 @@ class PlanServiceDbTest {
     void statusChangeEvents() {
         assert 0 == recipeHistoryRepo.count(); // sanity
         var box = new RecipeBox();
-        box.persist(entityManager, principalAccess.getUser());
+        box.persist(entityManager, alice);
         Plan groceries = service.createPlan("This Week", alice);
         service.addRecipe(groceries.getId(), box.pizza, 1.0);
         entityManager.flush();
@@ -256,6 +254,78 @@ class PlanServiceDbTest {
 
         // ignore tomatoes - not a recipe
         assertEquals(2, recipeHistoryRepo.count());
+    }
+
+    @Test
+    void getTreeDeltasById_plan() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        Plan groceries = service.createPlan("This Week", alice);
+        service.addRecipe(groceries.getId(), box.pizza, 1.0);
+        entityManager.flush();
+        var cutoff = Instant.now();
+        service.renameItem(groceries.getId(), "SOMETHING NEW");
+        entityManager.flush();
+
+        var result = service.getTreeDeltasById(groceries.getId(), cutoff);
+
+        assertEquals(List.of(groceries),
+                     result);
+    }
+
+    @Test
+    void getTreeDeltasById_item() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        Plan groceries = service.createPlan("This Week", alice);
+        service.addRecipe(groceries.getId(), box.pizza, 1.0);
+        entityManager.flush();
+        var cutoff = Instant.now();
+        PlanItem pizza = groceries.getChildView().iterator().next();
+        PlanItem itemToUpdate = pizza.getChildView().iterator().next();
+        service.renameItem(itemToUpdate.getId(), "SOMETHING NEW");
+        entityManager.flush();
+
+        var result = service.getTreeDeltasById(groceries.getId(), cutoff);
+
+        assertEquals(List.of(itemToUpdate),
+                     result);
+    }
+
+    @Test
+    void getTreeDeltasById_deletedChild() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        Plan groceries = service.createPlan("This Week", alice);
+        service.addRecipe(groceries.getId(), box.pizza, 1.0);
+        entityManager.flush();
+        var cutoff = Instant.now();
+        PlanItem pizza = groceries.getChildView().iterator().next();
+        PlanItem itemToDelete = pizza.getChildView().iterator().next();
+        service.setItemStatus(itemToDelete.getId(), PlanItemStatus.DELETED);
+        entityManager.flush();
+
+        var result = service.getTreeDeltasById(groceries.getId(), cutoff);
+
+        assertEquals(List.of(groceries, pizza, itemToDelete),
+                     result);
+    }
+
+    @Test
+    void getTreeDeltasById_bucket() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        Plan groceries = service.createPlan("This Week", alice);
+        service.addRecipe(groceries.getId(), box.pizza, 1.0);
+        entityManager.flush();
+        var cutoff = Instant.now();
+        service.createBucket(groceries.getId(), null, LocalDate.now());
+        entityManager.flush();
+
+        var result = service.getTreeDeltasById(groceries.getId(), cutoff);
+
+        assertEquals(List.of(groceries),
+                     result);
     }
 
 }

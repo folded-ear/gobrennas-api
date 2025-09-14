@@ -1,0 +1,49 @@
+package com.brennaswitzer.cookbook.graphql;
+
+import com.brennaswitzer.cookbook.domain.Favorite;
+import com.brennaswitzer.cookbook.security.CurrentUser;
+import com.brennaswitzer.cookbook.security.UserPrincipal;
+import com.brennaswitzer.cookbook.services.favorites.UpdateFavorites;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class FavoriteMutationController {
+
+    record FavoriteMutation() {}
+
+    @Autowired
+    private UpdateFavorites updateFavorites;
+
+    @MutationMapping
+    FavoriteMutation favorite() {
+        return new FavoriteMutation();
+    }
+
+    @SchemaMapping
+    @PreAuthorize("hasRole('USER')")
+    Favorite markFavorite(FavoriteMutation faVMut,
+                          @Argument String objectType,
+                          @Argument Long objectId,
+                          @CurrentUser UserPrincipal userPrincipal) {
+        return updateFavorites.ensureFavorite(userPrincipal,
+                                              objectType,
+                                              objectId);
+    }
+
+    @SchemaMapping
+    @PreAuthorize("hasRole('USER')")
+    boolean removeFavorite(FavoriteMutation faVMut,
+                           @Argument String objectType,
+                           @Argument Long objectId,
+                           @CurrentUser UserPrincipal userPrincipal) {
+        return updateFavorites.ensureNotFavorite(userPrincipal,
+                                                 objectType,
+                                                 objectId);
+    }
+
+}

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Embeddable
 @Getter
 @Setter
@@ -24,19 +26,19 @@ public class Photo {
         return focusLeft != null && focusTop != null;
     }
 
-    public float[] getFocusArray() {
+    public List<Float> getFocus() {
         return hasFocus()
-            ? new float[] { focusLeft, focusTop }
-            : null;
+                ? List.of(focusLeft, focusTop)
+                : null;
     }
 
-    public void setFocusArray(float[] focus) {
+    public void setFocus(List<Float> focus) {
         if (focus == null) return;
-        if (focus.length != 2) {
+        if (focus.size() != 2) {
             throw new IllegalArgumentException("Focus arrays must have two components");
         }
-        focusLeft = focus[0];
-        focusTop = focus[1];
+        focusLeft = focus.get(0);
+        focusTop = focus.get(1);
     }
 
     public Photo(S3File file) {

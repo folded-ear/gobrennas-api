@@ -87,18 +87,18 @@ public class NumberUtilsTest {
     public void parseWithCoords() {
         NumberUtils.NumberWithRange nwr = parseNumberWithRange("  1 and 2/3 cups fish");
         System.out.println(nwr);
-        assertEquals(5.0 / 3.0, nwr.getNumber(), 0.001);
-        assertEquals(2, nwr.getStart());
-        assertEquals(11, nwr.getEnd());
+        assertEquals(5.0 / 3.0, nwr.number(), 0.001);
+        assertEquals(2, nwr.start());
+        assertEquals(11, nwr.end());
     }
 
     @Test
     public void parseNegativeWithCoords() {
         NumberUtils.NumberWithRange nwr = parseNumberWithRange(" - two and a half tsp water");
         System.out.println(nwr);
-        assertEquals(-2.5, nwr.getNumber(), 0.001);
-        assertEquals(1, nwr.getStart());
-        assertEquals(17, nwr.getEnd());
+        assertEquals(-2.5, nwr.number(), 0.001);
+        assertEquals(1, nwr.start());
+        assertEquals(17, nwr.end());
     }
 
 }

@@ -1,9 +1,6 @@
 package com.brennaswitzer.cookbook.services.storage;
 
-import com.brennaswitzer.cookbook.domain.Upload;
-import lombok.SneakyThrows;
 import org.springframework.util.Assert;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -53,14 +50,6 @@ public class S3StorageService implements StorageService {
         this.client = client;
         this.presigner = presigner;
         this.bucketName = bucketName;
-    }
-
-    @Override
-    public String store(Upload upload, String objectKey) {
-        Assert.notNull(upload, "upload is required.");
-        Assert.notNull(objectKey, "objectKey is required.");
-        put(upload, objectKey);
-        return objectKey;
     }
 
     @Override
@@ -127,15 +116,6 @@ public class S3StorageService implements StorageService {
         return client.utilities()
                 .getUrl(request)
                 .toExternalForm();
-    }
-
-    @SneakyThrows
-    private void put(Upload upload, String objectKey) {
-        try (var is = upload.getInputStream()) {
-            client.putObject(
-                    buildPutRequest(objectKey, upload.getContentType()),
-                    RequestBody.fromInputStream(is, upload.getSize()));
-        }
     }
 
     private PutObjectRequest buildPutRequest(String objectKey,

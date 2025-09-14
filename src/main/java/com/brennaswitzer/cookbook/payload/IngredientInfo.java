@@ -20,7 +20,7 @@ public class IngredientInfo extends CoreRecipeInfo {
     private Integer calories;
     private Integer totalTime;
     private String photo;
-    private float[] photoFocus;
+    private List<Float> photoFocus;
     private Boolean cookThis;
 
     public boolean isCookThis() {

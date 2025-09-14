@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.graphql.model.AccessControlEntry;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.ShareHelper;
@@ -50,8 +51,8 @@ class PlanResolverTest {
 
         assertEquals(1, aces.size());
         AccessControlEntry ace = aces.get(0);
-        assertSame(johann, ace.user);
-        assertEquals(AccessLevel.CHANGE, ace.level);
+        assertSame(johann, ace.getUser());
+        assertEquals(AccessLevel.CHANGE, ace.getLevel());
     }
 
     @Test

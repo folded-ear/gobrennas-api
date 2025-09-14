@@ -13,7 +13,7 @@ logging:
     com.brennaswitzer: debug
     org.hibernate: info
     org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+    #org.hibernate.orm.jdbc.bind: trace
     org.hibernate.stat: debug
     org.hibernate.SQL_SLOW: info
-    org.hibernate.cache: debug
+    #org.hibernate.cache: debug

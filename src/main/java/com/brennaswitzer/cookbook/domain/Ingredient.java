@@ -5,12 +5,15 @@ import com.brennaswitzer.cookbook.repositories.event.RecipeIngredientFulltextLis
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.util.Assert;
 
@@ -32,6 +35,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = PantryItem.class, name = "PantryItem"),
         @JsonSubTypes.Type(value = Recipe.class, name = "Recipe")
 })
+@BatchSize(size = 50)
 public abstract class Ingredient extends BaseEntity implements Named, Labeled {
 
     public static Comparator<Ingredient> BY_NAME = (a, b) -> {
@@ -43,9 +47,11 @@ public abstract class Ingredient extends BaseEntity implements Named, Labeled {
     @Getter
     private String name;
 
-    @ElementCollection
+    @ManyToMany
+    @JoinTable(inverseJoinColumns = { @JoinColumn(name = "label_id") })
     @BatchSize(size = 50)
-    private Set<LabelRef> labels = new HashSet<>();
+    @Setter
+    private Set<Label> labels;
 
     public Ingredient() {}
 
@@ -59,23 +65,22 @@ public abstract class Ingredient extends BaseEntity implements Named, Labeled {
     }
 
     public Set<Label> getLabels() {
-        Set<Label> s = new HashSet<>();
-        for (LabelRef ref : labels) {
-            s.add(ref.getLabel());
-        }
-        return s;
+        if (labels == null) labels = new HashSet<>();
+        return labels;
     }
 
     public void addLabel(Label label) {
-        labels.add(new LabelRef(label));
+        getLabels().add(label);
     }
 
     public void removeLabel(Label label) {
-        labels.remove(new LabelRef(label));
+        if (labels == null) return;
+        labels.remove(label);
     }
 
     public void clearLabels() {
-        this.labels.clear();
+        if (labels == null) return;
+        labels.clear();
     }
 
 }

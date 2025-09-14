@@ -113,16 +113,7 @@ public class PlanService {
     }
 
     public List<PlanItem> getTreeById(PlanItem item) {
-        List<PlanItem> treeItems = treeHelper(item);
-        for (PlanItem t : treeItems) {
-            // to load the collection before the session closes
-            t.getOrderedComponentsView();
-        }
-        return treeItems;
-    }
-
-    private List<PlanItem> treeHelper(PlanItem item) {
-        List<PlanItem> treeItems = new LinkedList<>();
+        List<PlanItem> treeItems = new ArrayList<>();
         treeHelper(item, treeItems::add);
         return treeItems;
     }
@@ -137,21 +128,15 @@ public class PlanService {
 
     public List<PlanItem> getTreeDeltasById(Long planId, Instant cutoff) {
         val plan = getPlanById(planId, AccessLevel.VIEW);
-        List<PlanItem> result = new ArrayList<>();
+        List<PlanItem> result = itemRepo.findAllById(
+                itemRepo.getUpdatedSince(planId, cutoff));
         Predicate<BaseEntity> filter = it -> it.getUpdatedAt().isAfter(cutoff);
-        // plan or any descendants
-        getTreeById(plan).stream()
-                .filter(filter)
-                .forEach(result::add);
-        // anything in the trash (deleted or completed)
-        plan.getTrashBinItems().stream()
-                .filter(filter)
-                .forEach(result::add);
         // bucket changes count as the plan itself
         if (!filter.test(plan) && plan.getBuckets()
                 .stream()
-                .anyMatch(filter))
+                .anyMatch(filter)) {
             result.add(plan);
+        }
         return result;
     }
 

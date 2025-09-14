@@ -46,10 +46,9 @@ public class IngredientFulltextIndexer {
                                query.getParameters(),
                                rs -> {
                                });
-            log.info("couldn't reindex ingredient '{}', queued instead", event.id());
-        } else {
-            log.info("reindexed ingredient '{}' immediately", event.id());
+            log.info("reindexed ingredient '{}', leaving it queued", event.id());
         }
+        log.info("reindexed ingredient '{}' immediately", event.id());
     }
 
 }

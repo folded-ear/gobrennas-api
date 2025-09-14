@@ -37,7 +37,6 @@ public class RefreshPantryItemDuplicates extends QueueProcessor {
     }
 
     @Scheduled(cron = "${random.int[60]} 2-59/5 * * * *")
-    @SuppressWarnings("ScheduledMethodInspection")
     public int refreshQueued() {
         return drainQueue();
     }

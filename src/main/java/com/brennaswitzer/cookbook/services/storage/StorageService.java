@@ -1,17 +1,8 @@
 package com.brennaswitzer.cookbook.services.storage;
 
-import com.brennaswitzer.cookbook.domain.Upload;
-
 import java.time.Duration;
 
 public interface StorageService {
-
-    /**
-     * I take an {@link Upload} object and a string filename/key and write to storage
-     * @param filename filename for storage
-     * @return reference to the stored file
-     */
-    String store(Upload upload, String filename);
 
     /**
      * I construct and return a {@link ScratchUpload} which can be used to

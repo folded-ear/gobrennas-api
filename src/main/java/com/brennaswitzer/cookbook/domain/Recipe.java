@@ -102,6 +102,7 @@ public class Recipe extends Ingredient implements AggregateIngredient, Owned {
     @Getter
     @ElementCollection
     @OrderBy("_idx, raw")
+    @BatchSize(size = 50)
     private List<IngredientRef> ingredients;
 
     @Getter

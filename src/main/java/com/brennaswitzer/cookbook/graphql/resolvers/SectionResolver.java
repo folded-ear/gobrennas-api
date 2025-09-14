@@ -2,14 +2,15 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.Label;
 import com.brennaswitzer.cookbook.graphql.model.Section;
-import graphql.kickstart.tools.GraphQLResolver;
-import org.springframework.stereotype.Component;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-@Component
-public class SectionResolver implements GraphQLResolver<Section> {
+@Controller
+public class SectionResolver {
 
+    @SchemaMapping
     public List<String> labels(Section section) {
         return section.getLabels()
                 .stream()

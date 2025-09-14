@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.AccessControlled;
 import com.brennaswitzer.cookbook.domain.Acl;
+import com.brennaswitzer.cookbook.graphql.model.AccessControlEntry;
 
 import java.util.List;
 

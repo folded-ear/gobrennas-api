@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.Objects;
 
@@ -17,6 +18,7 @@ import java.util.Objects;
 @Getter
 @Entity
 @EntityListeners(IngredientLabelFulltextListener.class)
+@BatchSize(size = 50)
 public class Label implements Identified {
 
     @Id
@@ -36,14 +38,12 @@ public class Label implements Identified {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Label label = (Label) o;
-        return Objects.equals(id, label.id) &&
-                Objects.equals(name, label.name);
+        if (!(o instanceof Label l)) return false;
+        return Objects.equals(name, l.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(name);
     }
 }

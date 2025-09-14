@@ -4,7 +4,6 @@ import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.S3File;
-import com.brennaswitzer.cookbook.domain.Upload;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.RecipeRepository;
@@ -49,33 +48,35 @@ public class RecipeService {
     @Autowired
     private ScratchSpace scratchSpace;
 
-    public Recipe createNewRecipe(Recipe recipe, IngredientInfo info, Upload photo) {
+    public Recipe createNewRecipe(Recipe recipe, IngredientInfo info) {
         recipe.setOwner(principalAccess.getUser());
         recipe = recipeRepository.save(recipe);
-        new SetPhoto(info, photo)
+        new SetPhoto(info)
                 .set(recipe);
         return recipe;
     }
 
-    public Recipe createNewRecipeFrom(Long sourceRecipeId, Recipe recipe, IngredientInfo info, Upload photo) {
+    public Recipe createNewRecipeFrom(Long sourceRecipeId,
+                                      Recipe recipe,
+                                      IngredientInfo info) {
         var source = recipeRepository.getReferenceById(sourceRecipeId);
         recipe.setOwner(principalAccess.getUser());
         recipe = recipeRepository.save(recipe);
-        new SetPhoto(info, photo)
+        new SetPhoto(info)
                 .setOrCopy(source, recipe);
         return recipe;
     }
 
-    public Recipe updateRecipe(Recipe recipe, IngredientInfo info, Upload photo) {
+    public Recipe updateRecipe(Recipe recipe, IngredientInfo info) {
         getMyRecipe(recipe.getId());
-        new SetPhoto(info, photo)
+        new SetPhoto(info)
                 .set(recipe);
         return recipeRepository.save(recipe);
     }
 
-    public Recipe setRecipePhoto(Long id, String photoFilename, float[] photoFocus, Upload photo) {
+    public Recipe setRecipePhoto(Long id, String photoFilename, List<Float> photoFocus) {
         Recipe recipe = getMyRecipe(id);
-        new SetPhoto(photoFilename, photoFocus, photo)
+        new SetPhoto(photoFilename, photoFocus)
                 .set(recipe);
         return recipeRepository.save(recipe);
     }
@@ -145,25 +146,16 @@ public class RecipeService {
     private final class SetPhoto {
 
         private final String filename;
-        private final float[] focus;
-        private final Upload upload;
+        private final List<Float> focus;
 
-        public SetPhoto(String filename, float[] focus, Upload upload) {
-            if (upload != null) {
-                log.warn("Deprecated photo upload (prefer a scratch file)");
-                if (filename != null)
-                    throw new IllegalArgumentException("Cannot specify a scratch filename AND upload a photo");
-            }
+        public SetPhoto(String filename, List<Float> focus) {
             this.filename = filename;
             this.focus = focus;
-            this.upload = upload;
         }
 
-        public SetPhoto(IngredientInfo info,
-                        Upload upload) {
-            this(info == null ? null : info.getPhoto(),
-                 info == null ? null : info.getPhotoFocus(),
-                 upload);
+        public SetPhoto(IngredientInfo info) {
+            this(info.getPhoto(),
+                 info.getPhotoFocus());
         }
 
         public boolean set(Recipe recipe) {
@@ -176,19 +168,13 @@ public class RecipeService {
                         objectKey,
                         file.contentType(),
                         file.size());
-            } else if (upload != null) {
-                var objectKey = buildObjectKey(recipe, upload.getOriginalFilename());
-                s3File = new S3File(
-                        storageService.store(upload, objectKey),
-                        upload.getContentType(),
-                        upload.getSize());
             } else {
                 return false;
             }
             removePhotoInternal(recipe);
             recipe.setPhoto(s3File);
-            if (focus != null && focus.length == 2) {
-                recipe.getPhoto().setFocusArray(focus);
+            if (focus != null && focus.size() == 2) {
+                recipe.getPhoto().setFocus(focus);
             }
             return true;
         }
@@ -205,7 +191,7 @@ public class RecipeService {
                         photo.getSize()
                 ));
                 if (photo.hasFocus()) {
-                    recipe.getPhoto().setFocusArray(photo.getFocusArray());
+                    recipe.getPhoto().setFocus(photo.getFocus());
                 }
                 return true;
             }

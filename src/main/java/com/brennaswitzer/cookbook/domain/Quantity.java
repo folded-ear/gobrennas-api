@@ -10,7 +10,6 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
-import org.hibernate.annotations.BatchSize;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -64,7 +63,6 @@ public class Quantity {
     private double quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @BatchSize(size = 10)
     private UnitOfMeasure units;
 
     public Quantity() {
@@ -147,8 +145,7 @@ public class Quantity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Quantity)) return false;
-        Quantity that = (Quantity) o;
+        if (!(o instanceof Quantity that)) return false;
         return Objects.equals(units, that.units)
                 && Math.abs(quantity - that.quantity) < 0.001;
     }
