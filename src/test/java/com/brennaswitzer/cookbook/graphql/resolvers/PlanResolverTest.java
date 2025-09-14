@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.graphql.model.AccessControlEntry;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.services.PlanService;
 import com.brennaswitzer.cookbook.util.ShareHelper;

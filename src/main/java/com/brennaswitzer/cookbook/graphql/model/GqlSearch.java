@@ -1,6 +1,4 @@
-package com.brennaswitzer.cookbook.graphql;
-
-import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
+package com.brennaswitzer.cookbook.graphql.model;
 
 public interface GqlSearch {
 

@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.Acl;
+import com.brennaswitzer.cookbook.graphql.model.AccessControlEntry;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 

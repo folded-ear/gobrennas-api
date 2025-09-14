@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.graphql.model.GqlSearch;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import com.brennaswitzer.cookbook.graphql.model.Section;
