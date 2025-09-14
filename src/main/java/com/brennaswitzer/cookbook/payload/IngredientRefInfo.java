@@ -47,7 +47,7 @@ public class IngredientRefInfo {
 
     @Deprecated
     public boolean hasUnits() {
-        return units != null && !units.isEmpty() && !units.trim().isEmpty();
+        return units != null && !units.isBlank();
     }
 
     public boolean hasUomId() {
