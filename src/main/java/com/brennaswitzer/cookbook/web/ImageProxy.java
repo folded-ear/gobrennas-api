@@ -21,10 +21,8 @@ import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * I allow logged-in users to proxy reasonably-sized images from arbitrary
@@ -97,14 +95,14 @@ public class ImageProxy {
                                 "Received %s from upstream",
                                 resp.getStatusCode()));
                     }
-                    Set<String> existingHeaders = new HashSet<>(response.getHeaderNames());
-                    resp.getHeaders().forEach((n, vs) -> {
-                        if (existingHeaders.contains(n)) return;
-                        if (StringUtils.startsWithIgnoreCase(n, "access-control-")) return;
-                        for (var v : vs) {
-                            response.addHeader(n, v);
-                        }
-                    });
+//                    Set<String> existingHeaders = new HashSet<>(response.getHeaderNames());
+//                    resp.getHeaders().forEach((n, vs) -> {
+//                        if (existingHeaders.contains(n)) return;
+//                        if (StringUtils.startsWithIgnoreCase(n, "access-control-")) return;
+//                        for (var v : vs) {
+//                            response.addHeader(n, v);
+//                        }
+//                    });
                     long bytes;
                     try (var in = resp.getBody()) {
                         bytes = in.transferTo(response.getOutputStream());
