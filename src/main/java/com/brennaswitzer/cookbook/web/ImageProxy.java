@@ -23,6 +23,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * I allow logged-in users to proxy reasonably-sized images from arbitrary
@@ -36,14 +38,20 @@ public class ImageProxy {
 
     private static final String BFS_HEADER = "x-bfs-url";
 
-    private static final List<String> DO_NOT_PASS_HEADER_NAMES = List.of(
-            HttpHeaders.ACCEPT,
-            HttpHeaders.AUTHORIZATION,
-            BFS_HEADER,
-            HttpHeaders.CONNECTION,
-            HttpHeaders.HOST,
-            HttpHeaders.IF_RANGE,
-            HttpHeaders.RANGE);
+    private static final Set<String> DO_NOT_PASS_HEADER_NAMES;
+
+    static {
+        DO_NOT_PASS_HEADER_NAMES = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        DO_NOT_PASS_HEADER_NAMES.addAll(List.of(
+                HttpHeaders.ACCEPT,
+                HttpHeaders.AUTHORIZATION,
+                BFS_HEADER,
+                HttpHeaders.CONNECTION,
+                HttpHeaders.HOST,
+                HttpHeaders.IF_RANGE,
+                HttpHeaders.ORIGIN,
+                HttpHeaders.RANGE));
+    }
 
     private static final String TYPE_IMAGE = "image";
 
@@ -137,9 +145,7 @@ public class ImageProxy {
         request.getHeaderNames()
                 .asIterator()
                 .forEachRemaining(n -> {
-                    for (var dnp : DO_NOT_PASS_HEADER_NAMES) {
-                        if (dnp.equalsIgnoreCase(n)) return;
-                    }
+                    if (DO_NOT_PASS_HEADER_NAMES.contains(n)) return;
                     if (StringUtils.startsWithIgnoreCase(n, "sec-")) return;
                     passthrough.put(n, request.getHeader(n));
                 });
