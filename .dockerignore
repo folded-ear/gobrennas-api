@@ -2,3 +2,9 @@
 /.idea
 /.git
 /target
+# Spring Boot's container layer extractions
+/layers
+/application
+/dependencies
+/snapshot-dependencies
+/spring-boot-loader

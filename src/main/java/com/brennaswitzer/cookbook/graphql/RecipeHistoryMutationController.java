@@ -23,11 +23,6 @@ public class RecipeHistoryMutationController {
     }
 
     @SchemaMapping
-    Long recipeId(RecipeHistoryMutation histMut) {
-        return histMut.recipeId();
-    }
-
-    @SchemaMapping
     PlannedRecipeHistory setRating(RecipeHistoryMutation histMut,
                                    @Argument Long id,
                                    @Argument Rating rating,

@@ -16,7 +16,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -39,7 +38,7 @@ public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentati
             private long startMillis;
 
             @Override
-            public void onDispatched(CompletableFuture<ExecutionResult> result) {
+            public void onDispatched() {
                 startMillis = System.currentTimeMillis();
                 if (debugEnabled) {
                     log.debug("graphql {} query: \"{}\"",

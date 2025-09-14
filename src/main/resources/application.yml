@@ -23,6 +23,8 @@ spring:
   sql:
     init:
       platform: postgres
+  liquibase:
+    analytics-enabled: false
   jpa:
     show-sql: false
     hibernate:

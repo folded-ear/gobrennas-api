@@ -23,9 +23,6 @@ public class LibraryMutationController {
     record LibraryMutation() {}
 
     @Autowired
-    private RecipeHistoryMutationController history;
-
-    @Autowired
     private RecipeService recipeService;
 
     @Autowired

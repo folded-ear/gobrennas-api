@@ -14,7 +14,7 @@
         outputChangeLogFile=src/main/resources/db/changelog/baseline.xml
         changeSetAuthor=liquibase (barneyb)
 
-    2.  Run `mvn liquibase:generateChangeLog` from the root directory.
+    2.  Run `./mvnw liquibase:generateChangeLog` from the root directory.
 
     3.  Use git to resurrect these instructions.
 
@@ -49,8 +49,8 @@
 
         dropdb -h localhost -U postgres new_database_for_baseline \
           && createdb -h localhost -U postgres new_database_for_baseline \
-          && mvn process-resources \
-          && mvn liquibase:update
+          && ./mvnw process-resources \
+          && ./mvnw liquibase:update
 
     3.  Run `mvn liquibase:diff` from the root directory. You should get a bunch
         of EQUAL and NONE lines. Anything else needs to be investigated.

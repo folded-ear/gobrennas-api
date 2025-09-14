@@ -8,6 +8,7 @@ spring:
       data-source-properties:
         socketFactory: com.google.cloud.sql.postgres.SocketFactory
         cloudSqlInstance: ${CLOUD_SQL_INSTANCE}
+        cloudSqlRefreshStrategy: lazy
         user: ${DB_USER}
         password: ${DB_PASS}
   jpa:

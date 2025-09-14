@@ -11,7 +11,6 @@ import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import jakarta.transaction.Transactional;
 import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.FluentCalendar;
 import net.fortuna.ical4j.model.FluentComponent;
 import net.fortuna.ical4j.model.ParameterList;
@@ -19,24 +18,25 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Email;
 import net.fortuna.ical4j.model.parameter.Value;
-import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStart;
-import net.fortuna.ical4j.model.property.Method;
 import net.fortuna.ical4j.model.property.Organizer;
 import net.fortuna.ical4j.model.property.RefreshInterval;
 import net.fortuna.ical4j.model.property.Sequence;
-import net.fortuna.ical4j.model.property.Status;
 import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.model.property.Transp;
 import net.fortuna.ical4j.model.property.Uid;
-import net.fortuna.ical4j.model.property.Version;
+import net.fortuna.ical4j.model.property.immutable.ImmutableCalScale;
+import net.fortuna.ical4j.model.property.immutable.ImmutableMethod;
+import net.fortuna.ical4j.model.property.immutable.ImmutableStatus;
+import net.fortuna.ical4j.model.property.immutable.ImmutableTransp;
+import net.fortuna.ical4j.model.property.immutable.ImmutableVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -94,14 +94,14 @@ public class PlanCalendar {
                     .withProperty(getEventDescription(item,
                                                       includeBucketLink));
             if (getState(item).hidden()) {
-                event.withProperty(Method.CANCEL)
-                        .withProperty(Status.VEVENT_CANCELLED);
+                event.withProperty(ImmutableMethod.CANCEL)
+                        .withProperty(ImmutableStatus.VEVENT_CANCELLED);
             }
-            return event.getFluentTarget();
+            return (VEvent) event;
         }
 
         private Transp getEventTransparency(PlanItem ignoredItem) {
-            return Transp.TRANSPARENT;
+            return ImmutableTransp.TRANSPARENT;
         }
 
         private Description getEventDescription(PlanItem item,
@@ -155,13 +155,9 @@ public class PlanCalendar {
             return new Summary(sb.toString());
         }
 
-        private DtStart getEventStartDate(PlanItem item) {
-            java.util.Date dt = java.util.Date.from(
-                    item.getBucket()
-                            .getDate()
-                            .atStartOfDay(ZoneOffset.UTC)
-                            .toInstant());
-            return new DtStart(new Date(dt));
+        private DtStart<LocalDate> getEventStartDate(PlanItem item) {
+            return new DtStart<>(item.getBucket()
+                                         .getDate());
         }
 
         private Uid getEventUid(PlanItem item) {
@@ -181,7 +177,7 @@ public class PlanCalendar {
 
         private Organizer getEventOrganizer(PlanItem item) {
             User owner = item.getPlan().getOwner();
-            return new Organizer()
+            return (Organizer) new Organizer()
                     .withParameter(new Cn(owner.getName()))
                     .withParameter(new Email(owner.getEmail()))
                     .getFluentTarget();
@@ -229,9 +225,9 @@ public class PlanCalendar {
         FluentCalendar cal = new Calendar()
                 .withProdId(PROD_ID)
                 .withProperty(new Summary(plan.getName() + " - Brenna's Food Software"))
-                .withProperty(Version.VERSION_2_0)
-                .withProperty(CalScale.GREGORIAN)
-                .withProperty(Method.PUBLISH)
+                .withProperty(ImmutableVersion.VERSION_2_0)
+                .withProperty(ImmutableCalScale.GREGORIAN)
+                .withProperty(ImmutableMethod.PUBLISH)
                 .withProperty(getRefreshInterval());
         GetEvent getEvent = new GetEvent();
         bucketRepo.streamAllByPlanIdAndDateIsNotNull(planId)
@@ -251,10 +247,8 @@ public class PlanCalendar {
     }
 
     private RefreshInterval getRefreshInterval() {
-        ParameterList params = new ParameterList();
-        params.add(Value.DURATION);
         return new RefreshInterval(
-                params,
+                new ParameterList(List.of(Value.DURATION)),
                 Duration.of(4, ChronoUnit.HOURS));
     }
 

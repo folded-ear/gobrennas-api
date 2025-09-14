@@ -12,19 +12,17 @@ import java.util.Set;
 @Builder(toBuilder = true)
 public class LibrarySearchRequest implements SearchRequest {
 
-    LibrarySearchScope scope;
-    LibrarySearchType type;
+    @Builder.Default
+    LibrarySearchScope scope = LibrarySearchScope.MINE;
+    @Builder.Default
+    LibrarySearchType type = LibrarySearchType.TOP_LEVEL_RECIPE;
     User user;
     String filter;
     Set<Long> ingredientIds;
     int offset;
-    int limit;
+    @Builder.Default
+    int limit = 25;
     Sort sort;
-
-    public LibrarySearchType getType() {
-        if (type != null) return type;
-        return LibrarySearchType.TOP_LEVEL_RECIPE;
-    }
 
     public boolean isFiltered() {
         return filter != null && !filter.isBlank();
