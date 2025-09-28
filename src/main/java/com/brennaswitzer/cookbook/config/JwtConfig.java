@@ -6,6 +6,9 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.mint.ConfigurableJWSMinter;
+import com.nimbusds.jose.mint.DefaultJWSMinter;
+import com.nimbusds.jose.mint.JWSMinter;
 import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
@@ -52,12 +55,23 @@ public class JwtConfig {
     }
 
     /**
+     * I can mint new BFS tokens (i.e., {@code FTOKEN}), based on a header and
+     * claims set.
+     */
+    @Bean
+    public JWSMinter<SecurityContext> jwtMinter(
+            JWKSource<SecurityContext> jwkSource) {
+        ConfigurableJWSMinter<SecurityContext> minter = new DefaultJWSMinter<>();
+        minter.setJWKSource(jwkSource);
+        return minter;
+    }
+
+    /**
      * I can process BFS tokens (i.e., {@code FTOKEN}) from their compact form
      * to a ready-to-use claims set.
      */
     @Bean
     public JWTProcessor<SecurityContext> jwtProcessor(
-            AppProperties appProperties,
             JWKSource<SecurityContext> jwkSource) {
 
         // Create a JWT processor for the access tokens
