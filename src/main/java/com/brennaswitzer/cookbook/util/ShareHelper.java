@@ -5,11 +5,11 @@ import com.brennaswitzer.cookbook.domain.Identified;
 import com.brennaswitzer.cookbook.domain.Named;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.google.common.annotations.VisibleForTesting;
-import io.jsonwebtoken.lang.Assert;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
 public class ShareHelper {

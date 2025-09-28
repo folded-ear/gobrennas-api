@@ -60,10 +60,14 @@ app:
     secret-key: ${AWS_SECRET_KEY}
     bucket-name: ${AWS_S3_BUCKET_NAME}
   auth:
+    # Only used for anonymous shared links, not session tokens
     tokenSecret: ${TOKEN_SECRET}
     # Use pairs of env vars like APP_AUTH_TOKEN_SECRETS_0_ID and
     # APP_AUTH_TOKEN_SECRETS_0_SECRET to register token secrets. The zeroth will
     # be used to sign, but any number can be present (for verification).
+    #token-secrets:
+    #  - id: some-id
+    #    secret: iyzqQGeiEebpUyV53MGsLzrxQRKD4bjkRbmNyKmvmchtPJNhCgxp1T4p0hJjBd5MCvKPzfCBo3d5dRh3CP4BvQ==
     tokenExpirationMsec: 864000000
   oauth2:
     # After successfully authenticating with the OAuth2 Provider,
