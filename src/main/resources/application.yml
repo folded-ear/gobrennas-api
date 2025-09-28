@@ -61,6 +61,9 @@ app:
     bucket-name: ${AWS_S3_BUCKET_NAME}
   auth:
     tokenSecret: ${TOKEN_SECRET}
+    # Use pairs of env vars like APP_AUTH_TOKEN_SECRETS_0_ID and
+    # APP_AUTH_TOKEN_SECRETS_0_SECRET to register token secrets. The zeroth will
+    # be used to sign, but any number can be present (for verification).
     tokenExpirationMsec: 864000000
   oauth2:
     # After successfully authenticating with the OAuth2 Provider,

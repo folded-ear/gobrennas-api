@@ -1,23 +1,35 @@
 package com.brennaswitzer.cookbook.security;
 
 import com.brennaswitzer.cookbook.config.AppProperties;
-import io.jsonwebtoken.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.impl.DefaultJwsHeader;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Map;
 
 @Service
+@Slf4j
 public class TokenProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
+    private static final String BFS_AUDIENCE = "BFS API";
 
     private AppProperties appProperties;
 
-    public TokenProvider(AppProperties appProperties) {
+    private BfsSigningKeyResolver keyResolver;
+
+    public TokenProvider(AppProperties appProperties,
+                         BfsSigningKeyResolver keyResolver) {
         this.appProperties = appProperties;
+        this.keyResolver = keyResolver;
     }
 
     public String createToken(Authentication authentication) {
@@ -26,39 +38,36 @@ public class TokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + appProperties.getAuth().getTokenExpirationMsec());
 
+        BfsSigningKeyResolver.Key key = keyResolver.getSigningKey();
+        DefaultJwsHeader header = new DefaultJwsHeader();
+        header.setKeyId(key.id());
+        header.setType(Header.JWT_TYPE);
         return Jwts.builder()
                 .setSubject(Long.toString(userPrincipal.getId()))
-                .setIssuedAt(new Date())
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, appProperties.getAuth().getTokenSecret())
+                .setAudience(BFS_AUDIENCE)
+                .setHeader((Map<String, Object>) header)
+                .signWith(SignatureAlgorithm.HS512, key.bytes())
                 .compact();
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(appProperties.getAuth().getTokenSecret())
-                .parseClaimsJws(token)
-                .getBody();
+        Jws<Claims> jws = Jwts.parser()
+                .setSigningKeyResolver(keyResolver)
+                .parseClaimsJws(token);
+
+        JwsHeader<?> header = jws.getHeader();
+        if (header.getType() != null && !Header.JWT_TYPE.equals(header.getType())) {
+            throw new UnsupportedJwtException("Unrecognized '" + header.getType() + "' token type.");
+        }
+
+        Claims claims = jws.getBody();
+        if (claims.getAudience() != null && !BFS_AUDIENCE.equals(claims.getAudience())) {
+            throw new UnsupportedJwtException("Unrecognized '" + claims.getAudience() + "' audience claim.");
+        }
 
         return Long.parseLong(claims.getSubject());
-    }
-
-    public boolean validateToken(String authToken) {
-        try {
-            Jwts.parser().setSigningKey(appProperties.getAuth().getTokenSecret()).parseClaimsJws(authToken);
-            return true;
-        } catch (SignatureException ex) {
-            logger.error("Invalid JWT signature");
-        } catch (MalformedJwtException ex) {
-            logger.error("Invalid JWT token");
-        } catch (ExpiredJwtException ex) {
-            logger.error("Expired JWT token");
-        } catch (UnsupportedJwtException ex) {
-            logger.error("Unsupported JWT token");
-        } catch (IllegalArgumentException ex) {
-            logger.error("JWT claims string is empty.");
-        }
-        return false;
     }
 
 }
