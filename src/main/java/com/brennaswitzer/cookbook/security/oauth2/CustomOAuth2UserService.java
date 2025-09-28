@@ -1,8 +1,8 @@
 package com.brennaswitzer.cookbook.security.oauth2;
 
-import com.brennaswitzer.cookbook.exceptions.OAuth2AuthenticationProcessingException;
 import com.brennaswitzer.cookbook.domain.AuthProvider;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.exceptions.OAuth2AuthenticationProcessingException;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.security.oauth2.user.OAuth2UserInfo;
@@ -35,7 +35,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw ex;
         } catch (Exception ex) {
             // Throwing an instance of AuthenticationException will trigger the OAuth2AuthenticationFailureHandler
-            throw new InternalAuthenticationServiceException(ex.getMessage(), ex.getCause());
+            throw new InternalAuthenticationServiceException("Error processing loaded user", ex);
         }
     }
 
