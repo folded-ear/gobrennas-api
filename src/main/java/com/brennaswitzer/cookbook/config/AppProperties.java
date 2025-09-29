@@ -36,19 +36,20 @@ public class AppProperties {
     public static class Auth {
 
         /**
-         * Prefer {@link #tokenSecrets}.
+         * Secret for anonymous shared link tokens (not session tokens). Unlike
+         * sessions, these tokens live forever, so the secret isn't rotated.
          */
-        @Deprecated
         @Size(min = 15)
         private String tokenSecret;
+
         /**
          * List of token secrets, in priority order. Tokens signed with any
          * secret can be verified, but all new tokens will be minted with the
-         * first. If {@link #tokenSecret} is present, it will be ordered after
-         * all secrets registered here.
+         * first.
          */
         @Valid
         private List<Secret> tokenSecrets = List.of();
+
         private long tokenExpirationMsec;
 
     }
