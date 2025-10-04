@@ -24,7 +24,7 @@ public class CoreRecipeInfo implements Identified {
     }
 
     public boolean hasIngredients() {
-        return getIngredients() != null && !getIngredients().isEmpty();
+        return getIngredients() != null;
     }
 
 }
