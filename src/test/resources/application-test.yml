@@ -7,6 +7,10 @@ app:
     access-key: oh-my-its-so-glergy
     secret-key: glerg-fest
     bucket-name: s3-bucketname
+  auth:
+    token-secrets:
+      - id: test
+        secret: TcJRn7dQqCbUfI5CV8F3DZLVw5I098k74jiKfw03OK74pzGeP6iP+jO/Ti7HmEV0fgbl+GzhMmPFZELBDeUZsg==
 
 logging:
   level:
