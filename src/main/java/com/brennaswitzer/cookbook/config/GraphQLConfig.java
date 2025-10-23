@@ -14,10 +14,12 @@ import graphql.execution.preparsed.PreparsedDocumentProvider;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.springframework.boot.autoconfigure.graphql.GraphQlSourceBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.execution.DataFetcherExceptionResolver;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
@@ -136,7 +138,22 @@ public class GraphQLConfig {
             @Override
             public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext,
                                                               ExecutionStrategyParameters parameters) {
-                return txTmpl.execute(tx -> super.execute(executionContext, parameters));
+                MutableObject<CompletableFuture<ExecutionResult>> ref = new MutableObject<>();
+                try {
+                    txTmpl.executeWithoutResult(tx -> {
+                        ref.setValue(super.execute(executionContext, parameters));
+                    });
+                } catch (UnexpectedRollbackException ure) {
+                    // If the execution didn't return a result, something weird
+                    // is going on, so rethrow.
+                    if (ref.getValue() == null) {
+                        throw ure;
+                    }
+                    // Otherwise the execution was successful (almost certainly
+                    // with errors), so log and return the result to the client.
+                    log.warn("Unexpected rollback", ure);
+                }
+                return ref.getValue();
             }
         };
     }
