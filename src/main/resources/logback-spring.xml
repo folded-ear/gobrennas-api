@@ -3,7 +3,7 @@
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
 
     <springProfile name="production">
-        <include resource="org/springframework/cloud/gcp/logging/logback-json-appender.xml" />
+        <include resource="com/google/cloud/spring/logging/logback-json-appender.xml"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE_JSON" />
         </root>
