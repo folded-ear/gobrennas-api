@@ -1,24 +1,37 @@
 package com.brennaswitzer.cookbook.security;
 
 import com.brennaswitzer.cookbook.config.AppProperties;
-import io.jsonwebtoken.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.brennaswitzer.cookbook.config.JwtConfig;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.mint.JWSMinter;
+import com.nimbusds.jose.proc.BadJOSEException;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.JWTProcessor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.util.Date;
 
 @Service
+@Slf4j
 public class TokenProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
-
+    @Autowired
     private AppProperties appProperties;
 
-    public TokenProvider(AppProperties appProperties) {
-        this.appProperties = appProperties;
-    }
+    @Autowired
+    private JWTProcessor<SecurityContext> jwtProcessor;
+
+    @Autowired
+    private JWSMinter<SecurityContext> jwtMinter;
 
     public String createToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
@@ -26,39 +39,31 @@ public class TokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + appProperties.getAuth().getTokenExpirationMsec());
 
-        return Jwts.builder()
-                .setSubject(Long.toString(userPrincipal.getId()))
-                .setIssuedAt(new Date())
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, appProperties.getAuth().getTokenSecret())
-                .compact();
+        try {
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS512)
+                    .type(JOSEObjectType.JWT)
+                    .build();
+            Payload payload = new JWTClaimsSet.Builder()
+                    .subject(Long.toString(userPrincipal.getId()))
+                    .issueTime(now)
+                    .expirationTime(expiryDate)
+                    .audience(JwtConfig.BFS_AUDIENCE)
+                    .build()
+                    .toPayload();
+            return jwtMinter.mint(header, payload, null)
+                    .serialize();
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(appProperties.getAuth().getTokenSecret())
-                .parseClaimsJws(token)
-                .getBody();
-
-        return Long.parseLong(claims.getSubject());
-    }
-
-    public boolean validateToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(appProperties.getAuth().getTokenSecret()).parseClaimsJws(authToken);
-            return true;
-        } catch (SignatureException ex) {
-            logger.error("Invalid JWT signature");
-        } catch (MalformedJwtException ex) {
-            logger.error("Invalid JWT token");
-        } catch (ExpiredJwtException ex) {
-            logger.error("Expired JWT token");
-        } catch (UnsupportedJwtException ex) {
-            logger.error("Unsupported JWT token");
-        } catch (IllegalArgumentException ex) {
-            logger.error("JWT claims string is empty.");
+            JWTClaimsSet claimsSet = jwtProcessor.process(token, null);
+            return Long.parseLong(claimsSet.getSubject());
+        } catch (ParseException | BadJOSEException | JOSEException e) {
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
 }

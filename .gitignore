@@ -8,6 +8,12 @@ HELP.md
 /src/main/resources/liquibase.properties
 /src/main/resources/graphql.config.yml
 /src/main/resources/gql
+# Spring Boot's container layer extractions
+/layers/
+/application/
+/dependencies/
+/snapshot-dependencies/
+/spring-boot-loader/
 
 ### STS ###
 .apt_generated
