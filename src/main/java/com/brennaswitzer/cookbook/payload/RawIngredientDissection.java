@@ -13,12 +13,17 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 @Setter
 @Getter
 @EqualsAndHashCode
 @ToString
 public class RawIngredientDissection {
+
+    private static final Pattern RE_CANON_SPACES = Pattern.compile("\\s+");
+    private static final Pattern RE_CANON_COMMAS = Pattern.compile("\\s*(,\\s*)+");
+    private static final Pattern RE_LEADING_COMMAS = Pattern.compile("^,\\s*");
 
     // this is "duplicated" as processRecognizedItem
     public static RawIngredientDissection fromRecognizedItem(RecognizedItem it) {
@@ -27,11 +32,11 @@ public class RawIngredientDissection {
                 .findFirst();
         Optional<RecognizedRange> ur = it.getRanges().stream()
                 .filter(r -> RecognizedRangeType.UNIT == r.getType()
-                        || RecognizedRangeType.NEW_UNIT == r.getType())
+                             || RecognizedRangeType.NEW_UNIT == r.getType())
                 .findFirst();
         Optional<RecognizedRange> nr = it.getRanges().stream()
                 .filter(r -> RecognizedRangeType.ITEM == r.getType()
-                        || RecognizedRangeType.NEW_ITEM == r.getType())
+                             || RecognizedRangeType.NEW_ITEM == r.getType())
                 .findFirst();
 
         Function<Optional<RecognizedRange>, Section> sectionFromRange = or ->
@@ -47,23 +52,24 @@ public class RawIngredientDissection {
         ranges.add(qr);
         ranges.add(ur);
         ranges.add(nr);
-        String p = ranges.stream()
+        String prep = ranges.stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .sorted(Comparator.comparingInt(RecognizedRange::getStart).reversed())
                 .reduce(
                         it.getRaw(),
                         (s, r) -> s.substring(0, r.getStart()) + s.substring(r.getEnd()),
-                        (a, b) -> { throw new UnsupportedOperationException(); })
-                .trim()
-                .replaceAll("\\s+", " ")
-                .replaceAll("^\\s*,", "");
+                        (a, b) -> {throw new UnsupportedOperationException();})
+                .trim();
+        prep = RE_CANON_SPACES.matcher(prep).replaceAll(" ");
+        prep = RE_CANON_COMMAS.matcher(prep).replaceAll(", ");
+        prep = RE_LEADING_COMMAS.matcher(prep).replaceFirst("");
 
         RawIngredientDissection d = new RawIngredientDissection(it.getRaw());
         d.quantity = sectionFromRange.apply(qr);
         d.units = sectionFromRange.apply(ur);
         d.name = sectionFromRange.apply(nr);
-        d.prep = p;
+        d.prep = prep;
         return d;
     }
 
@@ -115,7 +121,6 @@ public class RawIngredientDissection {
 
     @Value
     public static class Section {
-
         String text;
         int start;
         int end;
