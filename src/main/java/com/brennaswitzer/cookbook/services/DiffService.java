@@ -4,11 +4,13 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.unifieddiff.UnifiedDiff;
 import com.github.difflib.unifieddiff.UnifiedDiffFile;
 import com.github.difflib.unifieddiff.UnifiedDiffWriter;
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -17,7 +19,8 @@ public class DiffService {
     public String diffLinesToPatch(List<String> left,
                                    List<String> right) {
         try {
-            return diffLinesToPatchInternal(left, right);
+            return diffLinesToPatchInternal(withoutNulls(left),
+                                            withoutNulls(right));
         } catch (Exception e) {
             log.warn(String.format("Failed to diff %s and %s",
                                    left,
@@ -25,6 +28,11 @@ public class DiffService {
                      e);
             return "";
         }
+    }
+
+    @Nonnull
+    private static List<String> withoutNulls(List<String> left) {
+        return left.stream().filter(Objects::nonNull).toList();
     }
 
     private String diffLinesToPatchInternal(List<String> left,
@@ -39,7 +47,7 @@ public class DiffService {
             throw new RuntimeException(e);
         }
         var idx = sb.indexOf("\n");
-        return sb.substring(idx + 1).trim();
+        return sb.substring(idx + 1);
     }
 
 }

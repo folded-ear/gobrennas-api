@@ -390,7 +390,7 @@ public class PlanService {
                     });
             var diff = diffService.diffLinesToPatch(recipeLines, planLines);
             if (!diff.isBlank()) {
-                h.setNotes("```diff\n" + diff + "\n```\n");
+                h.setNotes("```diff\n" + diff + "```\n");
             }
             recipeHistoryRepo.save(h);
         } else if (item.hasChildren()) {
