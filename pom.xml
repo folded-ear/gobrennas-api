@@ -20,6 +20,7 @@
         <antlr4.listener>true</antlr4.listener>
         <org.antlr.version>4.13.1</org.antlr.version>
         <spring-boot.version>3.5.5</spring-boot.version>
+        <testcontainers.version>2.0.3</testcontainers.version>
     </properties>
 
     <dependencyManagement>
@@ -81,7 +82,7 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
