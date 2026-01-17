@@ -362,7 +362,9 @@ public class PlanService {
                 // It was probably tentatively added and then decided against.
                 return;
             }
-            double scale = item.getQuantity().getQuantity();
+            double scale = item.hasQuantity()
+                    ? item.getQuantity().getQuantity()
+                    : 1;
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
             h.setOwner(principalAccess.getUser());

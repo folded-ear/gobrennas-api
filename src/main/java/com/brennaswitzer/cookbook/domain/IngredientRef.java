@@ -68,11 +68,6 @@ public class IngredientRef implements MutableItem {
         return raw == null ? toString() : raw;
     }
 
-    public Quantity getQuantity() {
-        if (quantity == null) return Quantity.ONE;
-        return quantity;
-    }
-
     public boolean hasQuantity() {
         return quantity != null;
     }

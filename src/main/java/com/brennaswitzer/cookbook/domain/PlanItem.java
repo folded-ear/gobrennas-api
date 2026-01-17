@@ -85,6 +85,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
     private PlanItemStatus status = PlanItemStatus.NEEDED;
 
     @Embedded
+    @Getter
     @Setter
     private Quantity quantity;
 
@@ -208,6 +209,10 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
 
     public boolean hasComponents() {
         return getComponentCount() != 0;
+    }
+
+    public boolean hasQuantity() {
+        return quantity != null;
     }
 
     public boolean isDescendant(PlanItem t) {
@@ -447,12 +452,6 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
     @Override
     public String getRaw() {
         return getName();
-    }
-
-    @Override
-    public Quantity getQuantity() {
-        if (quantity == null) return Quantity.ONE;
-        return quantity;
     }
 
     public boolean hasIngredient() {
