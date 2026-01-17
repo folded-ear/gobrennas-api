@@ -61,7 +61,7 @@ public class RawUtils {
 
     public static RawIngredientDissection dissect(String raw) {
         if (raw == null) return null;
-        if (raw.trim().isEmpty()) return null;
+        if (raw.isBlank()) return null;
         RawIngredientDissection d = new RawIngredientDissection(raw);
         NumberUtils.NumberWithRange n = NumberUtils.parseNumberWithRange(raw);
         int pos = 0;
@@ -76,7 +76,6 @@ public class RawUtils {
         RawIngredientDissection.Section s = findSection(raw, pos, '_', '_');
         if (s != null) {
             d.setUnits(s);
-            pos = s.getEnd();
         }
         Stream.<RawIngredientDissection.Section>builder()
                 .add(findSection(raw, pos, '"', '"'))

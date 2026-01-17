@@ -76,7 +76,7 @@ public class ItemService {
         int idxImplicitItemStart = -1;
         if (secName != null) {
             // there's an explicit name
-            Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
+            Optional<Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
             idxExplicitItemStart = secName.getStart();
             item.withRange(new RecognizedRange(
@@ -214,24 +214,31 @@ public class ItemService {
     public void autoRecognize(MutableItem it) {
         if (it == null) return;
         String raw = it.getRaw();
-        if (raw == null || raw.trim().isEmpty()) return;
+        if (raw == null || raw.isBlank()) return;
         RecognizedItem recog = recognizeItem(raw, raw.length(), false);
         if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection
                 .fromRecognizedItem(recog);
-        if (!dissection.hasName()) return;
-        it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
-        it.setPreparation(dissection.getPrep());
-        if (!dissection.hasQuantity()) return;
-        Quantity q = new Quantity();
-        Double quantity = NumberUtils.parseNumber(dissection.getQuantityText());
-        if (quantity == null) return; // couldn't parse?
-        q.setQuantity(quantity);
-        if (dissection.hasUnits()) {
-            q.setUnits(UnitOfMeasure.ensure(entityManager,
-                                            EnglishUtils.canonicalize(dissection.getUnitsText())));
+        if (!dissection.hasName()
+            && !dissection.hasQuantity()
+            && !dissection.hasUnits()) {
+            return;
         }
-        it.setQuantity(q);
+        if (dissection.hasQuantity() || dissection.hasUnits()) {
+            Quantity q = new Quantity();
+            Double quantity = NumberUtils.parseNumber(dissection.getQuantityText());
+            if (quantity == null) quantity = 1.0;
+            q.setQuantity(quantity);
+            if (dissection.hasUnits()) {
+                q.setUnits(UnitOfMeasure.ensure(entityManager,
+                                                EnglishUtils.canonicalize(dissection.getUnitsText())));
+            }
+            it.setQuantity(q);
+        }
+        if (dissection.hasName()) {
+            it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
+        }
+        it.setPreparation(dissection.getPrep());
     }
 
     @Getter

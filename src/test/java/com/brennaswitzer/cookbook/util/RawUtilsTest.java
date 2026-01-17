@@ -2,10 +2,13 @@ package com.brennaswitzer.cookbook.util;
 
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -77,24 +80,25 @@ public class RawUtilsTest {
         assertEquals("_grams", RawUtils.stripMarkers("_grams"));
     }
 
-    @Test
-    public void fromTestFile() throws IOException {
-        BufferedReader r = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/raw/dissections.txt")));
-        r.readLine(); // the header
-        r.lines()
-                .filter(l -> !l.trim().isEmpty())
-                .filter(l -> !l.startsWith("#"))
-                .filter(l -> !l.startsWith("//"))
-                .map(l -> l.split("\\|"))
-                .map(this::inflateDissection)
-                .forEach(this::testDissection);
-    }
-
-    private void testDissection(RawIngredientDissection expected) {
+    @ParameterizedTest
+    @MethodSource
+    public void fromTestFile(RawIngredientDissection expected) {
         assertEquals(expected, RawUtils.dissect(expected.getRaw()));
     }
 
-    private RawIngredientDissection inflateDissection(String[] parts) {
+    private static Stream<RawIngredientDissection> fromTestFile() throws IOException {
+        BufferedReader r = new BufferedReader(new InputStreamReader(RawUtilsTest.class.getResourceAsStream(
+                "/raw/dissections.txt")));
+        r.readLine(); // the header
+        return r.lines()
+                .filter(l -> !l.isBlank())
+                .filter(l -> !l.startsWith("#"))
+                .filter(l -> !l.startsWith("//"))
+                .map(l -> l.split("\\|"))
+                .map(RawUtilsTest::inflateDissection);
+    }
+
+    private static RawIngredientDissection inflateDissection(String[] parts) {
         RawIngredientDissection dissection = new RawIngredientDissection(parts[0]);
         if (parts.length > 1 && !parts[1].isEmpty()) {
             dissection.setQuantity(new RawIngredientDissection.Section(

@@ -31,12 +31,11 @@ public class IngredientService {
     private UserPrincipalAccess principalAccess;
 
     public Ingredient ensureIngredientByName(String name) {
-        Optional<? extends Ingredient> oing = findIngredientByName(name);
-        if (oing.isPresent()) {
-            return oing.get();
-        }
-        // make a new pantry item
-        return pantryItemRepository.save(new PantryItem(EnglishUtils.unpluralize(name)));
+        return findIngredientByName(name)
+                // otherwise make a new pantry item
+                .orElseGet(() -> pantryItemRepository.save(
+                        new PantryItem(
+                                EnglishUtils.unpluralize(name))));
     }
 
     public List<Ingredient> findAllIngredientsByNameContaining(String name) {
@@ -51,22 +50,27 @@ public class IngredientService {
         return result;
     }
 
-    public Optional<? extends Ingredient> findIngredientByName(String name) {
+    public Optional<Ingredient> findIngredientByName(String name) {
         String unpluralized = EnglishUtils.unpluralize(name);
         // see if there's a pantry item...
         List<PantryItem> pantryItem = pantryItemRepository.findByNameIgnoreCaseOrderById(unpluralized);
         if (!pantryItem.isEmpty()) {
-            return pantryItem.stream().findFirst();
+            return pantryItem.stream()
+                    .findFirst()
+                    .map(Ingredient.class::cast);
         }
         // see if there's a recipe...
         User user = principalAccess.getUser();
         List<Recipe> recipe = recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(user, name);
         if (!recipe.isEmpty() || name.equals(unpluralized)) {
-            return recipe.stream().findFirst();
+            return recipe.stream()
+                    .findFirst()
+                    .map(Ingredient.class::cast);
         }
         return recipeRepository.findByOwnerAndNameIgnoreCaseOrderById(user, unpluralized)
                 .stream()
-                .findFirst();
+                .findFirst()
+                .map(Ingredient.class::cast);
     }
 
     /**
