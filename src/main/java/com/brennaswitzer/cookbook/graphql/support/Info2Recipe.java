@@ -20,6 +20,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -89,8 +90,15 @@ public class Info2Recipe {
             }
             setCoreInfo(info, r);
             if (info.hasSections()) {
-                for (var s : info.getSections()) {
-                    toRecipeUnder(s, r);
+                Set<Long> seenSections = new HashSet<>();
+                for (var si : info.getSections()) {
+                    var s = toRecipeUnder(si, r);
+                    if (s.isOwnedSection()
+                        && s.getSectionOf().equals(r)
+                        && seenSections.add(s.getId())) {
+                        // first time seeing this owned section, so convert
+                        setCoreInfo(si, s);
+                    }
                 }
             }
             r.setExternalUrl(info.getExternalUrl());
@@ -139,8 +147,8 @@ public class Info2Recipe {
             return ref;
         }
 
-        private void toRecipeUnder(SectionInfo info,
-                                   Recipe parent) {
+        private Recipe toRecipeUnder(SectionInfo info,
+                                     Recipe parent) {
             Recipe s;
             if (info.getId() == null) {
                 s = newRecipe();
@@ -150,12 +158,8 @@ public class Info2Recipe {
                 s = loadRecipe(info);
                 parent.addIngredient(s)
                         .setSection(true);
-                if (!s.isOwnedSection() || !s.getSectionOf().equals(parent)) {
-                    // not owned, just a reference
-                    return;
-                }
             }
-            setCoreInfo(info, s);
+            return s;
         }
 
         private Recipe newRecipe() {
