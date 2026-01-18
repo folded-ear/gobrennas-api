@@ -49,9 +49,8 @@ public class RecognizedRange {
 
     public RecognizedRange merge(RecognizedRange other) {
         return new RecognizedRange(
-                getStart(),
-                other.getEnd()
-        );
+                Math.min(getStart(), other.getStart()),
+                Math.max(getEnd(), other.getEnd()));
     }
 
     public boolean overlaps(RecognizedRange r) {

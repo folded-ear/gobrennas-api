@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.payload;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.EntityManager;
 import lombok.Getter;
@@ -47,7 +48,7 @@ public class IngredientRefInfo {
 
     @Deprecated
     public boolean hasUnits() {
-        return units != null && !units.isBlank();
+        return ValueUtils.hasValue(units);
     }
 
     public boolean hasUomId() {

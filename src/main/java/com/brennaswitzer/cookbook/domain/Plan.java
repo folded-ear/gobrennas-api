@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embedded;
@@ -87,7 +88,7 @@ public class Plan extends PlanItem implements AccessControlled {
     }
 
     public boolean hasBuckets() {
-        return buckets != null && !buckets.isEmpty();
+        return ValueUtils.hasValue(buckets);
     }
 
     public Set<PlanItem> getTrashBinItems() {
@@ -98,7 +99,7 @@ public class Plan extends PlanItem implements AccessControlled {
     }
 
     public boolean hasTrash() {
-        return trashBinItems != null && !trashBinItems.isEmpty();
+        return ValueUtils.hasValue(trashBinItems);
     }
 
     public User getOwner() {

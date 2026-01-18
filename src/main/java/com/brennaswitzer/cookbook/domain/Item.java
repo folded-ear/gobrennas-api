@@ -1,5 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
+
 /**
  * Describes a single, atomic unit for a recipe, which could be
  * something like "3 oz Parmesan, shredded" or "2 each Pizza Dough, thawed".
@@ -21,11 +23,19 @@ public interface Item {
      */
     Quantity getQuantity();
 
+    default boolean hasQuantity() {
+        return getQuantity() != null;
+    }
+
     /**
      * The rest of the info needed to prep a plan item
      * @return instructions on prep
      */
     String getPreparation();
+
+    default boolean hasPreparation() {
+        return ValueUtils.hasValue(getPreparation());
+    }
 
     /**
      * Reference to an ingredient, in this case most likely
@@ -33,4 +43,26 @@ public interface Item {
      * @return an ingredient
      */
     Ingredient getIngredient();
+
+    default boolean hasIngredient() {
+        return getIngredient() != null;
+    }
+
+    default String toRaw(boolean includePrep) {
+        StringBuilder sb = new StringBuilder();
+        if (hasQuantity()) {
+            sb.append(getQuantity()).append(' ');
+        }
+        if (hasIngredient()) {
+            sb.append(getIngredient().getName());
+        }
+        if (includePrep && hasPreparation()) {
+            if (hasIngredient()) {
+                sb.append(", ");
+            }
+            sb.append(getPreparation());
+        }
+        if (sb.isEmpty()) return getRaw();
+        return sb.toString();
+    }
 }

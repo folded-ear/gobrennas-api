@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorValue;
@@ -85,6 +86,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
     private PlanItemStatus status = PlanItemStatus.NEEDED;
 
     @Embedded
+    @Getter
     @Setter
     private Quantity quantity;
 
@@ -449,22 +451,12 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
         return getName();
     }
 
-    @Override
-    public Quantity getQuantity() {
-        if (quantity == null) return Quantity.ONE;
-        return quantity;
-    }
-
-    public boolean hasIngredient() {
-        return ingredient != null;
-    }
-
     public boolean hasBucket() {
         return bucket != null;
     }
 
     public boolean hasNotes() {
-        return notes != null && !notes.isEmpty();
+        return ValueUtils.hasValue(notes);
     }
 
 }

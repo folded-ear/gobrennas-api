@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.repositories.impl;
 
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.SearchRequest;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.domain.Sort;
@@ -25,7 +26,7 @@ public class LibrarySearchRequest implements SearchRequest {
     Sort sort;
 
     public boolean isFiltered() {
-        return filter != null && !filter.isBlank();
+        return ValueUtils.hasValue(filter);
     }
 
     public boolean isOwnerConstrained() {
@@ -33,7 +34,7 @@ public class LibrarySearchRequest implements SearchRequest {
     }
 
     public boolean isIngredientConstrained() {
-        return ingredientIds != null && !ingredientIds.isEmpty();
+        return ValueUtils.hasValue(ingredientIds);
     }
 
 }

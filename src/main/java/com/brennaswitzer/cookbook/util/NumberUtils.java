@@ -103,8 +103,7 @@ public final class NumberUtils {
     }
 
     public static NumberWithRange parseNumberWithRange(String str) {
-        if (str == null) return null;
-        if (str.trim().isEmpty()) return null;
+        if (ValueUtils.noValue(str)) return null;
         try {
             NumberLexer lexer = new NumberLexer(CharStreams.fromString(str.toLowerCase()));
             CommonTokenStream tokens = new CommonTokenStream(lexer);

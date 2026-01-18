@@ -12,6 +12,7 @@ import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.EntityManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,8 +45,7 @@ public class ItemService {
     private IngredientService ingredientService;
 
     public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions) {
-        if (raw == null) return null;
-        if (raw.trim().isEmpty()) return null;
+        if (ValueUtils.noValue(raw)) return null;
         RecognizedItem item = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
         RawIngredientDissection.Section secQuantity = d.getQuantity();
@@ -76,7 +76,7 @@ public class ItemService {
         int idxImplicitItemStart = -1;
         if (secName != null) {
             // there's an explicit name
-            Optional<? extends Ingredient> oing = ingredientService.findIngredientByName(
+            Optional<Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
             idxExplicitItemStart = secName.getStart();
             item.withRange(new RecognizedRange(
@@ -143,7 +143,7 @@ public class ItemService {
         String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
                 .trim()
                 .toLowerCase();
-        if (search.isEmpty()) {
+        if (ValueUtils.noValue(search)) {
             return Collections.emptyList();
         }
         String singularSearch = EnglishUtils.unpluralize(search);
@@ -214,24 +214,31 @@ public class ItemService {
     public void autoRecognize(MutableItem it) {
         if (it == null) return;
         String raw = it.getRaw();
-        if (raw == null || raw.trim().isEmpty()) return;
+        if (ValueUtils.noValue(raw)) return;
         RecognizedItem recog = recognizeItem(raw, raw.length(), false);
         if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection
                 .fromRecognizedItem(recog);
-        if (!dissection.hasName()) return;
-        it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
-        it.setPreparation(dissection.getPrep());
-        if (!dissection.hasQuantity()) return;
-        Quantity q = new Quantity();
-        Double quantity = NumberUtils.parseNumber(dissection.getQuantityText());
-        if (quantity == null) return; // couldn't parse?
-        q.setQuantity(quantity);
-        if (dissection.hasUnits()) {
-            q.setUnits(UnitOfMeasure.ensure(entityManager,
-                                            EnglishUtils.canonicalize(dissection.getUnitsText())));
+        if (!dissection.hasName()
+            && !dissection.hasQuantity()
+            && !dissection.hasUnits()) {
+            return;
         }
-        it.setQuantity(q);
+        if (dissection.hasQuantity() || dissection.hasUnits()) {
+            Quantity q = new Quantity();
+            Double quantity = NumberUtils.parseNumber(dissection.getQuantityText());
+            if (quantity == null) quantity = 1.0;
+            q.setQuantity(quantity);
+            if (dissection.hasUnits()) {
+                q.setUnits(UnitOfMeasure.ensure(entityManager,
+                                                EnglishUtils.canonicalize(dissection.getUnitsText())));
+            }
+            it.setQuantity(q);
+        }
+        if (dissection.hasName()) {
+            it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
+        }
+        it.setPreparation(dissection.getPrep());
     }
 
     @Getter

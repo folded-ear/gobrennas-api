@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.config;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
@@ -34,7 +35,7 @@ public class JwtConfig {
     public JWKSet jwkSet(AppProperties appProperties) {
         List<AppProperties.Secret> tokenSecrets = appProperties.getAuth()
                 .getTokenSecrets();
-        if (tokenSecrets == null || tokenSecrets.isEmpty()) {
+        if (ValueUtils.noValue(tokenSecrets)) {
             throw new IllegalStateException("At least one token secret must be provided in app.auth.token-secrets[]");
         }
         Base64.Decoder decoder = Base64.getDecoder();

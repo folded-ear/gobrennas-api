@@ -11,7 +11,7 @@ public interface AggregateIngredient {
     Collection<IngredientRef> getIngredients();
 
     default IngredientRef addIngredient(Ingredient ingredient) {
-        return addIngredient(Quantity.ONE, ingredient, null);
+        return addIngredient(null, ingredient, null);
     }
 
     default IngredientRef addIngredient(Quantity quantity, Ingredient ingredient) {

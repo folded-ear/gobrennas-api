@@ -30,7 +30,7 @@ public class SlugUtils {
     }
 
     public static String toSlug(String name, int maxLength) {
-        if (name == null || name.isBlank()) return "empty";
+        if (ValueUtils.noValue(name)) return "empty";
         String slug = name;
         for (Munge m : MUNGES) {
             slug = m.munge(slug);
