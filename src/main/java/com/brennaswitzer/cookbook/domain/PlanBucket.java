@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -70,7 +71,7 @@ public class PlanBucket extends BaseEntity implements Named {
     }
 
     public boolean isNamed() {
-        return name != null && !name.isBlank();
+        return ValueUtils.hasValue(name);
     }
 
     public void setPlan(Plan plan) {

@@ -392,7 +392,7 @@ public class PlanService {
                         recordRecipeHistories(it, status, doneAt, 1);
                     });
             var diff = diffService.diffLinesToPatch(recipeLines, planLines);
-            if (!diff.isBlank()) {
+            if (ValueUtils.hasValue(diff)) {
                 h.setNotes("```diff\n" + diff + "```\n");
             }
             recipeHistoryRepo.save(h);

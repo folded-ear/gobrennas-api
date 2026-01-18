@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.payload;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +29,7 @@ public class IngredientInfo extends CoreRecipeInfo {
     }
 
     public boolean hasSections() {
-        return getSections() != null && !getSections().isEmpty();
+        return ValueUtils.hasValue(getSections());
     }
 
 }

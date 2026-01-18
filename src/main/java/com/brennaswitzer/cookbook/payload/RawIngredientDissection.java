@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.util.RawUtils;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -115,8 +116,7 @@ public class RawIngredientDissection {
     }
 
     public void setPrep(String prep) {
-        if (prep != null) prep = prep.trim();
-        this.prep = prep == null || prep.isEmpty() ? null : prep;
+        this.prep = ValueUtils.hasValue(prep) ? prep.trim() : null;
     }
 
     @Value

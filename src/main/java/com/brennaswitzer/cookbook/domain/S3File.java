@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +18,7 @@ public class S3File {
 
     private static final Pattern FILENAME_SANITIZER = Pattern.compile("[^a-zA-Z0-9.\\-]+");
     public static String sanitizeFilename(String filename) {
-        if (filename == null || filename.isBlank()) {
+        if (ValueUtils.noValue(filename)) {
             return "unnamed";
         }
         // Opera supplies a full path, not just a filename

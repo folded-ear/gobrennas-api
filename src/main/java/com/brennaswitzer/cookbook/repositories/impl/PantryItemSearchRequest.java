@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.repositories.impl;
 
 import com.brennaswitzer.cookbook.domain.PantryItem_;
 import com.brennaswitzer.cookbook.repositories.SearchRequest;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.domain.Sort;
@@ -17,7 +18,7 @@ public class PantryItemSearchRequest implements SearchRequest {
     Sort sort;
 
     public boolean isFiltered() {
-        return filter != null && !filter.isBlank();
+        return ValueUtils.hasValue(filter);
     }
 
     public boolean isDuplicateOf() {

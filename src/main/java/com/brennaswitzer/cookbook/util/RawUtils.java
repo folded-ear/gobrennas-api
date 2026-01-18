@@ -60,8 +60,7 @@ public class RawUtils {
     }
 
     public static RawIngredientDissection dissect(String raw) {
-        if (raw == null) return null;
-        if (raw.isBlank()) return null;
+        if (ValueUtils.noValue(raw)) return null;
         RawIngredientDissection d = new RawIngredientDissection(raw);
         NumberUtils.NumberWithRange n = NumberUtils.parseNumberWithRange(raw);
         int pos = 0;

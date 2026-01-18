@@ -12,6 +12,7 @@ import com.brennaswitzer.cookbook.payload.RecognizedRangeType;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.brennaswitzer.cookbook.util.RawUtils;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.EntityManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,8 +45,7 @@ public class ItemService {
     private IngredientService ingredientService;
 
     public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions) {
-        if (raw == null) return null;
-        if (raw.trim().isEmpty()) return null;
+        if (ValueUtils.noValue(raw)) return null;
         RecognizedItem item = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
         RawIngredientDissection.Section secQuantity = d.getQuantity();
@@ -143,7 +143,7 @@ public class ItemService {
         String search = raw.substring(hasQuote ? replaceStart + 1 : replaceStart, item.getCursor())
                 .trim()
                 .toLowerCase();
-        if (search.isEmpty()) {
+        if (ValueUtils.noValue(search)) {
             return Collections.emptyList();
         }
         String singularSearch = EnglishUtils.unpluralize(search);
@@ -214,7 +214,7 @@ public class ItemService {
     public void autoRecognize(MutableItem it) {
         if (it == null) return;
         String raw = it.getRaw();
-        if (raw == null || raw.isBlank()) return;
+        if (ValueUtils.noValue(raw)) return;
         RecognizedItem recog = recognizeItem(raw, raw.length(), false);
         if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection

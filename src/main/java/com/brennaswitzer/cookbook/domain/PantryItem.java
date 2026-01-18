@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import com.brennaswitzer.cookbook.repositories.PantryItemSearchRepository;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -86,7 +87,7 @@ public class PantryItem extends Ingredient {
             return;
         }
         var name = getName();
-        if (name == null || name.isBlank()) return;
+        if (ValueUtils.noValue(name)) return;
         if (!synonyms.remove(name)) {
             synonyms.removeIf(name::equalsIgnoreCase);
         }
@@ -102,7 +103,7 @@ public class PantryItem extends Ingredient {
     public void setName(String name) {
         name = name.trim();
         var oldName = getName();
-        if (oldName != null && !oldName.equalsIgnoreCase(name) && !oldName.isBlank()) {
+        if (ValueUtils.hasValue(oldName) && !oldName.equalsIgnoreCase(name)) {
             addSynonym(oldName);
         }
         super.setName(name);
@@ -116,7 +117,7 @@ public class PantryItem extends Ingredient {
 
     public boolean hasSynonym(String synonym) {
         if (synonyms == null) return false;
-        if (synonym == null || synonym.isBlank()) return false;
+        if (ValueUtils.noValue(synonym)) return false;
         synonym = synonym.trim();
         if (synonyms.contains(synonym)) return true;
         for (var syn : synonyms)

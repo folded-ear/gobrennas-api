@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.domain;
 
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorValue;
@@ -455,7 +456,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
     }
 
     public boolean hasNotes() {
-        return notes != null && !notes.isEmpty();
+        return ValueUtils.hasValue(notes);
     }
 
 }

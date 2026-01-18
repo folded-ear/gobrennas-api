@@ -91,7 +91,7 @@ public class RawUtilsTest {
                 "/raw/dissections.txt")));
         r.readLine(); // the header
         return r.lines()
-                .filter(l -> !l.isBlank())
+                .filter(ValueUtils::hasValue)
                 .filter(l -> !l.startsWith("#"))
                 .filter(l -> !l.startsWith("//"))
                 .map(l -> l.split("\\|"))

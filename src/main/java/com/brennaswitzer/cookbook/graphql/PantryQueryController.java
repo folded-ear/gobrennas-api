@@ -10,6 +10,7 @@ import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.SortDir;
 import com.brennaswitzer.cookbook.services.IngredientService;
 import com.brennaswitzer.cookbook.services.PantryItemService;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import graphql.relay.Connection;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -66,7 +67,7 @@ public class PantryQueryController {
         }
 
         Sort getSort() {
-            if (sortBy == null || sortBy.isBlank()) return null;
+            if (ValueUtils.noValue(sortBy)) return null;
             Sort.Direction dir = SortDir.DESC == sortDir
                     ? Sort.Direction.DESC
                     : Sort.Direction.ASC;

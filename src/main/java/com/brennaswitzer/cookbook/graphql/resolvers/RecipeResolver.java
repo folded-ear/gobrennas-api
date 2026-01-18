@@ -14,6 +14,7 @@ import com.brennaswitzer.cookbook.payload.ShareInfo;
 import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.util.ShareHelper;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import org.dataloader.DataLoader;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +73,7 @@ public class RecipeResolver {
         Stream<IngredientRef> allIngredients = recipe.getIngredients()
                 .stream()
                 .filter(not(Section::isSection));
-        if (ingredientIds != null && !ingredientIds.isEmpty()) {
+        if (ValueUtils.hasValue(ingredientIds)) {
             allIngredients = allIngredients
                     .filter(r -> r.hasIngredient()
                                  && ingredientIds.contains(r.getIngredient().getId()));
