@@ -20,6 +20,7 @@ import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import lombok.val;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -168,26 +170,28 @@ public class PlanService {
     }
 
     private void sendToPlan(IngredientRef ref, PlanItem aggItem, Double scale) {
-        if (scale == null || scale <= 0) { // nonsense!
-            scale = 1d;
-        }
-        Ingredient ingredient = Hibernate.unproxy(ref.getIngredient(), Ingredient.class);
-        boolean isAggregate = ingredient instanceof AggregateIngredient;
-        if (ref.hasQuantity()) {
+        // ignore nonsense scaling
+        if (scale != null && scale > 0) {
             ref = ref.scale(scale);
         }
-        PlanItem t = new PlanItem(
-                isAggregate
-                        ? ingredient.getName()
-                        : ref.getRaw(),
-                ref.getQuantity(),
-                ingredient,
-                ref.getPreparation());
-        aggItem.addAggregateComponent(t);
-        if (isAggregate) {
+        Ingredient ingredient = Hibernate.unproxy(ref.getIngredient(), Ingredient.class);
+        if (ingredient instanceof AggregateIngredient agg) {
             // Subrecipes DO NOT get scaled; there's not a quantifiable
-            // relationship to multiply across.
-            sendToPlan((AggregateIngredient) ingredient, t, 1d);
+            // relationship to multiply across. The ref's quantity itself is
+            // scaled, so the recipe remains intact.
+            PlanItem it = new PlanItem(
+                    ingredient.getName(),
+                    ref.getQuantity(),
+                    ingredient,
+                    ref.getPreparation());
+            aggItem.addAggregateComponent(it);
+            sendToPlan(agg, it, 1d);
+        } else {
+            aggItem.addAggregateComponent(new PlanItem(
+                    ref.toString(),
+                    ref.getQuantity(),
+                    ingredient,
+                    ref.getPreparation()));
         }
     }
 
@@ -345,7 +349,10 @@ public class PlanService {
         PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
         item.setStatus(status);
         if (item.getStatus().isForDelete()) {
-            recordRecipeHistories(item, item.getStatus(), doneAt);
+            double scale = item.hasQuantity()
+                    ? item.getQuantity().getQuantity()
+                    : 1;
+            recordRecipeHistories(item, item.getStatus(), doneAt, scale);
             item.moveToTrash();
         }
         return item;
@@ -353,8 +360,10 @@ public class PlanService {
 
     private void recordRecipeHistories(PlanItem item,
                                        PlanItemStatus status,
-                                       Instant doneAtOrNull) {
-        Instant doneAt = doneAtOrNull == null ? Instant.now() : doneAtOrNull;
+                                       Instant doneAtOrNull,
+                                       double scale) {
+        Instant doneAt = Optional.ofNullable(doneAtOrNull)
+                .orElseGet(Instant::now);
         if (Hibernate.unproxy(item.getIngredient()) instanceof Recipe r) {
             if (status == PlanItemStatus.DELETED
                 && Duration.between(item.getCreatedAt(), doneAt).toMinutes() < 120) {
@@ -362,9 +371,6 @@ public class PlanService {
                 // It was probably tentatively added and then decided against.
                 return;
             }
-            double scale = item.hasQuantity()
-                    ? item.getQuantity().getQuantity()
-                    : 1;
             var h = new PlannedRecipeHistory();
             h.setRecipe(r);
             h.setOwner(principalAccess.getUser());
@@ -376,19 +382,14 @@ public class PlanService {
             recipeLines.add(r.getName());
             recipeLines.add("");
             r.getIngredients()
-                    .forEach(ir -> {
-                        if (scale > 0 && scale != 1) {
-                            ir = ir.scale(scale);
-                        }
-                        recipeLines.add(ir.getRaw());
-                    });
+                    .forEach(ir -> recipeLines.add(ir.scale(scale).toRaw(true)));
             var planLines = new ArrayList<String>();
             planLines.add(item.getName());
             planLines.add("");
             item.getOrderedChildView()
                     .forEach(it -> {
-                        planLines.add(it.getName());
-                        recordRecipeHistories(it, status, doneAt);
+                        planLines.add(it.toRaw(true));
+                        recordRecipeHistories(it, status, doneAt, 1);
                     });
             var diff = diffService.diffLinesToPatch(recipeLines, planLines);
             if (!diff.isBlank()) {
@@ -397,7 +398,7 @@ public class PlanService {
             recipeHistoryRepo.save(h);
         } else if (item.hasChildren()) {
             item.getChildView()
-                    .forEach(it -> recordRecipeHistories(it, status, doneAt));
+                    .forEach(it -> recordRecipeHistories(it, status, doneAt, 1));
         }
     }
 

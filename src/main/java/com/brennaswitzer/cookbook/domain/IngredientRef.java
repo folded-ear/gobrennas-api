@@ -60,46 +60,22 @@ public class IngredientRef implements MutableItem {
         setRaw(raw);
     }
 
-    public boolean hasIngredient() {
-        return ingredient != null;
-    }
-
     public String getRaw() {
         return raw == null ? toString() : raw;
     }
 
-    public boolean hasQuantity() {
-        return quantity != null;
-    }
-
     public IngredientRef scale(Double scale) {
-        if (!hasQuantity() || scale == 1) return this;
+        if (scale <= 0) throw new IllegalArgumentException("Scaling by " + scale + " makes no sense?!");
+        if (scale == 1 || !hasQuantity()) return this;
         return new IngredientRef(
                 getQuantity().times(scale),
                 getIngredient(),
                 getPreparation());
     }
 
-    public boolean hasPreparation() {
-        return preparation != null && !preparation.isEmpty();
-    }
-
     @Override
     public String toString() {
-        return toString(true);
-    }
-
-    public String toString(boolean includePrep) {
-        if (!hasIngredient()) return raw;
-        StringBuilder sb = new StringBuilder();
-        if (hasQuantity()) {
-            sb.append(quantity).append(' ');
-        }
-        sb.append(ingredient.getName());
-        if (includePrep && hasPreparation()) {
-            sb.append(", ").append(preparation);
-        }
-        return sb.toString();
+        return toRaw(true);
     }
 
 }

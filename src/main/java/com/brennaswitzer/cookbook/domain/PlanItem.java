@@ -211,10 +211,6 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
         return getComponentCount() != 0;
     }
 
-    public boolean hasQuantity() {
-        return quantity != null;
-    }
-
     public boolean isDescendant(PlanItem t) {
         for (; t != null; t = t.getParent()) {
             if (t == this) return true;
@@ -452,10 +448,6 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
     @Override
     public String getRaw() {
         return getName();
-    }
-
-    public boolean hasIngredient() {
-        return ingredient != null;
     }
 
     public boolean hasBucket() {
