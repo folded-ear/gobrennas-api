@@ -36,4 +36,6 @@ public interface AggregateIngredient {
      */
     Collection<IngredientRef> assembleRawIngredientRefs();
 
+    boolean isOwnedSection();
+
 }
