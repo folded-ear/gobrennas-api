@@ -176,16 +176,21 @@ public class PlanService {
         }
         Ingredient ingredient = Hibernate.unproxy(ref.getIngredient(), Ingredient.class);
         if (ingredient instanceof AggregateIngredient agg) {
-            // Subrecipes DO NOT get scaled; there's not a quantifiable
-            // relationship to multiply across. The ref's quantity itself is
-            // scaled, so the recipe remains intact.
             PlanItem it = new PlanItem(
                     ingredient.getName(),
                     ref.getQuantity(),
                     ingredient,
                     ref.getPreparation());
             aggItem.addAggregateComponent(it);
-            sendToPlan(agg, it, 1d);
+            // Subrecipes DO NOT get scaled; there's not a quantifiable
+            // relationship to multiply across. The ref's quantity itself is
+            // scaled, so the parent recipe remains intact. Sections, however,
+            // DO get scaled as they are "part of" the parent recipe (and never
+            // have a quantity on their ref).
+            if (!agg.isOwnedSection()) {
+                scale = 1d;
+            }
+            sendToPlan(agg, it, scale);
         } else {
             aggItem.addAggregateComponent(new PlanItem(
                     ref.toString(),
