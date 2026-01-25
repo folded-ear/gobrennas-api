@@ -383,20 +383,13 @@ public class PlanService {
             h.setPlannedAt(item.getCreatedAt());
             h.setDoneAt(doneAt);
             h.setStatus(status);
-            var recipeLines = new ArrayList<String>();
-            recipeLines.add(r.getName());
-            recipeLines.add("");
-            r.getIngredients()
-                    .forEach(ir -> recipeLines.add(ir.scale(scale).toRaw(true)));
-            var planLines = new ArrayList<String>();
-            planLines.add(item.getName());
-            planLines.add("");
-            item.getOrderedChildView()
-                    .forEach(it -> {
-                        planLines.add(it.toRaw(true));
-                        recordRecipeHistories(it, status, doneAt, 1);
-                    });
-            var diff = diffService.diffLinesToPatch(recipeLines, planLines);
+            var lines = new PrintForHistoryDiff(r, item)
+                    .withRecipeScale(scale)
+                    .withExtraPlanItemSink(it -> recordRecipeHistories(it, status, doneAt, 1))
+                    .print();
+            var diff = diffService.diffLinesToPatch(
+                    lines.recipe(),
+                    lines.planned());
             if (ValueUtils.hasValue(diff)) {
                 h.setNotes("```diff\n" + diff + "```\n");
             }
