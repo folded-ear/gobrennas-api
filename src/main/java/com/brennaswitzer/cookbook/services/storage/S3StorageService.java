@@ -20,6 +20,8 @@ import java.time.ZoneOffset;
 
 public class S3StorageService implements StorageService {
 
+    private static final String CACHE_CONTROL = "public, max-age=" + (86400 * 365 * 10) + ", immutable";
+
     private record S3ScratchUpload(
             URL url,
             OffsetDateTime expiration,
@@ -124,8 +126,7 @@ public class S3StorageService implements StorageService {
                 .bucket(bucketName)
                 .key(objectKey)
                 .contentType(contentType)
-                // by fiat, S3-stored assets will never change w/in a single day. :)
-                .cacheControl("public, max-age=86400, immutable")
+                .cacheControl(CACHE_CONTROL)
                 .build();
     }
 
