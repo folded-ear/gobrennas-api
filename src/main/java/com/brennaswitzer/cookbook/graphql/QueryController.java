@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.repositories.BaseEntityRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.CurrentUser;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
+import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -40,7 +41,7 @@ public class QueryController {
                               ac.isPermitted(getUser(userPrincipal),
                                              AccessLevel.VIEW))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new EntityNotFoundException("There is no node with id: " + id));
     }
 
     /**
