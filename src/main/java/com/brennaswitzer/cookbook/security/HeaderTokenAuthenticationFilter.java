@@ -7,11 +7,17 @@ import org.springframework.util.StringUtils;
 public class HeaderTokenAuthenticationFilter extends AbstractTokenAuthenticationFilter {
 
     private static final String BEARER_AUTHENTICATION_PREFIX = "Bearer ";
+    private static final int PREFIX_LENGTH = BEARER_AUTHENTICATION_PREFIX.length();
 
     protected String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_AUTHENTICATION_PREFIX)) {
-            return bearerToken.substring(BEARER_AUTHENTICATION_PREFIX.length());
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(authorization)
+            && authorization.length() > PREFIX_LENGTH
+            && authorization.substring(0, PREFIX_LENGTH)
+                    .equalsIgnoreCase(BEARER_AUTHENTICATION_PREFIX)
+        ) {
+            return authorization.substring(PREFIX_LENGTH)
+                    .strip();
         }
         return null;
     }
