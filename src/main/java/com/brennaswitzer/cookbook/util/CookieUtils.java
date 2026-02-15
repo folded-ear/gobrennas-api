@@ -13,6 +13,8 @@ import java.util.Optional;
 public class CookieUtils {
 
     public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
+        // This method can return null when request.getHeader("cookies") returns
+        // non-null. Not sure what that's about.
         Cookie[] cookies = request.getCookies();
 
         if (cookies != null) {
