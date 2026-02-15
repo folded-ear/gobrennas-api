@@ -11,7 +11,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -33,7 +32,7 @@ public class ProfileQueryController {
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     User me(ProfileQuery profileQ,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+            @CurrentUser UserPrincipal userPrincipal) {
         return userRepository.getReferenceById(userPrincipal.getId());
     }
 

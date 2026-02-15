@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -50,7 +49,7 @@ public class QueryController {
     @QueryMapping
     @PreAuthorize("hasRole('USER')")
     @Deprecated
-    User getCurrentUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    User getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
         return getUser(userPrincipal);
     }
 
