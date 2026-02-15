@@ -203,7 +203,13 @@ public class RecipeService {
             var id = recipe.getId();
             if (id == null) throw new IllegalArgumentException(
                     "Cannot build an object key for an unsaved recipe");
-            return "recipe/" + id + "/" + S3File.sanitizeFilename(name);
+            // ensure the URL is unique so can forever-cache
+            return "recipe/"
+                   + id
+                   + "/"
+                   + S3File.sanitizeFilenameWithSuffix(
+                    name,
+                    Long.toString(System.currentTimeMillis(), 36));
         }
 
     }
