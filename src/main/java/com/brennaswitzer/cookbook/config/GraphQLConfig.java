@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.config;
 
 import com.brennaswitzer.cookbook.graphql.support.CachingPreparsedDocumentProvider;
 import com.brennaswitzer.cookbook.graphql.support.OffsetConnectionCursorCoercing;
+import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Scheduler;
 import graphql.ExecutionResult;
@@ -85,7 +86,8 @@ public class GraphQLConfig {
     GraphQlSourceBuilderCustomizer sourceBuilderCustomizer(
             Collection<GraphQLScalarType> scalars,
             TransactionTemplate mutationTmpl,
-            DataFetcherExceptionHandler exceptionHandler) {
+            DataFetcherExceptionHandler exceptionHandler,
+            GraphqlProperties graphqlProperties) {
 
         // The warning is for IntelliJ's over-aggro application of @NotNull to
         // places where library authors omitted it. In this case, Spring
@@ -113,7 +115,20 @@ public class GraphQLConfig {
                         .mutationExecutionStrategy(mutationStrat)
                         .preparsedDocumentProvider(preparsedDocumentProvider()))
                 .configureRuntimeWiring(wiring -> scalars.forEach(wiring::scalar))
-                .inspectSchemaMappings(report -> log.info("{}", report));
+                .inspectSchemaMappings(report -> {
+                    if (ValueUtils.hasValue(report.unmappedFields())
+                        || ValueUtils.hasValue(report.unmappedRegistrations())
+                        || ValueUtils.hasValue(report.unmappedArguments())
+                        || ValueUtils.hasValue(report.skippedTypes())) {
+                        if (graphqlProperties.isFailOnUnmapped()) {
+                            log.warn("{}", report);
+                            throw new IllegalStateException("GraphQL schema mapping is incomplete");
+                        }
+                        log.warn("{}\n\n\n¡¡UNMAPPED SCHEMA OBJECTS EXIST!!\n\n", report);
+                    } else {
+                        log.debug("{}", report);
+                    }
+                });
     }
 
     @Bean
