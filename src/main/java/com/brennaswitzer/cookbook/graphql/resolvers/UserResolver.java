@@ -22,6 +22,18 @@ public class UserResolver {
     private AssembleUserPreferences assembleUserPreferences;
 
     @SchemaMapping
+    public boolean me(User user,
+                      @CurrentUser UserPrincipal principal) {
+        return user.getId().equals(principal.getId());
+    }
+
+    @SchemaMapping
+    public boolean notMe(User user,
+                         @CurrentUser UserPrincipal principal) {
+        return !me(user, principal);
+    }
+
+    @SchemaMapping
     public List<String> roles(User user,
                               @CurrentUser UserPrincipal principal) {
         // if not the current user, create a new instance

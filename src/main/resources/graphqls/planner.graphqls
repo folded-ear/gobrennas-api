@@ -42,6 +42,9 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     """The plan's owner
     """
     owner: User!
+    ownedBy: User
+    mine: Boolean!
+    notMine: Boolean!
     notes: String
     share: ShareInfo!
     bucketCount: NonNegativeInt!

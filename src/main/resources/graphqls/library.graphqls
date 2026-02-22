@@ -183,6 +183,9 @@ enum ChronoUnit {
 type Recipe implements Node & Owned & Ingredient {
     id: ID!
     owner: User!
+    ownedBy: User
+    mine: Boolean!
+    notMine: Boolean!
     name: String!
     externalUrl: String
     directions: String
