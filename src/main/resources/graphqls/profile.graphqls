@@ -71,8 +71,8 @@ type User implements Node {
     are used, if they exists. If not, the static default is returned.
     """
     preferences(deviceKey: String): [UserPreference!]!
-    me:Boolean!
-    notMe:Boolean!
+    me: Boolean!
+    notMe: Boolean!
 }
 
 type UserPreference {
