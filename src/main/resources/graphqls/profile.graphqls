@@ -1,10 +1,22 @@
 interface Owned {
     """The user who owns this object."""
     owner: User!
+    """
+    Another user who owns this object. Always null if the current user is the
+    owner, always the same as `owner` otherwise.
+    """
+    ownedBy: User
+    """Is the owner of this object me (the current user)?"""
+    mine: Boolean!
+    """Is the owner of this object not me (the current user)?"""
+    notMine: Boolean!
 }
 
 interface AccessControlled implements Owned {
     owner: User!
+    ownedBy: User
+    mine: Boolean!
+    notMine: Boolean!
     """The object's ACL, which includes its owner and any grants of access.
     """
     acl: Acl!
@@ -13,8 +25,12 @@ interface AccessControlled implements Owned {
 
 type Acl implements Owned {
     owner: User!
-    """Users granted access, by the owner. This is conceptually map, so a given
-    user (the key) uniquely identifies their access level (the value).
+    ownedBy: User
+    mine: Boolean!
+    notMine: Boolean!
+    """Users granted access by the owner or an administrator. Conceptually,
+    this is a map, so a given user (the key) uniquely identifies their access
+    level (the value).
     """
     grants: [AccessControlEntry!]!
 }
@@ -55,6 +71,8 @@ type User implements Node {
     are used, if they exists. If not, the static default is returned.
     """
     preferences(deviceKey: String): [UserPreference!]!
+    me: Boolean!
+    notMe: Boolean!
 }
 
 type UserPreference {

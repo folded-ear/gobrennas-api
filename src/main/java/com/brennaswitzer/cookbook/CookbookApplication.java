@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook;
 import com.brennaswitzer.cookbook.config.AWSProperties;
 import com.brennaswitzer.cookbook.config.AppProperties;
 import com.brennaswitzer.cookbook.config.CalendarProperties;
+import com.brennaswitzer.cookbook.config.GraphqlProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,7 +12,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties({
         AppProperties.class,
         AWSProperties.class,
-        CalendarProperties.class })
+        CalendarProperties.class,
+        GraphqlProperties.class })
 public class CookbookApplication {
 
     public static void main(String[] args) {

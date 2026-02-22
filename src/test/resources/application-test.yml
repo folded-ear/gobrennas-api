@@ -11,6 +11,8 @@ app:
     token-secrets:
       - id: test
         secret: TcJRn7dQqCbUfI5CV8F3DZLVw5I098k74jiKfw03OK74pzGeP6iP+jO/Ti7HmEV0fgbl+GzhMmPFZELBDeUZsg==
+  graphql:
+    failOnUnmapped: true
 
 logging:
   level:
