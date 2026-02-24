@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -39,7 +40,7 @@ class EnsureUserDeviceTest {
     private UserDeviceRepository userDeviceRepo;
 
     @Test
-    void forReadNull_user() {
+    void forRead_null() {
         User user = mock(User.class);
 
         ensureUserDevice.forRead(user, null);
@@ -58,6 +59,29 @@ class EnsureUserDeviceTest {
                 .thenReturn(Optional.of(another));
         when(userDeviceRepo.save(any()))
                 .thenAnswer(iom -> iom.getArgument(0));
+        doReturn(false)
+                .when(ensureUserDevice)
+                .shouldSkipEnsure(another);
+
+        var result = ensureUserDevice.forRead(user, "another");
+
+        assertSame(another, result);
+        verifyNoInteractions(userRepo);
+        verify(userDeviceRepo).findByUserIdAndKey(userId, "another");
+        verifyNoMoreInteractions(userDeviceRepo);
+    }
+
+    @Test
+    void forRead_exists_skipEnsure() {
+        long userId = 123456L;
+        UserDevice another = mock(UserDevice.class);
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(userId);
+        when(userDeviceRepo.findByUserIdAndKey(any(), any()))
+                .thenReturn(Optional.of(another));
+        doReturn(true)
+                .when(ensureUserDevice)
+                .shouldSkipEnsure(another);
 
         var result = ensureUserDevice.forRead(user, "another");
 
