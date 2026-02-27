@@ -67,10 +67,15 @@ type User implements Node {
     roles: [String!]!
     devices: [UserDevice!]!
     """A value for every preference is returned. If a deviceKey is provided,
-    that device's values are preferred. Otherwise, the user's global preferences
+    that device's values will be used. Otherwise, the user's global preferences
     are used, if they exists. If not, the static default is returned.
     """
     preferences(deviceKey: String): [UserPreference!]!
+    """Return a single preference. If a deviceKey is provided, that device's
+    value will be used. Otherwise, the user's global preference will be used, if
+    one exists. If not, the static default is returned.
+    """
+    preference(name: String!, deviceKey: String): UserPreference!
     me: Boolean!
     notMe: Boolean!
 }

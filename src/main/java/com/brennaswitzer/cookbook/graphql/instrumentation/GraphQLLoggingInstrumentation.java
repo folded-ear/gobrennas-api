@@ -9,18 +9,20 @@ import graphql.execution.instrumentation.SimpleInstrumentationContext;
 import graphql.execution.instrumentation.SimplePerformantInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationExecutionParameters;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Component
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentation {
+
+    private static final Pattern RE_QUERY_WHITESPACE = Pattern.compile("[\n\r\t]");
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -41,9 +43,10 @@ public class GraphQLLoggingInstrumentation extends SimplePerformantInstrumentati
             public void onDispatched() {
                 startMillis = System.currentTimeMillis();
                 if (debugEnabled) {
-                    log.debug("graphql {} query: \"{}\"",
+                    log.debug("graphql {} query: {}",
                               executionId,
-                              StringEscapeUtils.escapeJson(parameters.getQuery().strip()));
+                              RE_QUERY_WHITESPACE.matcher(parameters.getQuery())
+                                      .replaceAll(" "));
                     log.debug("graphql {} variables: {}",
                               executionId,
                               maybeAsJson(parameters.getVariables()));
