@@ -33,6 +33,12 @@ public class AssembleUserPreferences {
         return assemble(user, ensureUserDevice.forRead(user, deviceKey));
     }
 
+    public UserPreference assemble(User user,
+                                   String prefName,
+                                   String deviceKey) {
+        return assemble(user, prefName, ensureUserDevice.forRead(user, deviceKey));
+    }
+
     public Collection<UserPreference> assemble(User user,
                                                UserDevice device) {
         Map<Preference, UserPreference> byPref = user.getPreferences()
@@ -45,6 +51,19 @@ public class AssembleUserPreferences {
                 .stream()
                 .map(p -> byPref.computeIfAbsent(p, factory))
                 .toList();
+    }
+
+    public UserPreference assemble(User user,
+                                   String prefName,
+                                   UserDevice device) {
+        return user.getPreferences()
+                .stream()
+                .filter(p -> Objects.equals(device, p.getDevice()))
+                .filter(up -> prefName.equals(up.getName()))
+                .findFirst()
+                .orElseGet(() -> defaultUserPreference.factory(user, device)
+                        .apply(preferenceRepo.findByName(prefName)
+                                       .orElseThrow(() -> new UnknownPreferenceException(prefName))));
     }
 
 }

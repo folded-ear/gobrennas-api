@@ -173,6 +173,14 @@ interface Ingredient implements Node {
     name: String!
 }
 
+interface IngredientCollection implements Node {
+    id: ID!
+    name: String!
+    directions: String
+    ingredients: [IngredientRef!]!
+    labels: [String!]
+}
+
 enum ChronoUnit {
     MILLIS
     SECONDS
@@ -180,7 +188,7 @@ enum ChronoUnit {
     HOURS
 }
 
-type Recipe implements Node & Owned & Ingredient {
+type Recipe implements Node & Owned & Ingredient & IngredientCollection {
     id: ID!
     owner: User!
     ownedBy: User
@@ -195,7 +203,7 @@ type Recipe implements Node & Owned & Ingredient {
     ingredients(
         """Ingredient(s) to include. Missing/empty means "all".
         """
-        ingredients: [ID!]! = []
+        ingredients: [ID!]
     ): [IngredientRef!]!
     """Sections of the recipe, owned or by reference. Use `sectionOf` if you
     need to differentiate. Sections and ingredients are disjoint.
@@ -232,7 +240,7 @@ type Recipe implements Node & Owned & Ingredient {
     share: ShareInfo!
 }
 
-type Section implements Node {
+type Section implements Node & IngredientCollection {
     id: ID!
     """The recipe this section belongs to, if owned. When a top-level recipe is
     used as a section, this will be null.

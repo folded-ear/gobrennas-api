@@ -54,4 +54,11 @@ public class UserResolver {
         return assembleUserPreferences.assemble(user, deviceKey);
     }
 
+    @SchemaMapping
+    public UserPreference preference(User user,
+                                     @Argument String name,
+                                     @Argument String deviceKey) {
+        return assembleUserPreferences.assemble(user, name, deviceKey);
+    }
+
 }
