@@ -5,6 +5,8 @@ databaseChangeLog:
       file: db/changelog/gobrennas-2024.sql
   - include:
       file: db/changelog/gobrennas-2025.sql
+  - include:
+      file: db/changelog/gobrennas-2026.sql
 
 # skeleton
 #--liquibase formatted sql

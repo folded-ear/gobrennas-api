@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.config;
 
+import com.brennaswitzer.cookbook.services.EnsureUserHasAPlan;
 import com.brennaswitzer.cookbook.services.UnitLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,13 @@ import org.springframework.scheduling.annotation.Async;
 @Slf4j
 public class UpgradeConfig {
 
+    private static final long BYTES_PER_MB = 1_048_576L;
+
     @Autowired(required = false)
     private UnitLoader unitLoader;
+
+    @Autowired(required = false)
+    private EnsureUserHasAPlan ensureUserHasAPlan;
 
     /**
      * After Spring starts, force an immediate GC. Unclear if this will matter,
@@ -41,17 +47,17 @@ public class UpgradeConfig {
         if (max == Long.MAX_VALUE || max == 0x100000000L) {
             log.info("{}: {}MB of {}MB ({}%) used (unbounded)",
                      label,
-                     used / 1048576L,
-                     total / 1048576L,
+                     used / BYTES_PER_MB,
+                     total / BYTES_PER_MB,
                      percent);
 
         } else {
             log.info("{}: {}MB of {}MB ({}%) used ({}MB max)",
                      label,
-                     used / 1048576L,
-                     total / 1048576L,
+                     used / BYTES_PER_MB,
+                     total / BYTES_PER_MB,
                      percent,
-                     max / 1048576L);
+                     max / BYTES_PER_MB);
         }
     }
 
@@ -64,6 +70,13 @@ public class UpgradeConfig {
         } catch (Exception e) {
             log.error("Error loading units", e);
         }
+    }
+
+    @EventListener(ApplicationStartedEvent.class)
+    @Async
+    public void ensureUsersHavePlans() {
+        if (ensureUserHasAPlan == null) return;
+        ensureUserHasAPlan.ensureEveryUserHasAPlan();
     }
 
 }
