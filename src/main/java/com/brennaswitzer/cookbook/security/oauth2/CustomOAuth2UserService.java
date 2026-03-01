@@ -7,6 +7,7 @@ import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.security.oauth2.user.OAuth2UserInfo;
 import com.brennaswitzer.cookbook.security.oauth2.user.OAuth2UserInfoFactory;
+import com.brennaswitzer.cookbook.services.EnsureUserHasAPlan;
 import com.brennaswitzer.cookbook.util.ValueUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -24,6 +25,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EnsureUserHasAPlan ensureUserHasAPlan;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
@@ -70,7 +74,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setName(oAuth2UserInfo.getName());
         user.setEmail(oAuth2UserInfo.getEmail());
         user.setImageUrl(oAuth2UserInfo.getImageUrl());
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        ensureUserHasAPlan.ensurePlan(user);
+        return user;
     }
 
     private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {

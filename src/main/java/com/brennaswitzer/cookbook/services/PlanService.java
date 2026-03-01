@@ -72,6 +72,9 @@ public class PlanService {
     @Autowired
     private DiffService diffService;
 
+    @Autowired
+    private EnsureUserHasAPlan ensureUserHasAPlan;
+
     public Iterable<Plan> getPlans(User owner) {
         return getPlans(owner.getId());
     }
@@ -406,7 +409,10 @@ public class PlanService {
 
     public Plan deletePlan(Long id) {
         val plan = getPlanById(id, AccessLevel.ADMINISTER);
+        // grab this before delete, to avoid JPA state weirdness.
+        User user = plan.getOwner();
         planRepo.delete(plan);
+        ensureUserHasAPlan.ensurePlan(user);
         return plan;
     }
 

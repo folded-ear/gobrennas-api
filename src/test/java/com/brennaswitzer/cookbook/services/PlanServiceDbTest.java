@@ -197,7 +197,11 @@ class PlanServiceDbTest {
         itemRepo.flush();
         entityManager.clear();
 
-        assertEquals(0, itemRepo.count());
+        assertEquals(List.of("My Week"),
+                     itemRepo.findAll()
+                             .stream()
+                             .map(PlanItem::getName)
+                             .toList());
     }
 
     @Test
