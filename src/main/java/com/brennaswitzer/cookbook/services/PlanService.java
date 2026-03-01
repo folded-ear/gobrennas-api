@@ -21,6 +21,7 @@ import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.ValueUtils;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.val;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,19 +50,20 @@ public class PlanService {
     private static final Pattern RE_COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
 
     @Autowired
+    @VisibleForTesting
     protected PlanItemRepository itemRepo;
 
     @Autowired
-    protected PlanRepository planRepo;
+    private PlanRepository planRepo;
 
     @Autowired
-    protected PlanBucketRepository bucketRepo;
+    private PlanBucketRepository bucketRepo;
 
     @Autowired
     private PlannedRecipeHistoryRepository recipeHistoryRepo;
 
     @Autowired
-    protected UserPrincipalAccess principalAccess;
+    private UserPrincipalAccess principalAccess;
 
     @Autowired
     private ItemService itemService;
@@ -270,6 +272,7 @@ public class PlanService {
         Plan plan = new Plan(name);
         plan.setOwner(user);
         plan.setPosition(1 + planRepo.getMaxPosition(user));
+        plan.getColor(); // so it gets initialized
         return planRepo.save(plan);
     }
 
