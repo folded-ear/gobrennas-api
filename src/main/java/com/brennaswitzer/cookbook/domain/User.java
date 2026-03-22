@@ -40,6 +40,12 @@ public class User extends BaseEntity {
     @OrderBy("lastEnsuredAt desc")
     private List<UserDevice> devices;
 
+    @OneToMany(mappedBy = "user")
+    private Collection<Invitation> invitations;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Collection<Friendship> friendships;
+
     public User() {
     }
 
