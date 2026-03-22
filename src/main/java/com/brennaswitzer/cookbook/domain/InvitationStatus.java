@@ -15,10 +15,10 @@ public enum InvitationStatus implements Identified {
      */
     ACCEPTED(100L),
     /**
-     * The invitation was retracted by the sending user, before the invitee
+     * The invitation was withdrawn by the sending user, before the invitee
      * responded to it.
      */
-    RETRACTED(200L),
+    WITHDRAWN(200L),
     /**
      * The invitation was declined by the invitee.
      */

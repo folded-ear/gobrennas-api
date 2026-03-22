@@ -78,7 +78,7 @@ tracked.
 New grants are created via accepting invitations; an admin's intent to issue a grant is expressed as "sending" an
 invitation. Invitations to friends start out associated with the user, and are never "multi-use".
 
-Invitations can be retracted by the sender, if not yet accepted. The recipient can decline an invitation, once
+Invitations can be withdrawn by the sender, if not yet accepted. The recipient can decline an invitation, once
 associated with a user account. A non-user recipient can only see an invitation, not act on it.
 
 BFS doesn't actually _send_ invitations, only prepares them, so the inviting user must handle transmitting the
@@ -126,7 +126,7 @@ Brenna to "be" Nan on BFS any ol' time. This is for the future.
 ## Brenna wants to invite her brothers to see the vacation meal plan.
 
 Brenna creates a "multi-recipient" invitation, bounded at `5` for her vacation mean plan w/ a read grant, and emails a
-link. Once they create user accounts and accept, they can see the plan. Afterward, Brenna retracts the invitation and
+link. Once they create user accounts and accept, they can see the plan. Afterward, Brenna withdraws the invitation and
 its remaining capacity. If the cap is hit due to fiendish behavior of a malicious actor (or typos, etc.), Brenna creates
 another invitation and resends.
 

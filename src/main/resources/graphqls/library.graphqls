@@ -3,7 +3,11 @@ extend type Query {
 }
 
 enum LibrarySearchScope {
+    "Recipes I own."
     MINE
+    "Recipes I own or are owned a friend."
+    FRIENDS
+    "DEPRECATED: use FRIENDS"
     EVERYONE
 }
 
@@ -190,8 +194,8 @@ enum ChronoUnit {
 
 type Recipe implements Node & Owned & Ingredient & IngredientCollection {
     id: ID!
-    owner: User!
-    ownedBy: User
+    owner: Friend!
+    ownedBy: Friend
     mine: Boolean!
     notMine: Boolean!
     name: String!
@@ -282,7 +286,7 @@ enum Rating {
     FIVE_STARS
 }
 
-type PlannedRecipeHistory implements Node {
+type PlannedRecipeHistory implements Node & Owned {
     id: ID!
     """The recipe this history item is for.
     """
@@ -290,7 +294,10 @@ type PlannedRecipeHistory implements Node {
     """The user who owns this history item, which may or may not be the recipe's
     owner.
     """
-    owner: User!
+    owner: Friend!
+    ownedBy: Friend
+    mine: Boolean!
+    notMine: Boolean!
     status: PlanItemStatus!
     plannedAt: DateTime!
     doneAt: DateTime!

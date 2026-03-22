@@ -58,7 +58,7 @@ public class Invitation extends BaseEntity {
     InvitationStatus status = InvitationStatus.SENT;
 
     /**
-     * When the invitation automatically becomes {@link InvitationStatus#RETRACTED}
+     * When the invitation automatically becomes {@link InvitationStatus#WITHDRAWN}
      * if still {@link InvitationStatus#SENT}. Defaults to a week from midnight.
      */
     @Nonnull
