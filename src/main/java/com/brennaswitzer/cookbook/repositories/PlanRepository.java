@@ -2,8 +2,10 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.User;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.jpa.repository.Query;
 
+@Order(50)
 public interface PlanRepository extends BaseEntityRepository<Plan> {
 
     @Query("""
