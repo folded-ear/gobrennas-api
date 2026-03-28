@@ -2,7 +2,10 @@ package com.brennaswitzer.cookbook.domain;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -58,7 +61,7 @@ public class Invitation extends BaseEntity {
     InvitationStatus status = InvitationStatus.SENT;
 
     /**
-     * When the invitation automatically becomes {@link InvitationStatus#WITHDRAWN}
+     * When the invitation automatically becomes {@link InvitationStatus#EXPIRED}
      * if still {@link InvitationStatus#SENT}. Defaults to a week from midnight.
      */
     @Nonnull
@@ -68,16 +71,28 @@ public class Invitation extends BaseEntity {
             .toInstant();
 
     /**
-     * Optional grant to issue a user who accepts the invitation, as well as
+     * Optional grant to issue a user who accepts the invitation, in addition to
      * establishing friendship.
      */
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "entity.className", column = @Column(name = "grant_entity_type")),
+            @AttributeOverride(name = "entity.id", column = @Column(name = "grant_entity_id")),
+            @AttributeOverride(name = "level", column = @Column(name = "grant_level")),
+    })
     @Nullable
     Grant grant;
 
     /**
+     * The user who received this invitation, perhaps via cloning.
+     */
+    @ManyToOne
+    @Nullable
+    User recipient;
+
+    /**
      * The {@link Friendship}s which came from this invitation. Always either
-     * size two or empty.
+     * empty or size two.
      */
     @OneToMany(mappedBy = "invitation", cascade = CascadeType.ALL, orphanRemoval = true)
     Collection<Friendship> friendships;

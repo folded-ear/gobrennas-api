@@ -41,7 +41,10 @@ public class User extends BaseEntity {
     private List<UserDevice> devices;
 
     @OneToMany(mappedBy = "user")
-    private Collection<Invitation> invitations;
+    private Collection<Invitation> sentInvitations;
+
+    @OneToMany(mappedBy = "recipient")
+    private Collection<Invitation> receivedInvitations;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Collection<Friendship> friendships;

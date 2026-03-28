@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.domain;
 
 import jakarta.annotation.Nonnull;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Transient;
@@ -18,10 +19,12 @@ public class EntityRef {
 
     @Setter(lombok.AccessLevel.NONE)
     @Nonnull
-    String entityClassName;
+    @Column(name = "entity_type")
+    String className;
 
     @Nonnull
-    Long entityId;
+    @Column(name = "entity_id")
+    Long id;
 
     @Transient
     @SneakyThrows
@@ -29,19 +32,19 @@ public class EntityRef {
         T entity = this.<T>getEntityClass()
                 .getDeclaredConstructor()
                 .newInstance();
-        entity.setId(entityId);
+        entity.setId(id);
         return entity;
     }
 
     @Transient
     @SneakyThrows
     public <T extends BaseEntity & AccessControlled> T getEntity(EntityManager entityManager) {
-        return entityManager.getReference(getEntityClass(), entityId);
+        return entityManager.getReference(getEntityClass(), id);
     }
 
     public <T extends BaseEntity & AccessControlled> void setEntity(T entity) {
-        entityId = entity.getId();
-        entityClassName = Hibernate.unproxy(entity)
+        id = entity.getId();
+        className = Hibernate.unproxy(entity)
                 .getClass()
                 .getName();
     }
@@ -49,7 +52,7 @@ public class EntityRef {
     @SneakyThrows
     private <T extends BaseEntity & AccessControlled> @Nonnull Class<T> getEntityClass() {
         @SuppressWarnings("unchecked")
-        Class<T> entityClass = (Class<T>) Class.forName(entityClassName);
+        Class<T> entityClass = (Class<T>) Class.forName(className);
         return entityClass;
     }
 

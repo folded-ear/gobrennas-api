@@ -20,9 +20,14 @@ public enum InvitationStatus implements Identified {
      */
     WITHDRAWN(200L),
     /**
+     * The invitation expired before the invitee responded to it. This is lazily
+     * evaluated; {@link Invitation#getExpiresAt()} is the source of truth.
+     */
+    EXPIRED(201L),
+    /**
      * The invitation was declined by the invitee.
      */
-    DECLINED(201L);
+    DECLINED(300L);
 
     private final Long id;
 
