@@ -2,7 +2,7 @@ package com.brennaswitzer.cookbook.domain;
 
 import org.springframework.security.access.AccessDeniedException;
 
-public interface AccessControlled extends Owned {
+public interface AccessControlled extends Named, Owned {
 
     Acl getAcl();
 
@@ -21,7 +21,7 @@ public interface AccessControlled extends Owned {
     }
 
     default void ensurePermitted(User user, AccessLevel level) {
-        if (! isPermitted(user, level)) {
+        if (!isPermitted(user, level)) {
             throw new AccessDeniedException("Unauthorized");
         }
     }

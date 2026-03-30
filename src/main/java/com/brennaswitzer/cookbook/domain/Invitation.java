@@ -11,8 +11,13 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
@@ -24,17 +29,25 @@ import java.util.Collection;
 @Getter
 @Setter
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class Invitation extends BaseEntity {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class Invitation extends BaseEntity implements Owned {
 
     @Embeddable
     @Getter
     @Setter
     @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
+    @EqualsAndHashCode
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class Grant {
 
         @Embedded
         @Nonnull
-        EntityRef entity;
+        EntityRef entityRef;
 
         @Nonnull
         AccessLevel level;
@@ -46,7 +59,7 @@ public class Invitation extends BaseEntity {
      */
     @ManyToOne
     @Nonnull
-    User user;
+    User owner;
 
     /**
      * The secret code allowing a visitor to access to the invitation.
@@ -58,6 +71,7 @@ public class Invitation extends BaseEntity {
      * The status of the invitation.
      */
     @Nonnull
+    @Builder.Default
     InvitationStatus status = InvitationStatus.SENT;
 
     /**
@@ -65,6 +79,7 @@ public class Invitation extends BaseEntity {
      * if still {@link InvitationStatus#SENT}. Defaults to a week from midnight.
      */
     @Nonnull
+    @Builder.Default
     Instant expiresAt = ZonedDateTime.now()
             .truncatedTo(ChronoUnit.DAYS)
             .plusDays(8)
@@ -76,8 +91,8 @@ public class Invitation extends BaseEntity {
      */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "entity.className", column = @Column(name = "grant_entity_type")),
-            @AttributeOverride(name = "entity.id", column = @Column(name = "grant_entity_id")),
+            @AttributeOverride(name = "entityRef.className", column = @Column(name = "grant_entity_type")),
+            @AttributeOverride(name = "entityRef.id", column = @Column(name = "grant_entity_id")),
             @AttributeOverride(name = "level", column = @Column(name = "grant_level")),
     })
     @Nullable
@@ -101,12 +116,14 @@ public class Invitation extends BaseEntity {
      * How many times this invitation may be cloned, while still
      * {@link InvitationStatus#SENT}. Defaults to zero.
      */
+    @Builder.Default
     int cloneLimit = 0;
 
     /**
      * How many times this invitation has been cloned. Only {@link #cloneLimit}
      * clones are permitted, and only while still {@link InvitationStatus#SENT}.
      */
+    @Builder.Default
     int cloneCount = 0;
 
 }

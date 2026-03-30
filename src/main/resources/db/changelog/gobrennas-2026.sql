@@ -16,7 +16,7 @@ CREATE TABLE invitation
     CONSTRAINT pk_invitation
         PRIMARY KEY (id),
 
-    user_id           BIGINT      NOT NULL,
+    owner_id BIGINT NOT NULL,
     secret_code       VARCHAR     NOT NULL,
     status            BIGINT      NOT NULL,
     expires_at        TIMESTAMPTZ NOT NULL,
@@ -27,8 +27,8 @@ CREATE TABLE invitation
     clone_limit       INT         NOT NULL DEFAULT 0,
     clone_count       INT         NOT NULL DEFAULT 0,
 
-    CONSTRAINT fk_invitation_user_id
-        FOREIGN KEY (user_id)
+    CONSTRAINT fk_invitation_owner_id
+        FOREIGN KEY (owner_id)
             REFERENCES users
             ON DELETE CASCADE,
     CONSTRAINT fk_invitation_recipient_id
@@ -41,7 +41,7 @@ CREATE TABLE invitation
         CHECK ( clone_count <= clone_limit )
 );
 CREATE UNIQUE INDEX uk_invitation__eqkey ON invitation (_eqkey);
-CREATE INDEX idx_invitation_user ON invitation (user_id, created_at);
+CREATE INDEX idx_invitation_owner ON invitation (owner_id, created_at);
 CREATE INDEX idx_invitation_recipient ON invitation (recipient_id, created_at)
     WHERE recipient_id IS NOT NULL;
 CREATE INDEX idx_invitation_secret_code ON invitation (secret_code)

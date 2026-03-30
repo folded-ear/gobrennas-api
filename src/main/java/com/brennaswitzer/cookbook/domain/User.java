@@ -20,7 +20,7 @@ import java.util.List;
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "email")
 })
-public class User extends BaseEntity {
+public class User extends BaseEntity implements Named {
 
     private String name;
 
@@ -40,7 +40,7 @@ public class User extends BaseEntity {
     @OrderBy("lastEnsuredAt desc")
     private List<UserDevice> devices;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "owner")
     private Collection<Invitation> sentInvitations;
 
     @OneToMany(mappedBy = "recipient")
