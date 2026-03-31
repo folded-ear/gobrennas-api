@@ -1,4 +1,4 @@
-package com.brennaswitzer.cookbook.repositories;
+package com.brennaswitzer.cookbook.repositories.convert;
 
 import com.brennaswitzer.cookbook.domain.Identified;
 import jakarta.persistence.AttributeConverter;

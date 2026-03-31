@@ -41,8 +41,8 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     grants: [AccessControlEntry!]!
     """The plan's owner
     """
-    owner: User!
-    ownedBy: User
+    owner: Friend!
+    ownedBy: Friend
     mine: Boolean!
     notMine: Boolean!
     notes: String
@@ -121,7 +121,11 @@ type PlannerMutation {
     deleteBucket(planId: ID!, bucketId: ID!): Deletion!
     """Delete multiple buckets from a single plan."""
     deleteBuckets(planId: ID!, bucketIds: [ID!]!): [Deletion!]!
-    """Revokes the grant for a user w/in a plan, if one exists."""
+    """Revokes the grant from a friend w/in a plan, if one exists."""
+    revokeFriendGrant(planId: ID!, friendId: ID!): Plan!
+    "Revokes your own grant w/in a plan, if one exists."
+    revokeMyGrant(planId: ID!): User!
+    "DEPRECATED: use revokeFriendGrant"
     revokeGrant(planId: ID!, userId: ID!): Plan!
     """Deletes an item from a plan. This operation cascades."""
     deleteItem(id: ID!): Deletion!
@@ -139,7 +143,11 @@ type PlannerMutation {
     reorderSubitems(parentId:ID!, itemIds: [ID!]!): PlanItem
     """Set the plan's color (e.g., '#F57F17'), or reset it with a null or empty string."""
     setColor(planId: ID!, color: String): Plan!
-    """Set the access level granted to a user w/in a plan."""
+    """Invite a friend to a plan w/ the given access. This is an ease-of-use
+    wrapper for `profile.createInvitation`.
+    """
+    inviteFriend(planId: ID!, friendId: ID!, accessLevel: AccessLevel!): Plan!
+    """DEPRECATED: use inviteFriend"""
     setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel!): Plan!
     """Sets the status of the given item. This will always return the updated
     item, though it may immediately moved to the trash (in the background)."""

@@ -1,11 +1,11 @@
 interface Owned {
-    """The user who owns this object."""
-    owner: User!
+    """The friend who owns this object."""
+    owner: Friend!
     """
-    Another user who owns this object. Always null if the current user is the
+    Another friend who owns this object. Always null if the current user is the
     owner, always the same as `owner` otherwise.
     """
-    ownedBy: User
+    ownedBy: Friend
     """Is the owner of this object me (the current user)?"""
     mine: Boolean!
     """Is the owner of this object not me (the current user)?"""
@@ -13,8 +13,8 @@ interface Owned {
 }
 
 interface AccessControlled implements Owned {
-    owner: User!
-    ownedBy: User
+    owner: Friend!
+    ownedBy: Friend
     mine: Boolean!
     notMine: Boolean!
     """The object's ACL, which includes its owner and any grants of access.
@@ -24,8 +24,8 @@ interface AccessControlled implements Owned {
 }
 
 type Acl implements Owned {
-    owner: User!
-    ownedBy: User
+    owner: Friend!
+    ownedBy: Friend
     mine: Boolean!
     notMine: Boolean!
     """Users granted access by the owner or an administrator. Conceptually,
@@ -36,8 +36,10 @@ type Acl implements Owned {
 }
 
 type AccessControlEntry {
-    """The user who has been granted access to an AccessControlled object."""
-    user: User!
+    """The friend who has been granted access to an AccessControlled object."""
+    friend: Friend!
+    "DEPRECATED: use friend"
+    user: Friend!
     """The level of access the user has been granted."""
     level: AccessLevel!
 }
@@ -134,9 +136,37 @@ type ScratchUpload {
     curl: String!
 }
 
+input InvitationSearch {
+    status: InvitationStatus = SENT
+    """How many results to return. If not specified, 5 will be returned.
+    """
+    first: NonNegativeInt! = 25
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
+input ReceivedInvitationSearch {
+    status: InvitationStatus = SENT
+    """How many results to return. If not specified, 5 will be returned.
+    """
+    first: NonNegativeInt! = 25
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
+"Access the current user's profile information"
 type ProfileQuery {
+    "My user info."
     me: User!
-    friends: [User!]!
+    "My friends."
+    friends: [Friend!]!
+    friendCount: NonNegativeInt!
+    "Search invitations I have sent."
+    sentInvitations(search: InvitationSearch!): [Invitation!]!
+    "Search invitations I have received."
+    receivedInvitations(search: ReceivedInvitationSearch!): [Invitation!]!
     """Request a pre-signed upload URL to PUT a scratch file to, identified by
     the returned `filename`. Upload URLs are valid for only a short time; they
     should be requested when an upload is needed, not preemptively in case one
@@ -145,9 +175,113 @@ type ProfileQuery {
     scratchFile(contentType: String!, originalFilename: String): ScratchUpload!
 }
 
+type ReceivedInvitation implements Node {
+    id: ID!
+    "Friend this invitation came from."
+    from: Friend!
+    "Status of the invitation."
+    status: ReceivedInvitationStatus!
+    """Grant to receive upon acceptance of the invitation. If an invitation has
+    no grant, it will only create a friendship.
+    """
+    grant: InvitationGrant
+}
+
+enum ReceivedInvitationStatus {
+    SENT
+    ACCEPTED
+    DECLINED
+}
+
+type Invitation implements Node {
+    id: ID!
+    createdAt: DateTime!
+    """Link to send someone so they can respond to the invitation, or empty if
+    responses are no longer allowed.
+    """
+    link: String!
+    """The secret code for the invitation. Can be used to re-group multiple
+    invitations which resulted from the same invitation request.
+    """
+    secretCode: String!
+    """Friend this invitation was sent to. May be null while `SENT` or
+    `WITHDRAWN`, always non-null if `ACCEPTED` or `DECLINED`.
+    """
+    to: Friend
+    status: InvitationStatus!
+    """Grant to issue upon acceptance of the invitation. If an invitation has no
+    grant, it will only create a friendship.
+    """
+    grant: InvitationGrant
+    "Maximum number of responses this invitation accepts, one by default."
+    responseLimit: NonNegativeInt!
+    "Number of responses this invitation has received."
+    responseCount: NonNegativeInt!
+    expiresAt: DateTime!
+}
+
+enum InvitationStatus {
+    SENT
+    ACCEPTED
+    DECLINED
+    WITHDRAWN
+    EXPIRED
+}
+
+type InvitationGrant {
+    nodeId: ID!
+    level: AccessLevel!
+}
+
+type Friend implements Node {
+    id: ID!
+    name: String
+    email: String!
+    imageUrl: String
+}
+
 type ProfileMutation {
     clearPreference(name: String!, deviceKey: String): UserPreference!
     deleteDevice(id: ID!): Deletion!
     renameDevice(id: ID!, name: String!): UserDevice!
     setPreference(name: String!, deviceKey: String, value: String!): UserPreference!
+    """Create a new invitation code to establish friendship between your account
+    and theirs. By default, an invitation only creates friendship and can only
+    be used once (by any user). Pass a request for futher control.
+    """
+    createInvitation(request: InvitationRequest): Invitation!
+    """Withdraw the given invitation code you created, preventing others from
+    accepting it.
+    """
+    withdrawInvitation(id: ID!): Invitation
+    """Accept an invitation you've received, establishing friendship and/or
+    receiving a grant.
+    """
+    acceptInvitation(id: ID!): ReceivedInvitation
+    """Decline an invitation you've received.
+    """
+    declineInvitation(id: ID!): ReceivedInvitation
+    """Break your friendship with another user, revoking all grants either of
+    you were issued by the other.
+    """
+    unfriend(id: ID!): Deletion!
+}
+
+input InvitationRequest {
+    """Optionally, allow multiple recipients accept this invitation, all using
+    the same secret code. Cannot be specified with `friendId`.
+    """
+    responseLimit: NonNegativeInt!
+    """Optionally, tie this invitation to a specific friend, rather than letting
+    anyone accept it. Cannot be specified with `responseLimit`.
+    """
+    friendId: ID
+    """One or more grants to issue to each friend who accepts this invitation.
+    """
+    grant: [GrantRequest]
+}
+
+input GrantRequest {
+    nodeId: ID!
+    level: AccessLevel!
 }

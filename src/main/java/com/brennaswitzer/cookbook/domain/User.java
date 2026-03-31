@@ -20,7 +20,7 @@ import java.util.List;
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "email")
 })
-public class User extends BaseEntity {
+public class User extends BaseEntity implements Named {
 
     private String name;
 
@@ -39,6 +39,15 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("lastEnsuredAt desc")
     private List<UserDevice> devices;
+
+    @OneToMany(mappedBy = "owner")
+    private Collection<Invitation> sentInvitations;
+
+    @OneToMany(mappedBy = "recipient")
+    private Collection<Invitation> receivedInvitations;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Collection<Friendship> friendships;
 
     public User() {
     }

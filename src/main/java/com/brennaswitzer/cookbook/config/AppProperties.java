@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.config;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,6 +49,7 @@ public class AppProperties {
          * first.
          */
         @Valid
+        @NotEmpty
         private List<Secret> tokenSecrets = List.of();
 
         private long tokenExpirationMsec;

@@ -31,7 +31,7 @@ type FavoriteMutation {
 
 type Favorite implements Node {
     id: ID!
-    owner: User!
+    owner: Friend!
     """The type of object that is a favorite.
     """
     objectType: String!
