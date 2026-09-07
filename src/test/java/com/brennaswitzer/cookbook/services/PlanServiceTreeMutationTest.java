@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -300,6 +301,32 @@ public class PlanServiceTreeMutationTest {
         checkKids(b, b3);
         checkKids(d, d1, d2, d3);
         checkKids(d2, b1, b2);
+    }
+
+    @Test
+    public void refuseToMoveBetweenPlans() {
+        PlanItem one = new Plan("plan one"),
+                a = new PlanItem("a").of(one);
+        PlanItem two = new Plan("plan two"),
+                b = new PlanItem("b").of(two);
+        repo.save(one);
+        repo.save(two);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                mutate(a, null, b));
+    }
+
+    @Test
+    public void refuseToResetSubitemsBetweenPlans() {
+        PlanItem one = new Plan("plan one"),
+                a = new PlanItem("a").of(one);
+        PlanItem two = new Plan("plan two"),
+                b = new PlanItem("b").of(two);
+        repo.save(one);
+        repo.save(two);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                service.resetSubitems(a.getId(), List.of(b.getId())));
     }
 
     @Test
