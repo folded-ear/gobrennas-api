@@ -459,6 +459,8 @@ public class PlanService {
     public Plan revokeGrantFromPlan(Long planId, Long userId) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         plan.getAcl().revokeGrant(userRepo.getReferenceById(userId));
+        itemRepo.findAllById(itemRepo.getIdsAssignedTo(planId, userId))
+                .forEach(it -> it.setAssignee(null));
         return plan;
     }
 

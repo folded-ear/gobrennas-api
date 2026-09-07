@@ -222,6 +222,34 @@ class PlanServiceDbTest {
     }
 
     @Test
+    public void revokeGrantClearsAssignments() {
+        Plan groceries = service.createPlan("groceries", alice);
+        PlanItem oj = itemRepo.save(new PlanItem("OJ").of(groceries));
+        PlanItem pizza = itemRepo.save(new PlanItem("pizza").of(groceries));
+        PlanItem crust = itemRepo.save(new PlanItem("crust").of(pizza));
+        PlanItem milk = itemRepo.save(new PlanItem("milk").of(groceries));
+        service.setGrantOnPlan(groceries.getId(), bob.getId(), AccessLevel.VIEW);
+        service.setAssignee(oj.getId(), bob.getId());
+        service.setAssignee(pizza.getId(), bob.getId());
+        service.setAssignee(crust.getId(), bob.getId());
+        service.setAssignee(milk.getId(), alice.getId());
+        // pizza is trashed; crust is a child of a trashed item, and so is in
+        // neither the plan's tree nor its trash bin.
+        service.deleteItem(pizza.getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        service.revokeGrantFromPlan(groceries.getId(), bob.getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertNull(service.getPlanItemById(oj.getId()).getAssignee());
+        assertNull(service.getPlanItemById(pizza.getId()).getAssignee());
+        assertNull(service.getPlanItemById(crust.getId()).getAssignee());
+        assertEquals(alice, service.getPlanItemById(milk.getId()).getAssignee());
+    }
+
+    @Test
     public void renameItem() {
         Plan plan = planRepo.save(new Plan(alice, "root"));
         PlanItem bill = itemRepo.save(new PlanItem("bill").of(plan));
