@@ -352,6 +352,21 @@ public class PlanService {
         return item;
     }
 
+    public PlanItem setAssignee(Long id, Long userId) {
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        if (userId == null) {
+            item.setAssignee(null);
+            return item;
+        }
+        User assignee = userRepo.getReferenceById(userId);
+        if (!item.getPlan().isPermitted(assignee, AccessLevel.VIEW)) {
+            throw new IllegalArgumentException(
+                    "Cannot assign an item to a user without access to its plan.");
+        }
+        item.setAssignee(assignee);
+        return item;
+    }
+
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
         return setItemStatus(id, status, null);
     }
