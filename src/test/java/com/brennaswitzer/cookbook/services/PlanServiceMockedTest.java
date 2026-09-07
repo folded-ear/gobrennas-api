@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.domain.PlanItem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,17 @@ public class PlanServiceMockedTest {
     @InjectMocks
     @Spy
     private PlanService service;
+
+    @Test
+    void setAssigneeRequiresChangeAccess() {
+        var item = mock(PlanItem.class);
+        doReturn(item).when(service).getPlanItemById(any(), any());
+
+        service.setAssignee(123L, null);
+
+        verify(service).getPlanItemById(123L, AccessLevel.CHANGE);
+        verify(item).setAssignee(null);
+    }
 
     @Test
     void setColor() {

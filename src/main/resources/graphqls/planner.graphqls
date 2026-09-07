@@ -69,6 +69,7 @@ type PlanItem implements Node & CorePlanItem {
     children: [PlanItem!]!
     descendantCount: NonNegativeInt!
     descendants: [PlanItem!]!
+    assignee: User
     # extensions
     """This item's parent; follow enough and you'll always get to the plan.
     """
@@ -82,7 +83,6 @@ type PlanItem implements Node & CorePlanItem {
     components: [PlanItem!]!
     bucket: PlanBucket
     status: PlanItemStatus!
-    assignee: User
 }
 
 type PlanBucket {
