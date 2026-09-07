@@ -136,6 +136,11 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
 
     @Getter
     @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User assignee;
+
+    @Getter
+    @Setter
     @Column(name = "mod_count")
     private int modCount;
 

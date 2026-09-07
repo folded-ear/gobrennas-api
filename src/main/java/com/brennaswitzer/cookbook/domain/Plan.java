@@ -76,6 +76,16 @@ public class Plan extends PlanItem implements AccessControlled {
         return this;
     }
 
+    @Override
+    public User getAssignee() {
+        return getOwner();
+    }
+
+    @Override
+    public void setAssignee(User assignee) {
+        throw new UnsupportedOperationException("A plan's assignee is its owner");
+    }
+
     public Set<PlanBucket> getBuckets() {
         if (buckets == null) {
             buckets = new HashSet<>();

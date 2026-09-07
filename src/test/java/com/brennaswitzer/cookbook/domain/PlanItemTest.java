@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import static com.brennaswitzer.cookbook.util.PlanTestUtils.printTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,6 +18,19 @@ public class PlanItemTest {
                 first.getPosition() < second.getPosition(),
                 first.getName() + " (" + first.getPosition() + ") is before " + second.getName() + " (" + second.getPosition() + ")"
         );
+    }
+
+    @Test
+    public void assignee() {
+        PlanItem oj = new PlanItem("OJ");
+        assertNull(oj.getAssignee());
+
+        User alice = new User();
+        oj.setAssignee(alice);
+        assertSame(alice, oj.getAssignee());
+
+        oj.setAssignee(null);
+        assertNull(oj.getAssignee());
     }
 
     @Test
