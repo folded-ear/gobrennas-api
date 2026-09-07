@@ -152,6 +152,7 @@ public class PlanService {
         PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
         for (Long id : ids) {
             PlanItem t = getPlanItemById(id, AccessLevel.CHANGE);
+            ensureSamePlan(t, parent);
             parent.addChildAfter(t, after);
             after = t;
         }
@@ -163,10 +164,18 @@ public class PlanService {
         PlanItem prev = null;
         for (Long sid : subitemIds) {
             PlanItem curr = getPlanItemById(sid);
+            ensureSamePlan(curr, item);
             item.addChildAfter(curr, prev);
             prev = curr;
         }
         return item;
+    }
+
+    private void ensureSamePlan(PlanItem item, PlanItem parent) {
+        if (!item.getPlan().equals(parent.getPlan())) {
+            throw new IllegalArgumentException(
+                    "Cannot move an item to a parent on a different plan.");
+        }
     }
 
     private void sendToPlan(AggregateIngredient r, PlanItem aggItem, Double scale) {
@@ -352,6 +361,21 @@ public class PlanService {
         return item;
     }
 
+    public PlanItem setAssignee(Long id, Long userId) {
+        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        if (userId == null) {
+            item.setAssignee(null);
+            return item;
+        }
+        User assignee = userRepo.getReferenceById(userId);
+        if (!item.getPlan().isPermitted(assignee, AccessLevel.VIEW)) {
+            throw new IllegalArgumentException(
+                    "Cannot assign an item to a user without access to its plan.");
+        }
+        item.setAssignee(assignee);
+        return item;
+    }
+
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
         return setItemStatus(id, status, null);
     }
@@ -435,6 +459,8 @@ public class PlanService {
     public Plan revokeGrantFromPlan(Long planId, Long userId) {
         Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
         plan.getAcl().revokeGrant(userRepo.getReferenceById(userId));
+        itemRepo.findAllById(itemRepo.getIdsAssignedTo(planId, userId))
+                .forEach(it -> it.setAssignee(null));
         return plan;
     }
 

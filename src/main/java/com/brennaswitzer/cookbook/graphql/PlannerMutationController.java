@@ -142,6 +142,13 @@ public class PlannerMutationController {
     }
 
     @SchemaMapping
+    PlanItem setAssignee(PlannerMutation planMut,
+                         @Argument Long id,
+                         @Argument Long userId) {
+        return planService.setAssignee(id, userId);
+    }
+
+    @SchemaMapping
     Plan setColor(PlannerMutation planMut,
                   @Argument Long planId,
                   @Argument String color) {

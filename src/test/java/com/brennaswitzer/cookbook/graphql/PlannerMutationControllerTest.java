@@ -47,6 +47,19 @@ class PlannerMutationControllerTest {
     }
 
     @Test
+    void setAssignee() {
+        long itemId = 123L;
+        long userId = 456L;
+        PlanItem mock = mock(PlanItem.class);
+        when(planService.setAssignee(itemId, userId))
+                .thenReturn(mock);
+
+        PlanItem item = mutation.setAssignee(null, itemId, userId);
+
+        assertSame(mock, item);
+    }
+
+    @Test
     void createBucket() {
         long planId = 123L;
         String name = "bucket";

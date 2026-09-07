@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithAliceBobEve
@@ -135,6 +136,65 @@ class PlanServiceDbTest {
     }
 
     @Test
+    public void setAssignee() {
+        Plan groceries = service.createPlan("groceries", alice);
+        PlanItem oj = itemRepo.save(new PlanItem("OJ").of(groceries));
+        itemRepo.flush();
+        entityManager.clear();
+
+        // Bob has no access, so he can't be assigned
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.setAssignee(oj.getId(), bob.getId()));
+
+        service.setGrantOnPlan(groceries.getId(), bob.getId(), AccessLevel.VIEW);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(bob, service.setAssignee(oj.getId(), bob.getId())
+                .getAssignee());
+        entityManager.flush();
+        entityManager.clear();
+        assertEquals(bob, service.getPlanItemById(oj.getId()).getAssignee());
+
+        // the owner is always assignable
+        assertEquals(alice, service.setAssignee(oj.getId(), alice.getId())
+                .getAssignee());
+
+        // a null user clears the explicit assignment
+        assertNull(service.setAssignee(oj.getId(), null)
+                           .getAssignee());
+        entityManager.flush();
+        entityManager.clear();
+        assertNull(service.getPlanItemById(oj.getId()).getAssignee());
+    }
+
+    @Test
+    public void setAssigneeRejectsPlans() {
+        Plan groceries = service.createPlan("groceries", alice);
+        itemRepo.flush();
+        entityManager.clear();
+
+        assertThrows(UnsupportedOperationException.class,
+                     () -> service.setAssignee(groceries.getId(), alice.getId()));
+    }
+
+    @Test
+    public void duplicatePlanDropsAssignees() {
+        Plan groceries = service.createPlan("groceries", alice);
+        PlanItem oj = itemRepo.save(new PlanItem("OJ").of(groceries));
+        service.setAssignee(oj.getId(), alice.getId());
+        itemRepo.flush();
+        entityManager.clear();
+
+        Plan dupe = service.duplicatePlan("Dupe", groceries.getId());
+
+        assertEquals(1, dupe.getChildCount());
+        assertNull(dupe.getOrderedChildView()
+                           .get(0)
+                           .getAssignee());
+    }
+
+    @Test
     public void grants() {
         Plan groceries = service.createPlan("groceries", alice);
         itemRepo.flush();
@@ -159,6 +219,34 @@ class PlanServiceDbTest {
         groceries = service.getPlanById(groceries.getId());
 
         assertNull(groceries.getAcl().getGrant(bob));
+    }
+
+    @Test
+    public void revokeGrantClearsAssignments() {
+        Plan groceries = service.createPlan("groceries", alice);
+        PlanItem oj = itemRepo.save(new PlanItem("OJ").of(groceries));
+        PlanItem pizza = itemRepo.save(new PlanItem("pizza").of(groceries));
+        PlanItem crust = itemRepo.save(new PlanItem("crust").of(pizza));
+        PlanItem milk = itemRepo.save(new PlanItem("milk").of(groceries));
+        service.setGrantOnPlan(groceries.getId(), bob.getId(), AccessLevel.VIEW);
+        service.setAssignee(oj.getId(), bob.getId());
+        service.setAssignee(pizza.getId(), bob.getId());
+        service.setAssignee(crust.getId(), bob.getId());
+        service.setAssignee(milk.getId(), alice.getId());
+        // pizza is trashed; crust is a child of a trashed item, and so is in
+        // neither the plan's tree nor its trash bin.
+        service.deleteItem(pizza.getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        service.revokeGrantFromPlan(groceries.getId(), bob.getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertNull(service.getPlanItemById(oj.getId()).getAssignee());
+        assertNull(service.getPlanItemById(pizza.getId()).getAssignee());
+        assertNull(service.getPlanItemById(crust.getId()).getAssignee());
+        assertEquals(alice, service.getPlanItemById(milk.getId()).getAssignee());
     }
 
     @Test

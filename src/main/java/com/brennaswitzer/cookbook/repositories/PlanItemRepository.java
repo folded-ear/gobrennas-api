@@ -37,4 +37,23 @@ public interface PlanItemRepository extends BaseEntityRepository<PlanItem> {
                    """,
             nativeQuery = true)
     List<Long> getUpdatedSince(Long rootId, Instant cutoff);
+
+    @Query(value = """
+                     WITH RECURSIVE items AS (SELECT id, assignee_id
+                                                FROM plan_item
+                                               WHERE id = :planId
+                                               UNION
+                                              SELECT plan_item.id
+                                                   , plan_item.assignee_id
+                                                FROM plan_item
+                                                   , items
+                                               WHERE plan_item.parent_id = items.id
+                                                  OR plan_item.aggregate_id = items.id
+                                                  OR plan_item.trash_bin_id = items.id)
+                   SELECT id
+                     FROM items
+                    WHERE assignee_id = :userId
+                   """,
+            nativeQuery = true)
+    List<Long> getIdsAssignedTo(Long planId, Long userId);
 }
