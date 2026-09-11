@@ -161,7 +161,12 @@ type PlannerMutation {
 }
 
 input MutatePlanTree {
+    """IDs of plan items to move."""
     ids: [ID!]!
+    """ID of the item to move under (if not already under)."""
     parentId: ID!
+    """Optional ID to move the plan items after w/in the parent. If null, they
+    will be placed first (i.e., after nothing).
+    """
     afterId: ID
 }
