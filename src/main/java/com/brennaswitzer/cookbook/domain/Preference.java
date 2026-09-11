@@ -13,6 +13,7 @@ public class Preference extends BaseEntity implements Named {
 
     public static final String PREF_ACTIVE_PLAN = "activePlan";
     public static final String PREF_ACTIVE_SHOPPING_PLANS = "activeShoppingPlans";
+    public static final String PREF_PLANNER_PLANS = "plannerPlans";
 
     @NotNull
     private String name;

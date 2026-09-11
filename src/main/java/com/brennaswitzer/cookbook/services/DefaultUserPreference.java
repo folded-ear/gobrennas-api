@@ -14,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -68,11 +70,15 @@ public class DefaultUserPreference {
                         .map(UserPreference::getValue)
                         .orElseGet(() -> getDefaultPlanId(user));
                 if (id == null) yield null;
-                try {
-                    yield objectMapper.writeValueAsString(Set.of(id));
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
+                yield toJson(Set.of(id));
+            }
+            case Preference.PREF_PLANNER_PLANS -> {
+                var plans = planRepo.findAccessiblePlans(user.getId());
+                var ids = StreamSupport.stream(plans.spliterator(), false)
+                        .map(p -> p.getId().toString())
+                        .toList();
+                if (ids.isEmpty()) yield null;
+                yield toJson(ids);
             }
             default -> preference.getDefaultValue();
         });
@@ -99,6 +105,14 @@ public class DefaultUserPreference {
                 .iterator();
         if (plans.hasNext()) return plans.next().getId().toString();
         return null;
+    }
+
+    private String toJson(Collection<String> ids) {
+        try {
+            return objectMapper.writeValueAsString(ids);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

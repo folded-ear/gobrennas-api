@@ -16,3 +16,8 @@ ALTER TABLE plan_item
             WHEN 'plan'::text THEN assignee_id IS NULL
             ELSE TRUE
         END);
+
+--changeset barneyb:add-planner-plans-preference
+INSERT INTO preference
+    (name, type, default_value_str)
+VALUES ('plannerPlans', 5, NULL);
