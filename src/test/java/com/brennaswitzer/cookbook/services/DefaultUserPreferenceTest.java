@@ -165,4 +165,42 @@ class DefaultUserPreferenceTest {
         verify(planRepo).findAccessiblePlans(456L);
     }
 
+    @Test
+    void build_plannerPlans_accessible() throws JsonProcessingException {
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(456L);
+        Preference preference = mock(Preference.class);
+        when(preference.getName()).thenReturn(Preference.PREF_PLANNER_PLANS);
+        Plan mine = mock(Plan.class);
+        when(mine.getId()).thenReturn(123L);
+        Plan friends = mock(Plan.class);
+        when(friends.getId()).thenReturn(789L);
+        when(planRepo.findAccessiblePlans(456L))
+                .thenReturn(List.of(mine, friends));
+        when(objectMapper.writeValueAsString(List.of("123", "789")))
+                .thenReturn("json");
+
+        var pref = defPref.build(user,
+                                 preference,
+                                 (UserDevice) null);
+
+        assertEquals("json", pref.getValue());
+    }
+
+    @Test
+    void build_plannerPlans_none() {
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(456L);
+        Preference preference = mock(Preference.class);
+        when(preference.getName()).thenReturn(Preference.PREF_PLANNER_PLANS);
+        when(planRepo.findAccessiblePlans(456L))
+                .thenReturn(List.of());
+
+        var pref = defPref.build(user,
+                                 preference,
+                                 (UserDevice) null);
+
+        assertNull(pref.getValue());
+    }
+
 }
