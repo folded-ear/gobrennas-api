@@ -111,6 +111,14 @@ public class PlannerMutationController {
     }
 
     @SchemaMapping
+    Plan moveBucket(PlannerMutation planMut,
+                    @Argument Long planId,
+                    @Argument Long bucketId,
+                    @Argument Long afterId) {
+        return planService.moveBucket(planId, bucketId, afterId);
+    }
+
+    @SchemaMapping
     PlanItem mutateTree(PlannerMutation planMut,
                         @Argument MutatePlanTree spec) {
         return planService.mutateTree(spec.getIds(),

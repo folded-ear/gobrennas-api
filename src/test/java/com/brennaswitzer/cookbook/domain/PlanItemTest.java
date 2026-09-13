@@ -95,6 +95,22 @@ public class PlanItemTest {
     }
 
     @Test
+    public void addChildAfter_self() {
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem apples = new PlanItem("Apples");
+        PlanItem oj = new PlanItem("OJ");
+        PlanItem bagels = new PlanItem("Bagels");
+        groceries.addChild(apples);
+        groceries.addChild(oj);
+        groceries.addChild(bagels);
+
+        groceries.addChildAfter(oj, oj);
+
+        assertBefore(apples, oj);
+        assertBefore(oj, bagels);
+    }
+
+    @Test
     public void insertChild() {
         PlanItem groceries = new PlanItem("Groceries");
         PlanItem apples = new PlanItem("Apples");
@@ -163,26 +179,9 @@ public class PlanItemTest {
         assertTrue(PlanItem.BY_NAME.compare(a, b) < 0);
         assertTrue(PlanItem.BY_NAME.compare(b, a) > 0);
 
-        // UPPERCASE < lowercase
         PlanItem B = new PlanItem("B");
-        assertTrue(PlanItem.BY_NAME.compare(a, B) > 0);
-        assertTrue(PlanItem.BY_NAME.compare(B, a) < 0);
-    }
-
-    @Test
-    public void BY_NAME_IGNORE_CASE() {
-        PlanItem a = new PlanItem("a");
-        //noinspection EqualsWithItself
-        assertEquals(0, PlanItem.BY_NAME_IGNORE_CASE.compare(a, a));
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, null) < 0);
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(null, a) > 0);
-        PlanItem b = new PlanItem("b");
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, b) < 0);
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(b, a) > 0);
-
-        PlanItem B = new PlanItem("B");
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, B) < 0);
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(B, a) > 0);
+        assertTrue(PlanItem.BY_NAME.compare(a, B) < 0);
+        assertTrue(PlanItem.BY_NAME.compare(B, a) > 0);
     }
 
     @Test

@@ -13,6 +13,7 @@ import org.hibernate.annotations.BatchSize;
 import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -91,6 +92,26 @@ public class Plan extends PlanItem implements AccessControlled {
             buckets = new HashSet<>();
         }
         return buckets;
+    }
+
+    /**
+     * I move the bucket to directly after the other bucket, or to first if
+     * the other bucket is null.
+     */
+    public void moveBucket(PlanBucket bucket, PlanBucket after) {
+        if (!getBuckets().contains(bucket)) {
+            throw new IllegalArgumentException("The bucket isn't part of this plan.");
+        }
+        if (after != null && !getBuckets().contains(after)) {
+            throw new IllegalArgumentException("The 'after' bucket isn't part of this plan.");
+        }
+        if (bucket.equals(after)) return;
+        List<PlanBucket> ordered = getBuckets().stream()
+                .sorted(PlanBucket.BY_POSITION)
+                .toList();
+        int position = after == null ? 0 : after.getPosition() + 1;
+        Positioned.insertAt(ordered, bucket, position);
+        markDirty();
     }
 
     public int getBucketCount() {

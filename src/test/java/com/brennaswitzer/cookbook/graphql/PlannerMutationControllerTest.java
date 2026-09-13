@@ -166,6 +166,20 @@ class PlannerMutationControllerTest {
     }
 
     @Test
+    void moveBucket() {
+        long planId = 123L;
+        long bucketId = 456L;
+        long afterId = 789L;
+        Plan plan = mock(Plan.class);
+        when(planService.moveBucket(planId, bucketId, afterId))
+                .thenReturn(plan);
+
+        Plan result = mutation.moveBucket(null, planId, bucketId, afterId);
+
+        assertSame(plan, result);
+    }
+
+    @Test
     void mutateTree() {
         List<Long> itemIds = Arrays.asList(456L, 789L);
         long parentId = 123L;

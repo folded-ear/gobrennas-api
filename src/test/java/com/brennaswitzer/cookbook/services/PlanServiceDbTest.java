@@ -2,10 +2,12 @@ package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -133,6 +136,92 @@ class PlanServiceDbTest {
         // sort of a cheesy assertion, but c'est la vie
         assertEquals(renderTree("Items", groceries.getOrderedChildView()),
                      renderTree("Items", dupe.getOrderedChildView()));
+    }
+
+    private static List<String> bucketNamesByPosition(Plan plan) {
+        List<PlanBucket> buckets = plan.getBuckets()
+                .stream()
+                .sorted(Comparator.comparingInt(PlanBucket::getPosition))
+                .toList();
+        for (int i = 1; i < buckets.size(); i++) {
+            assertTrue(buckets.get(i - 1).getPosition() < buckets.get(i).getPosition());
+        }
+        return buckets.stream()
+                .map(PlanBucket::getName)
+                .toList();
+    }
+
+    private static List<UnsavedBucket> unsavedBuckets(List<String> names) {
+        return names.stream()
+                .map(n -> {
+                    var b = new UnsavedBucket();
+                    b.setName(n);
+                    return b;
+                })
+                .toList();
+    }
+
+    @Test
+    void createBucketsInOrder() {
+        Plan groceries = service.createPlan("groceries", alice);
+        List<String> names = List.of("f", "c", "a", "e", "b", "d");
+
+        service.createBuckets(groceries.getId(), unsavedBuckets(names));
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(names,
+                     bucketNamesByPosition(service.getPlanById(groceries.getId())));
+    }
+
+    @Test
+    void duplicatePlanKeepsBucketOrder() {
+        Plan groceries = service.createPlan("groceries", alice);
+        List<String> names = List.of("f", "c", "a", "e", "b", "d");
+        service.createBuckets(groceries.getId(), unsavedBuckets(names));
+        entityManager.flush();
+        entityManager.clear();
+
+        Plan dupe = service.duplicatePlan("Dupe", groceries.getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(names,
+                     bucketNamesByPosition(service.getPlanById(dupe.getId())));
+    }
+
+    @Test
+    void moveBucket() {
+        Plan groceries = service.createPlan("groceries", alice);
+        List<PlanBucket> buckets = service.createBuckets(
+                groceries.getId(),
+                unsavedBuckets(List.of("a", "b", "c")));
+        entityManager.flush();
+        entityManager.clear();
+
+        service.moveBucket(groceries.getId(),
+                           buckets.get(0).getId(),
+                           buckets.get(2).getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(List.of("b", "c", "a"),
+                     bucketNamesByPosition(service.getPlanById(groceries.getId())));
+    }
+
+    @Test
+    void moveBucketRejectsForeignBuckets() {
+        Plan groceries = service.createPlan("groceries", alice);
+        Plan other = service.createPlan("other", alice);
+        PlanBucket a = service.createBucket(groceries.getId(), "a", null);
+        PlanBucket x = service.createBucket(other.getId(), "x", null);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.moveBucket(groceries.getId(), x.getId(), null));
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.moveBucket(groceries.getId(), a.getId(), x.getId()));
     }
 
     @Test
