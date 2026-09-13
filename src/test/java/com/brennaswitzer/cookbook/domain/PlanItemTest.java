@@ -95,6 +95,22 @@ public class PlanItemTest {
     }
 
     @Test
+    public void addChildAfter_self() {
+        PlanItem groceries = new PlanItem("Groceries");
+        PlanItem apples = new PlanItem("Apples");
+        PlanItem oj = new PlanItem("OJ");
+        PlanItem bagels = new PlanItem("Bagels");
+        groceries.addChild(apples);
+        groceries.addChild(oj);
+        groceries.addChild(bagels);
+
+        groceries.addChildAfter(oj, oj);
+
+        assertBefore(apples, oj);
+        assertBefore(oj, bagels);
+    }
+
+    @Test
     public void insertChild() {
         PlanItem groceries = new PlanItem("Groceries");
         PlanItem apples = new PlanItem("Apples");

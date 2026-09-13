@@ -326,6 +326,7 @@ public class PlanItem extends BaseEntity implements Named, Positioned, MutableIt
         if (after != null && !this.equals(after.getParent())) {
             throw new IllegalArgumentException("The 'after' item isn't a child of this; that makes no sense.");
         }
+        if (child.equals(after)) return;
         if (child.getParent() != null) {
             child.getParent().removeChild(child);
         }
