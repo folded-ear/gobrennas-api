@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -43,7 +42,7 @@ import static jakarta.persistence.CascadeType.REFRESH;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @DiscriminatorValue("item")
-public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlanItem {
+public class PlanItem extends BaseEntity implements Named, Positioned, MutableItem, CorePlanItem {
 
     public static final Comparator<PlanItem> BY_ID = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -179,26 +178,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
     }
 
     public void setChildPosition(PlanItem child, int position) {
-        AtomicInteger seq = new AtomicInteger();
-        boolean pending = true;
-        for (PlanItem t : getOrderedChildView()) {
-            if (t.equals(child)) continue;
-            int min = seq.getAndIncrement();
-            if (pending && min >= position) {
-                pending = false;
-                child.setPosition(position);
-                min = seq.getAndIncrement();
-            }
-            int curr = t.getPosition();
-            if (curr < min) {
-                t.setPosition(min);
-            } else if (curr > min) {
-                seq.set(curr + 1);
-            }
-        }
-        if (pending) {
-            child.setPosition(seq.get());
-        }
+        Positioned.insertAt(getOrderedChildView(), child, position);
     }
 
     public boolean isChild() {
@@ -253,10 +233,7 @@ public class PlanItem extends BaseEntity implements Named, MutableItem, CorePlan
                 parent.children = new HashSet<>();
             }
             if (parent.children.add(this)) {
-                setPosition(1 + parent.children
-                        .stream()
-                        .map(PlanItem::getPosition)
-                        .reduce(0, Integer::max));
+                setPosition(Positioned.nextPosition(parent.children));
             }
             parent.markDirty();
         }
