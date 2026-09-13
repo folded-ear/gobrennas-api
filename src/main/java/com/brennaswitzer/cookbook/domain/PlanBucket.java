@@ -29,6 +29,16 @@ public class PlanBucket extends BaseEntity implements Named, Positioned {
     public static final Comparator<PlanBucket> BY_POSITION =
             Comparator.comparingInt(PlanBucket::getPosition);
 
+    public static final Comparator<PlanBucket> BY_DATE =
+            Comparator.comparing(PlanBucket::getDate,
+                                 Comparator.nullsFirst(Comparator.naturalOrder()))
+                    .thenComparing(BY_POSITION);
+
+    public static final Comparator<PlanBucket> BY_NAME =
+            Comparator.comparing((PlanBucket b) -> b.isNamed() ? b.getName() : null,
+                                 Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER))
+                    .thenComparing(BY_POSITION);
+
     /**
      * Annotated {@code @NotNull} as it's never <em>valid</em> for a bucket's
      * plan to be {@code null}, even though the field may briefly be {@code
