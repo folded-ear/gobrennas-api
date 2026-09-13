@@ -53,12 +53,6 @@ public class PlanItem extends BaseEntity implements Named, Positioned, MutableIt
     public static final Comparator<PlanItem> BY_NAME = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
         if (b == null) return -1;
-        return a.getName().compareTo(b.getName());
-    };
-
-    public static final Comparator<PlanItem> BY_NAME_IGNORE_CASE = (a, b) -> {
-        if (a == null) return b == null ? 0 : 1;
-        if (b == null) return -1;
         return a.getName().compareToIgnoreCase(b.getName());
     };
 

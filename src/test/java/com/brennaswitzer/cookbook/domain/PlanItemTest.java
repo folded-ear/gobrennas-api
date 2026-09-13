@@ -163,26 +163,9 @@ public class PlanItemTest {
         assertTrue(PlanItem.BY_NAME.compare(a, b) < 0);
         assertTrue(PlanItem.BY_NAME.compare(b, a) > 0);
 
-        // UPPERCASE < lowercase
         PlanItem B = new PlanItem("B");
-        assertTrue(PlanItem.BY_NAME.compare(a, B) > 0);
-        assertTrue(PlanItem.BY_NAME.compare(B, a) < 0);
-    }
-
-    @Test
-    public void BY_NAME_IGNORE_CASE() {
-        PlanItem a = new PlanItem("a");
-        //noinspection EqualsWithItself
-        assertEquals(0, PlanItem.BY_NAME_IGNORE_CASE.compare(a, a));
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, null) < 0);
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(null, a) > 0);
-        PlanItem b = new PlanItem("b");
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, b) < 0);
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(b, a) > 0);
-
-        PlanItem B = new PlanItem("B");
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(a, B) < 0);
-        assertTrue(PlanItem.BY_NAME_IGNORE_CASE.compare(B, a) > 0);
+        assertTrue(PlanItem.BY_NAME.compare(a, B) < 0);
+        assertTrue(PlanItem.BY_NAME.compare(B, a) > 0);
     }
 
     @Test
