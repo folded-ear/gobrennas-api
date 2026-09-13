@@ -16,6 +16,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Comparator;
 
 @Setter
 @Getter
@@ -23,7 +24,10 @@ import java.util.Collection;
 @Table(name = "plan_bucket", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "plan_id", "name" })
 })
-public class PlanBucket extends BaseEntity implements Named {
+public class PlanBucket extends BaseEntity implements Named, Positioned {
+
+    public static final Comparator<PlanBucket> BY_POSITION =
+            Comparator.comparingInt(PlanBucket::getPosition);
 
     /**
      * Annotated {@code @NotNull} as it's never <em>valid</em> for a bucket's
@@ -39,6 +43,9 @@ public class PlanBucket extends BaseEntity implements Named {
     private String name;
 
     private LocalDate date;
+
+    @NotNull
+    private int position;
 
     @OneToMany(mappedBy = "bucket")
     private Collection<PlanItem> items;
@@ -82,6 +89,7 @@ public class PlanBucket extends BaseEntity implements Named {
         }
         this.plan = plan;
         if (this.plan != null) {
+            setPosition(Positioned.nextPosition(this.plan.getBuckets()));
             this.plan.getBuckets().add(this);
             this.plan.markDirty(); // for change detection
         }

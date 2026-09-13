@@ -236,7 +236,10 @@ public class PlanService {
         Plan plan = createPlan(name);
         Plan src = planRepo.getReferenceById(fromId);
         duplicateChildren(src, plan);
-        for (var b : src.getBuckets()) {
+        for (var b : src.getBuckets()
+                .stream()
+                .sorted(PlanBucket.BY_POSITION)
+                .toList()) {
             new PlanBucket(plan, b.getName(), b.getDate());
         }
         // todo: should duplicating a plan include grants?

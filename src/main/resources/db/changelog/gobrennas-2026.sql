@@ -21,3 +21,15 @@ ALTER TABLE plan_item
 INSERT INTO preference
     (name, type, default_value_str)
 VALUES ('plannerPlans', 5, NULL);
+
+--changeset barneyb:add-position-to-plan-bucket
+ALTER TABLE plan_bucket
+    ADD COLUMN position INTEGER;
+UPDATE plan_bucket b
+SET position = r.rn
+FROM (SELECT id,
+             ROW_NUMBER() OVER (PARTITION BY plan_id ORDER BY id) AS rn
+      FROM plan_bucket) r
+WHERE b.id = r.id;
+ALTER TABLE plan_bucket
+    ALTER COLUMN position SET NOT NULL;
