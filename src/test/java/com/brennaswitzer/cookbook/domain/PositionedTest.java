@@ -44,9 +44,9 @@ class PositionedTest {
 
     @Test
     void nextPosition() {
-        assertEquals(4,
-                     Positioned.nextPosition(List.of(new Thing("a", 3),
-                                                     new Thing("b", 1))));
+        List<Thing> peers = List.of(new Thing("a", 3), new Thing("b", 1));
+
+        assertEquals(4, Positioned.nextPosition(peers));
     }
 
     @Test

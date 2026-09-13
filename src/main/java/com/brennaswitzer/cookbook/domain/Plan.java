@@ -13,6 +13,7 @@ import org.hibernate.annotations.BatchSize;
 import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -105,11 +106,11 @@ public class Plan extends PlanItem implements AccessControlled {
             throw new IllegalArgumentException("The 'after' bucket isn't part of this plan.");
         }
         if (bucket.equals(after)) return;
-        Positioned.insertAt(getBuckets().stream()
-                                    .sorted(PlanBucket.BY_POSITION)
-                                    .toList(),
-                            bucket,
-                            after == null ? 0 : after.getPosition() + 1);
+        List<PlanBucket> ordered = getBuckets().stream()
+                .sorted(PlanBucket.BY_POSITION)
+                .toList();
+        int position = after == null ? 0 : after.getPosition() + 1;
+        Positioned.insertAt(ordered, bucket, position);
         markDirty();
     }
 

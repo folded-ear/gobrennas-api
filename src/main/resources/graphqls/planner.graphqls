@@ -55,7 +55,7 @@ type Plan implements Node & Owned & AccessControlled & CorePlanItem  {
     share: ShareInfo!
     bucketCount: NonNegativeInt!
     """The plan's buckets, in the requested order (by date if omitted)."""
-    buckets(sort: PlanBucketSort = DATE): [PlanBucket!]!
+    buckets(sort: PlanBucketSort! = DATE): [PlanBucket!]!
     """Retrieve all items which have been updated since the passed cutoff
     (expressed in milliseconds since the UNIX epoch). May include this plan!"""
     updatedSince(cutoff: Long!): [CorePlanItem!]!
