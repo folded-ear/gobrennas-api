@@ -93,6 +93,26 @@ public class Plan extends PlanItem implements AccessControlled {
         return buckets;
     }
 
+    /**
+     * I move the bucket to directly after the other bucket, or to first if
+     * the other bucket is null.
+     */
+    public void moveBucket(PlanBucket bucket, PlanBucket after) {
+        if (!getBuckets().contains(bucket)) {
+            throw new IllegalArgumentException("The bucket isn't part of this plan.");
+        }
+        if (after != null && !getBuckets().contains(after)) {
+            throw new IllegalArgumentException("The 'after' bucket isn't part of this plan.");
+        }
+        if (bucket.equals(after)) return;
+        Positioned.insertAt(getBuckets().stream()
+                                    .sorted(PlanBucket.BY_POSITION)
+                                    .toList(),
+                            bucket,
+                            after == null ? 0 : after.getPosition() + 1);
+        markDirty();
+    }
+
     public int getBucketCount() {
         return buckets == null ? 0 : buckets.size();
     }

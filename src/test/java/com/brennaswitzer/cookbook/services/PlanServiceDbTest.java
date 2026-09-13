@@ -191,6 +191,40 @@ class PlanServiceDbTest {
     }
 
     @Test
+    void moveBucket() {
+        Plan groceries = service.createPlan("groceries", alice);
+        List<PlanBucket> buckets = service.createBuckets(
+                groceries.getId(),
+                unsavedBuckets(List.of("a", "b", "c")));
+        entityManager.flush();
+        entityManager.clear();
+
+        service.moveBucket(groceries.getId(),
+                           buckets.get(0).getId(),
+                           buckets.get(2).getId());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(List.of("b", "c", "a"),
+                     bucketNamesByPosition(service.getPlanById(groceries.getId())));
+    }
+
+    @Test
+    void moveBucketRejectsForeignBuckets() {
+        Plan groceries = service.createPlan("groceries", alice);
+        Plan other = service.createPlan("other", alice);
+        PlanBucket a = service.createBucket(groceries.getId(), "a", null);
+        PlanBucket x = service.createBucket(other.getId(), "x", null);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.moveBucket(groceries.getId(), x.getId(), null));
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.moveBucket(groceries.getId(), a.getId(), x.getId()));
+    }
+
+    @Test
     public void setAssignee() {
         Plan groceries = service.createPlan("groceries", alice);
         PlanItem oj = itemRepo.save(new PlanItem("OJ").of(groceries));

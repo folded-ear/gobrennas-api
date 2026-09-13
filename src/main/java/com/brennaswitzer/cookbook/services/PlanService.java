@@ -323,6 +323,16 @@ public class PlanService {
         return bucket;
     }
 
+    public Plan moveBucket(Long planId, Long bucketId, Long afterId) {
+        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        PlanBucket bucket = bucketRepo.getReferenceById(bucketId);
+        PlanBucket after = afterId == null
+                ? null
+                : bucketRepo.getReferenceById(afterId);
+        plan.moveBucket(bucket, after);
+        return plan;
+    }
+
     public PlanBucket deleteBucket(Long planId, Long bucketId) {
         getPlanById(planId, AccessLevel.ADMINISTER);
         return deleteBucketInternal(bucketId);
