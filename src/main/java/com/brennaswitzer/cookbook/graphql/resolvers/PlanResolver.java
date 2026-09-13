@@ -2,6 +2,8 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 
 import com.brennaswitzer.cookbook.domain.CorePlanItem;
 import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.domain.PlanBucket;
+import com.brennaswitzer.cookbook.domain.PlanBucketSort;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.graphql.model.AccessControlEntry;
 import com.brennaswitzer.cookbook.payload.ShareInfo;
@@ -29,6 +31,15 @@ public class PlanResolver {
     @SchemaMapping
     public List<AccessControlEntry> grants(Plan plan) {
         return AclHelpers.getGrants(plan);
+    }
+
+    @SchemaMapping
+    public List<PlanBucket> buckets(Plan plan,
+                                    @Argument PlanBucketSort sort) {
+        return plan.getBuckets()
+                .stream()
+                .sorted(sort.getComparator())
+                .toList();
     }
 
     @SchemaMapping

@@ -3,6 +3,8 @@ package com.brennaswitzer.cookbook.graphql.resolvers;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Acl;
 import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.domain.PlanBucket;
+import com.brennaswitzer.cookbook.domain.PlanBucketSort;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.graphql.model.AccessControlEntry;
@@ -15,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,6 +65,22 @@ class PlanResolverTest {
         when(plan.getOrderedChildView()).thenReturn(kids);
 
         assertSame(kids, resolver.children(plan));
+    }
+
+    @Test
+    void buckets() {
+        Plan plan = new Plan("plan");
+        LocalDate today = LocalDate.now();
+        PlanBucket b = new PlanBucket(plan, "b", today);
+        PlanBucket c = new PlanBucket(plan, "c", null);
+        PlanBucket a = new PlanBucket(plan, "a", today.minusDays(1));
+
+        assertEquals(List.of(b, c, a),
+                     resolver.buckets(plan, PlanBucketSort.POSITION));
+        assertEquals(List.of(c, a, b),
+                     resolver.buckets(plan, PlanBucketSort.DATE));
+        assertEquals(List.of(a, b, c),
+                     resolver.buckets(plan, PlanBucketSort.NAME));
     }
 
     @Test
