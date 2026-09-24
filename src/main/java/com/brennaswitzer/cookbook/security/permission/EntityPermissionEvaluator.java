@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.Owned;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.TextractJob;
@@ -97,6 +98,10 @@ public class EntityPermissionEvaluator implements PermissionEvaluator {
                                 Object permission) {
         if (permission instanceof String level) {
             return isPermitted(user, target, AccessLevel.valueOf(level));
+        }
+        if (permission instanceof PlanItemStatus status
+            && target instanceof PlanItem item) {
+            return item.isStatusPermitted(user, status);
         }
         return false;
     }

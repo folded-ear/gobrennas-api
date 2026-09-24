@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +44,14 @@ import static jakarta.persistence.CascadeType.REFRESH;
 @DiscriminatorColumn
 @DiscriminatorValue("item")
 public class PlanItem extends BaseEntity implements Named, Positioned, MutableItem, CorePlanItem {
+
+    /**
+     * I am the statuses an assignee may set, and move between, without
+     * change access to the plan.
+     */
+    public static final Set<PlanItemStatus> ASSIGNEE_STATUSES = EnumSet.of(
+            PlanItemStatus.NEEDED,
+            PlanItemStatus.ACQUIRED);
 
     public static final Comparator<PlanItem> BY_ID = (a, b) -> {
         if (a == null) return b == null ? 0 : 1;
@@ -189,6 +198,26 @@ public class PlanItem extends BaseEntity implements Named, Positioned, MutableIt
 
     public boolean hasComponents() {
         return getComponentCount() != 0;
+    }
+
+    /**
+     * I return the nearest assignee on myself or my ancestors.
+     */
+    public User getEffectiveAssignee() {
+        for (PlanItem it = this; it != null; it = it.getParent()) {
+            if (it.getAssignee() != null) return it.getAssignee();
+        }
+        return null;
+    }
+
+    /**
+     * I return whether the user may set my status to the given one.
+     */
+    public boolean isStatusPermitted(User user, PlanItemStatus status) {
+        if (getPlan().isPermitted(user, AccessLevel.CHANGE)) return true;
+        return ASSIGNEE_STATUSES.contains(getStatus())
+               && ASSIGNEE_STATUSES.contains(status)
+               && user.equals(getEffectiveAssignee());
     }
 
     public boolean isDescendant(PlanItem t) {

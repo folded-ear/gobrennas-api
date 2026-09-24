@@ -22,6 +22,7 @@ import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.security.permission.PlanAccess;
 import com.brennaswitzer.cookbook.security.permission.PlanBucketAccess;
 import com.brennaswitzer.cookbook.security.permission.PlanItemAccess;
+import com.brennaswitzer.cookbook.security.permission.PlanItemStatusAccess;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -407,12 +408,12 @@ public class PlanService {
         return item;
     }
 
-    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
+    @PlanItemStatusAccess(id = "#id", status = "#status")
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
         return setItemStatus(id, status, null);
     }
 
-    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
+    @PlanItemStatusAccess(id = "#id", status = "#status")
     public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
         PlanItem item = loadItem(id);
         item.setStatus(status);

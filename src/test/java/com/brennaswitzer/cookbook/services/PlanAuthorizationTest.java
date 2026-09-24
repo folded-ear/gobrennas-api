@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -157,6 +158,93 @@ class PlanAuthorizationTest {
                      () -> service.deleteBucket(mine.getId(),
                                                 otherBucket.getId()));
         assertEquals(BUCKET_NAME, otherBucket.getName());
+    }
+
+    @Test
+    void assigneeToggles() {
+        PlanItem oj = item(bobsPlan(AccessLevel.VIEW));
+        oj.setAssignee(alice);
+
+        service.setItemStatus(oj.getId(), PlanItemStatus.ACQUIRED);
+        assertEquals(PlanItemStatus.ACQUIRED, oj.getStatus());
+        service.setItemStatus(oj.getId(), PlanItemStatus.ACQUIRED);
+        assertEquals(PlanItemStatus.ACQUIRED, oj.getStatus());
+        service.setItemStatus(oj.getId(), PlanItemStatus.NEEDED);
+        assertEquals(PlanItemStatus.NEEDED, oj.getStatus());
+    }
+
+    @Test
+    void assigneeTogglesDescendants() {
+        PlanItem pizza = item(bobsPlan(AccessLevel.VIEW));
+        pizza.setAssignee(alice);
+        PlanItem crust = item(pizza);
+        PlanItem flour = item(crust);
+
+        service.setItemStatus(flour.getId(), PlanItemStatus.ACQUIRED);
+
+        assertEquals(PlanItemStatus.ACQUIRED, flour.getStatus());
+    }
+
+    @Test
+    void intermediateAssigneeBlocks() {
+        PlanItem pizza = item(bobsPlan(AccessLevel.VIEW));
+        pizza.setAssignee(alice);
+        PlanItem crust = item(pizza);
+        crust.setAssignee(bob);
+        PlanItem flour = item(crust);
+
+        assertThrows(AccessDeniedException.class,
+                     () -> service.setItemStatus(flour.getId(),
+                                                 PlanItemStatus.ACQUIRED));
+        assertEquals(PlanItemStatus.NEEDED, flour.getStatus());
+    }
+
+    @Test
+    void assigneeCannotComplete() {
+        PlanItem oj = item(bobsPlan(AccessLevel.VIEW));
+        oj.setAssignee(alice);
+
+        assertThrows(AccessDeniedException.class,
+                     () -> service.setItemStatus(oj.getId(),
+                                                 PlanItemStatus.COMPLETED));
+        assertThrows(AccessDeniedException.class,
+                     () -> service.deleteItem(oj.getId()));
+        assertThrows(AccessDeniedException.class,
+                     () -> service.renameItem(oj.getId(), "orange juice"));
+        assertEquals(PlanItemStatus.NEEDED, oj.getStatus());
+    }
+
+    @Test
+    void assigneeCannotRestoreFromTrash() {
+        PlanItem oj = item(bobsPlan(AccessLevel.VIEW));
+        oj.setAssignee(alice);
+        oj.moveToTrash();
+
+        assertThrows(AccessDeniedException.class,
+                     () -> service.setItemStatus(oj.getId(),
+                                                 PlanItemStatus.NEEDED));
+        assertEquals(PlanItemStatus.DELETED, oj.getStatus());
+    }
+
+    @Test
+    void nonAssigneeCannotToggle() {
+        PlanItem oj = item(bobsPlan(AccessLevel.VIEW));
+
+        assertThrows(AccessDeniedException.class,
+                     () -> service.setItemStatus(oj.getId(),
+                                                 PlanItemStatus.ACQUIRED));
+        assertEquals(PlanItemStatus.NEEDED, oj.getStatus());
+    }
+
+    @Test
+    void changeGrantSetsAnyStatus() {
+        PlanItem oj = item(bobsPlan(AccessLevel.CHANGE));
+        oj.setAssignee(bob);
+
+        service.setItemStatus(oj.getId(), PlanItemStatus.ACQUIRED);
+        assertEquals(PlanItemStatus.ACQUIRED, oj.getStatus());
+        service.setItemStatus(oj.getId(), PlanItemStatus.COMPLETED);
+        assertEquals(PlanItemStatus.COMPLETED, oj.getStatus());
     }
 
     @Test
