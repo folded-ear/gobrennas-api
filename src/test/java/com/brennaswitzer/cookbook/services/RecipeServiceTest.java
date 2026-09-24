@@ -66,12 +66,8 @@ class RecipeServiceTest {
         saved.setPhoto(new S3File("path/to/photo.jpg",
                                   "image/jpg",
                                   1234L));
-        when(recipeRepository.getReferenceById(recipeId))
-                .thenReturn(saved);
         when(recipeRepository.save(saved))
                 .thenReturn(saved);
-        when(principalAccess.getUser())
-                .thenReturn(owner);
 
         Recipe result = service.updateRecipe(saved, new IngredientInfo());
 
@@ -87,12 +83,8 @@ class RecipeServiceTest {
         input.setId(recipeId);
         Recipe saved = new Recipe();
         saved.setOwner(owner);
-        when(recipeRepository.getReferenceById(recipeId))
-                .thenReturn(saved);
         when(recipeRepository.save(input))
                 .thenReturn(saved);
-        when(principalAccess.getUser())
-                .thenReturn(owner);
 
         Recipe result = service.updateRecipe(input, new IngredientInfo());
 

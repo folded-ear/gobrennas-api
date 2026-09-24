@@ -1,5 +1,10 @@
 package com.brennaswitzer.cookbook.security.permission;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Owned;
+import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import jakarta.persistence.EntityManager;
@@ -24,7 +29,10 @@ import java.util.stream.Stream;
  */
 public class EntityPermissionEvaluator implements PermissionEvaluator {
 
-    private static final List<Class<?>> TARGET_CLASSES = List.of();
+    private static final List<Class<?>> TARGET_CLASSES = List.of(
+            PlannedRecipeHistory.class,
+            Recipe.class,
+            TextractJob.class);
 
     private final Map<String, Class<?>> targetClasses = TARGET_CLASSES
             .stream()
@@ -81,6 +89,17 @@ public class EntityPermissionEvaluator implements PermissionEvaluator {
     private boolean isPermitted(User user,
                                 Object target,
                                 Object permission) {
+        if (permission instanceof String level) {
+            return isPermitted(user, target, AccessLevel.valueOf(level));
+        }
+        return false;
+    }
+
+    private boolean isPermitted(User user,
+                                Object target,
+                                AccessLevel level) {
+        // an owner has every level of access
+        if (target instanceof Owned o) return o.isOwner(user);
         return false;
     }
 

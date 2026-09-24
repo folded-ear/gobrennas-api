@@ -44,9 +44,8 @@ public class TextractQueryController {
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     TextractJobInfo jobById(TextractQuery textractQ,
-                            @Argument Long id,
-                            @CurrentUser UserPrincipal userPrincipal) {
-        TextractJob job = service.getJob(userPrincipal, id);
+                            @Argument Long id) {
+        TextractJob job = service.getJob(id);
         return TextractJobInfo.fromJobWithLines(job, storageService);
     }
 

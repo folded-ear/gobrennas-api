@@ -1,14 +1,15 @@
 package com.brennaswitzer.cookbook.services.textract;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
+import com.brennaswitzer.cookbook.security.permission.TextractJobAccess;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +42,9 @@ public class TextractService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    public TextractJob getJob(UserPrincipal principal,
-                              long id) {
-        TextractJob job = jobRepository.getReferenceById(id);
-        if (!job.getOwner().equals(principalAccess.getUser(principal))) {
-            throw new EntityNotFoundException("Job #" + id + " not found");
-        }
-        return job;
+    @TextractJobAccess(id = "#id", level = AccessLevel.VIEW)
+    public TextractJob getJob(long id) {
+        return jobRepository.getReferenceById(id);
     }
 
     @NotNull
@@ -70,9 +67,9 @@ public class TextractService {
         return jobRepository.findAllByOwnerOrderByCreatedAtDesc(user);
     }
 
-    public TextractJob deleteJob(UserPrincipal principal,
-                                 long id) {
-        TextractJob j = getJob(principal, id);
+    @TextractJobAccess(id = "#id", level = AccessLevel.CHANGE)
+    public TextractJob deleteJob(long id) {
+        TextractJob j = jobRepository.getReferenceById(id);
         storageService.remove(j.getPhoto().getObjectKey());
         jobRepository.delete(j);
         return j;

@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Photo;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
@@ -10,13 +11,13 @@ import com.brennaswitzer.cookbook.repositories.RecipeRepository;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchScope;
+import com.brennaswitzer.cookbook.security.permission.RecipeAccess;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,34 +69,28 @@ public class RecipeService {
         return recipe;
     }
 
+    @RecipeAccess(id = "#recipe.id", level = AccessLevel.CHANGE)
     public Recipe updateRecipe(Recipe recipe, IngredientInfo info) {
-        getMyRecipe(recipe.getId());
         new SetPhoto(info)
                 .set(recipe);
         return recipeRepository.save(recipe);
     }
 
+    @RecipeAccess(id = "#id", level = AccessLevel.CHANGE)
     public Recipe setRecipePhoto(Long id, String photoFilename, List<Float> photoFocus) {
-        Recipe recipe = getMyRecipe(id);
+        Recipe recipe = recipeRepository.getReferenceById(id);
         new SetPhoto(photoFilename, photoFocus)
                 .set(recipe);
         return recipeRepository.save(recipe);
-    }
-
-    private Recipe getMyRecipe(Long id) {
-        Recipe recipe = recipeRepository.getReferenceById(id);
-        if (!recipe.getOwner().equals(principalAccess.getUser())) {
-            throw new AccessDeniedException("You can only modify your own recipes.");
-        }
-        return recipe;
     }
 
     public Optional<Recipe> findRecipeById(Long id) {
         return recipeRepository.findById(id);
     }
 
+    @RecipeAccess(id = "#id", level = AccessLevel.CHANGE)
     public Recipe deleteRecipeById(Long id) {
-        Recipe recipe = getMyRecipe(id);
+        Recipe recipe = recipeRepository.getReferenceById(id);
         removePhotoInternal(recipe);
         planService.severLibraryLinks(recipe);
         while (!recipe.getOwnedSections().isEmpty()) {
