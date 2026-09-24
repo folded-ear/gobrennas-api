@@ -1,5 +1,6 @@
 package com.brennaswitzer.cookbook.graphql.support;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Identified;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
@@ -11,12 +12,12 @@ import com.brennaswitzer.cookbook.payload.IngredientInfo;
 import com.brennaswitzer.cookbook.payload.IngredientRefInfo;
 import com.brennaswitzer.cookbook.payload.SectionInfo;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
+import com.brennaswitzer.cookbook.security.permission.RecipeAccess;
 import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -37,11 +38,13 @@ public class Info2Recipe {
     @Autowired
     private EntityManager entityManager;
 
+    @RecipeAccess(id = "#info.id", level = AccessLevel.CHANGE)
     public Recipe convert(UserPrincipal owner,
                           IngredientInfo info) {
         return convert(owner, info, false);
     }
 
+    @RecipeAccess(id = "#info.id", level = AccessLevel.CHANGE)
     public Recipe convert(UserPrincipal owner,
                           IngredientInfo info,
                           boolean cookThis) {
@@ -67,9 +70,6 @@ public class Info2Recipe {
                 r = newRecipe();
             } else {
                 r = loadRecipe(info);
-                if (!r.getOwner().equals(owner)) {
-                    throw new AccessDeniedException("You can only modify your own recipes.");
-                }
                 // remove no-longer-present owned sections
                 Collection<Recipe> toRemove;
                 if (info.hasSections()) {

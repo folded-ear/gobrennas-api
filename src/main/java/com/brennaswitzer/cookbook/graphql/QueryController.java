@@ -36,6 +36,8 @@ public class QueryController {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Hibernate::unproxy)
+                // Only plans are checked; other plan entities and owned entities
+                // come back unchecked, as that needs per-type VIEW rules.
                 .filter(it -> !(it instanceof AccessControlled ac) ||
                               ac.isPermitted(getUser(userPrincipal),
                                              AccessLevel.VIEW))

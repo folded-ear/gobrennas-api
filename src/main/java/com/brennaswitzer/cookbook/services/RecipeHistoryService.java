@@ -1,12 +1,12 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.Rating;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
-import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import com.brennaswitzer.cookbook.security.permission.PlannedRecipeHistoryAccess;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,28 +19,24 @@ public class RecipeHistoryService {
     @Autowired
     private PlannedRecipeHistoryRepository repo;
 
-    @Autowired
-    private UserPrincipalAccess principalAccess;
-
+    @PlannedRecipeHistoryAccess(id = "#id", level = AccessLevel.CHANGE)
     public PlannedRecipeHistory setRating(Long recipeId, Long id, Rating rating) {
-        var h = getMyHistoryItem(recipeId, id);
+        var h = getHistoryItem(recipeId, id);
         h.setRating(rating);
         return h;
     }
 
+    @PlannedRecipeHistoryAccess(id = "#id", level = AccessLevel.CHANGE)
     public PlannedRecipeHistory setNotes(Long recipeId, Long id, String notes) {
-        var h = getMyHistoryItem(recipeId, id);
+        var h = getHistoryItem(recipeId, id);
         h.setNotes(notes);
         return h;
     }
 
-    private PlannedRecipeHistory getMyHistoryItem(Long recipeId, Long id) {
+    private PlannedRecipeHistory getHistoryItem(Long recipeId, Long id) {
         var h = repo.getReferenceById(id);
         if (!Objects.equals(recipeId, h.getRecipe().getId())) {
             throw new EntityNotFoundException("No history %s:%s found".formatted(recipeId, id));
-        }
-        if (!principalAccess.getId().equals(h.getOwner().getId())) {
-            throw new AccessDeniedException("You don't have permission to update this history");
         }
         return h;
     }

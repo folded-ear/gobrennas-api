@@ -9,21 +9,29 @@ import com.brennaswitzer.cookbook.security.oauth2.CustomOAuth2UserService;
 import com.brennaswitzer.cookbook.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.brennaswitzer.cookbook.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.brennaswitzer.cookbook.security.permission.EntityPermissionEvaluator;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.DisableEncodeUrlFilter;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -69,6 +77,9 @@ import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
+// A sledgehammer: permission checks must run inside the transaction of the
+// method they guard, i.e., transactions before method security (100-600).
+@EnableTransactionManagement(order = Ordered.HIGHEST_PRECEDENCE)
 @EnableMethodSecurity(
         securedEnabled = true,
         jsr250Enabled = true
@@ -92,6 +103,19 @@ public class SecurityConfig {
 
     @Autowired
     private CookieTokenLogoutHandler cookieTokenLogoutHandler;
+
+    @Bean
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+            ObjectProvider<EntityManager> entityManager) {
+        var handler = new DefaultMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(new EntityPermissionEvaluator(entityManager));
+        return handler;
+    }
+
+    @Bean
+    static AnnotationTemplateExpressionDefaults annotationTemplateExpressionDefaults() {
+        return new AnnotationTemplateExpressionDefaults();
+    }
 
     @Bean
     public HeaderTokenAuthenticationFilter headerTokenAuthenticationFilter() {

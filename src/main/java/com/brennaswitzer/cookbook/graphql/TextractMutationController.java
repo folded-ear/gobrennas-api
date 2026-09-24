@@ -46,10 +46,8 @@ public class TextractMutationController {
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     Deletion deleteJob(TextractMutation textractMut,
-                       @Argument Long id,
-                       @CurrentUser UserPrincipal userPrincipal) {
-        return Deletion.of(service.deleteJob(userPrincipal,
-                                             id));
+                       @Argument Long id) {
+        return Deletion.of(service.deleteJob(id));
     }
 
 }

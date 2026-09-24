@@ -19,6 +19,10 @@ import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
+import com.brennaswitzer.cookbook.security.permission.PlanAccess;
+import com.brennaswitzer.cookbook.security.permission.PlanBucketAccess;
+import com.brennaswitzer.cookbook.security.permission.PlanItemAccess;
+import com.brennaswitzer.cookbook.security.permission.PlanItemStatusAccess;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.ValueUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -93,30 +97,33 @@ public class PlanService {
         return result;
     }
 
+    @PlanItemAccess(id = "#id", level = AccessLevel.VIEW)
     public PlanItem getPlanItemById(Long id) {
-        return getPlanItemById(id, AccessLevel.VIEW);
+        return loadItem(id);
     }
 
-    public PlanItem getPlanItemById(Long id, AccessLevel requiredAccess) {
-        PlanItem item = itemRepo.getReferenceById(id);
-        item.getPlan().ensurePermitted(
-                principalAccess.getUser(),
-                requiredAccess
-        );
-        return Hibernate.unproxy(item, PlanItem.class);
+    private PlanItem loadItem(Long id) {
+        return Hibernate.unproxy(itemRepo.getReferenceById(id),
+                                 PlanItem.class);
     }
 
+    @PlanAccess(id = "#id", level = AccessLevel.VIEW)
     public Plan getPlanById(Long id) {
-        return getPlanById(id, AccessLevel.VIEW);
+        return loadPlan(id);
     }
 
-    public Plan getPlanById(Long id, AccessLevel requiredAccess) {
-        Plan plan = planRepo.getReferenceById(id);
-        plan.ensurePermitted(
-                principalAccess.getUser(),
-                requiredAccess
-        );
-        return Hibernate.unproxy(plan, Plan.class);
+    private Plan loadPlan(Long id) {
+        return Hibernate.unproxy(planRepo.getReferenceById(id),
+                                 Plan.class);
+    }
+
+    private PlanBucket loadBucket(Long planId, Long id) {
+        PlanBucket bucket = bucketRepo.getReferenceById(id);
+        if (!bucket.getPlan().getId().equals(planId)) {
+            throw new IllegalArgumentException(
+                    "The bucket isn't part of this plan.");
+        }
+        return bucket;
     }
 
     public List<PlanItem> getTreeById(PlanItem item) {
@@ -133,8 +140,9 @@ public class PlanService {
         }
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.VIEW)
     public List<PlanItem> getTreeDeltasById(Long planId, Instant cutoff) {
-        val plan = getPlanById(planId, AccessLevel.VIEW);
+        val plan = loadPlan(planId);
         List<PlanItem> result = itemRepo.findAllById(
                 itemRepo.getUpdatedSince(planId, cutoff));
         Predicate<BaseEntity> filter = it -> it.getUpdatedAt().isAfter(cutoff);
@@ -147,11 +155,12 @@ public class PlanService {
         return result;
     }
 
+    @PlanItemAccess(id = "{#parentId, #afterId, #ids}", level = AccessLevel.CHANGE)
     public PlanItem mutateTree(List<Long> ids, Long parentId, Long afterId) {
-        PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
-        PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
+        PlanItem parent = loadItem(parentId);
+        PlanItem after = afterId == null ? null : loadItem(afterId);
         for (Long id : ids) {
-            PlanItem t = getPlanItemById(id, AccessLevel.CHANGE);
+            PlanItem t = loadItem(id);
             ensureSamePlan(t, parent);
             parent.addChildAfter(t, after);
             after = t;
@@ -159,11 +168,12 @@ public class PlanService {
         return parent;
     }
 
+    @PlanItemAccess(id = "{#id, #subitemIds}", level = AccessLevel.CHANGE)
     public PlanItem resetSubitems(Long id, List<Long> subitemIds) {
-        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        PlanItem item = loadItem(id);
         PlanItem prev = null;
         for (Long sid : subitemIds) {
-            PlanItem curr = getPlanItemById(sid);
+            PlanItem curr = loadItem(sid);
             ensureSamePlan(curr, item);
             item.addChildAfter(curr, prev);
             prev = curr;
@@ -218,10 +228,11 @@ public class PlanService {
      * I add the passed Recipe to the specified plan, and return the new PlanItem
      * corresponding to the recipe itself.
      */
+    @PlanAccess(id = "#planId", level = AccessLevel.CHANGE)
     public PlanItem addRecipe(Long planId, Recipe r, Double scale) {
         PlanItem recipeItem = new PlanItem(r.getName(), r);
         recipeItem.setQuantity(Quantity.count(scale));
-        Plan plan = getPlanById(planId, AccessLevel.CHANGE);
+        Plan plan = loadPlan(planId);
         plan.addChild(recipeItem);
         sendToPlan(r, recipeItem, scale);
         planRepo.flush(); // to ensure IDs are set everywhere
@@ -232,6 +243,7 @@ public class PlanService {
         return createPlan(name, owner.getId());
     }
 
+    @PlanAccess(id = "#fromId", level = AccessLevel.VIEW)
     public Plan duplicatePlan(String name, Long fromId) {
         Plan plan = createPlan(name);
         Plan src = planRepo.getReferenceById(fromId);
@@ -288,9 +300,10 @@ public class PlanService {
         return planRepo.save(plan);
     }
 
+    @PlanItemAccess(id = "{#parentId, #afterId}", level = AccessLevel.CHANGE)
     public PlanItem createItem(Long parentId, Long afterId, String name) {
-        PlanItem parent = getPlanItemById(parentId, AccessLevel.CHANGE);
-        PlanItem after = afterId == null ? null : getPlanItemById(afterId, AccessLevel.VIEW);
+        PlanItem parent = loadItem(parentId);
+        PlanItem after = afterId == null ? null : loadItem(afterId);
         PlanItem item = itemRepo.save(new PlanItem(name).of(parent, after));
         if (!item.isRecognitionDisallowed()) {
             itemService.autoRecognize(item);
@@ -299,32 +312,35 @@ public class PlanService {
         return item;
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.ADMINISTER)
     public PlanBucket createBucket(Long planId, String name, LocalDate date) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = loadPlan(planId);
         PlanBucket bucket = new PlanBucket(plan, name, date);
         bucket = bucketRepo.save(bucket);
         if (bucket.getId() == null) bucketRepo.flush();
         return bucket;
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.ADMINISTER)
     public List<PlanBucket> createBuckets(Long planId, List<UnsavedBucket> buckets) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = loadPlan(planId);
         List<PlanBucket> toSave = buckets.stream()
                 .map(b -> new PlanBucket(plan, b.getName(), b.getDate()))
                 .toList();
         return bucketRepo.saveAll(toSave);
     }
 
+    @PlanBucketAccess(id = "#id", level = AccessLevel.ADMINISTER)
     public PlanBucket updateBucket(Long planId, Long id, String name, LocalDate date) {
-        getPlanById(planId, AccessLevel.ADMINISTER); // for the authorization check
-        PlanBucket bucket = bucketRepo.getReferenceById(id);
+        PlanBucket bucket = loadBucket(planId, id);
         bucket.setName(name);
         bucket.setDate(date);
         return bucket;
     }
 
+    @PlanBucketAccess(id = "{#bucketId, #afterId}", level = AccessLevel.ADMINISTER)
     public Plan moveBucket(Long planId, Long bucketId, Long afterId) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = loadPlan(planId);
         PlanBucket bucket = bucketRepo.getReferenceById(bucketId);
         PlanBucket after = afterId == null
                 ? null
@@ -333,26 +349,27 @@ public class PlanService {
         return plan;
     }
 
+    @PlanBucketAccess(id = "#bucketId", level = AccessLevel.ADMINISTER)
     public PlanBucket deleteBucket(Long planId, Long bucketId) {
-        getPlanById(planId, AccessLevel.ADMINISTER);
-        return deleteBucketInternal(bucketId);
+        return deleteBucketInternal(planId, bucketId);
     }
 
-    private PlanBucket deleteBucketInternal(Long bucketId) {
-        PlanBucket bucket = bucketRepo.getReferenceById(bucketId);
+    private PlanBucket deleteBucketInternal(Long planId, Long bucketId) {
+        PlanBucket bucket = loadBucket(planId, bucketId);
         bucket.setPlan(null);
         return bucket;
     }
 
+    @PlanBucketAccess(id = "#bucketIds", level = AccessLevel.ADMINISTER)
     public List<PlanBucket> deleteBuckets(Long planId, List<Long> bucketIds) {
-        getPlanById(planId, AccessLevel.ADMINISTER);
         return bucketIds.stream()
-                .map(this::deleteBucketInternal)
+                .map(id -> deleteBucketInternal(planId, id))
                 .toList();
     }
 
+    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
     public PlanItem renameItem(Long id, String name) {
-        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        PlanItem item = loadItem(id);
         item.setName(name);
         if (item.isRecognitionDisallowed()) {
             itemService.clearAutoRecognition(item);
@@ -362,8 +379,9 @@ public class PlanService {
         return item;
     }
 
+    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
     public PlanItem assignItemBucket(Long id, Long bucketId) {
-        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        PlanItem item = loadItem(id);
         PlanBucket bucket = bucketId == null
                 ? null
                 : bucketRepo.getReferenceById(bucketId);
@@ -374,8 +392,9 @@ public class PlanService {
         return item;
     }
 
+    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
     public PlanItem setAssignee(Long id, Long userId) {
-        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        PlanItem item = loadItem(id);
         if (userId == null) {
             item.setAssignee(null);
             return item;
@@ -389,12 +408,14 @@ public class PlanService {
         return item;
     }
 
+    @PlanItemStatusAccess(id = "#id", status = "#status")
     public PlanItem setItemStatus(Long id, PlanItemStatus status) {
         return setItemStatus(id, status, null);
     }
 
+    @PlanItemStatusAccess(id = "#id", status = "#status")
     public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
-        PlanItem item = getPlanItemById(id, AccessLevel.CHANGE);
+        PlanItem item = loadItem(id);
         item.setStatus(status);
         if (item.getStatus().isForDelete()) {
             double scale = item.hasQuantity()
@@ -443,12 +464,14 @@ public class PlanService {
         }
     }
 
+    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
     public PlanItem deleteItem(Long id) {
         return setItemStatus(id, PlanItemStatus.DELETED);
     }
 
+    @PlanAccess(id = "#id", level = AccessLevel.ADMINISTER)
     public Plan deletePlan(Long id) {
-        val plan = getPlanById(id, AccessLevel.ADMINISTER);
+        val plan = loadPlan(id);
         // grab this before delete, to avoid JPA state weirdness.
         User user = plan.getOwner();
         planRepo.delete(plan);
@@ -463,33 +486,37 @@ public class PlanService {
         });
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.ADMINISTER)
     public Plan setGrantOnPlan(Long planId, Long userId, AccessLevel level) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = loadPlan(planId);
         plan.getAcl().setGrant(userRepo.getReferenceById(userId), level);
         return plan;
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.ADMINISTER)
     public Plan revokeGrantFromPlan(Long planId, Long userId) {
-        Plan plan = getPlanById(planId, AccessLevel.ADMINISTER);
+        Plan plan = loadPlan(planId);
         plan.getAcl().revokeGrant(userRepo.getReferenceById(userId));
         itemRepo.findAllById(itemRepo.getIdsAssignedTo(planId, userId))
                 .forEach(it -> it.setAssignee(null));
         return plan;
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.CHANGE)
     public Plan setColor(Long planId, String color) {
         if (StringUtils.hasText(color) && !RE_COLOR.matcher(color).matches()) {
             throw new IllegalArgumentException(String.format(
                     "Color '%s' is invalid. Use six hash-prefix digits (e.g., '#f57f17').",
                     color));
         }
-        Plan plan = getPlanById(planId, AccessLevel.CHANGE);
+        Plan plan = loadPlan(planId);
         plan.setColor(color);
         return plan;
     }
 
+    @PlanAccess(id = "#planId", level = AccessLevel.CHANGE)
     public Plan updatePlanNotes(Long planId, String notes) {
-        Plan plan = getPlanById(planId, AccessLevel.CHANGE);
+        Plan plan = loadPlan(planId);
         plan.setNotes(StringUtils.hasText(notes) ? notes : null);
         return plan;
     }

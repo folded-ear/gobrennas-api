@@ -1,44 +1,31 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
-import com.brennaswitzer.cookbook.domain.PlanItem;
+import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class PlanServiceMockedTest {
 
     @InjectMocks
-    @Spy
     private PlanService service;
 
-    @Test
-    void setAssigneeRequiresChangeAccess() {
-        var item = mock(PlanItem.class);
-        doReturn(item).when(service).getPlanItemById(any(), any());
-
-        service.setAssignee(123L, null);
-
-        verify(service).getPlanItemById(123L, AccessLevel.CHANGE);
-        verify(item).setAssignee(null);
-    }
+    @Mock
+    private PlanRepository planRepo;
 
     @Test
     void setColor() {
         var plan = mock(Plan.class);
-        doReturn(plan).when(service).getPlanById(any(), any());
+        doReturn(plan).when(planRepo).getReferenceById(123L);
 
         service.setColor(123L, "#F57F17");
         service.setColor(123L, "#f57f17");
@@ -59,8 +46,6 @@ public class PlanServiceMockedTest {
         inOrder.verify(plan).setColor("");
         inOrder.verify(plan).setColor(null);
         inOrder.verifyNoMoreInteractions();
-        verify(service, times(4))
-                .getPlanById(123L, AccessLevel.CHANGE);
     }
 
 }

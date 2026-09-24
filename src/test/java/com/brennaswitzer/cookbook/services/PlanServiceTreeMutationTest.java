@@ -1,6 +1,5 @@
 package com.brennaswitzer.cookbook.services;
 
-import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
@@ -44,14 +43,7 @@ public class PlanServiceTreeMutationTest {
             Long id = invocation.getArgument(0);
             return database.get(id);
         }).when(repo).getReferenceById(Mockito.anyLong());
-        service = new PlanService() {
-            @Override
-            public PlanItem getPlanItemById(Long id, AccessLevel requiredAccess) {
-                // Just skip the access checks. This is a smell that says the
-                // service is doing multiple things!
-                return itemRepo.getReferenceById(id);
-            }
-        };
+        service = new PlanService();
         service.itemRepo = repo;
     }
 
