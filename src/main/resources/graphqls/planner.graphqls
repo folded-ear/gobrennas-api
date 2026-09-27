@@ -127,8 +127,8 @@ type PlannerMutation {
     """Create multiple new buckets w/in a plan."""
     createBuckets(planId: ID!, buckets: [UnsavedBucket!]!): [PlanBucket!]!
     """Create a new item under the specified parent (which may be a plan, for
-    top-level items), after the specified peer item (null means 'at end'), and with
-    the specified name.
+    top-level items), after the specified peer item (null means 'first'), and
+    with the specified name.
     """
     createItem(parentId: ID!, afterId: ID, name: String!): PlanItem!
     """Create a new empty plan, optionally duplicating the specified source plan."""
@@ -167,7 +167,7 @@ type PlannerMutation {
     """Set the access level granted to a user w/in a plan."""
     setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel!): Plan!
     """Sets the status of the given item. This will always return the updated
-    item, though it may immediately moved to the trash (in the background)."""
+    item, though it may immediately be moved to the trash (in the background)."""
     setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!
     """Update a bucket w/in a plan, by setting or clearing its name and date."""
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!

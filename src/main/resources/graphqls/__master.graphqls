@@ -25,12 +25,10 @@ interface Node {
 }
 
 type PageInfo {
-    """Whether this connection has a previous page, or null if included in the
-    result of a forward paging operation.
+    """Whether this connection has a previous page.
     """
     hasPreviousPage: Boolean!
-    """Whether this connection has a next page, or null if included in the
-    result of a backward paging operation.
+    """Whether this connection has a next page.
     """
     hasNextPage: Boolean!
     """The first cursor returned in this page's edges.

@@ -15,7 +15,7 @@ extend type Mutation {
 }
 
 type TextractMutation {
-  """Create a new job from a pre-uploaded file. Use the `profile.photoUpload`
+  """Create a new job from a pre-uploaded file. Use the `profile.scratchFile`
   field to obtain a pre-signed upload URL, and pass its filename here when done.
   """
   createPreUploadedJob(filename: String!): TextractJob!
