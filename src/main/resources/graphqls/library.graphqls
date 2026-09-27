@@ -222,7 +222,7 @@ type Recipe implements Node & Owned & Ingredient & IngredientCollection {
     whole number.
     """
     totalTime(
-        unit: ChronoUnit = MINUTES
+        unit: ChronoUnit! = MINUTES
     ): Int
     photo: Photo
     favorite: Boolean!
