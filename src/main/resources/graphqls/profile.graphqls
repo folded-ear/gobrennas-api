@@ -68,7 +68,7 @@ type User implements Node {
     devices: [UserDevice!]!
     """A value for every preference is returned. If a deviceKey is provided,
     that device's values will be used. Otherwise, the user's global preferences
-    are used, if they exists. If not, the static default is returned.
+    are used, if they exist. If not, the static default is returned.
     """
     preferences(deviceKey: String): [UserPreference!]!
     """Return a single preference. If a deviceKey is provided, that device's

@@ -66,10 +66,13 @@ type PantryQuery {
     """Retrieve ingredients in bulk, regardless of type. Invalid IDs will be
     silently ignored, and no result returned for them. Duplicate IDs will only
     have a single result returned. The order of results is unspecified.
-    Identical to the query of the same name in 'pantry'.
+    Identical to the query of the same name in 'library'.
     """
     bulkIngredients(ids: [ID!]): [Ingredient!]!
 
+    """Retrieve all pantry items which have been updated since the passed
+    cutoff (expressed in milliseconds since the UNIX epoch).
+    """
     updatedSince(cutoff: Long!): [PantryItem!]!
 }
 

@@ -129,7 +129,7 @@ enum RecognizedRangeType {
     NEW_ITEM
 }
 
-"""A recognized quantity in the raw string. The type indicates which of the id
+"""A recognized range of the raw string. The type indicates which of the id
 or quantity fields will be non-null, if either.
 """
 type RecognizedRange {
@@ -218,6 +218,9 @@ type Recipe implements Node & Owned & Ingredient & IngredientCollection {
     labels: [String!]
     yield: Int
     calories: Int
+    """Total time to make the recipe, in the requested unit, truncated to a
+    whole number.
+    """
     totalTime(
         unit: ChronoUnit = MINUTES
     ): Int
@@ -254,6 +257,9 @@ type Section implements Node & IngredientCollection {
 
 type Photo {
     url: String!
+    """The photo's focal point, as a two-element `[left, top]` list, or null
+    if not set.
+    """
     focus: [Float!]
 }
 
@@ -324,12 +330,18 @@ type LibraryMutation {
         info: IngredientInfo!
     ): Recipe!
     """Set the photo for a recipe in your library, without changing any other
-    info about the recipe. A photo may be set during create and/or update.
+    info about the recipe. A photo may be set during create and/or update. A
+    photo can be replaced, but not removed.
     """
     setRecipePhoto(
         id: ID!
-        """Filename of a scratch upload."""
+        """Filename of a scratch upload. If null, nothing is changed, including
+        focus.
+        """
         filename: String
+        """The photo's focal point, as `[left, top]`. Ignored unless exactly
+        two elements are supplied.
+        """
         focus: [Float!]
     ): Recipe!
     """Delete a recipe from your library.
@@ -365,9 +377,15 @@ input IngredientInfo {
     labels: [String!]
     yield: Int
     calories: Int
+    """Total time to make the recipe, in milliseconds. Note that
+    `Recipe.totalTime` returns minutes by default.
+    """
     totalTime: Int
     """Filename of a scratch upload to set as this recipe's photo."""
     photo: String
+    """The photo's focal point, as `[left, top]`. Ignored unless exactly two
+    elements are supplied.
+    """
     photoFocus: [Float!]
 }
 
