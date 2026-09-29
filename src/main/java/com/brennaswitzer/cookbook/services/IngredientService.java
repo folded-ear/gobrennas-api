@@ -39,22 +39,22 @@ public class IngredientService {
     }
 
     public List<Ingredient> findAllIngredientsByNameContaining(String name) {
-        String unpluralized = EnglishUtils.unpluralize(name);
-        List<PantryItem> pantryItems = pantryItemRepository.findAllByNameIgnoreCaseContainingOrderById(unpluralized);
-        List<Ingredient> result = new ArrayList<>(pantryItems);
-        User user = principalAccess.getUser();
-        List<Recipe> recipes = recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingAndSectionOfIsNullOrderById(
-                user,
-                unpluralized);
-        result.addAll(recipes);
-        return result;
+        return findAllIngredientsByNameContaining(name, false);
     }
 
     /** Suggestions include owned sections; automatic name recognition keeps its existing scope. */
     public List<Ingredient> findSuggestionIngredients(String name) {
+        return findAllIngredientsByNameContaining(name, true);
+    }
+
+    private List<Ingredient> findAllIngredientsByNameContaining(String name, boolean includeSections) {
         String search = EnglishUtils.unpluralize(name);
         List<Ingredient> result = new ArrayList<>(pantryItemRepository.findAllByNameIgnoreCaseContainingOrderById(search));
-        result.addAll(recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingOrderById(principalAccess.getUser(), search));
+        User user = principalAccess.getUser();
+        List<Recipe> recipes = includeSections
+                ? recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingOrderById(user, search)
+                : recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingAndSectionOfIsNullOrderById(user, search);
+        result.addAll(recipes);
         return result;
     }
 
