@@ -17,10 +17,8 @@ import com.brennaswitzer.cookbook.services.ItemService;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.brennaswitzer.cookbook.services.RecipeService;
 import jakarta.persistence.EntityManager;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -145,11 +143,6 @@ public class Info2Recipe {
                 PantryItem it = new PantryItem(info.getIngredient());
                 entityManager.persist(it);
                 ref.setIngredient(it);
-            }
-            if (info.isSection()) {
-                Assert.isTrue(Hibernate.unproxy(ref.getIngredient()) instanceof Recipe,
-                              "A section reference must identify an existing recipe or section");
-                ref.setSection(true);
             }
             return ref;
         }

@@ -423,8 +423,6 @@ input IngredientRefInfo {
     ingredient: String
     ingredientId: ID
     preparation: String
-    """Reference the identified recipe as a section without copying its contents."""
-    section: Boolean! = false
 }
 
 input SectionInfo {

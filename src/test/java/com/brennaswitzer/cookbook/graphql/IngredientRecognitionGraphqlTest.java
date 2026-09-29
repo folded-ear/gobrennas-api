@@ -4,7 +4,6 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
-import graphql.ErrorType;
 import graphql.ExecutionInput;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -15,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithAliceBobEve
 class IngredientRecognitionGraphqlTest {
@@ -25,7 +22,7 @@ class IngredientRecognitionGraphqlTest {
     @Autowired UserPrincipalAccess principal;
 
     @Test
-    void groupedSuggestionsExplicitChoiceAndSectionSaveRoundTrip() {
+    void groupedSuggestionsAndExplicitChoice() {
         PantryItem pantry = new PantryItem("stock");
         em.persist(pantry);
         Recipe parent = recipe("Soup");
@@ -58,17 +55,7 @@ class IngredientRecognitionGraphqlTest {
                 Map.of("type", "ITEM", "id", section.getId().toString(), "start", 0, "end", 5)
         )))), recognized.getData());
 
-        var saved = source.graphQl().execute(ExecutionInput.newExecutionInput()
-                .query("""
-                    mutation($id: ID!) { library { createRecipe(info: {
-                        type: "Recipe", name: "New soup", ingredients: [{raw: "stock", ingredientId: $id, section: true}]
-                    }, cookThis: false) { ingredients { raw } sections { id name } } } }
-                    """)
-                .variables(Map.of("id", section.getId().toString())).build());
-        assertEquals(List.of(), saved.getErrors());
-        assertEquals(Map.of("library", Map.of("createRecipe", Map.of(
-                "ingredients", List.of(), "sections", List.of(Map.of("id", section.getId().toString(), "name", "stock"))
-        ))), saved.getData());
+
     }
 
     @Test
@@ -140,34 +127,71 @@ class IngredientRecognitionGraphqlTest {
     }
 
     @Test
-    void sectionDefaultsToFalseAndRejectsExplicitNull() {
-        Recipe ingredient = recipe("stock");
+    void sectionIngredientKeepsItsPositionAcrossCreateReadAndUpdate() {
+        PantryItem flour = new PantryItem("flour");
+        PantryItem salt = new PantryItem("salt");
+        em.persist(flour);
+        em.persist(salt);
+        Recipe parent = recipe("Pie");
+        Recipe filling = recipe("Filling");
+        parent.addOwnedSection(filling);
         em.flush();
-        String mutation = """
-                mutation($row: IngredientRefInfo!) { library { createRecipe(info: {
-                    type: "Recipe", name: "Soup", ingredients: [$row]
-                }, cookThis: false) { ingredients { raw } sections { id } } } }
-                """;
-        Map<String, Object> row = new java.util.HashMap<>(Map.of(
-                "raw", "stock", "ingredientId", ingredient.getId().toString()));
-        // Both omission and explicit false must keep this as an ordinary ingredient.
-        for (int attempt = 0; attempt < 2; attempt++) {
-            var saved = source.graphQl().execute(ExecutionInput.newExecutionInput()
-                    .query(mutation).variables(Map.of("row", row)).build());
-            assertEquals(List.of(), saved.getErrors());
-            assertEquals(Map.of("library", Map.of("createRecipe", Map.of(
-                    "ingredients", List.of(Map.of("raw", "stock")), "sections", List.of()
-            ))), saved.getData());
-            row.put("section", false);
-        }
 
-        row.put("section", null);
-        var rejected = source.graphQl().execute(ExecutionInput.newExecutionInput()
-                .query(mutation).variables(Map.of("row", row)).build());
-        assertNull(rejected.getData());
-        assertEquals(1, rejected.getErrors().size());
-        assertEquals(ErrorType.ValidationError, rejected.getErrors().get(0).getErrorType());
-        assertTrue(rejected.getErrors().get(0).getMessage().contains("section"));
+        List<Map<String, Object>> rows = List.of(
+                Map.of("raw", "flour", "ingredientId", flour.getId().toString()),
+                Map.of("raw", "Filling", "ingredientId", filling.getId().toString()),
+                Map.of("raw", "salt", "ingredientId", salt.getId().toString()));
+        var saved = source.graphQl().execute(ExecutionInput.newExecutionInput()
+                .query("""
+                    mutation($rows: [IngredientRefInfo!]!) { library { createRecipe(info: {
+                        type: "Recipe", name: "New pie", ingredients: $rows
+                    }, cookThis: false) { id } } }
+                    """)
+                .variables(Map.of("rows", rows)).build());
+        assertEquals(List.of(), saved.getErrors());
+        Map<String, Map<String, Map<String, Object>>> created = saved.getData();
+        String id = (String) created.get("library").get("createRecipe").get("id");
+        em.flush();
+        em.clear();
+
+        var loaded = source.graphQl().execute(ExecutionInput.newExecutionInput()
+                .query("""
+                    query($id: ID!) { library { getRecipeById(id: $id) {
+                        ingredients { raw ingredient { id } } sections { id }
+                    } } }
+                    """)
+                .variables(Map.of("id", id)).build());
+        assertEquals(List.of(), loaded.getErrors());
+        var expected = Map.of("ingredients", List.of(
+                Map.of("raw", "flour", "ingredient", Map.of("id", flour.getId().toString())),
+                Map.of("raw", "Filling", "ingredient", Map.of("id", filling.getId().toString())),
+                Map.of("raw", "salt", "ingredient", Map.of("id", salt.getId().toString()))
+        ), "sections", List.of());
+        assertEquals(Map.of("library", Map.of("getRecipeById", expected)), loaded.getData());
+
+        // Build the update from what an editor reads, rather than resending the original input.
+        Map<String, Map<String, Map<String, Object>>> data = loaded.getData();
+        var readRecipe = data.get("library").get("getRecipeById");
+        var readRows = (List<?>) readRecipe.get("ingredients");
+        var updatedRows = readRows.stream().map(value -> {
+            var row = (Map<?, ?>) value;
+            var ingredient = (Map<?, ?>) row.get("ingredient");
+            return Map.of("raw", row.get("raw"), "ingredientId", ingredient.get("id"));
+        }).toList();
+        var updated = source.graphQl().execute(ExecutionInput.newExecutionInput()
+                .query("""
+                    mutation($id: ID!, $info: IngredientInfo!) { library { updateRecipe(id: $id, info: $info) {
+                        ingredients { raw ingredient { id } } sections { id }
+                    } } }
+                    """)
+                .variables(Map.of("id", id, "info", Map.of(
+                        "type", "Recipe", "name", "Renamed pie", "ingredients", updatedRows,
+                        "sections", readRecipe.get("sections")))).build());
+        assertEquals(List.of(), updated.getErrors());
+        assertEquals(Map.of("library", Map.of("updateRecipe", expected)), updated.getData());
+        em.flush();
+        em.clear();
+        assertEquals(parent.getId(), em.find(Recipe.class, filling.getId()).getSectionOf().getId());
     }
 
     private Map<String, Object> legacySuggestion(Long id, String name, int end) {

@@ -6,7 +6,6 @@ import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.payload.IngredientInfo;
-import com.brennaswitzer.cookbook.payload.IngredientRefInfo;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.LabelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,8 +23,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -82,32 +79,6 @@ class Info2RecipeTest {
         withSections = new ObjectMapper()
                 .readValue(getClass().getResourceAsStream("with_sections.json"),
                            IngredientInfo.class);
-    }
-
-    @Test
-    void ingredientRowCanReferenceASectionWithoutCopyingIt() {
-        var row = withSections.getIngredients().get(0);
-        row.setIngredientId(48L);
-        row.setSection(true);
-        row.setRaw("2 Italian Dressing");
-        row.setQuantity(2.0);
-        row.setPreparation("chilled");
-        Recipe recipe = converter.convert(userPrincipal, withSections);
-        var ref = recipe.getIngredients().get(0);
-        assertTrue(ref.isSection());
-        assertEquals(48L, ref.getIngredient().getId());
-        assertEquals("2 Italian Dressing", ref.getRaw());
-        assertEquals(2.0, ref.getQuantity().getQuantity());
-        assertEquals("chilled", ref.getPreparation());
-        assertTrue(IngredientRefInfo.from(ref).isSection());
-    }
-
-    @Test
-    void aPantryItemCannotBeMarkedAsASection() {
-        var row = withSections.getIngredients().get(0);
-        row.setIngredientId(148L);
-        row.setSection(true);
-        assertThrows(IllegalArgumentException.class, () -> converter.convert(userPrincipal, withSections));
     }
 
     @Test
