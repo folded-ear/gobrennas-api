@@ -4,6 +4,7 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
+import graphql.ErrorType;
 import graphql.ExecutionInput;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithAliceBobEve
 class IngredientRecognitionGraphqlTest {
@@ -134,6 +137,37 @@ class IngredientRecognitionGraphqlTest {
             assertEquals(List.of(), explicitDefaults.getErrors());
             assertEquals(response.<Map<String, Object>>getData(), explicitDefaults.getData());
         }
+    }
+
+    @Test
+    void sectionDefaultsToFalseAndRejectsExplicitNull() {
+        Recipe ingredient = recipe("stock");
+        em.flush();
+        String mutation = """
+                mutation($row: IngredientRefInfo!) { library { createRecipe(info: {
+                    type: "Recipe", name: "Soup", ingredients: [$row]
+                }, cookThis: false) { ingredients { raw } sections { id } } } }
+                """;
+        Map<String, Object> row = new java.util.HashMap<>(Map.of(
+                "raw", "stock", "ingredientId", ingredient.getId().toString()));
+        // Both omission and explicit false must keep this as an ordinary ingredient.
+        for (int attempt = 0; attempt < 2; attempt++) {
+            var saved = source.graphQl().execute(ExecutionInput.newExecutionInput()
+                    .query(mutation).variables(Map.of("row", row)).build());
+            assertEquals(List.of(), saved.getErrors());
+            assertEquals(Map.of("library", Map.of("createRecipe", Map.of(
+                    "ingredients", List.of(Map.of("raw", "stock")), "sections", List.of()
+            ))), saved.getData());
+            row.put("section", false);
+        }
+
+        row.put("section", null);
+        var rejected = source.graphQl().execute(ExecutionInput.newExecutionInput()
+                .query(mutation).variables(Map.of("row", row)).build());
+        assertNull(rejected.getData());
+        assertEquals(1, rejected.getErrors().size());
+        assertEquals(ErrorType.ValidationError, rejected.getErrors().get(0).getErrorType());
+        assertTrue(rejected.getErrors().get(0).getMessage().contains("section"));
     }
 
     private Map<String, Object> legacySuggestion(Long id, String name, int end) {
