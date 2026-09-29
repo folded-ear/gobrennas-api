@@ -61,8 +61,13 @@ public class RawUtils {
 
     public static RawIngredientDissection dissect(String raw) {
         if (ValueUtils.noValue(raw)) return null;
+        return dissect(raw, raw.length());
+    }
+
+    public static RawIngredientDissection dissect(String raw, int quantityEnd) {
+        if (ValueUtils.noValue(raw)) return null;
         RawIngredientDissection d = new RawIngredientDissection(raw);
-        NumberUtils.NumberWithRange n = NumberUtils.parseNumberWithRange(raw);
+        NumberUtils.NumberWithRange n = NumberUtils.parseNumberWithRange(raw.substring(0, quantityEnd));
         int pos = 0;
         if (n != null) {
             d.setQuantity(new RawIngredientDissection.Section(

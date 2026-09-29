@@ -13,6 +13,8 @@ import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
@@ -342,6 +344,39 @@ public class ItemServiceTest {
                 new RecognitionChoice(section.getId(), 0, 5)));
         assertThrows(IllegalArgumentException.class, () -> service.recognizeItem(raw, 0, false,
                 new RecognitionChoice(section.getId(), 7, 100)));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"'2 ',2", "'2 1/2 ',2.5", "'',NULL"}, nullValues = "NULL")
+    void selectedFractionPrefixedNameDoesNotContributeToQuantity(String prefix, Double expectedQuantity) {
+        Recipe recipe = new Recipe();
+        recipe.setName("1/2-pound burger");
+        recipe.setOwner(principalAccess.getUser());
+        entityManager.persist(recipe);
+        String raw = prefix + recipe.getName() + ", grilled";
+        int nameEnd = prefix.length() + recipe.getName().length();
+
+        var recognized = service.recognizeItem(raw, raw.length(), false,
+                new RecognitionChoice(recipe.getId(), prefix.length(), nameEnd));
+
+        assertEquals(raw, recognized.getRaw());
+        var quantities = recognized.getRanges().stream()
+                .filter(r -> r.getType() == RecognizedRangeType.QUANTITY).toList();
+        assertEquals(expectedQuantity == null ? 0 : 1, quantities.size());
+        if (expectedQuantity != null) {
+            assertEquals(expectedQuantity, quantities.get(0).getQuantity());
+            assertEquals(prefix.trim(), quantities.get(0).of(raw));
+        }
+        var ingredient = recognized.getRanges().stream()
+                .filter(r -> r.getType() == RecognizedRangeType.ITEM).findFirst().orElseThrow();
+        assertEquals(recipe.getId(), ingredient.getId());
+        assertEquals(new RecognizedRange(prefix.length(), nameEnd, RecognizedRangeType.ITEM), ingredient);
+
+        String quoted = prefix + '"' + recipe.getName() + "\", grilled";
+        var legacy = service.recognizeItem(quoted, quoted.length(), false);
+        assertEquals(quantities.stream().map(RecognizedRange::getQuantity).toList(),
+                     legacy.getRanges().stream().filter(r -> r.getType() == RecognizedRangeType.QUANTITY)
+                             .map(RecognizedRange::getQuantity).toList());
     }
 
     private RecognizedItem recognizeItem(String raw) {

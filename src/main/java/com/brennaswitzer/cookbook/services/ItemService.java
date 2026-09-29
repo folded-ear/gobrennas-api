@@ -64,7 +64,8 @@ public class ItemService {
         }
         if (ValueUtils.noValue(raw)) return null;
         RecognizedItem item = new RecognizedItem(raw, cursor);
-        RawIngredientDissection d = RawUtils.dissect(raw);
+        // A selected ingredient's name cannot contribute to the quantity before it.
+        RawIngredientDissection d = RawUtils.dissect(raw, choice == null ? raw.length() : choice.getStart());
         RawIngredientDissection.Section secQuantity = d.getQuantity();
         if (secQuantity != null) {
             // there's a quantity
@@ -92,7 +93,7 @@ public class ItemService {
         int idxExplicitItemStart = -1;
         int idxImplicitItemStart = -1;
         if (choice != null) {
-            // A selected name may itself contain a number or an explicit-unit delimiter.
+            // A selected name may itself contain an explicit-unit delimiter.
             item.getRanges().removeIf(r -> r.getStart() < choice.getEnd() && r.getEnd() > choice.getStart());
             item.withRange(new RecognizedRange(choice.getStart(), choice.getEnd(), RecognizedRangeType.ITEM)
                                    .withId(choice.getId()));
