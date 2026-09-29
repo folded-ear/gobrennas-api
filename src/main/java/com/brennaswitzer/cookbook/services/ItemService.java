@@ -3,8 +3,11 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.MutableItem;
 import com.brennaswitzer.cookbook.domain.Quantity;
+import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.payload.RawIngredientDissection;
+import com.brennaswitzer.cookbook.payload.RecognitionChoice;
+import com.brennaswitzer.cookbook.payload.RecognitionKind;
 import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.payload.RecognizedRange;
@@ -18,9 +21,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +50,18 @@ public class ItemService {
     private IngredientService ingredientService;
 
     public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions) {
+        return recognizeItem(raw, cursor, withSuggestions, null);
+    }
+
+    public RecognizedItem recognizeItem(String raw, int cursor, boolean withSuggestions, RecognitionChoice choice) {
+        if (choice != null) {
+            Assert.isTrue(raw != null && choice.getStart() >= 0 && choice.getEnd() > choice.getStart()
+                          && choice.getEnd() <= raw.length(), "Invalid ingredient choice range");
+            Assert.notNull(choice.getId(), "An ingredient choice needs an id");
+            Ingredient selected = entityManager.find(Ingredient.class, choice.getId());
+            Assert.isTrue(selected != null && selected.getName().equalsIgnoreCase(
+                    raw.substring(choice.getStart(), choice.getEnd())), "Ingredient choice does not match its text");
+        }
         if (ValueUtils.noValue(raw)) return null;
         RecognizedItem item = new RecognizedItem(raw, cursor);
         RawIngredientDissection d = RawUtils.dissect(raw);
@@ -74,7 +91,13 @@ public class ItemService {
         RawIngredientDissection.Section secName = d.getName();
         int idxExplicitItemStart = -1;
         int idxImplicitItemStart = -1;
-        if (secName != null) {
+        if (choice != null) {
+            // A selected name may itself contain a number or an explicit-unit delimiter.
+            item.getRanges().removeIf(r -> r.getStart() < choice.getEnd() && r.getEnd() > choice.getStart());
+            item.withRange(new RecognizedRange(choice.getStart(), choice.getEnd(), RecognizedRangeType.ITEM)
+                                   .withId(choice.getId()));
+            idxExplicitItemStart = choice.getStart();
+        } else if (secName != null) {
             // there's an explicit name
             Optional<Ingredient> oing = ingredientService.findIngredientByName(
                     secName.getText());
@@ -122,6 +145,12 @@ public class ItemService {
 
     public List<RecognitionSuggestion> getSuggestions(RecognizedItem item,
                                                       int count) {
+        return getSuggestions(item, count, false);
+    }
+
+    public List<RecognitionSuggestion> getSuggestions(RecognizedItem item,
+                                                      int count,
+                                                      boolean grouped) {
         String raw = item.getRaw();
         // based on cursor position, see if we can suggest any names
         // start with looking backwards for a quote
@@ -147,13 +176,19 @@ public class ItemService {
             return Collections.emptyList();
         }
         String singularSearch = EnglishUtils.unpluralize(search);
-        Iterable<Ingredient> matches = ingredientService.findAllIngredientsByNameContaining(search);
+        Iterable<Ingredient> matches = grouped
+                ? ingredientService.findSuggestionIngredients(search)
+                : ingredientService.findAllIngredientsByNameContaining(search);
         String lcRawPrefix = raw.toLowerCase()
                 .substring(0, item.getCursor() - search.length());
         return StreamSupport.stream(matches.spliterator(), false)
-                .filter(new UniqueSuggestions())
+                .filter(new UniqueSuggestions(grouped))
                 .limit(count)
-                .map(i -> {
+                .map(candidate -> {
+                    Ingredient i = (Ingredient) Hibernate.unproxy(candidate);
+                    Recipe recipe = i instanceof Recipe r ? r : null;
+                    RecognitionKind kind = recipe == null ? RecognitionKind.PANTRY_ITEM
+                            : recipe.isOwnedSection() ? RecognitionKind.SECTION : RecognitionKind.RECIPE;
                     // this should probably check all locations the
                     // search matches, not just the first...
                     String lcName = i.getName().toLowerCase();
@@ -176,7 +211,9 @@ public class ItemService {
                                     replaceStart - len,
                                     item.getCursor(),
                                     RecognizedRangeType.ITEM
-                            ).withId(i.getId())
+                            ).withId(i.getId()),
+                            kind,
+                            recipe != null && recipe.isOwnedSection() ? recipe.getSectionOf().getName() : null
                     );
                 })
                 .collect(Collectors.toList());
@@ -184,16 +221,17 @@ public class ItemService {
 
     private static class UniqueSuggestions implements Predicate<Ingredient> {
 
-        private final Set<String> uniquer = new HashSet<>();
+        private final boolean grouped;
+        private final Set<Long> ids = new HashSet<>();
+        private final Set<String> names = new HashSet<>();
+
+        private UniqueSuggestions(boolean grouped) {
+            this.grouped = grouped;
+        }
 
         @Override
         public boolean test(Ingredient ing) {
-            String name = ing.getName();
-            if (uniquer.add(name)) {
-                return true;
-            }
-            log.warn("Ignore duplicate '{}' suggestion (from {})", name, ing.getId());
-            return false;
+            return grouped ? ids.add(ing.getId()) : names.add(ing.getName());
         }
 
     }

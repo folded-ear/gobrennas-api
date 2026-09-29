@@ -98,6 +98,10 @@ type LibraryQuery {
         suggestions. If not specified, the end of the raw string is assumed.
         """
         cursor: NonNegativeInt
+        """Keep an explicitly selected ingredient while recognizing the surrounding text.
+        The range uses UTF-16 offsets and must contain that ingredient's name.
+        """
+        choice: RecognitionChoice
     ): RecognizedItem!
 }
 
@@ -117,7 +121,14 @@ type RecognizedItem {
     position. If more than 'count' suggestions are available, the returned
     subset is unspecified, other than pantry items are preferred to recipes.
     """
-    suggestions(count: PositiveInt! = 10): [RecognitionSuggestion!]!
+    suggestions(
+        count: PositiveInt! = 10
+        """Opt in to candidates for a grouped picker: include owned sections and
+        keep distinct ingredient IDs even when names match. By default, exclude
+        owned sections and deduplicate by name for existing text-only clients.
+        """
+        grouped: Boolean! = false
+    ): [RecognitionSuggestion!]!
 }
 
 enum RecognizedRangeType {
@@ -140,12 +151,27 @@ type RecognizedRange {
     id: ID
 }
 
+enum RecognitionKind {
+    PANTRY_ITEM
+    RECIPE
+    SECTION
+}
+
+input RecognitionChoice {
+    id: ID!
+    start: NonNegativeInt!
+    end: NonNegativeInt!
+}
+
 """A suggestion for what might come next at the cursor position, along with the
 target range of the raw string it would replace.
 """
 type RecognitionSuggestion {
     name: String!
     target: RecognizedRange!
+    kind: RecognitionKind!
+    """Optional disambiguating context; sections return their parent recipe name."""
+    detail: String
 }
 
 type RecipeConnection {
@@ -397,6 +423,8 @@ input IngredientRefInfo {
     ingredient: String
     ingredientId: ID
     preparation: String
+    """Reference the identified recipe as a section without copying its contents."""
+    section: Boolean = false
 }
 
 input SectionInfo {

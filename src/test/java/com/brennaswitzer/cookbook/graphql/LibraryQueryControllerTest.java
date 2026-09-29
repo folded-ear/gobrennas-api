@@ -88,17 +88,17 @@ class LibraryQueryControllerTest {
 
     @Test
     void recognizeItem_cursor() {
-        query.recognizeItem(null, "goat", 14);
-        verify(itemService).recognizeItem("goat", 14, false);
+        query.recognizeItem(null, "goat", 14, null);
+        verify(itemService).recognizeItem("goat", 14, false, null);
     }
 
     @Test
     void recognizeItem_noCursor() {
         var mock = mock(RecognizedItem.class);
-        when(itemService.recognizeItem("goat", 4, false))
+        when(itemService.recognizeItem("goat", 4, false, null))
                 .thenReturn(mock);
 
-        var result = query.recognizeItem(null, "goat", null);
+        var result = query.recognizeItem(null, "goat", null, null);
 
         assertSame(mock, result);
     }

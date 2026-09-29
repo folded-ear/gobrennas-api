@@ -31,6 +31,9 @@ public class IngredientRefInfo {
     @Getter
     @Setter
     private String preparation;
+    @Getter
+    @Setter
+    private boolean section;
 
     public boolean hasQuantity() {
         return quantity != null;
@@ -75,6 +78,7 @@ public class IngredientRefInfo {
     public static IngredientRefInfo from(IngredientRef ref) {
         IngredientRefInfo info = new IngredientRefInfo();
         info.setRaw(ref.getRaw());
+        info.setSection(ref.isSection());
         if (ref.hasQuantity()) {
             Quantity q = ref.getQuantity();
             info.setQuantity(q.getQuantity());

@@ -50,6 +50,14 @@ public class IngredientService {
         return result;
     }
 
+    /** Suggestions include owned sections; automatic name recognition keeps its existing scope. */
+    public List<Ingredient> findSuggestionIngredients(String name) {
+        String search = EnglishUtils.unpluralize(name);
+        List<Ingredient> result = new ArrayList<>(pantryItemRepository.findAllByNameIgnoreCaseContainingOrderById(search));
+        result.addAll(recipeRepository.findAllByOwnerAndNameIgnoreCaseContainingOrderById(principalAccess.getUser(), search));
+        return result;
+    }
+
     public Optional<Ingredient> findIngredientByName(String name) {
         String unpluralized = EnglishUtils.unpluralize(name);
         // see if there's a pantry item...
