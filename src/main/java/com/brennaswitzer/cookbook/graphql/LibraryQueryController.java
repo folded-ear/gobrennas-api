@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.graphql.model.GqlSearch;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnection;
 import com.brennaswitzer.cookbook.graphql.model.OffsetConnectionCursor;
 import com.brennaswitzer.cookbook.graphql.model.Section;
+import com.brennaswitzer.cookbook.payload.RecognitionChoice;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.repositories.SearchResponse;
 import com.brennaswitzer.cookbook.repositories.impl.LibrarySearchRequest;
@@ -146,12 +147,14 @@ public class LibraryQueryController {
     @PreAuthorize("hasRole('USER')")
     RecognizedItem recognizeItem(LibraryQuery libQ,
                                  @Argument String raw,
-                                 @Argument Integer cursor) {
+                                 @Argument Integer cursor,
+                                 @Argument RecognitionChoice choice) {
         // never request suggestions, so the resolver can process 'count'
         return itemService.recognizeItem(
                 raw,
                 cursor == null ? raw.length() : cursor,
-                false);
+                false,
+                choice);
     }
 
     @SchemaMapping

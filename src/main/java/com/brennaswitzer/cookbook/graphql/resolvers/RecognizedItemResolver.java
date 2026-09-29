@@ -18,8 +18,9 @@ public class RecognizedItemResolver {
 
     @SchemaMapping
     public List<RecognitionSuggestion> suggestions(RecognizedItem item,
-                                                   @Argument int count) {
-        return itemService.getSuggestions(item, count);
+                                                   @Argument int count,
+                                                   @Argument boolean grouped) {
+        return itemService.getSuggestions(item, count, grouped);
     }
 
 }

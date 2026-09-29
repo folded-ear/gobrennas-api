@@ -1,5 +1,9 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.PantryItem;
+import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.payload.RecognitionChoice;
+import com.brennaswitzer.cookbook.payload.RecognitionKind;
 import com.brennaswitzer.cookbook.payload.RecognitionSuggestion;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.payload.RecognizedRange;
@@ -9,14 +13,19 @@ import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithAliceBobEve
 public class ItemServiceTest {
@@ -224,20 +233,20 @@ public class ItemServiceTest {
         RecognizedItem el = recognizeItem("1 gram f");
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("flour",
-                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM), RecognitionKind.PANTRY_ITEM, null), itr.next());
         assertEquals(new RecognitionSuggestion("fresh tomatoes",
-                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM), RecognitionKind.PANTRY_ITEM, null), itr.next());
         assertEquals(new RecognitionSuggestion("Fried Chicken",
-                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 8, RecognizedRangeType.ITEM), RecognitionKind.RECIPE, null), itr.next());
         assertFalse(itr.hasNext());
 
         // cursor after the 'fr'
         el = recognizeItem("1 gram fr, dehydrated", 9);
         itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("fresh tomatoes",
-                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM), RecognitionKind.PANTRY_ITEM, null), itr.next());
         assertEquals(new RecognitionSuggestion("Fried Chicken",
-                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 9, RecognizedRangeType.ITEM), RecognitionKind.RECIPE, null), itr.next());
     }
 
     @Test
@@ -248,7 +257,7 @@ public class ItemServiceTest {
         RecognizedItem el = recognizeItem("1 gram \"cru, dehydrated", 11);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
-                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM), RecognitionKind.RECIPE, null), itr.next());
     }
 
     @Test
@@ -259,7 +268,7 @@ public class ItemServiceTest {
         RecognizedItem el = recognizeItem("1 gram \"crumbs", 11);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
-                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 11, RecognizedRangeType.ITEM), RecognitionKind.RECIPE, null), itr.next());
     }
 
     @Test
@@ -270,7 +279,7 @@ public class ItemServiceTest {
         RecognizedItem el = recognizeItem("1 gram \"pizza cru, dehydrated", 17);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
-                                               new RecognizedRange(7, 17, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 17, RecognizedRangeType.ITEM), RecognitionKind.RECIPE, null), itr.next());
     }
 
     @Test
@@ -281,7 +290,7 @@ public class ItemServiceTest {
         RecognizedItem el = recognizeItem("1 gram pizza cru, dehydrated", 16);
         Iterator<RecognitionSuggestion> itr = el.getSuggestions().iterator();
         assertEquals(new RecognitionSuggestion("Pizza Crust",
-                                               new RecognizedRange(7, 16, RecognizedRangeType.ITEM)), itr.next());
+                                               new RecognizedRange(7, 16, RecognizedRangeType.ITEM), RecognitionKind.RECIPE, null), itr.next());
     }
 
     @Test
@@ -295,6 +304,79 @@ public class ItemServiceTest {
         //noinspection OptionalGetWithoutIsPresent
         RecognizedRange ing = ri.filter(it -> it.getType() == RecognizedRangeType.ITEM).findFirst().get();
         assertEquals(new RecognizedRange(0, 18, RecognizedRangeType.ITEM), ing);
+    }
+
+    @Test
+    void sameNamedSuggestionsRetainKindsAndIdsIncludingSections() {
+        PantryItem pantry = new PantryItem("stock");
+        entityManager.persist(pantry);
+        Recipe parent = new Recipe();
+        parent.setName("Soup");
+        parent.setOwner(principalAccess.getUser());
+        entityManager.persist(parent);
+        Recipe recipe = new Recipe();
+        recipe.setName("stock");
+        recipe.setOwner(principalAccess.getUser());
+        entityManager.persist(recipe);
+        Recipe section = new Recipe();
+        section.setName("stock");
+        section.setOwner(principalAccess.getUser());
+        parent.addOwnedSection(section);
+        entityManager.persist(section);
+        entityManager.flush();
+
+        var options = service.getSuggestions(new RecognizedItem("2 cups sto"), 10, true);
+        assertEquals(List.of(RecognitionKind.PANTRY_ITEM, RecognitionKind.RECIPE, RecognitionKind.SECTION),
+                     options.stream().map(RecognitionSuggestion::getKind).toList());
+        assertEquals(List.of(pantry.getId(), recipe.getId(), section.getId()),
+                     options.stream().map(s -> s.getTarget().getId()).toList());
+        assertEquals("Soup", options.get(2).getDetail());
+        assertTrue(options.stream().allMatch(s -> s.getTarget().of("2 cups sto").equals("sto")));
+        assertEquals(1, service.recognizeItem("sto", 3, true).getSuggestions().size());
+
+        String raw = "2 cups stock, reduced";
+        var chosen = service.recognizeItem(raw, raw.length(), false,
+                                          new RecognitionChoice(section.getId(), 7, 12));
+        var name = chosen.getRanges().stream().filter(r -> r.getType() == RecognizedRangeType.ITEM).findFirst().orElseThrow();
+        assertEquals(section.getId(), name.getId());
+        assertEquals("stock", name.of(raw));
+        assertThrows(IllegalArgumentException.class, () -> service.recognizeItem(raw, 0, false,
+                new RecognitionChoice(section.getId(), 0, 5)));
+        assertThrows(IllegalArgumentException.class, () -> service.recognizeItem(raw, 0, false,
+                new RecognitionChoice(section.getId(), 7, 100)));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"'2 ',2", "'2 1/2 ',2.5", "'',NULL"}, nullValues = "NULL")
+    void selectedFractionPrefixedNameDoesNotContributeToQuantity(String prefix, Double expectedQuantity) {
+        Recipe recipe = new Recipe();
+        recipe.setName("1/2-pound burger");
+        recipe.setOwner(principalAccess.getUser());
+        entityManager.persist(recipe);
+        String raw = prefix + recipe.getName() + ", grilled";
+        int nameEnd = prefix.length() + recipe.getName().length();
+
+        var recognized = service.recognizeItem(raw, raw.length(), false,
+                new RecognitionChoice(recipe.getId(), prefix.length(), nameEnd));
+
+        assertEquals(raw, recognized.getRaw());
+        var quantities = recognized.getRanges().stream()
+                .filter(r -> r.getType() == RecognizedRangeType.QUANTITY).toList();
+        assertEquals(expectedQuantity == null ? 0 : 1, quantities.size());
+        if (expectedQuantity != null) {
+            assertEquals(expectedQuantity, quantities.get(0).getQuantity());
+            assertEquals(prefix.trim(), quantities.get(0).of(raw));
+        }
+        var ingredient = recognized.getRanges().stream()
+                .filter(r -> r.getType() == RecognizedRangeType.ITEM).findFirst().orElseThrow();
+        assertEquals(recipe.getId(), ingredient.getId());
+        assertEquals(new RecognizedRange(prefix.length(), nameEnd, RecognizedRangeType.ITEM), ingredient);
+
+        String quoted = prefix + '"' + recipe.getName() + "\", grilled";
+        var legacy = service.recognizeItem(quoted, quoted.length(), false);
+        assertEquals(quantities.stream().map(RecognizedRange::getQuantity).toList(),
+                     legacy.getRanges().stream().filter(r -> r.getType() == RecognizedRangeType.QUANTITY)
+                             .map(RecognizedRange::getQuantity).toList());
     }
 
     private RecognizedItem recognizeItem(String raw) {

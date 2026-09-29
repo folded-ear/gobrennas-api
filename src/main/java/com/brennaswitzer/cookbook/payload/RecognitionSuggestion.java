@@ -20,9 +20,12 @@ public class RecognitionSuggestion {
     public static Comparator<RecognitionSuggestion> BY_POSITION = Comparator.comparing(a -> a.target,
                                                                                        RecognizedRange.BY_POSITION);
     public static Comparator<RecognitionSuggestion> BY_POSITION_AND_NAME = BY_POSITION.thenComparing(a -> a.name,
-                                                                                                     String.CASE_INSENSITIVE_ORDER);
+                                                                                                     String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(a -> a.target.getId(), Comparator.nullsFirst(Comparator.naturalOrder()));
 
     private String name;
     private RecognizedRange target;
+    private RecognitionKind kind;
+    private String detail;
 
 }
