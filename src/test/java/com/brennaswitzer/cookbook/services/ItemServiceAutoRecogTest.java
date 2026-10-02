@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -24,8 +25,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -61,6 +64,16 @@ public class ItemServiceAutoRecogTest {
         // chicken is not (though it _is_ in the RecipeBox)
         when(ingredientService.ensureIngredientByName(box.chicken.getName()))
                 .thenReturn(box.chicken);
+    }
+
+    @Test
+    void explicitRecognitionRequiresChoiceBeforeRecognizingOrChangingTheItem() {
+        Item item = new Item("sugar");
+
+        assertThrows(IllegalArgumentException.class, () -> service.autoRecognize(item, null));
+
+        assertEquals(new Item("sugar"), item);
+        verifyNoInteractions(entityManager, ingredientService);
     }
 
     @ParameterizedTest

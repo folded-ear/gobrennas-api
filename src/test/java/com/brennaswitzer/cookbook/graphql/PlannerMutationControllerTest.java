@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
+import com.brennaswitzer.cookbook.payload.RecognitionChoice;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,9 +83,21 @@ class PlannerMutationControllerTest {
         when(planService.createItem(parentId, afterId, name))
                 .thenReturn(item);
 
-        PlanItem result = mutation.createItem(null, parentId, afterId, name);
+        PlanItem result = mutation.createItem(null, parentId, afterId, name, null);
 
         assertSame(item, result);
+    }
+
+    @Test
+    void createItemWithChoice() {
+        long parentId = 123L;
+        long afterId = 456L;
+        String name = "cheese";
+        RecognitionChoice choice = new RecognitionChoice(789L, 0, name.length());
+        PlanItem item = mock(PlanItem.class);
+        when(planService.createItem(parentId, afterId, name, choice)).thenReturn(item);
+
+        assertSame(item, mutation.createItem(null, parentId, afterId, name, choice));
     }
 
     @Test
