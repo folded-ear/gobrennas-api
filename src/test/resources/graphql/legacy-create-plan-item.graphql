@@ -1,0 +1,51 @@
+# Copied from gobrennas-client's CREATE_PLAN_ITEM and its three fragments.
+# Keep this request unchanged: it is the existing client's compatibility contract.
+mutation createPlanItem($parentId: ID!, $afterId: ID, $name: String!) {
+  planner {
+    createItem(parentId: $parentId, afterId: $afterId, name: $name) {
+      ...corePlanItemLoad
+      ...planItemLoad
+      fullParent: parent {
+        ...corePlanItemLoad
+        ...planLoad
+        ...planItemLoad
+      }
+    }
+  }
+}
+fragment corePlanItemLoad on CorePlanItem {
+  id
+  name
+  children { id }
+}
+fragment planLoad on Plan {
+  color
+  owner { id }
+  grants {
+    user { id }
+    level
+  }
+  buckets {
+    id
+    date
+    name
+  }
+  notes
+}
+fragment planItemLoad on PlanItem {
+  status
+  notes
+  parent { id }
+  aggregate { id }
+  preparation
+  ingredient { id }
+  quantity {
+    quantity
+    units {
+      name
+      id
+    }
+  }
+  components { id }
+  bucket { id }
+}

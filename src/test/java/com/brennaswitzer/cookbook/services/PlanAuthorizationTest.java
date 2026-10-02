@@ -6,6 +6,7 @@ import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.User;
+import com.brennaswitzer.cookbook.payload.RecognitionChoice;
 import com.brennaswitzer.cookbook.repositories.UserRepository;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
@@ -74,6 +75,10 @@ class PlanAuthorizationTest {
                      () -> service.renameItem(oj.getId(), "orange juice"));
         assertThrows(AccessDeniedException.class,
                      () -> service.createItem(plan.getId(), null, "milk"));
+        assertThrows(AccessDeniedException.class,
+                     () -> service.createItem(plan.getId(), null, "milk", new RecognitionChoice(-1L, 0, 4)));
+        assertThrows(AccessDeniedException.class,
+                     () -> service.createItem(plan.getId(), null, "milk", null));
         assertThrows(AccessDeniedException.class,
                      () -> service.setColor(plan.getId(), null));
         assertEquals(ITEM_NAME, oj.getName());

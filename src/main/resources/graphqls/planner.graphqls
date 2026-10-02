@@ -130,7 +130,16 @@ type PlannerMutation {
     top-level items), after the specified peer item (null means 'first'), and
     with the specified name.
     """
-    createItem(parentId: ID!, afterId: ID, name: String!): PlanItem!
+    createItem(
+        parentId: ID!
+        afterId: ID
+        name: String!
+        """An explicitly selected ingredient and its range in name. Omitted or
+        null keeps automatic name recognition unchanged. A leading ! in name
+        still disables recognition, including an explicit choice.
+        """
+        choice: RecognitionChoice
+    ): PlanItem!
     """Create a new empty plan, optionally duplicating the specified source plan."""
     createPlan(name: String!, sourcePlanId: ID): Plan!
     """Create a new plan by duplicating the specified source plan."""

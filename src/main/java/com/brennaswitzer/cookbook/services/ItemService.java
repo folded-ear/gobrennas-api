@@ -255,6 +255,21 @@ public class ItemService {
         String raw = it.getRaw();
         if (ValueUtils.noValue(raw)) return;
         RecognizedItem recog = recognizeItem(raw, raw.length(), false);
+        applyRecognition(it, recog, null);
+    }
+
+    public void autoRecognize(MutableItem it, RecognitionChoice choice) {
+        if (choice == null) {
+            autoRecognize(it);
+            return;
+        }
+        if (it == null) return;
+        String raw = it.getRaw();
+        RecognizedItem recog = recognizeItem(raw, raw == null ? 0 : raw.length(), false, choice);
+        applyRecognition(it, recog, entityManager.find(Ingredient.class, choice.getId()));
+    }
+
+    private void applyRecognition(MutableItem it, RecognizedItem recog, Ingredient selected) {
         if (recog == null) return;
         RawIngredientDissection dissection = RawIngredientDissection
                 .fromRecognizedItem(recog);
@@ -275,7 +290,9 @@ public class ItemService {
             it.setQuantity(q);
         }
         if (dissection.hasName()) {
-            it.setIngredient(ingredientService.ensureIngredientByName(dissection.getNameText()));
+            it.setIngredient(selected == null
+                                     ? ingredientService.ensureIngredientByName(dissection.getNameText())
+                                     : selected);
         }
         it.setPreparation(dissection.getPrep());
     }

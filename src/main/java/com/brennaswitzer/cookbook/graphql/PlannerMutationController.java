@@ -9,6 +9,7 @@ import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.graphql.model.Deletion;
 import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
+import com.brennaswitzer.cookbook.payload.RecognitionChoice;
 import com.brennaswitzer.cookbook.services.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -60,8 +61,11 @@ public class PlannerMutationController {
     PlanItem createItem(PlannerMutation planMut,
                         @Argument Long parentId,
                         @Argument Long afterId,
-                        @Argument String name) {
-        return planService.createItem(parentId, afterId, name);
+                        @Argument String name,
+                        @Argument RecognitionChoice choice) {
+        return choice == null
+                ? planService.createItem(parentId, afterId, name)
+                : planService.createItem(parentId, afterId, name, choice);
     }
 
     @SchemaMapping
