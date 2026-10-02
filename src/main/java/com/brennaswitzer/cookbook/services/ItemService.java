@@ -259,10 +259,7 @@ public class ItemService {
     }
 
     public void autoRecognize(MutableItem it, RecognitionChoice choice) {
-        if (choice == null) {
-            autoRecognize(it);
-            return;
-        }
+        Assert.notNull(choice, "Explicit ingredient recognition requires a choice");
         if (it == null) return;
         String raw = it.getRaw();
         RecognizedItem recog = recognizeItem(raw, raw == null ? 0 : raw.length(), false, choice);

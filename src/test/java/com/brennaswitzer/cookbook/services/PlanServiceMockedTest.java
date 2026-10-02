@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.Plan;
+import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class PlanServiceMockedTest {
@@ -21,6 +23,17 @@ public class PlanServiceMockedTest {
 
     @Mock
     private PlanRepository planRepo;
+
+    @Mock
+    private PlanItemRepository itemRepo;
+
+    @Test
+    void explicitCreateRequiresChoiceBeforeAccessingItems() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> service.createItem(123L, null, "milk", null));
+
+        verifyNoInteractions(itemRepo, planRepo);
+    }
 
     @Test
     void setColor() {

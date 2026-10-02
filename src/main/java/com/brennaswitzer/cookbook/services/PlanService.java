@@ -32,6 +32,7 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
@@ -316,7 +317,7 @@ public class PlanService {
     /** An explicit selection opts into identity-preserving recognition. */
     @PlanItemAccess(id = "{#parentId, #afterId}", level = AccessLevel.CHANGE)
     public PlanItem createItem(Long parentId, Long afterId, String name, RecognitionChoice choice) {
-        if (choice == null) return createItem(parentId, afterId, name);
+        Assert.notNull(choice, "Explicit ingredient recognition requires a choice");
         PlanItem parent = loadItem(parentId);
         PlanItem after = afterId == null ? null : loadItem(afterId);
         PlanItem item = new PlanItem(name);
