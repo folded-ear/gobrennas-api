@@ -202,7 +202,7 @@ public class PlanCalendar {
             boolean hidden = item.hasParent()
                              && getState(item.getParent()).hidden();
 
-            if (!hidden && item.isInTrashBin()) {
+            if (!hidden && item.isDirectlyInTrashBin()) {
                 if (status == PlanItemStatus.DELETED
                     && Duration.between(item.getCreatedAt(), item.getUpdatedAt())
                                .toHours() <= calendarProperties.getHoursDeletedWithinToCancel()) {
