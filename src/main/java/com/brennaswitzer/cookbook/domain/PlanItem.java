@@ -291,6 +291,18 @@ public class PlanItem extends BaseEntity implements Named, Positioned, MutableIt
         return this.trashBin != null;
     }
 
+    /**
+     * I return whether I am not in a trash bin myself, but one of my
+     * ancestors is.
+     */
+    public boolean isImplicitlyInTrashBin() {
+        if (isDirectlyInTrashBin()) return false;
+        for (PlanItem it = getParent(); it != null; it = it.getParent()) {
+            if (it.isDirectlyInTrashBin()) return true;
+        }
+        return false;
+    }
+
     public void restoreFromTrash() {
         if (!isDirectlyInTrashBin()) {
             throw new IllegalArgumentException("This item is not in the trash");
