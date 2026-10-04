@@ -48,4 +48,32 @@ class HeaderTokenAuthenticationFilterTest {
                              "sebastian"));
     }
 
+    @ParameterizedTest
+    @MethodSource
+    void shouldNotFilter(String userAgent, boolean skip) {
+        HeaderTokenAuthenticationFilter filter = new HeaderTokenAuthenticationFilter();
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        when(req.getHeader(HttpHeaders.USER_AGENT))
+                .thenReturn(userAgent);
+
+        assertEquals(skip,
+                     filter.shouldNotFilter(req));
+    }
+
+    public static Stream<Arguments> shouldNotFilter() {
+        return Stream.of(
+                Arguments.of(null,
+                             false),
+                Arguments.of("",
+                             false),
+                Arguments.of("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+                             false),
+                Arguments.of("Mozilla/5.0 GoogleStackdriverMonitoring-UptimeChecks",
+                             false),
+                Arguments.of("GoogleStackdriverMonitoring-UptimeChecks",
+                             true),
+                Arguments.of("GoogleStackdriverMonitoring-UptimeChecks(https://cloud.google.com/monitoring)",
+                             true));
+    }
+
 }
