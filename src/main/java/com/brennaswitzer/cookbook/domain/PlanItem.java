@@ -276,15 +276,38 @@ public class PlanItem extends BaseEntity implements Named, Positioned, MutableIt
         getParent().markDirty();
     }
 
+    /**
+     * @deprecated Use {@link #isDirectlyInTrashBin()}.
+     */
+    @Deprecated
     public boolean isInTrashBin() {
+        return isDirectlyInTrashBin();
+    }
+
+    /**
+     * I return whether I am in a trash bin myself.
+     */
+    public boolean isDirectlyInTrashBin() {
         return this.trashBin != null;
     }
 
+    /**
+     * I return whether I am not in a trash bin myself, but one of my
+     * ancestors is.
+     */
+    public boolean isImplicitlyInTrashBin() {
+        if (isDirectlyInTrashBin()) return false;
+        for (PlanItem it = getParent(); it != null; it = it.getParent()) {
+            if (it.isDirectlyInTrashBin()) return true;
+        }
+        return false;
+    }
+
     public void restoreFromTrash() {
-        if (!isInTrashBin()) {
+        if (!isDirectlyInTrashBin()) {
             throw new IllegalArgumentException("This item is not in the trash");
         }
-        if (getParent().isInTrashBin()) {
+        if (getParent().isDirectlyInTrashBin()) {
             // can't put it back where it was, so top-level it is!
             setParent(this.trashBin);
         }
@@ -392,7 +415,7 @@ public class PlanItem extends BaseEntity implements Named, Positioned, MutableIt
             return collectionSupplier.get();
         }
         return children.stream()
-                .filter(Predicate.not(PlanItem::isInTrashBin))
+                .filter(Predicate.not(PlanItem::isDirectlyInTrashBin))
                 .collect(Collectors.toCollection(collectionSupplier));
     }
 

@@ -276,4 +276,31 @@ public class PlanItemTest {
         printTree("restore a", plan);
     }
 
+    @Test
+    public void implicitlyInTrashBin() {
+        val plan = new Plan("The Plan");
+        val a = new PlanItem("a");
+        plan.addChild(a);
+        val b = new PlanItem("b");
+        a.addChild(b);
+        val c = new PlanItem("c");
+        b.addChild(c);
+        val d = new PlanItem("d");
+        c.addChild(d);
+
+        assertFalse(plan.isImplicitlyInTrashBin());
+        assertFalse(a.isImplicitlyInTrashBin());
+        assertFalse(d.isImplicitlyInTrashBin());
+
+        b.moveToTrash();
+        assertFalse(a.isImplicitlyInTrashBin());
+        assertFalse(b.isImplicitlyInTrashBin());
+        assertTrue(c.isImplicitlyInTrashBin());
+        assertTrue(d.isImplicitlyInTrashBin());
+
+        c.moveToTrash();
+        assertFalse(c.isImplicitlyInTrashBin());
+        assertTrue(d.isImplicitlyInTrashBin());
+    }
+
 }
