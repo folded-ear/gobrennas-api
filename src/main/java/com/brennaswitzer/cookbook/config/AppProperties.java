@@ -26,6 +26,12 @@ public class AppProperties {
      */
     private int daysInTrashBin = 30;
 
+    /**
+     * Dated buckets at least this many days in the past, without any items
+     * outside the trash bin, will be deleted.
+     */
+    private int daysPastBucketDate = 10;
+
     @Valid
     private final Auth auth = new Auth();
     private final OAuth2 oauth2 = new OAuth2();
