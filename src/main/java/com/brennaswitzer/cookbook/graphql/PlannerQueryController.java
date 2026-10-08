@@ -32,8 +32,14 @@ public class PlannerQueryController {
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     Iterable<Plan> plans(PlannerQuery planQ,
+                         @Argument List<Long> ids,
                          @CurrentUser UserPrincipal userPrincipal) {
-        return planService.getPlans(userPrincipal.getId());
+        if (ids == null) {
+            return planService.getPlans(userPrincipal.getId());
+        }
+        return ids.stream()
+                .map(planService::getPlanById)
+                .toList();
     }
 
     @SchemaMapping

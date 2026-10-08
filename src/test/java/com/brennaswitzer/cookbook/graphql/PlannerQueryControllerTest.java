@@ -44,7 +44,7 @@ class PlannerQueryControllerTest {
         when(principal.getId()).thenReturn(123L);
 
         List<Plan> ps = new ArrayList<>();
-        query.plans(null, principal).forEach(ps::add);
+        query.plans(null, null, principal).forEach(ps::add);
 
         assertEquals(2, ps.size());
         assertEach(Arrays.asList("A", "B"), ps, Plan::getName);
