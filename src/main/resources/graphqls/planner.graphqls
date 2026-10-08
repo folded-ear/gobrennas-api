@@ -3,7 +3,9 @@ extend type Query {
 }
 
 type PlannerQuery {
-    plans: [Plan!]!
+    """Retrieve the plans with the given IDs, in the same order, or all plans
+    visible to the current user if omitted."""
+    plans(ids: [ID!]): [Plan!]!
     plan(id: ID!): Plan!
     planItem(id: ID!): PlanItem!
     planOrItem(id: ID!): CorePlanItem!
