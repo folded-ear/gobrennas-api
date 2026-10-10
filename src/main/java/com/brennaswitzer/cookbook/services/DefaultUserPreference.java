@@ -65,10 +65,7 @@ public class DefaultUserPreference {
         pref.setValue(switch (preference.getName()) {
             case Preference.PREF_ACTIVE_PLAN -> getDefaultPlanId(user);
             case Preference.PREF_ACTIVE_SHOPPING_PLANS -> {
-                // use the active plan, if one exists
-                var id = getUserPreference.find(user, preference, device)
-                        .map(UserPreference::getValue)
-                        .orElseGet(() -> getDefaultPlanId(user));
+                var id = getActivePlanId(user, device);
                 if (id == null) yield null;
                 yield toJson(Set.of(id));
             }
@@ -95,6 +92,20 @@ public class DefaultUserPreference {
             User user,
             UserDevice device) {
         return p -> build(user, p, device);
+    }
+
+    private String getActivePlanId(User user, UserDevice device) {
+        return getUserPreference.find(user, Preference.PREF_ACTIVE_PLAN, device)
+                .map(UserPreference::getValue)
+                .filter(id -> isAccessiblePlanId(user, id))
+                .orElseGet(() -> getDefaultPlanId(user));
+    }
+
+    private boolean isAccessiblePlanId(User user, String id) {
+        for (var plan : planRepo.findAccessiblePlans(user.getId())) {
+            if (plan.getId().toString().equals(id)) return true;
+        }
+        return false;
     }
 
     private String getDefaultPlanId(User user) {
