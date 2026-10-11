@@ -57,7 +57,8 @@ class DefaultUserPreferenceDbTest {
     private User alice, bob;
 
     static List<String> activePlanFollowers() {
-        return List.of(Preference.PREF_ACTIVE_SHOPPING_PLANS);
+        return List.of(Preference.PREF_ACTIVE_SHOPPING_PLANS,
+                       Preference.PREF_PLANNER_PLANS);
     }
 
     @BeforeEach

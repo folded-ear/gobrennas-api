@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -64,18 +63,11 @@ public class DefaultUserPreference {
         pref.setDevice(device);
         pref.setValue(switch (preference.getName()) {
             case Preference.PREF_ACTIVE_PLAN -> getDefaultPlanId(user);
-            case Preference.PREF_ACTIVE_SHOPPING_PLANS -> {
+            case Preference.PREF_ACTIVE_SHOPPING_PLANS,
+                 Preference.PREF_PLANNER_PLANS -> {
                 var id = getActivePlanId(user, device);
                 if (id == null) yield null;
                 yield toJson(Set.of(id));
-            }
-            case Preference.PREF_PLANNER_PLANS -> {
-                var plans = planRepo.findAccessiblePlans(user.getId());
-                var ids = StreamSupport.stream(plans.spliterator(), false)
-                        .map(p -> p.getId().toString())
-                        .toList();
-                if (ids.isEmpty()) yield null;
-                yield toJson(ids);
             }
             default -> preference.getDefaultValue();
         });
