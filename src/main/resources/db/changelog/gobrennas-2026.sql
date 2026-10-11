@@ -33,3 +33,18 @@ FROM (SELECT id,
 WHERE b.id = r.id;
 ALTER TABLE plan_bucket
     ALTER COLUMN position SET NOT NULL;
+
+--changeset barneyb:add-status-to-textract-job
+ALTER TABLE textract_job
+    ADD COLUMN status_id BIGINT NOT NULL DEFAULT 0,
+    ADD COLUMN error_message VARCHAR,
+    ADD COLUMN retryable BOOLEAN NOT NULL DEFAULT FALSE;
+UPDATE textract_job
+SET status_id = 1
+WHERE ready;
+UPDATE textract_job
+SET status_id     = 2,
+    error_message = 'Unknown error.'
+WHERE NOT ready;
+ALTER TABLE textract_job
+    DROP COLUMN ready;

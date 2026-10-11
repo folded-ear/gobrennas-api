@@ -1,8 +1,16 @@
 package com.brennaswitzer.cookbook.services.textract;
 
+import com.brennaswitzer.cookbook.domain.S3File;
+import com.brennaswitzer.cookbook.domain.TextractJob;
+
+import java.util.Set;
+
 public interface TextractProvider {
 
-    // This is just stupid. But it works?
-    void processJob(long jobId);
+    /**
+     * I extract the lines of text in the passed photo, or throw a
+     * {@link TextractFailure} saying why not.
+     */
+    Set<TextractJob.Line> detectLines(S3File photo);
 
 }

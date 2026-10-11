@@ -63,9 +63,41 @@ public class TextractJob extends BaseEntity implements Owned {
         return photo != null;
     }
 
-    private boolean ready;
+    @Column(name = "status_id")
+    @Setter(AccessLevel.NONE)
+    private TextractJobStatus status = TextractJobStatus.PENDING;
+
+    @Setter(AccessLevel.NONE)
+    private String errorMessage;
+
+    @Setter(AccessLevel.NONE)
+    private boolean retryable;
 
     @ElementCollection
+    @Setter(AccessLevel.NONE)
     private Set<Line> lines;
+
+    public boolean isReady() {
+        return status == TextractJobStatus.READY;
+    }
+
+    /**
+     * I become ready, with the passed lines.
+     */
+    public void succeed(Set<Line> lines) {
+        this.status = TextractJobStatus.READY;
+        this.lines = lines;
+        this.errorMessage = null;
+        this.retryable = false;
+    }
+
+    /**
+     * I become an error, for the passed reason.
+     */
+    public void fail(String message, boolean retryable) {
+        this.status = TextractJobStatus.ERROR;
+        this.errorMessage = message;
+        this.retryable = retryable;
+    }
 
 }

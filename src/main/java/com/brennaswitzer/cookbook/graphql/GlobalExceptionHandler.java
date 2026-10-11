@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.services.UnknownPreferenceException;
+import com.brennaswitzer.cookbook.services.textract.JobNotRetryableException;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +22,12 @@ public class GlobalExceptionHandler {
     public GraphQLError handle(GraphqlErrorBuilder<?> errorBuilder,
                                UnknownPreferenceException upe) {
         return badRequest(errorBuilder, upe);
+    }
+
+    @GraphQlExceptionHandler
+    public GraphQLError handle(GraphqlErrorBuilder<?> errorBuilder,
+                               JobNotRetryableException jnre) {
+        return badRequest(errorBuilder, jnre);
     }
 
     private GraphQLError badRequest(GraphqlErrorBuilder<?> errorBuilder,
