@@ -8,7 +8,7 @@ window.__cook_this__ = function __cook_this__() {
             .map(p => p.split("="))
             .reduce((m, a) => ({
                 ...m,
-                [a.shift()]: a.join("="),
+                [a.shift()]: decodeURIComponent(a.join("=").replace(/\+/g, " ")),
             }), {});
 
         return {
@@ -459,7 +459,7 @@ window.__cook_this__ = function __cook_this__() {
     const renderStale = $div => {
         $div.innerHTML = `${drawHeader(`Update Cook This!`)}
         <p>Cook This! needs an update. Delete it, reinstall from <a
-        href="https://gobrennas.com/profile#cook-this" target="_blank">your
+        href="${appRoot}/profile#cook-this" target="_blank" rel="noopener noreferrer">your
         profile</a>, then return to this page and click it!</p>
         `;
     };
@@ -471,8 +471,8 @@ window.__cook_this__ = function __cook_this__() {
     const renderImported = $div => {
         $div.innerHTML = `${drawHeader(`Success!`)}
         <p>Your recipe was successfully imported!</p>
-        <p>You can <a href="${appRoot}/library/recipe/${store.id}">view it</a>
-        or <a href="${appRoot}/library/recipe/${store.id}/edit">edit it</a>, or
+        <p>You can <a href="${appRoot}/recipes/${store.id}">view it</a>
+        or <a href="${appRoot}/recipes/${store.id}/edit">edit it</a>, or
         just continue on your merry way.</p>
         `;
     };
