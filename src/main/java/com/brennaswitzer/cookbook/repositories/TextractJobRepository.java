@@ -2,7 +2,6 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.domain.User;
-
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 

@@ -18,7 +18,6 @@ import software.amazon.awssdk.services.textract.model.Document;
 import software.amazon.awssdk.services.textract.model.S3Object;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,9 +85,7 @@ public class AWSTextractProvider implements TextractProvider {
 
     private static boolean hasIoCause(Throwable t) {
         for (var c = t.getCause(); c != null; c = c.getCause()) {
-            if (c instanceof IOException || c instanceof UncheckedIOException) {
-                return true;
-            }
+            if (c instanceof IOException) return true;
         }
         return false;
     }
