@@ -8,8 +8,8 @@ import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.security.permission.TextractJobAccess;
 import com.brennaswitzer.cookbook.services.storage.ScratchSpace;
-import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class TextractService {
     private TextractJobRepository jobRepository;
 
     @Autowired
-    private StorageService storageService;
+    private DeleteTextractJob deleteTextractJob;
 
     @Autowired
     private ScratchSpace scratchSpace;
@@ -71,10 +71,9 @@ public class TextractService {
 
     @TextractJobAccess(id = "#id", level = AccessLevel.CHANGE)
     public TextractJob deleteJob(long id) {
-        TextractJob j = jobRepository.getReferenceById(id);
-        storageService.remove(j.getPhoto().getObjectKey());
-        jobRepository.delete(j);
-        return j;
+        return deleteTextractJob.delete(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Unknown Textract job '" + id + "'"));
     }
 
     @TextractJobAccess(id = "#id", level = AccessLevel.CHANGE)
