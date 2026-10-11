@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -64,21 +63,11 @@ public class DefaultUserPreference {
         pref.setDevice(device);
         pref.setValue(switch (preference.getName()) {
             case Preference.PREF_ACTIVE_PLAN -> getDefaultPlanId(user);
-            case Preference.PREF_ACTIVE_SHOPPING_PLANS -> {
-                // use the active plan, if one exists
-                var id = getUserPreference.find(user, preference, device)
-                        .map(UserPreference::getValue)
-                        .orElseGet(() -> getDefaultPlanId(user));
+            case Preference.PREF_ACTIVE_SHOPPING_PLANS,
+                 Preference.PREF_PLANNER_PLANS -> {
+                var id = getActivePlanId(user, device);
                 if (id == null) yield null;
                 yield toJson(Set.of(id));
-            }
-            case Preference.PREF_PLANNER_PLANS -> {
-                var plans = planRepo.findAccessiblePlans(user.getId());
-                var ids = StreamSupport.stream(plans.spliterator(), false)
-                        .map(p -> p.getId().toString())
-                        .toList();
-                if (ids.isEmpty()) yield null;
-                yield toJson(ids);
             }
             default -> preference.getDefaultValue();
         });
@@ -95,6 +84,20 @@ public class DefaultUserPreference {
             User user,
             UserDevice device) {
         return p -> build(user, p, device);
+    }
+
+    private String getActivePlanId(User user, UserDevice device) {
+        return getUserPreference.find(user, Preference.PREF_ACTIVE_PLAN, device)
+                .map(UserPreference::getValue)
+                .filter(id -> isAccessiblePlanId(user, id))
+                .orElseGet(() -> getDefaultPlanId(user));
+    }
+
+    private boolean isAccessiblePlanId(User user, String id) {
+        for (var plan : planRepo.findAccessiblePlans(user.getId())) {
+            if (plan.getId().toString().equals(id)) return true;
+        }
+        return false;
     }
 
     private String getDefaultPlanId(User user) {
