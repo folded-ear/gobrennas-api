@@ -22,11 +22,26 @@ type TextractMutation {
   deleteJob(id: ID!): Deletion!
 }
 
+enum TextractJobStatus {
+  PENDING
+  READY
+  ERROR
+}
+
 type TextractJob {
   id: ID!
   photo: FileInfo!
+  status: TextractJobStatus!
+  """Whether 'status' is READY. Prefer `status`.
+  """
   ready: Boolean!
-  """Lines of extracted text. Will only have data if 'ready' is true.
+  """Why extraction failed. Will only have data if 'status' is ERROR.
+  """
+  errorMessage: String
+  """Whether a failed job can be retried.
+  """
+  retryable: Boolean!
+  """Lines of extracted text. Will only have data if 'status' is READY.
   """
   lines: [TextractLine!]
 }

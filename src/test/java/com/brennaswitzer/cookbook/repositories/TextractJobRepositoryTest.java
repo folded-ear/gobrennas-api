@@ -2,6 +2,7 @@ package com.brennaswitzer.cookbook.repositories;
 
 import com.brennaswitzer.cookbook.domain.S3File;
 import com.brennaswitzer.cookbook.domain.TextractJob;
+import com.brennaswitzer.cookbook.domain.TextractJobStatus;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import jakarta.persistence.EntityManager;
@@ -11,9 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithAliceBobEve
@@ -51,7 +54,7 @@ public class TextractJobRepositoryTest {
         job.setOwner(alice);
         p = new S3File("today", "mlerg", 4L);
         job.setPhoto(p);
-        job.setReady(true);
+        job.succeed(Set.of());
         entityManager.persist(job);
         entityManager.flush();
         entityManager.clear();
@@ -64,6 +67,58 @@ public class TextractJobRepositoryTest {
         job = jobs.get(1);
         assertEquals("yesterday", job.getPhoto().getObjectKey());
         assertFalse(job.isReady());
+    }
+
+    @Test
+    public void newJobIsPending() {
+        TextractJob job = reload(job());
+
+        assertEquals(TextractJobStatus.PENDING, job.getStatus());
+        assertFalse(job.isReady());
+        assertNull(job.getErrorMessage());
+        assertFalse(job.isRetryable());
+    }
+
+    @Test
+    public void succeededJobIsReady() {
+        TextractJob job = job();
+        var line = new TextractJob.Line(
+                "one cup flour",
+                new TextractJob.Box(0.1, 0.2, 0.3, 0.4));
+        job.succeed(Set.of(line));
+        job = reload(job);
+
+        assertEquals(TextractJobStatus.READY, job.getStatus());
+        assertTrue(job.isReady());
+        assertEquals(Set.of(line), job.getLines());
+        assertNull(job.getErrorMessage());
+        assertFalse(job.isRetryable());
+    }
+
+    @Test
+    public void failedJobIsError() {
+        TextractJob job = job();
+        job.fail("Rate exceeded", true);
+        job = reload(job);
+
+        assertEquals(TextractJobStatus.ERROR, job.getStatus());
+        assertFalse(job.isReady());
+        assertEquals("Rate exceeded", job.getErrorMessage());
+        assertTrue(job.isRetryable());
+    }
+
+    private TextractJob job() {
+        TextractJob job = new TextractJob();
+        job.setOwner(alice);
+        job.setPhoto(new S3File("photo", "image/jpeg", 1L));
+        entityManager.persist(job);
+        return job;
+    }
+
+    private TextractJob reload(TextractJob job) {
+        entityManager.flush();
+        entityManager.clear();
+        return repo.findById(job.getId()).orElseThrow();
     }
 
 }

@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.payload;
 
 import com.brennaswitzer.cookbook.domain.TextractJob;
+import com.brennaswitzer.cookbook.domain.TextractJobStatus;
 import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
@@ -17,7 +18,9 @@ public class TextractJobInfo {
         TextractJobInfo info = new TextractJobInfo();
         info.setId(job.getId());
         info.setPhoto(FileInfo.fromS3File(job.getPhoto(), storageService));
-        info.setReady(job.isReady());
+        info.setStatus(job.getStatus());
+        info.setErrorMessage(job.getErrorMessage());
+        info.setRetryable(job.isRetryable());
         return info;
     }
 
@@ -31,7 +34,13 @@ public class TextractJobInfo {
 
     private Long id;
     private FileInfo photo;
-    private boolean ready;
+    private TextractJobStatus status;
+    private String errorMessage;
+    private boolean retryable;
     private Set<TextractJob.Line> lines;
+
+    public boolean isReady() {
+        return status == TextractJobStatus.READY;
+    }
 
 }

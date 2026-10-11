@@ -55,7 +55,6 @@ public class AWSTextractProvider implements TextractProvider {
                     return l;
                 })
                 .collect(Collectors.toSet());
-        job.setLines(lines);
-        job.setReady(true);
+        job.succeed(lines);
     }
 }
