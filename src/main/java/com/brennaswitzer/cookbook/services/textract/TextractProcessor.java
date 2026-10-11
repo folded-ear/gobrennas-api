@@ -27,7 +27,7 @@ public class TextractProcessor {
 
     @EventListener
     @Async
-    public void processJob(JobCreatedEvent event) {
+    public void processJob(JobRequestedEvent event) {
         long jobId = event.getId();
         jobRepository.findById(jobId)
                 .map(TextractJob::getPhoto)

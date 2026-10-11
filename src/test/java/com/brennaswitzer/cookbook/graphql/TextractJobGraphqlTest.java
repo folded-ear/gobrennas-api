@@ -6,10 +6,12 @@ import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
+import graphql.GraphQLError;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.graphql.execution.ErrorType;
 import org.springframework.graphql.execution.GraphQlSource;
 
 import java.util.List;
@@ -26,6 +28,13 @@ class TextractJobGraphqlTest {
             query ($id: ID!) {
               textract {
                 jobById(id: $id) { status ready errorMessage retryable }
+              }
+            }""";
+
+    private static final String RETRY_JOB = """
+            mutation ($id: ID!) {
+              textract {
+                retryJob(id: $id) { status ready errorMessage retryable }
               }
             }""";
 
@@ -77,16 +86,51 @@ class TextractJobGraphqlTest {
         assertEquals(true, info.get("retryable"));
     }
 
+    @Test
+    void retryJobReturnsThePendingJob() {
+        job.fail("Rate exceeded", true);
+
+        ExecutionResult result = execute(RETRY_JOB);
+
+        assertEquals(List.of(), result.getErrors());
+        Map<?, ?> info = job(result, "retryJob");
+        assertEquals("PENDING", info.get("status"));
+        assertEquals(false, info.get("ready"));
+        assertNull(info.get("errorMessage"));
+        assertEquals(false, info.get("retryable"));
+    }
+
+    @Test
+    void retryJobRejectsANonRetryableJob() {
+        job.fail("Bad document", false);
+
+        ExecutionResult result = execute(RETRY_JOB);
+
+        assertEquals(List.of(ErrorType.BAD_REQUEST),
+                     result.getErrors()
+                             .stream()
+                             .map(GraphQLError::getErrorType)
+                             .toList());
+    }
+
     private Map<?, ?> jobById() {
+        ExecutionResult result = execute(JOB_BY_ID);
+        assertEquals(List.of(), result.getErrors());
+        return job(result, "jobById");
+    }
+
+    private ExecutionResult execute(String document) {
         em.flush();
-        ExecutionResult result = source.graphQl()
+        return source.graphQl()
                 .execute(ExecutionInput.newExecutionInput()
-                                 .query(JOB_BY_ID)
+                                 .query(document)
                                  .variables(Map.of("id", job.getId().toString()))
                                  .build());
-        assertEquals(List.of(), result.getErrors());
+    }
+
+    private Map<?, ?> job(ExecutionResult result, String field) {
         Map<?, ?> data = result.getData();
-        return (Map<?, ?>) ((Map<?, ?>) data.get("textract")).get("jobById");
+        return (Map<?, ?>) ((Map<?, ?>) data.get("textract")).get(field);
     }
 
 }

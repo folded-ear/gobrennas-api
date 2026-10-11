@@ -19,6 +19,9 @@ type TextractMutation {
   field to obtain a pre-signed upload URL, and pass its filename here when done.
   """
   createPreUploadedJob(filename: String!): TextractJob!
+  """Re-request a failed job. The job must be retryable.
+  """
+  retryJob(id: ID!): TextractJob!
   deleteJob(id: ID!): Deletion!
 }
 
@@ -38,7 +41,7 @@ type TextractJob {
   """Why extraction failed. Will only have data if 'status' is ERROR.
   """
   errorMessage: String
-  """Whether a failed job can be retried.
+  """Whether `retryJob` will accept this job.
   """
   retryable: Boolean!
   """Lines of extracted text. Will only have data if 'status' is READY.

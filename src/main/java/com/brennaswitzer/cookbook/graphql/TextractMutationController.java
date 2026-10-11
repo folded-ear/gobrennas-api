@@ -45,6 +45,15 @@ public class TextractMutationController {
 
     @SchemaMapping
     @PreAuthorize("hasRole('USER')")
+    TextractJobInfo retryJob(TextractMutation textractMut,
+                             @Argument Long id) {
+        return TextractJobInfo.fromJobWithLines(
+                service.retryJob(id),
+                storageService);
+    }
+
+    @SchemaMapping
+    @PreAuthorize("hasRole('USER')")
     Deletion deleteJob(TextractMutation textractMut,
                        @Argument Long id) {
         return Deletion.of(service.deleteJob(id));

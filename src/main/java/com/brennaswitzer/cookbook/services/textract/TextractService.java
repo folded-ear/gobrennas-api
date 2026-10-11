@@ -51,15 +51,17 @@ public class TextractService {
     private TextractJob startJob(TextractJob job, S3File s3File) {
         job.setPhoto(s3File);
         val savedJob = jobRepository.save(job);
+        requestAfterCommit(savedJob.getId());
+        return savedJob;
+    }
 
+    private void requestAfterCommit(long jobId) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                eventPublisher.publishEvent(new JobCreatedEvent(savedJob.getId()));
+                eventPublisher.publishEvent(new JobRequestedEvent(jobId));
             }
         });
-
-        return savedJob;
     }
 
     public List<TextractJob> getMyJobs(UserPrincipal principal) {
@@ -73,6 +75,15 @@ public class TextractService {
         storageService.remove(j.getPhoto().getObjectKey());
         jobRepository.delete(j);
         return j;
+    }
+
+    @TextractJobAccess(id = "#id", level = AccessLevel.CHANGE)
+    public TextractJob retryJob(long id) {
+        if (jobRepository.retry(id) == 0) {
+            throw new JobNotRetryableException(id);
+        }
+        requestAfterCommit(id);
+        return jobRepository.getReferenceById(id);
     }
 
     public TextractJob createPreUploadedJob(UserPrincipal userPrincipal,

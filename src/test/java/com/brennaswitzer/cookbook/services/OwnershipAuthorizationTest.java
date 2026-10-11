@@ -121,6 +121,8 @@ class OwnershipAuthorizationTest {
                      () -> textractService.getJob(job.getId()));
         assertThrows(AccessDeniedException.class,
                      () -> textractService.deleteJob(job.getId()));
+        assertThrows(AccessDeniedException.class,
+                     () -> textractService.retryJob(job.getId()));
     }
 
     @Test
@@ -153,6 +155,7 @@ class OwnershipAuthorizationTest {
         var job = new TextractJob();
         job.setOwner(owner);
         job.setPhoto(new S3File("photo", "image/jpeg", 1L));
+        job.fail("Rate exceeded", true);
         entityManager.persist(job);
         return job;
     }

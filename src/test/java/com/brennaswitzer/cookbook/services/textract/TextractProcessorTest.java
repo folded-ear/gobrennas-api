@@ -135,12 +135,12 @@ class TextractProcessorTest {
                 txTemplate);
 
         assertDoesNotThrow(
-                () -> processor.processJob(new JobCreatedEvent(-1L)));
+                () -> processor.processJob(new JobRequestedEvent(-1L)));
     }
 
     private void process(TextractProvider provider) {
         new TextractProcessor(provider, repo, txTemplate)
-                .processJob(new JobCreatedEvent(job.getId()));
+                .processJob(new JobRequestedEvent(job.getId()));
     }
 
     private TextractJob reload() {
