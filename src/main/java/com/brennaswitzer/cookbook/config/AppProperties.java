@@ -32,6 +32,12 @@ public class AppProperties {
      */
     private int daysPastBucketDate = 10;
 
+    /**
+     * Textract jobs untouched for this many days will be deleted, along with
+     * their photos.
+     */
+    private int daysTextractJobIdle = 90;
+
     @Valid
     private final Auth auth = new Auth();
     private final OAuth2 oauth2 = new OAuth2();

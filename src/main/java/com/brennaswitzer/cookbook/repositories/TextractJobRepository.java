@@ -31,6 +31,15 @@ public interface TextractJobRepository extends BaseEntityRepository<TextractJob>
     int retry(Long id);
 
     /**
+     * I return the ids of the jobs last updated before the cutoff.
+     */
+    @Query("""
+           select j.id
+           from TextractJob j
+           where j.updatedAt < ?1""")
+    List<Long> findStaleIds(Instant cutoff);
+
+    /**
      * I lock and return the job, if it exists.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
