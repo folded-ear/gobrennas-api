@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -63,6 +64,7 @@ class DefaultUserPreferenceDbTest {
 
     @BeforeEach
     void setUp() {
+        // the fixture's User instances have null collections until reloaded
         reload();
     }
 
@@ -163,8 +165,7 @@ class DefaultUserPreferenceDbTest {
     }
 
     private List<String> ids(Plan... plans) {
-        return List.of(plans)
-                .stream()
+        return Stream.of(plans)
                 .map(p -> p.getId().toString())
                 .toList();
     }
