@@ -78,11 +78,13 @@ public class TextractService {
 
     @TextractJobAccess(id = "#id", level = AccessLevel.CHANGE)
     public TextractJob retryJob(long id) {
-        if (jobRepository.retry(id) == 0) {
+        TextractJob job = jobRepository.getReferenceById(id);
+        if (!job.isRetryable()) {
             throw new JobNotRetryableException(id);
         }
+        job.retry();
         requestAfterCommit(id);
-        return jobRepository.getReferenceById(id);
+        return job;
     }
 
     public TextractJob createPreUploadedJob(UserPrincipal userPrincipal,
