@@ -17,13 +17,6 @@ However, you _did_ just run the full regression suite!
 
 ## Run (For Development)
 
-The bookmarklet's JavaScript regression tests use Node's built-in test runner
-(Node 20 or later), with no dependencies or sibling client checkout:
-
-```sh
-node --test src/test/js/import_bookmarklet.test.mjs
-```
-
 You'll need a Postgres 15 database to run against. If you're using a decent OS -
 or Mac w/ Docker Desktop; 🙄 - you'll have `docker` available, which is a great
 choice:
