@@ -100,4 +100,13 @@ public class TextractJob extends BaseEntity implements Owned {
         this.retryable = retryable;
     }
 
+    /**
+     * I become pending again.
+     */
+    public void retry() {
+        this.status = TextractJobStatus.PENDING;
+        this.errorMessage = null;
+        this.retryable = false;
+    }
+
 }

@@ -107,6 +107,20 @@ public class TextractJobRepositoryTest {
         assertTrue(job.isRetryable());
     }
 
+    @Test
+    public void retriedJobIsPending() {
+        TextractJob job = job();
+        job.fail("Rate exceeded", true);
+        job = reload(job);
+        job.retry();
+        job = reload(job);
+
+        assertEquals(TextractJobStatus.PENDING, job.getStatus());
+        assertFalse(job.isReady());
+        assertNull(job.getErrorMessage());
+        assertFalse(job.isRetryable());
+    }
+
     private TextractJob job() {
         TextractJob job = new TextractJob();
         job.setOwner(alice);
