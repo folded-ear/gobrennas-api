@@ -26,7 +26,7 @@ public class DeleteTextractJob {
      * I delete the job, if it exists, and return it.
      */
     public Optional<TextractJob> delete(long id) {
-        Optional<TextractJob> claimed = jobRepository.claim(id);
+        var claimed = jobRepository.findLockedById(id);
         claimed.ifPresent(this::delete);
         return claimed;
     }
@@ -36,7 +36,7 @@ public class DeleteTextractJob {
      * cutoff, and return it.
      */
     public Optional<TextractJob> deleteIfStale(long id, Instant cutoff) {
-        Optional<TextractJob> claimed = jobRepository.claimIfStale(id, cutoff);
+        var claimed = jobRepository.findLockedByIdAndUpdatedAtBefore(id, cutoff);
         claimed.ifPresent(this::delete);
         return claimed;
     }

@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services.textract;
 
 import com.brennaswitzer.cookbook.config.AppProperties;
+import com.brennaswitzer.cookbook.domain.TextractJob;
 import com.brennaswitzer.cookbook.repositories.TextractJobRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,8 @@ public class DeleteOldTextractJobs {
         watch.start();
         var deleted = 0;
         var failed = 0;
-        for (long id : jobRepository.findStaleIds(cutoff)) {
+        for (TextractJob job : jobRepository.findAllByUpdatedAtBefore(cutoff)) {
+            long id = job.getId();
             try {
                 if (deleteTextractJob.deleteIfStale(id, cutoff).isPresent()) {
                     deleted++;
