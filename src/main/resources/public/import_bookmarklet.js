@@ -1,23 +1,34 @@
 window.__cook_this__ = function __cook_this__() {
     function getUrlParts(scripts) {
-        const parts = scripts[scripts.length - 1].src.split("?");
-        let root = parts[0].split("/");
-        root.pop();
-        root = root.join("/");
-        const querystring = parts[1].split("&")
-            .map(p => p.split("="))
-            .reduce((m, a) => ({
-                ...m,
-                [a.shift()]: a.join("="),
-            }), {});
-
+        const scriptUrl = new URL(scripts[scripts.length - 1].src);
+        const root = new URL(".", scriptUrl).href.replace(/\/$/, "");
+        const querystring = Object.fromEntries(scriptUrl.searchParams);
+        const safeRoot = value => {
+            try {
+                const url = new URL(value || root);
+                if (!["http:", "https:"].includes(url.protocol)
+                    || url.username || url.password) return root;
+                url.search = "";
+                url.hash = "";
+                return url.href.replace(/\/$/, "");
+            } catch {
+                return root;
+            }
+        };
+        const apiRoot = safeRoot(querystring.apiRoot);
         return {
-            appRoot: (querystring.appRoot || root),
-            apiRoot: (querystring.apiRoot || root) + "/api",
-            graphql: (querystring.apiRoot || root) + "/graphql",
+            appRoot: safeRoot(querystring.appRoot),
+            apiRoot: apiRoot + "/api",
+            graphql: apiRoot + "/graphql",
             querystring,
         };
     }
+
+    // These links are interpolated into HTML, so URL validation alone is
+    // insufficient: encode attribute delimiters as well.
+    const escapeAttribute = value => value.replace(/[&"<>']/g, char => ({
+        "&": "&amp;", '"': "&quot;", "<": "&lt;", ">": "&gt;", "'": "&#39;",
+    })[char]);
 
     const scripts = [ ...document.getElementsByTagName("script") ]
         .filter(el => el.id === "foodinger-import-bookmarklet");
@@ -459,7 +470,7 @@ window.__cook_this__ = function __cook_this__() {
     const renderStale = $div => {
         $div.innerHTML = `${drawHeader(`Update Cook This!`)}
         <p>Cook This! needs an update. Delete it, reinstall from <a
-        href="https://gobrennas.com/profile#cook-this" target="_blank">your
+        href="${escapeAttribute(appRoot + "/profile#cook-this")}" target="_blank" rel="noopener noreferrer">your
         profile</a>, then return to this page and click it!</p>
         `;
     };
@@ -471,8 +482,8 @@ window.__cook_this__ = function __cook_this__() {
     const renderImported = $div => {
         $div.innerHTML = `${drawHeader(`Success!`)}
         <p>Your recipe was successfully imported!</p>
-        <p>You can <a href="${appRoot}/library/recipe/${store.id}">view it</a>
-        or <a href="${appRoot}/library/recipe/${store.id}/edit">edit it</a>, or
+        <p>You can <a href="${escapeAttribute(appRoot + "/recipes/" + store.id)}">view it</a>
+        or <a href="${escapeAttribute(appRoot + "/recipes/" + store.id + "/edit")}">edit it</a>, or
         just continue on your merry way.</p>
         `;
     };
