@@ -29,9 +29,10 @@ public class DeleteOldTextractJobs {
 
     @Scheduled(cron = "${random.int[60]} ${random.int[60]} * * * *")
     public void deleteOldJobs() {
-        deleteJobsUpdatedBefore(Instant.now()
+        Instant cutoff = Instant.now()
                 .minus(appProperties.getDaysTextractJobIdle(),
-                       ChronoUnit.DAYS));
+                       ChronoUnit.DAYS);
+        deleteJobsUpdatedBefore(cutoff);
     }
 
     /**
