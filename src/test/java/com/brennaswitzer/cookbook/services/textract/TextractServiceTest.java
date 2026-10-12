@@ -86,6 +86,18 @@ class TextractServiceTest {
         assertTrue(reload().isReady());
     }
 
+    @Test
+    void deletedJobIsGone() {
+        em.flush();
+
+        TextractJob returned = service.deleteJob(job.getId());
+
+        assertEquals(job, returned);
+        em.flush();
+        em.clear();
+        assertTrue(repo.findById(job.getId()).isEmpty());
+    }
+
     private TextractJob reload() {
         em.flush();
         em.clear();
