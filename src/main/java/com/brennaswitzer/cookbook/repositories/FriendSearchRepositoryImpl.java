@@ -3,10 +3,10 @@ package com.brennaswitzer.cookbook.repositories;
 import com.brennaswitzer.cookbook.domain.Friend;
 import com.brennaswitzer.cookbook.repositories.impl.FriendSearchRequest;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
-import com.brennaswitzer.cookbook.util.SqlUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 
 public class FriendSearchRepositoryImpl implements FriendSearchRepository {
 
@@ -30,7 +30,7 @@ public class FriendSearchRepositoryImpl implements FriendSearchRepository {
                     """
                       and (upper(f.name) like upper('%%' || :%1$s || '%%') escape '\\'
                         or upper(f.email) like upper('%%' || :%1$s || '%%') escape '\\')
-                    """, p), p, SqlUtils.escapeLike(term));
+                    """, p), p, EscapeCharacter.DEFAULT.escape(term));
         }
         stmt.append("order by upper(coalesce(f.name, f.email)), f.id");
         TypedQuery<Friend> query = entityManager.createQuery(stmt.getStatement(),
