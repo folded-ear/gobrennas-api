@@ -147,8 +147,6 @@ input FriendSearch {
     after: Cursor = null
 }
 
-"""Another user, as seen by the current user. A friend's id is that user's id.
-"""
 type Friend {
     id: ID!
     name: String
