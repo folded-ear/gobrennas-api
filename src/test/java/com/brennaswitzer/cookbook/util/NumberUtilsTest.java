@@ -1,13 +1,43 @@
 package com.brennaswitzer.cookbook.util;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
+
+import java.util.Locale;
 
 import static com.brennaswitzer.cookbook.util.NumberUtils.parseNumber;
 import static com.brennaswitzer.cookbook.util.NumberUtils.parseNumberWithRange;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class NumberUtilsTest {
+
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    public void formatRawNumberIgnoresLocaleAndGrouping() {
+        Locale original = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            for (Locale locale : new Locale[]{Locale.US, Locale.GERMANY, Locale.FRANCE}) {
+                Locale.setDefault(Locale.Category.FORMAT, locale);
+                assertEquals("2000", NumberUtils.formatRawNumber(2000));
+                assertEquals("2000.125", NumberUtils.formatRawNumber(2000.125));
+                assertEquals(2000.125, parseNumber(NumberUtils.formatRawNumber(2000.125)));
+                assertEquals("0.00001", NumberUtils.formatRawNumber(0.00001));
+                assertEquals("100000000000000000000", NumberUtils.formatRawNumber(1e20));
+            }
+        } finally {
+            Locale.setDefault(Locale.Category.FORMAT, original);
+        }
+    }
+
+    @Test
+    public void formatRawNumberRejectsNonFiniteQuantities() {
+        for (double value : new double[]{Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            assertThrows(IllegalArgumentException.class, () -> NumberUtils.formatRawNumber(value));
+        }
+    }
 
     @Test
     public void parseDecimal() {

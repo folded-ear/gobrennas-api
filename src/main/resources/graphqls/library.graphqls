@@ -215,6 +215,10 @@ enum ChronoUnit {
 }
 
 type Recipe implements Node & Owned & Ingredient & IngredientCollection {
+    """The recipe owning this section, or null for a standalone recipe. Also
+    available when a section is used as an ingredient in another recipe.
+    """
+    sectionOf: Recipe
     id: ID!
     owner: User!
     ownedBy: User

@@ -26,6 +26,8 @@ import com.brennaswitzer.cookbook.security.permission.PlanItemAccess;
 import com.brennaswitzer.cookbook.security.permission.PlanItemStatusAccess;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.ValueUtils;
+import com.brennaswitzer.cookbook.util.RawUtils;
+import com.brennaswitzer.cookbook.util.NumberUtils;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.val;
 import org.hibernate.Hibernate;
@@ -40,10 +42,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -232,6 +236,7 @@ public class PlanService {
      */
     @PlanAccess(id = "#planId", level = AccessLevel.CHANGE)
     public PlanItem addRecipe(Long planId, Recipe r, Double scale) {
+        validateScale(scale);
         PlanItem recipeItem = new PlanItem(r.getName(), r);
         recipeItem.setQuantity(Quantity.count(scale));
         Plan plan = loadPlan(planId);
@@ -239,6 +244,68 @@ public class PlanService {
         sendToPlan(r, recipeItem, scale);
         planRepo.flush(); // to ensure IDs are set everywhere
         return recipeItem;
+    }
+
+    private static void validateScale(Double scale) {
+        Assert.isTrue(scale != null && Double.isFinite(scale) && scale > 0,
+                      "Recipe scale must be finite and greater than zero");
+    }
+
+    @PlanItemAccess(id = "#id", level = AccessLevel.CHANGE)
+    public PlanItem scaleRecipe(Long id, double scale) {
+        validateScale(scale);
+        PlanItem root = loadItem(id);
+        Assert.isTrue(Hibernate.unproxy(root.getIngredient(), Ingredient.class) instanceof Recipe && !root.isAggregated(),
+                      "Only independently planned recipes can be scaled");
+        Assert.isTrue(!root.isImplicitlyInTrashBin()
+                      && root.getStatus() != PlanItemStatus.DELETED
+                      && root.getStatus() != PlanItemStatus.COMPLETED,
+                      "Finished recipes cannot be scaled");
+        double previous = root.hasQuantity() ? root.getQuantity().getQuantity() : 1;
+        Assert.isTrue(!root.hasQuantity() || root.getQuantity().getUnits() == null,
+                      "Recipe batch multipliers cannot have units");
+        validateScale(previous);
+        double factor = scale / previous;
+        validateScale(factor);
+        if (scale == previous) return root;
+
+        // Validate all results before changing anything. The transaction also
+        // keeps linked preparation and shopping quantities atomic.
+        Map<PlanItem, Quantity> quantities = new HashMap<>();
+        Set<PlanItem> seen = new HashSet<>();
+        collectScaledQuantities(root, root, factor, seen, quantities);
+        quantities.put(root, Quantity.count(scale));
+        quantities.forEach(this::updateScaledQuantity);
+        return root;
+    }
+
+    private void updateScaledQuantity(PlanItem item, Quantity quantity) {
+        if (!(Hibernate.unproxy(item.getIngredient(), Ingredient.class) instanceof Recipe)
+            && !item.isRecognitionDisallowed()) {
+            var dissection = RawUtils.dissect(item.getName());
+            if (dissection != null && dissection.hasQuantity()) {
+                var range = dissection.getQuantity();
+                item.setName(item.getName().substring(0, range.getStart())
+                             + NumberUtils.formatRawNumber(quantity.getQuantity())
+                             + item.getName().substring(range.getEnd()));
+            }
+        }
+        item.setQuantity(quantity);
+    }
+
+    private void collectScaledQuantities(PlanItem item, PlanItem root, double factor,
+                                         Set<PlanItem> seen,
+                                         Map<PlanItem, Quantity> quantities) {
+        if (!seen.add(item) || item.getStatus() == PlanItemStatus.DELETED) return;
+        if (item.hasQuantity()) {
+            Quantity quantity = item.getQuantity().times(factor);
+            Assert.isTrue(Double.isFinite(quantity.getQuantity()), "Scaled quantity is too large");
+            quantities.put(item, quantity);
+        }
+        Ingredient ingredient = Hibernate.unproxy(item.getIngredient(), Ingredient.class);
+        if (item != root && ingredient instanceof Recipe recipe && !recipe.isOwnedSection()) return;
+        item.getChildView().forEach(child -> collectScaledQuantities(child, root, factor, seen, quantities));
+        item.getComponentView(PlanItem.BY_ORDER).forEach(child -> collectScaledQuantities(child, root, factor, seen, quantities));
     }
 
     public Plan createPlan(String name, User owner) {
