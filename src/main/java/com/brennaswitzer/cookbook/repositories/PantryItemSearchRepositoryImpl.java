@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -179,7 +180,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                         (upper(item.name) like upper('%%' || :%1$s || '%%') escape '\\'
                          or upper(syn) like upper('%%' || :%1$s || '%%') escape '\\'
                          or upper(lbl.name) like upper('%%' || :%1$s || '%%') escape '\\')
-                        """, p), p, word);
+                        """, p), p, EscapeCharacter.DEFAULT.escape(word));
             }
             stmt.append(")\n");
         }

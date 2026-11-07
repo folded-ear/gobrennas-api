@@ -22,8 +22,8 @@ public interface PantryItemRepository extends BaseEntityRepository<PantryItem>, 
            select item
            from PantryItem item
               left join item.synonyms syn
-           where upper(item.name) like upper('%' || :name || '%') escape '\\'
-              or upper(syn) like upper('%' || :name || '%') escape '\\'
+           where upper(item.name) like upper('%' || :#{escape([0])} || '%') escape :#{escapeCharacter()}
+              or upper(syn) like upper('%' || :#{escape([0])} || '%') escape :#{escapeCharacter()}
            order by item.id
            """)
     List<PantryItem> findAllByNameIgnoreCaseContainingOrderById(String name);

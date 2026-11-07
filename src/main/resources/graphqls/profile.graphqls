@@ -134,9 +134,42 @@ type ScratchUpload {
     curl: String!
 }
 
+input FriendSearch {
+    """Whitespace-separated terms; every term must appear (case-insensitive)
+    in a friend's name or email. Empty matches all friends.
+    """
+    query: String! = ""
+    """How many friends to return. If not specified, 10 will be returned.
+    """
+    first: NonNegativeInt! = 10
+    """Cursor to find results after. Omit to retrieve the first page.
+    """
+    after: Cursor = null
+}
+
+type Friend {
+    id: ID!
+    name: String
+    email: String!
+    imageUrl: String
+}
+
+type FriendConnection {
+    edges: [FriendConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
+type FriendConnectionEdge {
+    node: Friend!
+    cursor: Cursor!
+}
+
 type ProfileQuery {
     me: User!
     friends: [User!]!
+    """Search friends by name and/or email.
+    """
+    searchFriends(search: FriendSearch!): FriendConnection!
     """Request a pre-signed upload URL to PUT a scratch file to, identified by
     the returned `filename`. Upload URLs are valid for only a short time; they
     should be requested when an upload is needed, not preemptively in case one

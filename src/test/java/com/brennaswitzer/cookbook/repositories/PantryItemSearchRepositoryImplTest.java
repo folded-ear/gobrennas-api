@@ -135,6 +135,18 @@ class PantryItemSearchRepositoryImplTest {
     }
 
     @Test
+    void filterLikeMetacharactersAreLiteral() {
+        for (var filter : List.of("s_lt", "s%t")) {
+            SearchResponse<PantryItem> result = repo.search(
+                    PantryItemSearchRequest.builder()
+                            .filter(filter)
+                            .build());
+
+            assertEquals(List.of(), result.getContent(), filter);
+        }
+    }
+
+    @Test
     void duplicatesOf_none() {
         rebuildDupes();
 
