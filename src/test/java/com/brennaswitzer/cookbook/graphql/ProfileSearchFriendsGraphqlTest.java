@@ -37,11 +37,11 @@ class ProfileSearchFriendsGraphqlTest {
     @Test
     void pagesThroughFriends() {
         Map<?, ?> page = searchFriends(Map.of());
-        assertEquals(List.of(node(friend("bob@gobrennas.com"))), nodes(page));
+        assertEquals(List.of(edge(friend("bob@gobrennas.com"))), edges(page));
         assertEquals(true, pageInfo(page).get("hasNextPage"));
 
         page = searchFriends(Map.of("after", pageInfo(page).get("endCursor")));
-        assertEquals(List.of(node(friend("eve@gobrennas.com"))), nodes(page));
+        assertEquals(List.of(edge(friend("eve@gobrennas.com"))), edges(page));
         assertEquals(false, pageInfo(page).get("hasNextPage"));
     }
 
@@ -50,7 +50,7 @@ class ProfileSearchFriendsGraphqlTest {
                 .orElseThrow();
     }
 
-    private Map<String, Object> node(User user) {
+    private Map<String, Object> edge(User user) {
         var node = new HashMap<String, Object>();
         node.put("id", user.getId().toString());
         node.put("name", user.getName());
@@ -70,7 +70,7 @@ class ProfileSearchFriendsGraphqlTest {
         return (Map<?, ?>) ((Map<?, ?>) data.get("profile")).get("searchFriends");
     }
 
-    private List<?> nodes(Map<?, ?> page) {
+    private List<?> edges(Map<?, ?> page) {
         return (List<?>) page.get("edges");
     }
 

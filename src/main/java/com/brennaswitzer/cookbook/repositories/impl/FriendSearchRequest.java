@@ -32,6 +32,7 @@ public class FriendSearchRequest implements SearchRequest {
                 .toList();
     }
 
+    @Override
     public int getLimit() {
         if (limit <= 0) return DEFAULT_LIMIT;
         return limit;
