@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.function.BiFunction;
 
@@ -137,6 +138,12 @@ public final class NumberUtils {
     public static String formatNumber(Double n) {
         if (n == null) throw new IllegalArgumentException("Can't format the null Float");
         return NumberFormat.getNumberInstance().format(n);
+    }
+
+    /** Format a quantity for ingredient text, not locale-sensitive display. */
+    public static String formatRawNumber(double n) {
+        if (!Double.isFinite(n)) throw new IllegalArgumentException("Can't format a non-finite quantity");
+        return BigDecimal.valueOf(n).stripTrailingZeros().toPlainString();
     }
 
 }

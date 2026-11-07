@@ -6,7 +6,9 @@ import com.brennaswitzer.cookbook.domain.PlanItem;
 import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.Quantity;
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.domain.UnitOfMeasure;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
+import com.brennaswitzer.cookbook.util.NumberUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,6 +50,23 @@ class PlanServiceScalingTest {
         assertEquals("salt to taste", note.getName());
         service.scaleRecipe(1L, 3);
         assertEquals(7.5, beans.getQuantity().getQuantity(), "retry must not scale twice");
+    }
+
+    @Test void repeatedScalingKeepsLargeIngredientNamesParseable() {
+        PlanItem root = recipe();
+        root.setQuantity(Quantity.ONE);
+        PlanItem flour = new PlanItem("1000 g flour", new Quantity(1000, new UnitOfMeasure("g")),
+                                     new PantryItem("flour"), null);
+        root.addAggregateComponent(flour);
+
+        service.scaleRecipe(1L, 2);
+        assertEquals("2000 g flour", flour.getName());
+        assertEquals(2000, NumberUtils.parseNumberWithRange(flour.getName()).number());
+
+        service.scaleRecipe(1L, 4);
+        assertEquals("4000 g flour", flour.getName());
+        assertEquals(4000, flour.getQuantity().getQuantity());
+        assertEquals(4000, NumberUtils.parseNumberWithRange(flour.getName()).number());
     }
 
     @Test void followsMovedPreparationAndOwnedSectionsButNotSubrecipeContents() {

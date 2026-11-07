@@ -286,7 +286,7 @@ public class PlanService {
             if (dissection != null && dissection.hasQuantity()) {
                 var range = dissection.getQuantity();
                 item.setName(item.getName().substring(0, range.getStart())
-                             + NumberUtils.formatNumber(quantity.getQuantity())
+                             + NumberUtils.formatRawNumber(quantity.getQuantity())
                              + item.getName().substring(range.getEnd()));
             }
         }
