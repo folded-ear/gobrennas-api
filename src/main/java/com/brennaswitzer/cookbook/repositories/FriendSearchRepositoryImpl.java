@@ -8,6 +8,7 @@ import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class FriendSearchRepositoryImpl implements FriendSearchRepository {
 
     @Autowired
