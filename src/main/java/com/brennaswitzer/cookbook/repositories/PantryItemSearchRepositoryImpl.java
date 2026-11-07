@@ -5,6 +5,7 @@ import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.repositories.impl.PantryItemSearchRequest;
 import com.brennaswitzer.cookbook.util.EnglishUtils;
 import com.brennaswitzer.cookbook.util.NamedParameterQuery;
+import com.brennaswitzer.cookbook.util.SqlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -179,7 +180,7 @@ public class PantryItemSearchRepositoryImpl implements PantryItemSearchRepositor
                         (upper(item.name) like upper('%%' || :%1$s || '%%') escape '\\'
                          or upper(syn) like upper('%%' || :%1$s || '%%') escape '\\'
                          or upper(lbl.name) like upper('%%' || :%1$s || '%%') escape '\\')
-                        """, p), p, word);
+                        """, p), p, SqlUtils.escapeLike(word));
             }
             stmt.append(")\n");
         }
