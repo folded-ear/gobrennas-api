@@ -35,6 +35,13 @@ public class PlannerMutationController {
     }
 
     @SchemaMapping
+    PlanItem scaleRecipe(PlannerMutation planMut,
+                         @Argument Long id,
+                         @Argument double scale) {
+        return planService.scaleRecipe(id, scale);
+    }
+
+    @SchemaMapping
     PlanItem assignBucket(PlannerMutation planMut,
                           @Argument Long id,
                           @Argument Long bucketId) {

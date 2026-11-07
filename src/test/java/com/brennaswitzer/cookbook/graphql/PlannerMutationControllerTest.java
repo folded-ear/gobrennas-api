@@ -35,6 +35,13 @@ class PlannerMutationControllerTest {
     private PlanService planService;
 
     @Test
+    void scaleRecipe() {
+        PlanItem item = mock(PlanItem.class);
+        when(planService.scaleRecipe(123L, 1.5)).thenReturn(item);
+        assertSame(item, mutation.scaleRecipe(null, 123L, 1.5));
+    }
+
+    @Test
     void assignBucket() {
         long itemId = 123L;
         long bucketId = 456L;

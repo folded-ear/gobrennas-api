@@ -122,6 +122,12 @@ extend type Mutation {
 }
 
 type PlannerMutation {
+    """Set an independently planned recipe's positive batch multiplier. Scales
+    its current quantities, including edited ingredients and linked preparation,
+    without rebuilding from the library. Subrecipe reference quantities scale,
+    but their contents do not. Repeating the same scale is a no-op.
+    """
+    scaleRecipe(id: ID!, scale: Float!): PlanItem!
     """Assign a plan item to a bucket (in the same plan), or clear an item's bucket."""
     assignBucket(id: ID!, bucketId: ID): PlanItem!
     """Create a new bucket w/in a plan, with an optional name and date."""
