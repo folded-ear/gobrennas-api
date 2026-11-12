@@ -78,6 +78,8 @@ app:
       - ${app.public-url}post-oauth2/redirect
       - https://beta.gobrennas.com/post-oauth2/redirect
       - https://next.gobrennas.com/post-oauth2/redirect
+      - https://prev.gobrennas.com/post-oauth2/redirect
+      - https://went.gobrennas.com/post-oauth2/redirect
   calendar:
     validate: false
   graphql:
