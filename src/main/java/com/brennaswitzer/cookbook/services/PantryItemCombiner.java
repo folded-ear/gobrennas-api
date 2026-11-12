@@ -59,6 +59,14 @@ public class PantryItemCombiner {
                 where ingredient_id = :other
                 """,
                 idMap));
+        // ingredient_acquisition.ingredient_id
+        update(new NamedParameterQuery(
+                """
+                update ingredient_acquisition
+                set ingredient_id = :toKeep
+                where ingredient_id = :other
+                """,
+                idMap));
         pantryItemRepository.delete(other);
         return toKeep;
     }
