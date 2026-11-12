@@ -1,7 +1,10 @@
 package com.brennaswitzer.cookbook.services;
 
+import com.brennaswitzer.cookbook.domain.Coordinates;
+import com.brennaswitzer.cookbook.domain.IngredientAcquisition;
 import com.brennaswitzer.cookbook.domain.PantryItem;
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.repositories.IngredientAcquisitionRepository;
 import com.brennaswitzer.cookbook.util.RecipeBox;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import com.brennaswitzer.cookbook.util.WithAliceBobEve;
@@ -10,7 +13,9 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +32,9 @@ class PantryItemServiceDeveloperTest {
 
     @Autowired
     UserPrincipalAccess principalAccess;
+
+    @Autowired
+    IngredientAcquisitionRepository acquisitionRepo;
 
     @Test
     void combineItems() {
@@ -61,6 +69,28 @@ class PantryItemServiceDeveloperTest {
         // salt has synonyms nacl, water, h2o, flour
         assertEquals(Set.of("nacl", "water", "h2o", "flour"),
                      salt.getSynonyms());
+    }
+
+    @Test
+    void combineItemsKeepsAcquisitions() {
+        RecipeBox box = new RecipeBox();
+        box.persist(entityManager, principalAccess.getUser());
+        var acquisition = new IngredientAcquisition(principalAccess.getUser(),
+                                                    box.flour,
+                                                    Instant.parse("2026-11-12T15:30:00Z"),
+                                                    new Coordinates(45.5, -122.6, 12));
+        acquisitionRepo.save(acquisition);
+        entityManager.flush();
+        entityManager.clear();
+
+        var salt = service.combineItems(List.of(box.salt.getId(),
+                                                box.flour.getId()));
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(Optional.of(salt.getId()),
+                     acquisitionRepo.findById(acquisition.getId())
+                             .map(a -> a.getIngredient().getId()));
     }
 
     private PantryItem ref(Long id) {
