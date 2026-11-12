@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./no-claude)",
+      "Read(./no-claude/**)",
+      "Edit(./no-claude)",
+      "Edit(./no-claude/**)"
+    ]
+  },
+  "sandbox": {
+    "filesystem": {
+      "denyRead": [
+        "./no-claude"
+      ]
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // \"\"' | grep -q -- 'no-claude' && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"no-claude/ is off limits to agents; do not read, list, or search it.\"}}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}

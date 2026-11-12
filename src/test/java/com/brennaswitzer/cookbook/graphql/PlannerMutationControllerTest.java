@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Coordinates;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -8,6 +9,7 @@ import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.payload.RecognitionChoice;
 import com.brennaswitzer.cookbook.services.PlanService;
+import graphql.GraphQLContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +24,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -260,10 +264,20 @@ class PlannerMutationControllerTest {
         PlanItemStatus status = PlanItemStatus.ACQUIRED;
         PlanItem item = mock(PlanItem.class);
         Instant date = Instant.now().minus(3, ChronoUnit.DAYS);
-        when(planService.setItemStatus(id, status, date))
+        Coordinates coords = new Coordinates(45.5, -122.6, 12);
+        when(planService.setItemStatus(eq(id),
+                                       eq(status),
+                                       eq(date),
+                                       eq(coords),
+                                       anySet()))
                 .thenReturn(item);
 
-        PlanItem result = mutation.setStatus(null, id, status, date);
+        PlanItem result = mutation.setStatus(null,
+                                             id,
+                                             status,
+                                             date,
+                                             coords,
+                                             GraphQLContext.newContext().build());
 
         assertSame(item, result);
     }

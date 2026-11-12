@@ -48,3 +48,34 @@ SET status_id     = 2,
 WHERE NOT ready;
 ALTER TABLE textract_job
     DROP COLUMN ready;
+
+--changeset barneyb:add-ingredient-acquisition-table
+CREATE TABLE ingredient_acquisition
+(
+    id            BIGINT                   NOT NULL DEFAULT NEXTVAL('id_seq'),
+    created_at    TIMESTAMP                NOT NULL DEFAULT NOW(),
+    _eqkey        BIGINT                   NOT NULL DEFAULT _eqkey(13),
+    updated_at    TIMESTAMP                NOT NULL DEFAULT NOW(),
+    user_id       BIGINT                   NOT NULL,
+    ingredient_id BIGINT                   NOT NULL,
+    acquired_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+    latitude      DOUBLE PRECISION         NOT NULL,
+    longitude     DOUBLE PRECISION         NOT NULL,
+    accuracy      DOUBLE PRECISION         NOT NULL,
+    CONSTRAINT pk_ingredient_acquisition PRIMARY KEY (id),
+    CONSTRAINT fk_ingredient_acquisition_user_id
+        FOREIGN KEY (user_id) REFERENCES users ON DELETE CASCADE,
+    CONSTRAINT fk_ingredient_acquisition_ingredient_id
+        FOREIGN KEY (ingredient_id) REFERENCES ingredient ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX uk_ingredient_acquisition__eqkey
+    ON ingredient_acquisition (_eqkey);
+CREATE INDEX idx_ingredient_acquisition_user
+    ON ingredient_acquisition (user_id);
+CREATE INDEX idx_ingredient_acquisition_ingredient
+    ON ingredient_acquisition (ingredient_id);
+
+--changeset barneyb:add-geolocation-refused-at-preference
+INSERT INTO preference
+    (name, type, default_value_str)
+VALUES ('geolocationRefusedAt', 8, NULL);

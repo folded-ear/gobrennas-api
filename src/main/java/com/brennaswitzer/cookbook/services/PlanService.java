@@ -3,7 +3,9 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.BaseEntity;
+import com.brennaswitzer.cookbook.domain.Coordinates;
 import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.IngredientAcquisition;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
@@ -15,6 +17,7 @@ import com.brennaswitzer.cookbook.domain.Recipe;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.payload.RecognitionChoice;
+import com.brennaswitzer.cookbook.repositories.IngredientAcquisitionRepository;
 import com.brennaswitzer.cookbook.repositories.PlanBucketRepository;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
@@ -71,6 +74,9 @@ public class PlanService {
 
     @Autowired
     private PlannedRecipeHistoryRepository recipeHistoryRepo;
+
+    @Autowired
+    private IngredientAcquisitionRepository acquisitionRepo;
 
     @Autowired
     private UserPrincipalAccess principalAccess;
@@ -500,8 +506,30 @@ public class PlanService {
 
     @PlanItemStatusAccess(id = "#id", status = "#status")
     public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
+        return setItemStatus(id, status, doneAt, null, new HashSet<>());
+    }
+
+    /**
+     * I set the item's status. If it transitions to {@link
+     * PlanItemStatus#ACQUIRED}, and has an ingredient not already in the
+     * passed set, and both doneAt and coords are passed, I record an
+     * acquisition and add the ingredient's ID to the set.
+     */
+    @PlanItemStatusAccess(id = "#id", status = "#status")
+    public PlanItem setItemStatus(Long id,
+                                  PlanItemStatus status,
+                                  Instant doneAt,
+                                  Coordinates coords,
+                                  Set<Long> acquiredIngredientIds) {
         PlanItem item = loadItem(id);
+        PlanItemStatus prior = item.getStatus();
         item.setStatus(status);
+        if (status == PlanItemStatus.ACQUIRED
+            && prior != PlanItemStatus.ACQUIRED
+            && doneAt != null
+            && coords != null) {
+            recordAcquisition(item, doneAt, coords, acquiredIngredientIds);
+        }
         if (item.getStatus().isForDelete()) {
             double scale = item.hasQuantity()
                     ? item.getQuantity().getQuantity()
@@ -510,6 +538,21 @@ public class PlanService {
             item.moveToTrash();
         }
         return item;
+    }
+
+    private void recordAcquisition(PlanItem item,
+                                   Instant doneAt,
+                                   Coordinates coords,
+                                   Set<Long> acquiredIngredientIds) {
+        Ingredient ingredient = item.getIngredient();
+        if (ingredient == null
+            || !acquiredIngredientIds.add(ingredient.getId())) {
+            return;
+        }
+        acquisitionRepo.save(new IngredientAcquisition(principalAccess.getUser(),
+                                                       ingredient,
+                                                       doneAt,
+                                                       coords));
     }
 
     private void recordRecipeHistories(PlanItem item,

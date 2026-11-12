@@ -1,6 +1,9 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Coordinates;
+import com.brennaswitzer.cookbook.domain.Ingredient;
+import com.brennaswitzer.cookbook.domain.IngredientAcquisition;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
 import com.brennaswitzer.cookbook.domain.PlanItem;
@@ -8,6 +11,7 @@ import com.brennaswitzer.cookbook.domain.PlanItemStatus;
 import com.brennaswitzer.cookbook.domain.PlannedRecipeHistory;
 import com.brennaswitzer.cookbook.domain.User;
 import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
+import com.brennaswitzer.cookbook.repositories.IngredientAcquisitionRepository;
 import com.brennaswitzer.cookbook.repositories.PlanItemRepository;
 import com.brennaswitzer.cookbook.repositories.PlanRepository;
 import com.brennaswitzer.cookbook.repositories.PlannedRecipeHistoryRepository;
@@ -22,8 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -40,8 +46,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @WithAliceBobEve
 class PlanServiceDbTest {
 
+    private static final Instant DONE_AT = Instant.parse("2026-11-12T15:30:00Z");
+    private static final Coordinates COORDS = new Coordinates(45.5, -122.6, 12);
+
     @Autowired
     private PlanService service;
+
+    @Autowired
+    private IngredientAcquisitionRepository acquisitionRepo;
 
     @Autowired
     private PlanItemRepository itemRepo;
@@ -507,6 +519,122 @@ class PlanServiceDbTest {
 
         assertEquals(List.of(groceries),
                      result);
+    }
+
+    @Test
+    void setItemStatus_acquireRecordsAcquisition() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        PlanItem salt = shoppingItem(box.salt);
+        Set<Long> acquiredIngredientIds = new HashSet<>();
+
+        service.setItemStatus(salt.getId(),
+                              PlanItemStatus.ACQUIRED,
+                              DONE_AT,
+                              COORDS,
+                              acquiredIngredientIds);
+
+        var acquisitions = acquisitions();
+        assertEquals(1, acquisitions.size());
+        var acquisition = acquisitions.get(0);
+        assertEquals(alice.getId(), acquisition.getUser().getId());
+        assertEquals(box.salt.getId(), acquisition.getIngredient().getId());
+        assertEquals(DONE_AT, acquisition.getAcquiredAt());
+        assertEquals(COORDS, acquisition.getCoordinates());
+        assertEquals(Set.of(box.salt.getId()), acquiredIngredientIds);
+    }
+
+    @Test
+    void setItemStatus_alreadyAcquiredDoesNotRecord() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        PlanItem salt = shoppingItem(box.salt);
+        service.setItemStatus(salt.getId(), PlanItemStatus.ACQUIRED);
+
+        service.setItemStatus(salt.getId(),
+                              PlanItemStatus.ACQUIRED,
+                              DONE_AT,
+                              COORDS,
+                              new HashSet<>());
+
+        assertEquals(List.of(), acquisitions());
+    }
+
+    @Test
+    void setItemStatus_ingredientInSetDoesNotRecord() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        PlanItem salt = shoppingItem(box.salt);
+
+        service.setItemStatus(salt.getId(),
+                              PlanItemStatus.ACQUIRED,
+                              DONE_AT,
+                              COORDS,
+                              new HashSet<>(Set.of(box.salt.getId())));
+
+        assertEquals(List.of(), acquisitions());
+    }
+
+    @Test
+    void setItemStatus_acquireWithoutDoneAtDoesNotRecord() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        PlanItem salt = shoppingItem(box.salt);
+
+        service.setItemStatus(salt.getId(),
+                              PlanItemStatus.ACQUIRED,
+                              null,
+                              COORDS,
+                              new HashSet<>());
+
+        assertEquals(PlanItemStatus.ACQUIRED, salt.getStatus());
+        assertEquals(List.of(), acquisitions());
+    }
+
+    @Test
+    void setItemStatus_acquireWithoutCoordsDoesNotRecord() {
+        var box = new RecipeBox();
+        box.persist(entityManager, alice);
+        PlanItem salt = shoppingItem(box.salt);
+
+        service.setItemStatus(salt.getId(),
+                              PlanItemStatus.ACQUIRED,
+                              DONE_AT,
+                              null,
+                              new HashSet<>());
+
+        assertEquals(PlanItemStatus.ACQUIRED, salt.getStatus());
+        assertEquals(List.of(), acquisitions());
+    }
+
+    @Test
+    void setItemStatus_acquireWithoutIngredientDoesNotRecord() {
+        PlanItem oj = shoppingItem(null);
+
+        service.setItemStatus(oj.getId(),
+                              PlanItemStatus.ACQUIRED,
+                              DONE_AT,
+                              COORDS,
+                              new HashSet<>());
+
+        assertEquals(PlanItemStatus.ACQUIRED, oj.getStatus());
+        assertEquals(List.of(), acquisitions());
+    }
+
+    private PlanItem shoppingItem(Ingredient ingredient) {
+        Plan groceries = service.createPlan("Groceries", alice);
+        PlanItem item = ingredient == null
+                ? new PlanItem("OJ")
+                : new PlanItem(ingredient.getName(), ingredient);
+        itemRepo.save(item.of(groceries));
+        entityManager.flush();
+        return item;
+    }
+
+    private List<IngredientAcquisition> acquisitions() {
+        entityManager.flush();
+        entityManager.clear();
+        return acquisitionRepo.findAll();
     }
 
 }

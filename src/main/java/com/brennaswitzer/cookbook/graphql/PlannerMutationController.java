@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.Coordinates;
 import com.brennaswitzer.cookbook.domain.CorePlanItem;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.PlanBucket;
@@ -11,6 +12,7 @@ import com.brennaswitzer.cookbook.graphql.model.UnsavedBucket;
 import com.brennaswitzer.cookbook.message.MutatePlanTree;
 import com.brennaswitzer.cookbook.payload.RecognitionChoice;
 import com.brennaswitzer.cookbook.services.PlanService;
+import graphql.GraphQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -19,10 +21,15 @@ import org.springframework.stereotype.Controller;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class PlannerMutationController {
+
+    private static final String ACQUIRED_INGREDIENT_IDS =
+            PlannerMutationController.class.getName() + ".acquiredIngredientIds";
 
     record PlannerMutation() {}
 
@@ -193,8 +200,17 @@ public class PlannerMutationController {
     PlanItem setStatus(PlannerMutation planMut,
                        @Argument Long id,
                        @Argument PlanItemStatus status,
-                       @Argument Instant doneAt) {
-        return planService.setItemStatus(id, status, doneAt);
+                       @Argument Instant doneAt,
+                       @Argument Coordinates coords,
+                       GraphQLContext context) {
+        Set<Long> acquiredIngredientIds = context.computeIfAbsent(
+                ACQUIRED_INGREDIENT_IDS,
+                key -> new HashSet<>());
+        return planService.setItemStatus(id,
+                                         status,
+                                         doneAt,
+                                         coords,
+                                         acquiredIngredientIds);
     }
 
     @SchemaMapping

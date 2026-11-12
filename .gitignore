@@ -48,3 +48,4 @@ HELP.md
 *.swp
 
 .DS_Store
+/.claude/worktrees/

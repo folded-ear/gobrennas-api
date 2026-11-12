@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.services;
 
 import com.brennaswitzer.cookbook.domain.AccessLevel;
+import com.brennaswitzer.cookbook.domain.DataType;
 import com.brennaswitzer.cookbook.domain.Plan;
 import com.brennaswitzer.cookbook.domain.Preference;
 import com.brennaswitzer.cookbook.domain.User;
@@ -14,11 +15,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +33,7 @@ class DefaultUserPreferenceDbTest {
     private static final String DEVICE_KEY = "alices-phone";
     private static final String UNKNOWN_PLAN_ID = "-1";
     private static final String NOT_AN_ID = "garbage";
+    private static final String PREF_GEOLOCATION_REFUSED_AT = "geolocationRefusedAt";
 
     @Autowired
     private DefaultUserPreference defPref;
@@ -150,6 +154,14 @@ class DefaultUserPreferenceDbTest {
 
         assertEquals(ids(beta), defaultIds(prefName, DEVICE_KEY));
         assertEquals(ids(alpha), defaultIds(prefName, null));
+    }
+
+    @Test
+    void geolocationRefusedAt() {
+        assertEquals(Optional.of(DataType.LOCAL_DATE),
+                     preferenceRepo.findByName(PREF_GEOLOCATION_REFUSED_AT)
+                             .map(Preference::getType));
+        assertNull(defaultValue(PREF_GEOLOCATION_REFUSED_AT, null));
     }
 
     private Plan share(Plan bobsPlan) {
