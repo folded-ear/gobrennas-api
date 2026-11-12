@@ -17,6 +17,10 @@ public enum DataType implements Identified {
     SET_OF_IDS(5L),
     INT(6L),
     FLOAT(7L),
+    /**
+     * An ISO-8601 date, without time or zone (e.g., {@code 2026-11-12}).
+     */
+    LOCAL_DATE(8L),
     ;
 
     private final Long id;

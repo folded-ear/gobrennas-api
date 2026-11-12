@@ -3,6 +3,7 @@ package com.brennaswitzer.cookbook.services;
 import com.brennaswitzer.cookbook.domain.AccessLevel;
 import com.brennaswitzer.cookbook.domain.AggregateIngredient;
 import com.brennaswitzer.cookbook.domain.BaseEntity;
+import com.brennaswitzer.cookbook.domain.Coordinates;
 import com.brennaswitzer.cookbook.domain.Ingredient;
 import com.brennaswitzer.cookbook.domain.IngredientRef;
 import com.brennaswitzer.cookbook.domain.Plan;
@@ -500,6 +501,21 @@ public class PlanService {
 
     @PlanItemStatusAccess(id = "#id", status = "#status")
     public PlanItem setItemStatus(Long id, PlanItemStatus status, Instant doneAt) {
+        return setItemStatus(id, status, doneAt, null, new HashSet<>());
+    }
+
+    /**
+     * I set the item's status. If it transitions to {@link
+     * PlanItemStatus#ACQUIRED}, and has an ingredient not already in the
+     * passed set, and both doneAt and coords are passed, I record an
+     * acquisition and add the ingredient's ID to the set.
+     */
+    @PlanItemStatusAccess(id = "#id", status = "#status")
+    public PlanItem setItemStatus(Long id,
+                                  PlanItemStatus status,
+                                  Instant doneAt,
+                                  Coordinates coords,
+                                  Set<Long> acquiredIngredientIds) {
         PlanItem item = loadItem(id);
         item.setStatus(status);
         if (item.getStatus().isForDelete()) {

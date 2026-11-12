@@ -110,6 +110,8 @@ enum DataType {
     INT
     "Arbitrary JSON-serialized data"
     JSON
+    "An ISO-8601 date, without time or zone (e.g., 2026-11-12)"
+    LOCAL_DATE
     "A JSON-serialized list of ID values"
     SET_OF_IDS
     STRING

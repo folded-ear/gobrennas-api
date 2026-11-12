@@ -105,6 +105,14 @@ enum PlanBucketSort {
     NAME
 }
 
+"""A geographic position, as reported by a device."""
+input CoordinatesInput {
+    latitude: Float!
+    longitude: Float!
+    """Accuracy of the position, in meters."""
+    accuracy: Float!
+}
+
 input UnsavedBucket {
     name: String
     date: Date
@@ -184,8 +192,14 @@ type PlannerMutation {
     """Set the access level granted to a user w/in a plan."""
     setGrant(planId: ID!, userId: ID!, accessLevel: AccessLevel!): Plan!
     """Sets the status of the given item. This will always return the updated
-    item, though it may immediately be moved to the trash (in the background)."""
-    setStatus(id: ID!, status: PlanItemStatus!, doneAt: DateTime): PlanItem!
+    item, though it may immediately be moved to the trash (in the background).
+    When an item with an ingredient becomes ACQUIRED, and both doneAt and coords
+    are supplied, the acquisition is recorded. Within a single request, only the
+    first acquisition of a given ingredient is recorded."""
+    setStatus(id: ID!,
+              status: PlanItemStatus!,
+              doneAt: DateTime,
+              coords: CoordinatesInput): PlanItem!
     """Update a bucket w/in a plan, by setting or clearing its name and date."""
     updateBucket(planId: ID!, bucketId: ID!, name: String, date: Date): PlanBucket!
     updatePlanNotes(planId: ID!, notes: String): Plan!
