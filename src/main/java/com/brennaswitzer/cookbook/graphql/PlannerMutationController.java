@@ -23,9 +23,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class PlannerMutationController {
+
+    private static final String ACQUIRED_INGREDIENT_IDS =
+            PlannerMutationController.class.getName() + ".acquiredIngredientIds";
 
     record PlannerMutation() {}
 
@@ -199,11 +203,14 @@ public class PlannerMutationController {
                        @Argument Instant doneAt,
                        @Argument Coordinates coords,
                        GraphQLContext context) {
+        Set<Long> acquiredIngredientIds = context.computeIfAbsent(
+                ACQUIRED_INGREDIENT_IDS,
+                key -> new HashSet<>());
         return planService.setItemStatus(id,
                                          status,
                                          doneAt,
                                          coords,
-                                         new HashSet<>());
+                                         acquiredIngredientIds);
     }
 
     @SchemaMapping

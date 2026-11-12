@@ -74,3 +74,8 @@ CREATE INDEX idx_ingredient_acquisition_user
     ON ingredient_acquisition (user_id);
 CREATE INDEX idx_ingredient_acquisition_ingredient
     ON ingredient_acquisition (ingredient_id);
+
+--changeset barneyb:add-geolocation-refused-at-preference
+INSERT INTO preference
+    (name, type, default_value_str)
+VALUES ('geolocationRefusedAt', 8, NULL);
