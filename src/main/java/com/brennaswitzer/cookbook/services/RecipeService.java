@@ -134,6 +134,8 @@ public class RecipeService {
                         r -> r.addOwnedSection(section),
                         () -> {
                             sectionOf.removeOwnedSection(section);
+                            // Planned copies of the section's recipe link to it too.
+                            planService.severLibraryLinks(section);
                             recipeRepository.delete(section);
                         });
     }

@@ -11,6 +11,7 @@ import com.brennaswitzer.cookbook.services.storage.StorageService;
 import com.brennaswitzer.cookbook.util.UserPrincipalAccess;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -42,6 +44,9 @@ class RecipeServiceTest {
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private PlanService planService;
 
     @Test
     void createRecipe_noPhoto() {
@@ -125,7 +130,10 @@ class RecipeServiceTest {
                      pizza.getOwnedSections());
         assertEquals(List.of(),
                      pizza.getIngredients());
-        verify(recipeRepository).delete(crust);
+        // plan items linked to the section must let go before it's deleted
+        InOrder inOrder = inOrder(planService, recipeRepository);
+        inOrder.verify(planService).severLibraryLinks(crust);
+        inOrder.verify(recipeRepository).delete(crust);
     }
 
     @Test
@@ -151,6 +159,7 @@ class RecipeServiceTest {
         assertEquals(List.of(crust),
                      pie.getOwnedSections()); // became an owned section
         verify(recipeRepository, never()).delete(any());
+        verifyNoInteractions(planService);
     }
 
 }
