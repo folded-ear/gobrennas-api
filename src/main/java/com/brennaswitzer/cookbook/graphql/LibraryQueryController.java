@@ -144,6 +144,13 @@ public class LibraryQueryController {
     }
 
     @SchemaMapping
+    Section getSectionById(LibraryQuery libQ,
+                           @Argument Long id,
+                           @CurrentUser UserPrincipal userPrincipal) {
+        return new Section(getRecipeById(libQ, id, null, userPrincipal));
+    }
+
+    @SchemaMapping
     @PreAuthorize("hasRole('USER')")
     RecognizedItem recognizeItem(LibraryQuery libQ,
                                  @Argument String raw,

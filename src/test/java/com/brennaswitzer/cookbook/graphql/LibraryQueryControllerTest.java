@@ -1,6 +1,7 @@
 package com.brennaswitzer.cookbook.graphql;
 
 import com.brennaswitzer.cookbook.domain.Recipe;
+import com.brennaswitzer.cookbook.graphql.model.Section;
 import com.brennaswitzer.cookbook.payload.RecognizedItem;
 import com.brennaswitzer.cookbook.security.UserPrincipal;
 import com.brennaswitzer.cookbook.services.ItemService;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,6 +86,33 @@ class LibraryQueryControllerTest {
         Recipe recipe = mock(Recipe.class);
         when(recipeService.findRecipeById(any())).thenReturn(Optional.of(recipe));
         assertSame(recipe, query.getRecipeById(null, 4L, null, userPrincipal));
+    }
+
+    @Test
+    void getSectionById_anonymous() {
+        assertThrows(NoUserPrincipalException.class,
+                     () -> query.getSectionById(null, 4L, null));
+
+        verifyNoInteractions(recipeService);
+    }
+
+    @Test
+    void getSectionById_unknown() {
+        when(recipeService.findRecipeById(any())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                     () -> query.getSectionById(null, 4L, userPrincipal));
+    }
+
+    @Test
+    void getSectionById() {
+        Recipe recipe = mock(Recipe.class);
+        when(recipe.getId()).thenReturn(4L);
+        when(recipeService.findRecipeById(4L)).thenReturn(Optional.of(recipe));
+
+        Section section = query.getSectionById(null, 4L, userPrincipal);
+
+        assertEquals(4L, section.getId());
     }
 
     @Test
