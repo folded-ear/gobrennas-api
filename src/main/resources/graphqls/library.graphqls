@@ -86,6 +86,11 @@ type LibraryQuery {
     """
     getRecipeById(id: ID!, secret: String): Recipe!
 
+    """Retrieve a single section by its ID. Any recipe can be retrieved as a
+    section. Requires authentication.
+    """
+    getSectionById(id: ID!): Section!
+
     """Recognize quantity, unit, and/or ingredient in a raw ingredient ref (aka
     item) string, and describe that structure. By default, also provide
     suggestions based on partial matches.
