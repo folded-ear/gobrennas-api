@@ -137,6 +137,25 @@ class RecipeServiceTest {
     }
 
     @Test
+    void removeOwnedSection_orphanWithPhoto() {
+        String objectKey = "recipe/123/crust.jpg";
+        Recipe pizza = new Recipe();
+        Recipe crust = new Recipe();
+        crust.setId(123L);
+        crust.setPhoto(new S3File(objectKey, "image/jpeg", 1234L));
+        pizza.addOwnedSection(crust);
+        when(recipeRepository.searchRecipes(any()))
+                .thenReturn(SearchResponseImpl.<Recipe>builder()
+                                    .content(List.of(pizza))
+                                    .build());
+
+        service.removeOwnedSection(crust);
+
+        assertFalse(crust.hasPhoto());
+        verify(storageService).remove(objectKey);
+    }
+
+    @Test
     void removeOwnedSection_rehome() {
         Recipe pizza = new Recipe();
         Recipe pie = new Recipe();
