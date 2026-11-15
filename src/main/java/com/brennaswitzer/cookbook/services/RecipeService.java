@@ -91,15 +91,19 @@ public class RecipeService {
     @RecipeAccess(id = "#id", level = AccessLevel.CHANGE)
     public Recipe deleteRecipeById(Long id) {
         Recipe recipe = recipeRepository.getReferenceById(id);
-        removePhotoInternal(recipe);
-        planService.severLibraryLinks(recipe);
         while (!recipe.getOwnedSections().isEmpty()) {
             removeOwnedSection(recipe.getOwnedSections()
                                        .iterator()
                                        .next());
         }
-        recipeRepository.delete(recipe);
+        deleteRecipeInternal(recipe);
         return recipe;
+    }
+
+    private void deleteRecipeInternal(Recipe recipe) {
+        removePhotoInternal(recipe);
+        planService.severLibraryLinks(recipe);
+        recipeRepository.delete(recipe);
     }
 
     /**
@@ -134,10 +138,7 @@ public class RecipeService {
                         r -> r.addOwnedSection(section),
                         () -> {
                             sectionOf.removeOwnedSection(section);
-                            removePhotoInternal(section);
-                            // Planned copies of the section's recipe link to it too.
-                            planService.severLibraryLinks(section);
-                            recipeRepository.delete(section);
+                            deleteRecipeInternal(section);
                         });
     }
 
