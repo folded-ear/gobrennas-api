@@ -1,5 +1,5 @@
 # build environment
-FROM eclipse-temurin:17-alpine AS build
+FROM eclipse-temurin:17.0.21.1_2-jdk-alpine AS build
 WORKDIR /app
 COPY . ./
 RUN apk add --no-cache esbuild \
@@ -21,7 +21,7 @@ RUN jar xf cookbook-1.0.0-SNAPSHOT.jar public/import_bookmarklet.js \
     && rm -rf public
 
 # server environment
-FROM eclipse-temurin:17-alpine
+FROM eclipse-temurin:17.0.21.1_2-jdk-alpine
 ENV PORT=80 \
     HOST=0.0.0.0
 EXPOSE $PORT

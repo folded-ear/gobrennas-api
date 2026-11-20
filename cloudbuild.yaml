@@ -3,6 +3,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - build
+      - '--pull'
       - '--no-cache'
       - '-t'
       - >-
